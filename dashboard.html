@@ -145,6 +145,24 @@
       display: block;
     }
 
+    .theme-toggle-btn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  text-align: left;
+  font-size: 1rem;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.theme-toggle-btn:hover {
+  background-color: #eee;
+}
+
+
     @media (max-width: 768px) {
       .sidebar {
         position: fixed;
@@ -185,11 +203,13 @@
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
       <div class="profile-section">
         <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" onclick="toggleDropdown()" />
-        <div class="dropdown-menu" id="dropdown">
-          <a href="#" onclick="toggleTheme()">Cambiar tema</a>
-          <a href="settings.html">Configuración</a>
-          <a href="#">Cerrar sesión</a>
-        </div>
+       <div class="dropdown-menu" id="dropdown">
+  <button class="theme-toggle-btn" onclick="toggleTheme()">
+    <span id="theme-icon">🌙</span> Tema
+  </button>
+  <a href="settings.html">Configuración</a>
+  <a href="#" onclick="logout()">Cerrar sesión</a>
+</div>
       </div>
     </div>
 
@@ -199,31 +219,53 @@
     </div>
   </div>
 
-  <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('active');
-    }
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('active');
+  }
 
-    function toggleDropdown() {
-      document.getElementById('dropdown').classList.toggle('show');
-    }
+  function toggleDropdown() {
+    document.getElementById('dropdown').classList.toggle('show');
+  }
 
-    function toggleTheme() {
-      const body = document.body;
-      const currentTheme = body.getAttribute("data-theme");
-      body.setAttribute("data-theme", currentTheme === "dark" ? "light" : "dark");
-    }
+  function toggleTheme() {
+    const body = document.body;
+    const icon = document.getElementById("theme-icon");
+    const isDark = body.getAttribute("data-theme") === "dark";
 
-    // Cerrar el dropdown si se hace clic fuera
-    window.onclick = function(e) {
-      if (!e.target.matches('.profile-img')) {
-        const dropdown = document.getElementById("dropdown");
-        if (dropdown.classList.contains("show")) {
-          dropdown.classList.remove("show");
-        }
+    body.setAttribute("data-theme", isDark ? "light" : "dark");
+    icon.textContent = isDark ? "🌙" : "☀️";
+  }
+
+  function logout() {
+    // Simulación de cierre de sesión
+    alert("Has cerrado sesión.");
+    // Aquí podrías limpiar datos del navegador
+    localStorage.clear();
+    sessionStorage.clear();
+    // Redirigir a una página de login (puedes crear login.html si gustas)
+    window.location.href = "login.html";
+  }
+
+  window.onclick = function (e) {
+    if (!e.target.matches('.profile-img')) {
+      const dropdown = document.getElementById("dropdown");
+      if (dropdown && dropdown.classList.contains("show")) {
+        dropdown.classList.remove("show");
       }
     }
-  </script>
+  }
+
+  // Inicializa ícono de tema al cargar
+  document.addEventListener("DOMContentLoaded", () => {
+    const currentTheme = document.body.getAttribute("data-theme");
+    const icon = document.getElementById("theme-icon");
+    if (icon) {
+      icon.textContent = currentTheme === "dark" ? "☀️" : "🌙";
+    }
+  });
+</script>
+
 
 </body>
 </html>
