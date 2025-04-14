@@ -209,6 +209,9 @@
     .overlay.show {
       display: block;
     }
+.sidebar.collapsed h2 .sidebar-title {
+  display: none;
+}
 
     @media (max-width: 768px) {
       .sidebar {
@@ -233,7 +236,10 @@
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <div>
-      <h2 onclick="toggleSidebar()">☰ Dashboard</h2>
+<h2 onclick="toggleSidebar()">
+  <i class="fas fa-bars"></i> <span class="sidebar-title">Dashboard</span>
+</h2>
+
       <nav>
         <a href="#"><i class="fas fa-home"></i> <span>Inicio</span></a>
         <a href="#"><i class="fas fa-flask"></i> <span>Playground</span></a>
