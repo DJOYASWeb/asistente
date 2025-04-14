@@ -302,11 +302,13 @@
       <div class="d-flex align-items-center justify-content-between mb-1">
         <input type="text" class="form-control note-title border-0 fw-bold fs-6 me-2" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
         <div class="d-flex align-items-center gap-2">
-          <label class="mb-0 position-relative" style="cursor: pointer;">
-            <i class="fas fa-calendar-alt text-secondary"></i>
-            <input type="date" class="note-date form-control form-control-sm position-absolute top-0 start-0 opacity-0" style="width: 100%; height: 100%;" value="${data.date || ''}" onchange="actualizarFecha(this)">
-          </label>
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteNote(this)"><i class="fas fa-trash"></i></button>
+          <div class="d-flex align-items-center">
+  <input type="date" class="note-date d-none" value="${data.date || ''}" onchange="actualizarFecha(this)">
+  <button class="btn btn-sm btn-outline-secondary" onclick="abrirCalendario(this)">
+    <i class="fas fa-calendar-alt"></i>
+  </button>
+</div>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteNote(this)"><i class="fas fa-trash"></i></button>
         </div>
       </div>
       <small class="text-muted fecha-visual ms-1 mb-2">${data.date ? `📅 ${data.date}` : ''}</small>
@@ -393,6 +395,13 @@
   }
 
   window.addEventListener('DOMContentLoaded', loadNotes);
+
+function abrirCalendario(button) {
+  const input = button.parentElement.querySelector('.note-date');
+  input.showPicker ? input.showPicker() : input.click(); // para compatibilidad
+}
+
+  
 </script>
 
 
