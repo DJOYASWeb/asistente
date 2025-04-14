@@ -212,6 +212,11 @@
     border-radius: 20px;
     padding: 2rem;
     }
+    .fecha-visual {
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+
   </style>
 </head>
 <body data-theme="light">
@@ -261,7 +266,7 @@
 
   </div>
 
- <script>
+<script>
   const noteGrid = document.getElementById('noteGrid');
   const filtroFecha = document.getElementById('filtroFecha');
 
@@ -294,11 +299,19 @@
     const note = document.createElement('div');
     note.className = 'card note p-3';
     note.innerHTML = `
-      <div class="d-flex justify-content-between align-items-start mb-2">
-        <input type="text" class="form-control note-title border-0 fw-bold fs-6" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
-        <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteNote(this)"><i class="fas fa-trash"></i></button>
+      <input type="text" class="form-control note-title border-0 fw-bold fs-6 mb-1" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
+      
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <label class="btn btn-sm btn-outline-secondary mb-0">
+            <i class="fas fa-calendar-alt"></i>
+            <input type="date" class="form-control form-control-sm note-date d-none" value="${data.date || ''}" onchange="actualizarFecha(this)" />
+          </label>
+          <small class="text-muted fecha-visual">${data.date ? `📅 ${data.date}` : ''}</small>
+        </div>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteNote(this)"><i class="fas fa-trash"></i></button>
       </div>
-      <input type="date" class="form-control form-control-sm note-date mb-2" value="${data.date || ''}" onchange="saveNotes()" />
+
       <div class="tasks mb-2">
         ${(data.tasks || []).map(t => `
           <div class="task d-flex align-items-center mb-1">
@@ -308,13 +321,15 @@
           </div>
         `).join('')}
       </div>
+
       <div class="input-group input-group-sm">
         <input type="text" class="form-control" placeholder="Nueva tarea..." />
         <button class="btn btn-outline-primary" onclick="addTask(this)">+</button>
       </div>
     `;
+    
     col.appendChild(note);
-    noteGrid.appendChild(col); // ahora se agrega al final
+    noteGrid.appendChild(col); // 👈 Se agrega al final
     saveNotes();
   }
 
@@ -363,17 +378,22 @@
     });
   }
 
+  function filtrarPorTexto() {
+    const texto = document.getElementById('busquedaTexto').value.toLowerCase();
+    const notas = document.querySelectorAll('.note');
+    notas.forEach(nota => {
+      const titulo = nota.querySelector('.note-title')?.value.toLowerCase() || '';
+      nota.closest('.col-12').style.display = titulo.includes(texto) ? '' : 'none';
+    });
+  }
+
+  function actualizarFecha(input) {
+    const small = input.closest('.note').querySelector('.fecha-visual');
+    small.textContent = input.value ? `📅 ${input.value}` : '';
+    saveNotes();
+  }
+
   window.addEventListener('DOMContentLoaded', loadNotes);
-
-   function filtrarPorTexto() {
-  const texto = document.getElementById('busquedaTexto').value.toLowerCase();
-  const notas = document.querySelectorAll('.note');
-  notas.forEach(nota => {
-    const titulo = nota.querySelector('.note-title')?.value.toLowerCase() || '';
-    nota.closest('.col-12').style.display = titulo.includes(texto) ? '' : 'none';
-  });
-}
-
 </script>
 
 </body>
