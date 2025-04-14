@@ -241,13 +241,14 @@
 
     <!-- === Contenido exclusivo de tareas.html === -->
     <div class="content-area container-fluid">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4">Tareas Diarias 🗓️</h1>
-    <div class="d-flex gap-2">
-      <input type="date" class="form-control" id="filtroFecha" onchange="filtrarPorFecha()" />
-      <button class="btn btn-primary" onclick="addNote()">Nueva Nota +</button>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h4">Tareas Diarias 🗓️</h1>
+  <div class="d-flex gap-2 flex-wrap">
+    <input type="text" class="form-control" placeholder="Buscar por título..." id="busquedaTexto" oninput="filtrarPorTexto()" />
+    <input type="date" class="form-control" id="filtroFecha" onchange="filtrarPorFecha()" />
+    <button class="btn btn-primary" onclick="addNote()">Nueva Nota +</button>
   </div>
+</div>
   <div class="row" id="noteGrid">
     <!-- Notas se insertan aquí -->
   </div>
@@ -308,7 +309,7 @@
       </div>
     `;
     col.appendChild(note);
-    noteGrid.prepend(col);
+    noteGrid.appendChild(col); // ahora se agrega al final
     saveNotes();
   }
 
@@ -358,6 +359,16 @@
   }
 
   window.addEventListener('DOMContentLoaded', loadNotes);
+
+   function filtrarPorTexto() {
+  const texto = document.getElementById('busquedaTexto').value.toLowerCase();
+  const notas = document.querySelectorAll('.note');
+  notas.forEach(nota => {
+    const titulo = nota.querySelector('.note-title')?.value.toLowerCase() || '';
+    nota.closest('.col-12').style.display = titulo.includes(texto) ? '' : 'none';
+  });
+}
+
 </script>
 
 </body>
