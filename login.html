@@ -3,212 +3,371 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login | iCloud Style</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>Dashboard Estilo iOS</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  
   <style>
+    :root {
+      --bg-color: #f2f2f7;
+      --text-color: #000;
+      --sidebar-bg: #1c1c1e;
+      --sidebar-hover: #2c2c2e;
+      --sidebar-text: #ccc;
+      --primary: #0a84ff;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #000;
+      --text-color: #fff;
+      --sidebar-bg: #1c1c1e;
+      --sidebar-hover: #2c2c2e;
+      --sidebar-text: #aaa;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(to bottom, #f0f2f5, #e5e5e5);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
       height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .sidebar {
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      width: 250px;
+      min-width: 250px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 90px;
+      min-width: 75px;
+    }
+
+    .sidebar nav a,
+    .bottom-links a,
+    .sidebar h2 {
+      color: var(--sidebar-text);
+      text-decoration: none;
+      margin: 0.25rem 0;
+      height: 48px;
+      padding: 0 1rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar nav a:hover,
+    .bottom-links a:hover {
+      background-color: var(--sidebar-hover);
+    }
+
+    .sidebar .icon {
+      width: 24px;
+      min-width: 24px;
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
-.login-container {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-  margin: 1rem;
-}
-
-    .login-container h1 {
-      margin-bottom: 20px;
-      font-weight: 600;
-      color: #333;
+    .sidebar .label {
+      margin-left: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity 0.2s ease, width 0.2s ease, margin 0.2s ease;
     }
 
-    .form-group {
-      margin-bottom: 20px;
-      text-align: left;
+    .sidebar.collapsed .label {
+      opacity: 0;
+      width: 0;
+      margin: 0;
     }
 
-    .form-group label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
-      color: #555;
+    .topbar {
+      background-color: var(--bg-color);
+      padding: 1rem;
+      border-bottom: 1px solid #d1d1d6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-.form-group input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-    .form-group input:focus {
-      border-color: #0071e3;
-      outline: none;
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
     }
 
-    .login-btn {
-      width: 100%;
-      padding: 12px;
-      background-color: #323232;
-      color: white;
+    .content-area {
+      padding: 2rem;
+    }
+
+    .menu-btn {
+      background: none;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 1.2rem;
+      color: var(--text-color);
+    }
+
+    .profile-section {
+      position: relative;
+    }
+
+    .profile-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       cursor: pointer;
-      transition: background 0.3s;
-      height: 65px;
     }
 
-    .login-btn:hover {
-      background-color: #000;
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background-color: var(--bg-color);
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      min-width: 220px;
+      padding: 0.5rem;
+      z-index: 1000;
     }
 
-    .error {
-      color: red;
-      margin-top: 10px;
-      font-size: 14px;
+    .dropdown-menu.show {
+      display: block;
     }
 
-    .success {
-      color: green;
-      margin-top: 10px;
-      font-size: 14px;
+    .user-info {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #e5e5ea;
+      margin-bottom: 0.5rem;
+    }
+
+    .theme-switch,
+    .dropdown-menu a {
+      display: flex;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      text-decoration: none;
+      color: var(--text-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .theme-switch:hover,
+    .dropdown-menu a:hover {
+      background-color: #e5e5ea;
+    }
+
+    .switch-icon {
+      margin-right: 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    /* Overlay móvil */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+
+    .overlay.show {
+      display: block;
+    }
+
+    /* Tooltips solo en colapsado */
+    .sidebar.collapsed a[data-tooltip]::after,
+    .sidebar.collapsed h2[data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      border-radius: 6px;
+      margin-left: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 9999;
+    }
+
+    .sidebar.collapsed a[data-tooltip]:hover::after,
+    .sidebar.collapsed h2[data-tooltip]:hover::after {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        transform: translateX(-100%);
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
     }
   </style>
 </head>
-<body>
+<body data-theme="light">
+  <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
-  <div class="login-container">
-    <h1>Iniciar sesión</h1>
-
-    <div class="form-group">
-      <label for="email">Correo electrónico</label>
-      <input type="email" id="email" placeholder="tucorreo@ejemplo.com" />
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">Dashboard</span>
+      </h2>
+      <nav>
+        <a href="#" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
+        <a href="#" data-tooltip="Playground"><span class="icon"><i class="fas fa-flask"></i></span><span class="label">DJOYAS Blog</span></a>
+        <a href="#" data-tooltip="Uso"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="label">Descripciones</span></a>
+        <a href="#" data-tooltip="Facturación"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">DJOYAS Inspira</span></a>
+      </nav>
     </div>
-
-<div class="form-group" style="position: relative;">
-  <label for="password">Contraseña</label>
-  <input type="password" id="password" placeholder="••••••••" />
-  <button type="button" onclick="togglePassword()" id="togglePassBtn"
-    style="position: absolute; right: 10px; top: 36px; background: none; border: none; cursor: pointer;">
-    <i class="fa-solid fa-eye" id="eyeIcon"></i>
-  </button>
-</div>
-
-    <button class="login-btn" onclick="login()">Entrar</button>
-
-    <div id="message" class="error"></div>
+    <div class="bottom-links">
+      <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias"><span class="icon"><i class="fas fa-list-check"></i></span><span class="label">Tareas Diarias</span></a>
+      <a href="#" data-tooltip="Por definir"><span class="icon"><i class="fas fa-cube"></i></span><span class="label">Calendario</span></a>
+      <a href="settings.html" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
+    </div>
   </div>
 
- <!-- Firebase scripts -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
+      <div class="profile-section">
+        <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" id="avatar" onclick="toggleDropdown()" />
+        <div class="dropdown-menu" id="dropdown">
+          <div class="user-info">
+            <div class="user-name"><strong id="userName">Juan Pérez</strong></div>
+            <div class="user-email"><span id="userEmail">juan@correo.com</span></div>
+          </div>
+          <div class="theme-switch" onclick="toggleTheme()">
+            <span class="switch-icon" id="theme-icon">🌙</span>
+            <span class="switch-label">Modo oscuro</span>
+          </div>
+          <a href="settings.html">Configuración</a>
+          <a href="#" onclick="logout()">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyD6xqVEHb5eGrFr4cEu6y-OHxcpXjvybv4",
-    authDomain: "djoyas-asistente.firebaseapp.com",
-    projectId: "djoyas-asistente",
-    storageBucket: "djoyas-asistente.firebasestorage.app",
-    messagingSenderId: "990292345351",
-    appId: "1:990292345351:web:72ae605299387fa31c20a2",
-    measurementId: "G-9ZTSMFYFE1"
-  };
+   <body data-theme="light">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div>
+      <h2><span class="icon"><i class="fas fa-bars"></i></span>Dashboard</h2>
+      <a href="index.html"><span class="icon"><i class="fas fa-home"></i></span>Inicio</a>
+      <a href="tareas.html"><span class="icon"><i class="fas fa-list-check"></i></span>Tareas Diarias</a>
+      <a href="settings.html"><span class="icon"><i class="fas fa-cog"></i></span>Configuración</a>
+    </div>
+  </div>
 
-  // Inicializa Firebase
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div><strong>Tareas Diarias</strong></div>
+      <div class="profile-section">
+        <img src="https://i.pravatar.cc/300" alt="Avatar" class="profile-img" onclick="toggleDropdown()" />
+        <div class="dropdown-menu" id="dropdown">
+          <div class="user-info">
+            <p><strong>Juan Pérez</strong></p>
+            <p>juan@correo.com</p>
+          </div>
+          <div class="theme-switch" onclick="toggleTheme()">
+            <span class="switch-icon" id="theme-icon">🌙</span>
+            <span class="switch-label">Modo oscuro</span>
+          </div>
+          <a href="settings.html">Configuración</a>
+          <a href="#" onclick="logout()">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
 
-  // Validaciones básicas
-  function isEmailValid(email) {
-    // RegEx simple para validar email
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
+    <div class="content-area">
+      <h1>Tareas Diarias 🗓️</h1>
+      <button class="add-note-btn" onclick="addNote()">Agregar día +</button>
+      <div class="note-grid" id="noteGrid"></div>
+    </div>
+  </div>
 
-  // cambiar icono para mostrar contraseña
-function togglePassword() {
-  const passwordInput = document.getElementById("password");
-  const eyeIcon = document.getElementById("eyeIcon");
-
-  if (passwordInput.type === "password") {
-    passwordInput.type = "text";
-    eyeIcon.classList.remove("fa-eye");
-    eyeIcon.classList.add("fa-eye-slash");
-  } else {
-    passwordInput.type = "password";
-    eyeIcon.classList.remove("fa-eye-slash");
-    eyeIcon.classList.add("fa-eye");
-  }
-}
-
-  function login() {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const messageDiv = document.getElementById("message");
-
-    // Limpiar mensajes anteriores
-    messageDiv.textContent = "";
-    messageDiv.className = "";
-
-    // Validaciones antes de enviar
-    if (email === "" || password === "") {
-      messageDiv.textContent = "Completa todos los campos.";
-      messageDiv.className = "error";
-      return;
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
     }
 
-    if (!isEmailValid(email)) {
-      messageDiv.textContent = "El correo no tiene un formato válido.";
-      messageDiv.className = "error";
-      return;
+    function toggleMobileSidebar() {
+      document.getElementById("sidebar").classList.toggle("active");
+      document.getElementById("overlay").classList.toggle("show");
     }
 
-    // Si pasa validaciones, intenta login con Firebase
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then((userCredential) => {
-        messageDiv.textContent = "Inicio de sesión exitoso.";
-        messageDiv.className = "success";
-        setTimeout(() => {
-          window.location.href = "dashboard.html";
-        }, 1000);
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        let userMessage = "Ha ocurrido un error.";
+    function closeMobileSidebar() {
+      document.getElementById("sidebar").classList.remove("active");
+      document.getElementById("overlay").classList.remove("show");
+    }
 
-        if (errorCode === 'auth/wrong-password' || error.message.includes("INVALID_LOGIN_CREDENTIALS")) {
-          userMessage = "Contraseña incorrecta.";
-        } else if (errorCode === 'auth/user-not-found') {
-          userMessage = "El usuario no existe.";
-        } else if (errorCode === 'auth/invalid-email') {
-          userMessage = "El correo no es válido.";
+    function toggleDropdown() {
+      document.getElementById("dropdown").classList.toggle("show");
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const icon = document.getElementById("theme-icon");
+      const label = document.querySelector(".switch-label");
+      const isDark = body.getAttribute("data-theme") === "dark";
+      body.setAttribute("data-theme", isDark ? "light" : "dark");
+      icon.textContent = isDark ? "🌙" : "☀️";
+      label.textContent = isDark ? "Modo oscuro" : "Modo claro";
+    }
+
+    function logout() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    window.onclick = function (e) {
+      if (!e.target.closest('.profile-section')) {
+        const dropdown = document.getElementById("dropdown");
+        if (dropdown && dropdown.classList.contains("show")) {
+          dropdown.classList.remove("show");
         }
-
-        messageDiv.textContent = userMessage;
-        messageDiv.className = "error";
-      });
-  }
-</script>
-
-
+      }
+    }
+  </script>
 </body>
 </html>
