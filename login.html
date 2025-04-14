@@ -2,213 +2,228 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login | iCloud Style</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Estilo OpenAI</title>
   <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --text-color: #000;
+      --sidebar-bg: #202123;
+      --sidebar-hover: #353740;
+      --sidebar-text: #ccc;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #111;
+      --text-color: #fff;
+      --sidebar-bg: #202123;
+      --sidebar-hover: #353740;
+      --sidebar-text: #ccc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(to bottom, #f0f2f5, #e5e5e5);
-      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       display: flex;
-      justify-content: center;
+      height: 100vh;
+    }
+
+    .sidebar {
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      width: 250px;
+      min-width: 250px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar h2 {
+      font-size: 1rem;
+      color: white;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+    }
+
+    .sidebar nav a {
+      color: var(--sidebar-text);
+      text-decoration: none;
+      margin: 0.4rem 0;
+      padding: 0.5rem;
+      border-radius: 5px;
+      display: block;
+    }
+
+    .sidebar nav a:hover {
+      background-color: var(--sidebar-hover);
+    }
+
+    .bottom-links a {
+      color: var(--sidebar-text);
+      text-decoration: none;
+      margin: 0.4rem 0;
+      padding: 0.5rem;
+      border-radius: 5px;
+      display: block;
+    }
+
+    .bottom-links a:hover {
+      background-color: var(--sidebar-hover);
+    }
+
+    .topbar {
+      background-color: var(--bg-color);
+      padding: 1rem;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
     }
 
-.login-container {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 0 30px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
-  margin: 1rem;
-}
-
-    .login-container h1 {
-      margin-bottom: 20px;
-      font-weight: 600;
-      color: #333;
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
     }
 
-    .form-group {
-      margin-bottom: 20px;
-      text-align: left;
+    .content-area {
+      padding: 2rem;
     }
 
-    .form-group label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
-      color: #555;
-    }
-
-.form-group input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-    .form-group input:focus {
-      border-color: #0071e3;
-      outline: none;
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: 12px;
-      background-color: #323232;
-      color: white;
+    .menu-btn {
+      background: none;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+
+    .profile-section {
+      position: relative;
+    }
+
+    .profile-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       cursor: pointer;
-      transition: background 0.3s;
-      height: 65px;
     }
 
-    .login-btn:hover {
-      background-color: #000;
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background-color: var(--bg-color);
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: none;
+      min-width: 150px;
+      z-index: 1000;
     }
 
-    .error {
-      color: red;
-      margin-top: 10px;
-      font-size: 14px;
+    .dropdown-menu a {
+      display: block;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      color: var(--text-color);
     }
 
-    .success {
-      color: green;
-      margin-top: 10px;
-      font-size: 14px;
+    .dropdown-menu a:hover {
+      background-color: #eee;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        transform: translateX(-100%);
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
     }
   </style>
 </head>
-<body>
+<body data-theme="light">
 
-  <div class="login-container">
-    <h1>Iniciar sesión</h1>
-
-    <div class="form-group">
-      <label for="email">Correo electrónico</label>
-      <input type="email" id="email" placeholder="tucorreo@ejemplo.com" />
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h2 onclick="toggleSidebar()">☰ Dashboard</h2>
+      <nav>
+        <a href="#">Inicio</a>
+        <a href="#">Playground</a>
+        <a href="#">Uso</a>
+        <a href="#">Facturación</a>
+        <a href="#">Modelos</a>
+      </nav>
     </div>
-
-<div class="form-group" style="position: relative;">
-  <label for="password">Contraseña</label>
-  <input type="password" id="password" placeholder="••••••••" />
-  <button type="button" onclick="togglePassword()" id="togglePassBtn"
-    style="position: absolute; right: 10px; top: 36px; background: none; border: none; cursor: pointer;">
-    <i class="fa-solid fa-eye" id="eyeIcon"></i>
-  </button>
-</div>
-
-    <button class="login-btn" onclick="login()">Entrar</button>
-
-    <div id="message" class="error"></div>
+    <div class="bottom-links">
+      <a href="#">Por definir</a>
+      <a href="settings.html">Configuración</a>
+    </div>
   </div>
 
- <!-- Firebase scripts -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <div class="main-content">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div class="profile-section">
+        <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" onclick="toggleDropdown()" />
+        <div class="dropdown-menu" id="dropdown">
+          <a href="#" onclick="toggleTheme()">Cambiar tema</a>
+          <a href="settings.html">Configuración</a>
+          <a href="#">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyD6xqVEHb5eGrFr4cEu6y-OHxcpXjvybv4",
-    authDomain: "djoyas-asistente.firebaseapp.com",
-    projectId: "djoyas-asistente",
-    storageBucket: "djoyas-asistente.firebasestorage.app",
-    messagingSenderId: "990292345351",
-    appId: "1:990292345351:web:72ae605299387fa31c20a2",
-    measurementId: "G-9ZTSMFYFE1"
-  };
+    <div class="content-area">
+      <h1>Bienvenido 👋</h1>
+      <p>Esta es una réplica del panel de OpenAI con funciones básicas.</p>
+    </div>
+  </div>
 
-  // Inicializa Firebase
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-
-  // Validaciones básicas
-  function isEmailValid(email) {
-    // RegEx simple para validar email
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
-
-  // cambiar icono para mostrar contraseña
-function togglePassword() {
-  const passwordInput = document.getElementById("password");
-  const eyeIcon = document.getElementById("eyeIcon");
-
-  if (passwordInput.type === "password") {
-    passwordInput.type = "text";
-    eyeIcon.classList.remove("fa-eye");
-    eyeIcon.classList.add("fa-eye-slash");
-  } else {
-    passwordInput.type = "password";
-    eyeIcon.classList.remove("fa-eye-slash");
-    eyeIcon.classList.add("fa-eye");
-  }
-}
-
-  function login() {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    const messageDiv = document.getElementById("message");
-
-    // Limpiar mensajes anteriores
-    messageDiv.textContent = "";
-    messageDiv.className = "";
-
-    // Validaciones antes de enviar
-    if (email === "" || password === "") {
-      messageDiv.textContent = "Completa todos los campos.";
-      messageDiv.className = "error";
-      return;
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
     }
 
-    if (!isEmailValid(email)) {
-      messageDiv.textContent = "El correo no tiene un formato válido.";
-      messageDiv.className = "error";
-      return;
+    function toggleDropdown() {
+      document.getElementById('dropdown').classList.toggle('show');
     }
 
-    // Si pasa validaciones, intenta login con Firebase
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then((userCredential) => {
-        messageDiv.textContent = "Inicio de sesión exitoso.";
-        messageDiv.className = "success";
-        setTimeout(() => {
-          window.location.href = "dashboard.html";
-        }, 1000);
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        let userMessage = "Ha ocurrido un error.";
+    function toggleTheme() {
+      const body = document.body;
+      const currentTheme = body.getAttribute("data-theme");
+      body.setAttribute("data-theme", currentTheme === "dark" ? "light" : "dark");
+    }
 
-        if (errorCode === 'auth/wrong-password' || error.message.includes("INVALID_LOGIN_CREDENTIALS")) {
-          userMessage = "Contraseña incorrecta.";
-        } else if (errorCode === 'auth/user-not-found') {
-          userMessage = "El usuario no existe.";
-        } else if (errorCode === 'auth/invalid-email') {
-          userMessage = "El correo no es válido.";
+    // Cerrar el dropdown si se hace clic fuera
+    window.onclick = function(e) {
+      if (!e.target.matches('.profile-img')) {
+        const dropdown = document.getElementById("dropdown");
+        if (dropdown.classList.contains("show")) {
+          dropdown.classList.remove("show");
         }
-
-        messageDiv.textContent = userMessage;
-        messageDiv.className = "error";
-      });
-  }
-</script>
-
+      }
+    }
+  </script>
 
 </body>
 </html>
