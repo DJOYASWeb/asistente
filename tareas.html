@@ -305,12 +305,12 @@
     note.innerHTML = `
       <div class="d-flex align-items-center justify-content-between mb-1">
         <input type="text" class="form-control note-title border-0 fw-bold fs-6 me-2" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
-        <div class="d-flex align-items-center gap-2 position-relative">
-          <input type="date" class="note-date form-control form-control-sm border-0 p-0 m-0" 
-                 style="width: 1px; opacity: 0; position: absolute;" 
-                 value="${data.date || ''}" onchange="actualizarFecha(this)">
-          <button class="btn btn-sm btn-outline-secondary" onclick="abrirCalendario(this)">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-outline-secondary position-relative overflow-hidden" style="width: 36px; height: 36px;">
             <i class="fas fa-calendar-alt"></i>
+            <input type="date" class="note-date position-absolute top-0 start-0 opacity-0"
+                   style="width: 100%; height: 100%; cursor: pointer;"
+                   value="${data.date || ''}" onchange="actualizarFecha(this)">
           </button>
           <button class="btn btn-sm btn-outline-danger" onclick="deleteNote(this)">
             <i class="fas fa-trash"></i>
@@ -339,7 +339,7 @@
     `;
 
     col.appendChild(note);
-    noteGrid.appendChild(col); // 👈 notas se agregan al final
+    noteGrid.appendChild(col); // ✅ Agrega la nota al final
     saveNotes();
   }
 
@@ -405,13 +405,9 @@
     saveNotes();
   }
 
-  function abrirCalendario(button) {
-    const input = button.parentElement.querySelector('.note-date');
-    input.focus(); // esto abre el calendario naturalmente debajo
-  }
-
   window.addEventListener('DOMContentLoaded', loadNotes);
 </script>
+
 
 
 </body>
