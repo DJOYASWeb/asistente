@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard Estilo OpenAI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     :root {
       --bg-color: #f8f9fa;
@@ -32,6 +33,7 @@
       color: var(--text-color);
       display: flex;
       height: 100vh;
+      overflow: hidden;
     }
 
     .sidebar {
@@ -43,7 +45,13 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: transform 0.3s ease;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 60px;
+      min-width: 60px;
+      padding: 1rem 0.5rem;
     }
 
     .sidebar h2 {
@@ -51,32 +59,38 @@
       color: white;
       margin-bottom: 1.5rem;
       cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
     }
 
-    .sidebar nav a {
-      color: var(--sidebar-text);
-      text-decoration: none;
-      margin: 0.4rem 0;
-      padding: 0.5rem;
-      border-radius: 5px;
-      display: block;
-    }
-
-    .sidebar nav a:hover {
-      background-color: var(--sidebar-hover);
-    }
-
+    .sidebar nav a,
     .bottom-links a {
       color: var(--sidebar-text);
       text-decoration: none;
       margin: 0.4rem 0;
       padding: 0.5rem;
       border-radius: 5px;
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: background 0.2s;
     }
 
+    .sidebar nav a i,
+    .bottom-links a i {
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .sidebar nav a:hover,
     .bottom-links a:hover {
       background-color: var(--sidebar-hover);
+    }
+
+    .sidebar.collapsed a span {
+      display: none;
     }
 
     .topbar {
@@ -93,6 +107,9 @@
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
     }
 
     .content-area {
@@ -135,14 +152,14 @@
       display: block;
     }
 
-    .dropdown-menu .user-info {
+    .user-info {
       padding: 0.5rem 1rem;
       border-bottom: 1px solid #eee;
       margin-bottom: 0.5rem;
     }
 
-    .dropdown-menu .user-name,
-    .dropdown-menu .user-email {
+    .user-name,
+    .user-email {
       font-size: 0.9rem;
       margin-bottom: 0.3rem;
     }
@@ -178,6 +195,21 @@
       background-color: #eee;
     }
 
+    /* Overlay para móvil */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+
+    .overlay.show {
+      display: block;
+    }
+
     @media (max-width: 768px) {
       .sidebar {
         position: fixed;
@@ -195,28 +227,31 @@
   </style>
 </head>
 <body data-theme="light">
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
+
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <div>
       <h2 onclick="toggleSidebar()">☰ Dashboard</h2>
       <nav>
-        <a href="#">Inicio</a>
-        <a href="#">Playground</a>
-        <a href="#">Uso</a>
-        <a href="#">Facturación</a>
-        <a href="#">Modelos</a>
+        <a href="#"><i class="fas fa-home"></i> <span>Inicio</span></a>
+        <a href="#"><i class="fas fa-flask"></i> <span>Playground</span></a>
+        <a href="#"><i class="fas fa-chart-line"></i> <span>Uso</span></a>
+        <a href="#"><i class="fas fa-credit-card"></i> <span>Facturación</span></a>
+        <a href="#"><i class="fas fa-robot"></i> <span>Modelos</span></a>
       </nav>
     </div>
     <div class="bottom-links">
-      <a href="#">Por definir</a>
-      <a href="settings.html">Configuración</a>
+      <a href="#"><i class="fas fa-cube"></i> <span>Por definir</span></a>
+      <a href="settings.html"><i class="fas fa-cog"></i> <span>Configuración</span></a>
     </div>
   </div>
 
   <!-- Contenido principal -->
   <div class="main-content">
     <div class="topbar">
-      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
       <div class="profile-section">
         <img src="" alt="Perfil" class="profile-img" id="avatar" onclick="toggleDropdown()" />
         <div class="dropdown-menu" id="dropdown">
@@ -236,40 +271,48 @@
 
     <div class="content-area">
       <h1>Bienvenido 👋</h1>
-      <p>Esta es una réplica del panel de OpenAI con funcionalidad dinámica.</p>
+      <p>Esta es una réplica del panel de OpenAI con funciones avanzadas.</p>
     </div>
   </div>
 
   <script>
-    // Simulación de datos de usuario logueado (en un sistema real, obtener del backend)
     const userData = {
       name: "Juan Pérez",
       email: "juan@correo.com",
       avatarUrl: "https://i.pravatar.cc/300"
     };
 
-    // Actualizar automáticamente los datos del usuario al cargar el DOM
     document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("userName").textContent = userData.name;
       document.getElementById("userEmail").textContent = userData.email;
       document.getElementById("avatar").src = userData.avatarUrl;
 
-      // Inicialización de tema (si se guarda en localStorage, por ejemplo)
       const currentTheme = document.body.getAttribute("data-theme");
       const icon = document.getElementById("theme-icon");
       const label = document.querySelector(".switch-label");
-      if (icon) {
-        icon.textContent = currentTheme === "dark" ? "☀️" : "🌙";
-        label.textContent = currentTheme === "dark" ? "Modo claro" : "Modo oscuro";
-      }
+      icon.textContent = currentTheme === "dark" ? "☀️" : "🌙";
+      label.textContent = currentTheme === "dark" ? "Modo claro" : "Modo oscuro";
     });
 
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('active');
+      const sidebar = document.getElementById("sidebar");
+      sidebar.classList.toggle("collapsed");
+    }
+
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("overlay");
+      sidebar.classList.toggle("active");
+      overlay.classList.toggle("show");
+    }
+
+    function closeMobileSidebar() {
+      document.getElementById("sidebar").classList.remove("active");
+      document.getElementById("overlay").classList.remove("show");
     }
 
     function toggleDropdown() {
-      document.getElementById('dropdown').classList.toggle('show');
+      document.getElementById("dropdown").classList.toggle("show");
     }
 
     function toggleTheme() {
@@ -277,20 +320,17 @@
       const icon = document.getElementById("theme-icon");
       const label = document.querySelector(".switch-label");
       const isDark = body.getAttribute("data-theme") === "dark";
-      // Alterna el tema
       body.setAttribute("data-theme", isDark ? "light" : "dark");
       icon.textContent = isDark ? "🌙" : "☀️";
       label.textContent = isDark ? "Modo oscuro" : "Modo claro";
     }
 
     function logout() {
-      // Ejecuta el logout sin alertar; limpia posibles datos y redirige a login.html
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = "login.html";
     }
 
-    // Cierra el dropdown si se hace clic fuera de la sección de perfil
     window.onclick = function (e) {
       if (!e.target.closest('.profile-section')) {
         const dropdown = document.getElementById("dropdown");
