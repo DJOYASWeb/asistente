@@ -50,47 +50,42 @@
 
     .sidebar.collapsed {
       width: 75px;
-      min-width: 60px;
-      padding: 1rem;
+      min-width: 75px;
     }
 
-    .sidebar h2 {
-      font-size: 1rem;
-      color: white;
-      margin-bottom: 1.5rem;
-      cursor: pointer;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
+    .sidebar h2,
     .sidebar nav a,
-    .bottom-links a, .sidebar h2 {
+    .bottom-links a {
       color: var(--sidebar-text);
       text-decoration: none;
       margin: 0.4rem 0;
-       padding: 1.25rem 1rem;
+      padding: 1rem;
       border-radius: 5px;
       display: flex;
       align-items: center;
-      gap: 25px;
-      white-space: nowrap;
-      overflow: hidden;
       transition: background 0.2s;
     }
 
-    .sidebar nav a i,
-    .bottom-links a i, .sidebar h2 i {
-      min-width: 20px;
-      text-align: center;
+    .sidebar .icon {
+      display: inline-flex;
+      width: 24px;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .sidebar .label {
+      margin-left: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .sidebar.collapsed .label {
+      display: none;
     }
 
     .sidebar nav a:hover,
     .bottom-links a:hover {
       background-color: var(--sidebar-hover);
-    }
-
-    .sidebar.collapsed a span {
-      display: none;
     }
 
     .topbar {
@@ -195,7 +190,6 @@
       background-color: #eee;
     }
 
-    /* Overlay para móvil */
     .overlay {
       display: none;
       position: fixed;
@@ -209,10 +203,6 @@
     .overlay.show {
       display: block;
     }
-.sidebar.collapsed h2 .sidebar-title {
-  display: none;
-}
-
 
     @media (max-width: 768px) {
       .sidebar {
@@ -227,7 +217,6 @@
       .sidebar.active {
         transform: translateX(0);
       }
-
     }
   </style>
 </head>
@@ -238,21 +227,23 @@
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <div>
-<h2 onclick="toggleSidebar()">
-  <i class="fas fa-bars"></i> <span class="sidebar-title">Dashboard</span>
-</h2>
+      <h2 onclick="toggleSidebar()">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">Dashboard</span>
+      </h2>
 
       <nav>
-        <a href="#"><i class="fas fa-home"></i> <span>Inicio</span></a>
-        <a href="#"><i class="fas fa-flask"></i> <span>Playground</span></a>
-        <a href="#"><i class="fas fa-chart-line"></i> <span>Uso</span></a>
-        <a href="#"><i class="fas fa-credit-card"></i> <span>Facturación</span></a>
-        <a href="#"><i class="fas fa-robot"></i> <span>Modelos</span></a>
+        <a href="#"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
+        <a href="#"><span class="icon"><i class="fas fa-flask"></i></span><span class="label">Playground</span></a>
+        <a href="#"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="label">Uso</span></a>
+        <a href="#"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">Facturación</span></a>
+        <a href="#"><span class="icon"><i class="fas fa-robot"></i></span><span class="label">Modelos</span></a>
       </nav>
     </div>
+
     <div class="bottom-links">
-      <a href="#"><i class="fas fa-cube"></i> <span>Por definir</span></a>
-      <a href="settings.html"><i class="fas fa-cog"></i> <span>Configuración</span></a>
+      <a href="#"><span class="icon"><i class="fas fa-cube"></i></span><span class="label">Por definir</span></a>
+      <a href="settings.html"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
     </div>
   </div>
 
@@ -279,7 +270,7 @@
 
     <div class="content-area">
       <h1>Bienvenido 👋</h1>
-      <p>Esta es una réplica del panel de OpenAI con funciones avanzadas.</p>
+      <p>Esta es una réplica del panel de OpenAI con comportamiento realista.</p>
     </div>
   </div>
 
@@ -303,15 +294,12 @@
     });
 
     function toggleSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      sidebar.classList.toggle("collapsed");
+      document.getElementById("sidebar").classList.toggle("collapsed");
     }
 
     function toggleMobileSidebar() {
-      const sidebar = document.getElementById("sidebar");
-      const overlay = document.getElementById("overlay");
-      sidebar.classList.toggle("active");
-      overlay.classList.toggle("show");
+      document.getElementById("sidebar").classList.toggle("active");
+      document.getElementById("overlay").classList.toggle("show");
     }
 
     function closeMobileSidebar() {
