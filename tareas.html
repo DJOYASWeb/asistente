@@ -191,12 +191,23 @@
 </head>
 <body data-theme="light">
   <!-- Sidebar -->
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
     <div>
-      <h2><span class="icon"><i class="fas fa-bars"></i></span>Dashboard</h2>
-      <a href="index.html"><span class="icon"><i class="fas fa-home"></i></span>Inicio</a>
-      <a href="tareas.html"><span class="icon"><i class="fas fa-list-check"></i></span>Tareas Diarias</a>
-      <a href="settings.html"><span class="icon"><i class="fas fa-cog"></i></span>Configuración</a>
+      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">Dashboard</span>
+      </h2>
+      <nav>
+        <a href="#" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
+        <a href="#" data-tooltip="Playground"><span class="icon"><i class="fas fa-flask"></i></span><span class="label">DJOYAS Blog</span></a>
+        <a href="#" data-tooltip="Uso"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="label">Descripciones</span></a>
+        <a href="#" data-tooltip="Facturación"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">DJOYAS Inspira</span></a>
+      </nav>
+    </div>
+    <div class="bottom-links">
+      <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias"><span class="icon"><i class="fas fa-list-check"></i></span><span class="label">Tareas Diarias</span></a>
+      <a href="#" data-tooltip="Por definir"><span class="icon"><i class="fas fa-cube"></i></span><span class="label">Calendario</span></a>
+      <a href="settings.html" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
     </div>
   </div>
 
