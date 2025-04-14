@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tareas Diarias</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-color: #f2f2f7;
+      --text-color: #000;
+      --sidebar-bg: #1c1c1e;
+      --sidebar-hover: #2c2c2e;
+      --sidebar-text: #ccc;
+      --primary: #0a84ff;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #000;
+      --text-color: #fff;
+      --sidebar-bg: #1c1c1e;
+      --sidebar-hover: #2c2c2e;
+      --sidebar-text: #aaa;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      width: 250px;
+      min-width: 250px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sidebar a,
+    .sidebar h2 {
+      color: var(--sidebar-text);
+      text-decoration: none;
+      margin: 0.4rem 0;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar a:hover {
+      background-color: var(--sidebar-hover);
+    }
+
+    .icon {
+      width: 24px;
+      display: flex;
+      justify-content: center;
+      margin-right: 1rem;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .topbar {
+      background-color: var(--bg-color);
+      padding: 1rem;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .profile-section {
+      position: relative;
+    }
+
+    .profile-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background-color: var(--bg-color);
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      display: none;
+      min-width: 220px;
+      padding: 0.5rem;
+      z-index: 1000;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    .content-area {
+      padding: 2rem;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+
+    /* Tareas */
+    .note-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .note {
+      background-color: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 1rem;
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .note h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .task {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .task input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    .add-task {
+      display: flex;
+      margin-top: 0.5rem;
+    }
+
+    .add-task input {
+      flex: 1;
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 8px 0 0 8px;
+      font-size: 14px;
+    }
+
+    .add-task button {
+      background-color: #0a84ff;
+      color: white;
+      border: none;
+      border-radius: 0 8px 8px 0;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+    }
+
+    .add-note-btn {
+      background-color: #0a84ff;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 16px;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      color: #999;
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div>
+      <h2><span class="icon"><i class="fas fa-bars"></i></span>Dashboard</h2>
+      <a href="index.html"><span class="icon"><i class="fas fa-home"></i></span>Inicio</a>
+      <a href="tareas.html"><span class="icon"><i class="fas fa-list-check"></i></span>Tareas Diarias</a>
+      <a href="settings.html"><span class="icon"><i class="fas fa-cog"></i></span>Configuración</a>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="topbar">
+      <div><strong>Tareas Diarias</strong></div>
+      <div class="profile-section">
+        <img src="https://i.pravatar.cc/300" alt="Avatar" class="profile-img" onclick="toggleDropdown()" />
+        <div class="dropdown-menu" id="dropdown">
+          <div class="user-info">
+            <p><strong>Juan Pérez</strong></p>
+            <p>juan@correo.com</p>
+          </div>
+          <div class="theme-switch" onclick="toggleTheme()">
+            <span class="switch-icon" id="theme-icon">🌙</span>
+            <span class="switch-label">Modo oscuro</span>
+          </div>
+          <a href="settings.html">Configuración</a>
+          <a href="#" onclick="logout()">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <h1>Tareas Diarias 🗓️</h1>
+      <button class="add-note-btn" onclick="addNote()">Agregar día +</button>
+      <div class="note-grid" id="noteGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    function toggleDropdown() {
+      document.getElementById("dropdown").classList.toggle("show");
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const icon = document.getElementById("theme-icon");
+      const label = document.querySelector(".switch-label");
+      const isDark = body.getAttribute("data-theme") === "dark";
+      body.setAttribute("data-theme", isDark ? "light" : "dark");
+      icon.textContent = isDark ? "🌙" : "☀️";
+      label.textContent = isDark ? "Modo oscuro" : "Modo claro";
+    }
+
+    function logout() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function formatDate(date = new Date()) {
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+
+    function addNote(date = formatDate()) {
+      const noteGrid = document.getElementById('noteGrid');
+      if (document.getElementById(`note-${date}`)) return;
+
+      const note = document.createElement('div');
+      note.className = 'note';
+      note.id = `note-${date}`;
+      note.innerHTML = `
+        <h2>${date}</h2>
+        <div class="tasks"></div>
+        <div class="add-task">
+          <input type="text" placeholder="Nueva tarea..." />
+          <button onclick="addTask(this)">+</button>
+        </div>
+      `;
+      noteGrid.prepend(note);
+    }
+
+    function addTask(button) {
+      const container = button.closest('.note');
+      const input = container.querySelector('.add-task input');
+      const tasks = container.querySelector('.tasks');
+      const taskText = input.value.trim();
+      if (taskText === "") return;
+
+      const taskEl = document.createElement('div');
+      taskEl.className = 'task';
+      taskEl.innerHTML = `
+        <input type="checkbox" onchange="toggleComplete(this)">
+        <span>${taskText}</span>
+      `;
+      tasks.appendChild(taskEl);
+      input.value = "";
+    }
+
+    function toggleComplete(checkbox) {
+      const taskText = checkbox.nextElementSibling;
+      taskText.classList.toggle('completed', checkbox.checked);
+    }
+
+    // Crear nota del día al cargar
+    window.addEventListener("DOMContentLoaded", () => {
+      addNote();
+    });
+  </script>
+</body>
+</html>
