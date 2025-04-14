@@ -305,7 +305,6 @@
     note.innerHTML = `
       <div class="d-flex align-items-center justify-content-between mb-1">
         <input type="text" class="form-control note-title border-0 fw-bold fs-6 me-2" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
-        <div class="d-flex align-items-center gap-2">
           <div class="d-flex align-items-center">
   <input type="date" class="note-date d-none" value="${data.date || ''}" onchange="actualizarFecha(this)">
   <button class="btn btn-sm btn-outline-secondary" onclick="abrirCalendario(this)">
