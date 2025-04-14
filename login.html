@@ -368,6 +368,87 @@
         }
       }
     }
+
+
+
+
+
+function toggleDropdown() {
+      document.getElementById("dropdown").classList.toggle("show");
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const icon = document.getElementById("theme-icon");
+      const label = document.querySelector(".switch-label");
+      const isDark = body.getAttribute("data-theme") === "dark";
+      body.setAttribute("data-theme", isDark ? "light" : "dark");
+      icon.textContent = isDark ? "🌙" : "☀️";
+      label.textContent = isDark ? "Modo oscuro" : "Modo claro";
+    }
+
+    function logout() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    function formatDate(date = new Date()) {
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    }
+
+    function addNote(date = formatDate()) {
+      const noteGrid = document.getElementById('noteGrid');
+      if (document.getElementById(`note-${date}`)) return;
+
+      const note = document.createElement('div');
+      note.className = 'note';
+      note.id = `note-${date}`;
+      note.innerHTML = `
+        <h2>${date}</h2>
+        <div class="tasks"></div>
+        <div class="add-task">
+          <input type="text" placeholder="Nueva tarea..." />
+          <button onclick="addTask(this)">+</button>
+        </div>
+      `;
+      noteGrid.prepend(note);
+    }
+
+    function addTask(button) {
+      const container = button.closest('.note');
+      const input = container.querySelector('.add-task input');
+      const tasks = container.querySelector('.tasks');
+      const taskText = input.value.trim();
+      if (taskText === "") return;
+
+      const taskEl = document.createElement('div');
+      taskEl.className = 'task';
+      taskEl.innerHTML = `
+        <input type="checkbox" onchange="toggleComplete(this)">
+        <span>${taskText}</span>
+      `;
+      tasks.appendChild(taskEl);
+      input.value = "";
+    }
+
+    function toggleComplete(checkbox) {
+      const taskText = checkbox.nextElementSibling;
+      taskText.classList.toggle('completed', checkbox.checked);
+    }
+
+    // Crear nota del día al cargar
+    window.addEventListener("DOMContentLoaded", () => {
+      addNote();
+    });
+
+
+
+    
   </script>
 </body>
 </html>
