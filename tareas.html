@@ -243,8 +243,8 @@
 
  /* === Estilos exclusivos para tareas.html === */
     .note-grid {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1rem;
     }
 
@@ -253,7 +253,6 @@
       border-radius: 14px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.08);
       padding: 1rem;
-      width: 300px;
       display: flex;
       flex-direction: column;
     }
@@ -267,11 +266,24 @@
     .task {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       margin-bottom: 0.5rem;
     }
 
     .task input[type="checkbox"] {
       margin-right: 0.5rem;
+    }
+
+    .task span {
+      flex: 1;
+    }
+
+    .task button {
+      background: none;
+      border: none;
+      color: red;
+      cursor: pointer;
+      font-size: 1rem;
     }
 
     .add-task {
@@ -310,7 +322,6 @@
       text-decoration: line-through;
       color: #999;
     }
-    
   </style>
 </head>
 <body data-theme="light">
@@ -339,7 +350,6 @@
 
 
 
- <!-- Main content -->
   <div class="main-content">
     <div class="topbar">
       <div><strong>Tareas Diarias</strong></div>
@@ -367,7 +377,6 @@
       <div class="note-grid" id="noteGrid"></div>
     </div>
   </div>
-
 
 
   <script>
@@ -416,7 +425,9 @@
 
 
 
-       // === Script exclusivo para tareas.html ===
+        // === Lógica exclusiva para tareas.html ===
+    const noteGrid = document.getElementById('noteGrid');
+
     function formatDate(date = new Date()) {
       return date.toLocaleDateString('es-ES', {
         day: '2-digit',
@@ -425,9 +436,22 @@
       });
     }
 
+    function saveNotes() {
+      localStorage.setItem('tareasNotas', noteGrid.innerHTML);
+    }
+
+    function loadNotes() {
+      const data = localStorage.getItem('tareasNotas');
+      if (data) {
+        noteGrid.innerHTML = data;
+      }
+    }
+
     function addNote(date = formatDate()) {
-      const noteGrid = document.getElementById('noteGrid');
-      if (document.getElementById(`note-${date}`)) return;
+      if (document.getElementById(`note-${date}`)) {
+        alert("Ya existe una nota para hoy.");
+        return;
+      }
 
       const note = document.createElement('div');
       note.className = 'note';
@@ -441,6 +465,7 @@
         </div>
       `;
       noteGrid.prepend(note);
+      saveNotes();
     }
 
     function addTask(button) {
@@ -448,25 +473,34 @@
       const input = container.querySelector('.add-task input');
       const tasks = container.querySelector('.tasks');
       const taskText = input.value.trim();
-      if (taskText === "") return;
+
+      if (!taskText) return;
 
       const taskEl = document.createElement('div');
       taskEl.className = 'task';
       taskEl.innerHTML = `
         <input type="checkbox" onchange="toggleComplete(this)">
         <span>${taskText}</span>
+        <button onclick="removeTask(this)"><i class="fas fa-times"></i></button>
       `;
       tasks.appendChild(taskEl);
       input.value = "";
+      saveNotes();
+    }
+
+    function removeTask(btn) {
+      btn.parentElement.remove();
+      saveNotes();
     }
 
     function toggleComplete(checkbox) {
       const taskText = checkbox.nextElementSibling;
       taskText.classList.toggle('completed', checkbox.checked);
+      saveNotes();
     }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      addNote();
+    window.addEventListener('DOMContentLoaded', () => {
+      loadNotes();
     });
   </script>
 </body>
