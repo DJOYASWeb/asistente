@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tareas Diarias</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* === Estilos base del dashboard (sidebar, topbar, layout) === */
     :root {
@@ -239,98 +240,125 @@
     </div>
 
     <!-- === Contenido exclusivo de tareas.html === -->
-    <div class="content-area">
-      <h1>Tareas Diarias 🗓️</h1>
-      <button class="add-note-btn" onclick="addNote()">Nueva Nota +</button>
-      <div class="note-grid" id="noteGrid"></div>
+    <div class="content-area container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4">Tareas Diarias 🗓️</h1>
+    <div class="d-flex gap-2">
+      <input type="date" class="form-control" id="filtroFecha" onchange="filtrarPorFecha()" />
+      <button class="btn btn-primary" onclick="addNote()">Nueva Nota +</button>
     </div>
   </div>
+  <div class="row" id="noteGrid">
+    <!-- Notas se insertan aquí -->
+  </div>
+</div>
 
-  <script>
-    function toggleDropdown() {
-      document.getElementById("dropdown").classList.toggle("show");
-    }
+  </div>
 
-    function toggleTheme() {
-      const body = document.body;
-      const icon = document.getElementById("theme-icon");
-      const label = document.querySelector(".switch-label");
-      const isDark = body.getAttribute("data-theme") === "dark";
-      body.setAttribute("data-theme", isDark ? "light" : "dark");
-      icon.textContent = isDark ? "🌙" : "☀️";
-      label.textContent = isDark ? "Modo oscuro" : "Modo claro";
-    }
+ <script>
+  const noteGrid = document.getElementById('noteGrid');
+  const filtroFecha = document.getElementById('filtroFecha');
 
-    function logout() {
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = "login.html";
-    }
+  function saveNotes() {
+    const notes = [...document.querySelectorAll('.note')].map(note => ({
+      title: note.querySelector('.note-title').value,
+      date: note.querySelector('.note-date').value,
+      tasks: [...note.querySelectorAll('.task')].map(task => ({
+        text: task.querySelector('span').textContent,
+        checked: task.querySelector('input[type="checkbox"]').checked
+      }))
+    }));
+    localStorage.setItem('tareasNotas', JSON.stringify(notes));
+  }
 
-    // === Tareas ===
-    const noteGrid = document.getElementById('noteGrid');
+  function loadNotes() {
+    const data = JSON.parse(localStorage.getItem('tareasNotas') || '[]');
+    noteGrid.innerHTML = '';
+    data.forEach(note => createNote(note));
+  }
 
-    function saveNotes() {
-      localStorage.setItem('tareasNotas', noteGrid.innerHTML);
-    }
+  function addNote() {
+    createNote();
+  }
 
-    function loadNotes() {
-      const data = localStorage.getItem('tareasNotas');
-      if (data) {
-        noteGrid.innerHTML = data;
-      }
-    }
+  function createNote(data = {}) {
+    const col = document.createElement('div');
+    col.className = 'col-12 col-sm-6 col-lg-3 mb-3';
 
-    function addNote() {
-      const note = document.createElement('div');
-      note.className = 'note';
-      note.innerHTML = `
-        <input type="text" class="note-title" placeholder="Título de la nota..." />
-        <div class="tasks"></div>
-        <div class="add-task">
-          <input type="text" placeholder="Nueva tarea..." />
-          <button onclick="addTask(this)">+</button>
-        </div>
-      `;
-      noteGrid.prepend(note);
-      saveNotes();
-    }
+    const note = document.createElement('div');
+    note.className = 'card note p-3';
+    note.innerHTML = `
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <input type="text" class="form-control note-title border-0 fw-bold fs-6" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
+        <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteNote(this)"><i class="fas fa-trash"></i></button>
+      </div>
+      <input type="date" class="form-control form-control-sm note-date mb-2" value="${data.date || ''}" onchange="saveNotes()" />
+      <div class="tasks mb-2">
+        ${(data.tasks || []).map(t => `
+          <div class="task d-flex align-items-center mb-1">
+            <input type="checkbox" class="form-check-input me-2" ${t.checked ? 'checked' : ''} onchange="toggleComplete(this)">
+            <span class="flex-grow-1 ${t.checked ? 'text-decoration-line-through text-muted' : ''}">${t.text}</span>
+            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="removeTask(this)"><i class="fas fa-times"></i></button>
+          </div>
+        `).join('')}
+      </div>
+      <div class="input-group input-group-sm">
+        <input type="text" class="form-control" placeholder="Nueva tarea..." />
+        <button class="btn btn-outline-primary" onclick="addTask(this)">+</button>
+      </div>
+    `;
+    col.appendChild(note);
+    noteGrid.prepend(col);
+    saveNotes();
+  }
 
-    function addTask(button) {
-      const container = button.closest('.note');
-      const input = container.querySelector('.add-task input');
-      const tasks = container.querySelector('.tasks');
-      const taskText = input.value.trim();
-      if (!taskText) return;
+  function addTask(button) {
+    const note = button.closest('.note');
+    const input = note.querySelector('.input-group input');
+    const tasks = note.querySelector('.tasks');
+    const taskText = input.value.trim();
+    if (!taskText) return;
 
-      const taskEl = document.createElement('div');
-      taskEl.className = 'task';
-      taskEl.innerHTML = `
-        <input type="checkbox" onchange="toggleComplete(this)">
-        <span>${taskText}</span>
-        <button onclick="removeTask(this)"><i class="fas fa-times"></i></button>
-      `;
-      tasks.appendChild(taskEl);
-      input.value = "";
-      saveNotes();
-    }
+    const taskEl = document.createElement('div');
+    taskEl.className = 'task d-flex align-items-center mb-1';
+    taskEl.innerHTML = `
+      <input type="checkbox" class="form-check-input me-2" onchange="toggleComplete(this)">
+      <span class="flex-grow-1">${taskText}</span>
+      <button class="btn btn-sm btn-outline-secondary ms-2" onclick="removeTask(this)"><i class="fas fa-times"></i></button>
+    `;
+    tasks.appendChild(taskEl);
+    input.value = "";
+    saveNotes();
+  }
 
-    function removeTask(btn) {
-      btn.parentElement.remove();
-      saveNotes();
-    }
+  function removeTask(btn) {
+    btn.parentElement.remove();
+    saveNotes();
+  }
 
-    function toggleComplete(checkbox) {
-      const taskText = checkbox.nextElementSibling;
-      taskText.classList.toggle('completed', checkbox.checked);
-      saveNotes();
-    }
+  function toggleComplete(checkbox) {
+    const span = checkbox.nextElementSibling;
+    span.classList.toggle('text-decoration-line-through', checkbox.checked);
+    span.classList.toggle('text-muted', checkbox.checked);
+    saveNotes();
+  }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      loadNotes();
+  function deleteNote(btn) {
+    btn.closest('.col-12').remove();
+    saveNotes();
+  }
+
+  function filtrarPorFecha() {
+    const filtro = filtroFecha.value;
+    const cards = document.querySelectorAll('.note');
+    cards.forEach(note => {
+      const fecha = note.querySelector('.note-date').value;
+      note.closest('.col-12').style.display = (!filtro || filtro === fecha) ? '' : 'none';
     });
+  }
 
-    window.addEventListener('input', saveNotes);
-  </script>
+  window.addEventListener('DOMContentLoaded', loadNotes);
+</script>
+
 </body>
 </html>
