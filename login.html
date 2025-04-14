@@ -6,6 +6,8 @@
   <title>Login | iCloud Style</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-K5ZGj07GpCjU71FBBQ3nI5hgrXZf7rYFRUO7T6xZ2vb3sFLBQQZ7uHY7iJYfUhj3XRY7D9Nq+9yBGNCrI4GWGg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
   <style>
     body {
       margin: 0;
@@ -99,10 +101,14 @@
       <input type="email" id="email" placeholder="tucorreo@ejemplo.com" />
     </div>
 
-    <div class="form-group">
-      <label for="password">Contraseña</label>
-      <input type="password" id="password" placeholder="••••••••" />
-    </div>
+<div class="form-group" style="position: relative;">
+  <label for="password">Contraseña</label>
+  <input type="password" id="password" placeholder="••••••••" />
+  <button type="button" onclick="togglePassword()" id="togglePassBtn"
+    style="position: absolute; right: 10px; top: 36px; background: none; border: none; cursor: pointer;">
+    <i class="fa-solid fa-eye" id="eyeIcon"></i>
+  </button>
+</div>
 
     <button class="login-btn" onclick="login()">Entrar</button>
 
@@ -114,27 +120,66 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
 <script>
-  // ⚙️ Configura Firebase con tus datos reales
   const firebaseConfig = {
-  apiKey: "AIzaSyD6xqVEHb5eGrFr4cEu6y-OHxcpXjvybv4",
-  authDomain: "djoyas-asistente.firebaseapp.com",
-  projectId: "djoyas-asistente",
-  storageBucket: "djoyas-asistente.firebasestorage.app",
-  messagingSenderId: "990292345351",
-  appId: "1:990292345351:web:72ae605299387fa31c20a2",
-  measurementId: "G-9ZTSMFYFE1"
+    apiKey: "AIzaSyD6xqVEHb5eGrFr4cEu6y-OHxcpXjvybv4",
+    authDomain: "djoyas-asistente.firebaseapp.com",
+    projectId: "djoyas-asistente",
+    storageBucket: "djoyas-asistente.firebasestorage.app",
+    messagingSenderId: "990292345351",
+    appId: "1:990292345351:web:72ae605299387fa31c20a2",
+    measurementId: "G-9ZTSMFYFE1"
   };
 
-  // Inicializar Firebase (esto define la variable global "firebase")
-  firebase.initializeApp(firebaseConfig);
+  // Inicializa Firebase
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  // Validaciones básicas
+  function isEmailValid(email) {
+    // RegEx simple para validar email
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // cambiar icono para mostrar contraseña
+function togglePassword() {
+  const passwordInput = document.getElementById("password");
+  const eyeIcon = document.getElementById("eyeIcon");
+
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    eyeIcon.classList.remove("fa-eye");
+    eyeIcon.classList.add("fa-eye-slash");
+  } else {
+    passwordInput.type = "password";
+    eyeIcon.classList.remove("fa-eye-slash");
+    eyeIcon.classList.add("fa-eye");
+  }
+}
 
   function login() {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
     const messageDiv = document.getElementById("message");
+
+    // Limpiar mensajes anteriores
     messageDiv.textContent = "";
     messageDiv.className = "";
 
+    // Validaciones antes de enviar
+    if (email === "" || password === "") {
+      messageDiv.textContent = "Completa todos los campos.";
+      messageDiv.className = "error";
+      return;
+    }
+
+    if (!isEmailValid(email)) {
+      messageDiv.textContent = "El correo no tiene un formato válido.";
+      messageDiv.className = "error";
+      return;
+    }
+
+    // Si pasa validaciones, intenta login con Firebase
     firebase.auth().signInWithEmailAndPassword(email, password)
       .then((userCredential) => {
         messageDiv.textContent = "Inicio de sesión exitoso.";
@@ -144,11 +189,23 @@
         }, 1000);
       })
       .catch((error) => {
-        messageDiv.textContent = "Error: " + error.message;
+        const errorCode = error.code;
+        let userMessage = "Ha ocurrido un error.";
+
+        if (errorCode === 'auth/wrong-password' || error.message.includes("INVALID_LOGIN_CREDENTIALS")) {
+          userMessage = "Contraseña incorrecta.";
+        } else if (errorCode === 'auth/user-not-found') {
+          userMessage = "El usuario no existe.";
+        } else if (errorCode === 'auth/invalid-email') {
+          userMessage = "El correo no es válido.";
+        }
+
+        messageDiv.textContent = userMessage;
         messageDiv.className = "error";
       });
   }
 </script>
+
 
 </body>
 </html>
