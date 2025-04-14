@@ -3,8 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OpenAI Dashboard Clone</title>
+  <title>Dashboard Estilo OpenAI</title>
   <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --text-color: #000;
+      --sidebar-bg: #202123;
+      --sidebar-hover: #353740;
+      --sidebar-text: #ccc;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #111;
+      --text-color: #fff;
+      --sidebar-bg: #202123;
+      --sidebar-hover: #353740;
+      --sidebar-text: #ccc;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -12,42 +28,64 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       display: flex;
       height: 100vh;
-      background-color: #f8f9fa;
     }
 
     .sidebar {
-      background-color: #202123;
-      color: white;
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
       width: 250px;
       min-width: 250px;
       padding: 1rem;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       transition: transform 0.3s ease;
     }
 
     .sidebar h2 {
-      font-size: 1.2rem;
+      font-size: 1rem;
+      color: white;
       margin-bottom: 1.5rem;
+      cursor: pointer;
     }
 
-    .sidebar a {
-      color: #ccc;
+    .sidebar nav a {
+      color: var(--sidebar-text);
       text-decoration: none;
-      margin: 0.5rem 0;
+      margin: 0.4rem 0;
+      padding: 0.5rem;
+      border-radius: 5px;
       display: block;
     }
 
-    .sidebar a:hover {
-      color: white;
+    .sidebar nav a:hover {
+      background-color: var(--sidebar-hover);
+    }
+
+    .bottom-links a {
+      color: var(--sidebar-text);
+      text-decoration: none;
+      margin: 0.4rem 0;
+      padding: 0.5rem;
+      border-radius: 5px;
+      display: block;
+    }
+
+    .bottom-links a:hover {
+      background-color: var(--sidebar-hover);
     }
 
     .topbar {
-      background-color: white;
+      background-color: var(--bg-color);
       padding: 1rem;
       border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .main-content {
@@ -62,71 +100,128 @@
     }
 
     .menu-btn {
-      display: none;
       background: none;
       border: none;
-      font-size: 1.5rem;
-      color: #202123;
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+
+    .profile-section {
+      position: relative;
+    }
+
+    .profile-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background-color: var(--bg-color);
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      display: none;
+      min-width: 150px;
+      z-index: 1000;
+    }
+
+    .dropdown-menu a {
+      display: block;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      color: var(--text-color);
+    }
+
+    .dropdown-menu a:hover {
+      background-color: #eee;
+    }
+
+    .dropdown-menu.show {
+      display: block;
     }
 
     @media (max-width: 768px) {
       .sidebar {
         position: fixed;
+        transform: translateX(-100%);
         height: 100%;
         top: 0;
         left: 0;
-        transform: translateX(-100%);
         z-index: 1000;
       }
 
       .sidebar.active {
         transform: translateX(0);
       }
-
-      .menu-btn {
-        display: block;
-        margin-bottom: 1rem;
-      }
     }
   </style>
 </head>
-<body>
+<body data-theme="light">
 
   <div class="sidebar" id="sidebar">
-    <h2>OpenAI</h2>
-    <a href="#">Dashboard</a>
-    <a href="#">Playground</a>
-    <a href="#">Usage</a>
-    <a href="#">Billing</a>
-    <a href="#">Settings</a>
-    <a href="#">Log out</a>
+    <div>
+      <h2 onclick="toggleSidebar()">☰ Dashboard</h2>
+      <nav>
+        <a href="#">Inicio</a>
+        <a href="#">Playground</a>
+        <a href="#">Uso</a>
+        <a href="#">Facturación</a>
+        <a href="#">Modelos</a>
+      </nav>
+    </div>
+    <div class="bottom-links">
+      <a href="#">Por definir</a>
+      <a href="settings.html">Configuración</a>
+    </div>
   </div>
 
   <div class="main-content">
     <div class="topbar">
       <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-      <strong>Mi Panel de Usuario</strong>
+      <div class="profile-section">
+        <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" onclick="toggleDropdown()" />
+        <div class="dropdown-menu" id="dropdown">
+          <a href="#" onclick="toggleTheme()">Cambiar tema</a>
+          <a href="settings.html">Configuración</a>
+          <a href="#">Cerrar sesión</a>
+        </div>
+      </div>
     </div>
 
     <div class="content-area">
       <h1>Bienvenido 👋</h1>
-      <p>Este es un clon simple del panel de OpenAI, hecho para practicar diseño responsive.</p>
-
-      <div style="margin-top: 2rem;">
-        <h2>Secciones simuladas:</h2>
-        <ul>
-          <li>Playground</li>
-          <li>Usage</li>
-          <li>Billing</li>
-          <li>Settings</li>
-        </ul>
-      </div>
+      <p>Esta es una réplica del panel de OpenAI con funciones básicas.</p>
     </div>
   </div>
 
   <script>
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function toggleDropdown() {
+      document.getElementById('dropdown').classList.toggle('show');
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const currentTheme = body.getAttribute("data-theme");
+      body.setAttribute("data-theme", currentTheme === "dark" ? "light" : "dark");
+    }
+
+    // Cerrar el dropdown si se hace clic fuera
+    window.onclick = function(e) {
+      if (!e.target.matches('.profile-img')) {
+        const dropdown = document.getElementById("dropdown");
+        if (dropdown.classList.contains("show")) {
+          dropdown.classList.remove("show");
+        }
+      }
     }
   </script>
 
