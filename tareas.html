@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tareas Diarias</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <title>Tareas diarias</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    /* === Estilos base del dashboard (sidebar, topbar, layout) === */
     :root {
       --bg-color: #f2f2f7;
       --text-color: #000;
@@ -25,6 +23,10 @@
       --sidebar-text: #aaa;
     }
 
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -33,10 +35,8 @@
       display: flex;
       height: 100vh;
       overflow: hidden;
-    }
-
-    .card{
-    --bs-card-border-color: none;
+      font-size: 16px;
+      line-height: 1.5;
     }
 
     .sidebar {
@@ -48,44 +48,83 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      transition: all 0.3s ease;
     }
 
-    .sidebar a,
+    .sidebar.collapsed {
+      width: 90px;
+      min-width: 75px;
+    }
+
+    .sidebar nav a,
+    .bottom-links a,
     .sidebar h2 {
       color: var(--sidebar-text);
       text-decoration: none;
-      margin: 0.4rem 0;
-      padding: 0.75rem 1rem;
-      border-radius: 10px;
+      margin: 0.25rem 0;
+      height: 48px;
+      padding: 0 1rem;
+      border-radius: 12px;
       display: flex;
       align-items: center;
+      position: relative;
+      transition: background 0.2s ease;
     }
 
-    .sidebar a:hover {
+    .sidebar nav a:hover,
+    .bottom-links a:hover {
       background-color: var(--sidebar-hover);
     }
 
-    .icon {
+    .sidebar .icon {
       width: 24px;
+      min-width: 24px;
       display: flex;
       justify-content: center;
-      margin-right: 1rem;
+      align-items: center;
+    }
+
+    .sidebar .label {
+      margin-left: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity 0.2s ease, width 0.2s ease, margin 0.2s ease;
+    }
+
+    .sidebar.collapsed .label {
+      opacity: 0;
+      width: 0;
+      margin: 0;
+    }
+
+    .topbar {
+      background-color: var(--bg-color);
+      padding: 1rem;
+      border-bottom: 1px solid #d1d1d6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .main-content {
       flex: 1;
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
       height: 100vh;
+      position: relative;
+      z-index: 1;
     }
 
-    .topbar {
-      background-color: var(--bg-color);
-      padding: 1rem;
-      border-bottom: 1px solid #ccc;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .content-area {
+      padding: 2rem;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--text-color);
     }
 
     .profile-section {
@@ -105,8 +144,8 @@
       top: 40px;
       background-color: var(--bg-color);
       border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       display: none;
       min-width: 220px;
       padding: 0.5rem;
@@ -117,13 +156,92 @@
       display: block;
     }
 
-    .content-area {
-      padding: 2rem;
-      overflow-y: auto;
-      flex-grow: 1;
+    .user-info {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #e5e5ea;
+      margin-bottom: 0.5rem;
     }
 
-    /* === Estilos exclusivos para tareas.html === */
+    .theme-switch,
+    .dropdown-menu a {
+      display: flex;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      text-decoration: none;
+      color: var(--text-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .theme-switch:hover,
+    .dropdown-menu a:hover {
+      background-color: #e5e5ea;
+    }
+
+    .switch-icon {
+      margin-right: 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    /* Overlay móvil */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+
+    .overlay.show {
+      display: block;
+    }
+
+    /* Tooltips solo en colapsado */
+    .sidebar.collapsed a[data-tooltip]::after,
+    .sidebar.collapsed h2[data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      border-radius: 6px;
+      margin-left: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 9999;
+    }
+
+    .sidebar.collapsed a[data-tooltip]:hover::after,
+    .sidebar.collapsed h2[data-tooltip]:hover::after {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        transform: translateX(-100%);
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+    }
+
+
+  /* === Estilos exclusivos para tareas.html === */
     .note-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -221,27 +339,48 @@
   margin-left: 0.25rem;
 }
 
+    
+
+
+
+
+    
   </style>
 </head>
 <body data-theme="light">
-  <div class="sidebar">
+  <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
     <div>
-      <h2><span class="icon"><i class="fas fa-bars"></i></span>Dashboard</h2>
-      <a href="index.html"><span class="icon"><i class="fas fa-home"></i></span>Inicio</a>
-      <a href="tareas.html"><span class="icon"><i class="fas fa-list-check"></i></span>Tareas Diarias</a>
-      <a href="settings.html"><span class="icon"><i class="fas fa-cog"></i></span>Configuración</a>
+      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">Dashboard</span>
+      </h2>
+      <nav>
+        <a href="dashboard.html" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
+        <a href="#" data-tooltip="Playground"><span class="icon"><i class="fas fa-flask"></i></span><span class="label">DJOYAS Blog</span></a>
+        <a href="#" data-tooltip="Uso"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="label">Descripciones</span></a>
+        <a href="#" data-tooltip="Facturación"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">DJOYAS Inspira</span></a>
+      </nav>
+    </div>
+    <div class="bottom-links">
+      <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias"><span class="icon"><i class="fas fa-list-check"></i></span><span class="label">Tareas Diarias</span></a>
+      <a href="#" data-tooltip="Por definir"><span class="icon"><i class="fas fa-cube"></i></span><span class="label">Calendario</span></a>
+      <a href="settings.html" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
     </div>
   </div>
 
+  <!-- Contenido principal -->
   <div class="main-content">
     <div class="topbar">
-      <div><strong>Tareas Diarias</strong></div>
+      <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
       <div class="profile-section">
-        <img src="https://i.pravatar.cc/300" alt="Avatar" class="profile-img" onclick="toggleDropdown()" />
+        <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" id="avatar" onclick="toggleDropdown()" />
         <div class="dropdown-menu" id="dropdown">
           <div class="user-info">
-            <p><strong>Juan Pérez</strong></p>
-            <p>juan@correo.com</p>
+            <div class="user-name"><strong id="userName">Juan Pérez</strong></div>
+            <div class="user-email"><span id="userEmail">juan@correo.com</span></div>
           </div>
           <div class="theme-switch" onclick="toggleTheme()">
             <span class="switch-icon" id="theme-icon">🌙</span>
@@ -253,25 +392,62 @@
       </div>
     </div>
 
-    <!-- === Contenido exclusivo de tareas.html === -->
-    <div class="content-area container-fluid">
-<div class="row justify-content-between align-items-center mb-3">
-<div class="col-lg-3 col-12"><h1 class="h4">Tareas Diarias 🗓️</h1></div>
-<div class="col-lg-9 col-12 caja-menu">
-<div class="row">
-<div class="col-lg-6 col-12"><input type="text" class="form-control" placeholder="Buscar por título..." id="busquedaTexto" oninput="filtrarPorTexto()" /></div>
-<div class="col-lg-3 col-12"><input type="date" class="form-control" id="filtroFecha" onchange="filtrarPorFecha()" /></div>
-<div class="col-lg-3 col-12"><button class="btn btn-primary" onclick="addNote()">Nueva Nota +</button></div>
-</div></div></div>
-  <div class="row" id="noteGrid">
-    <!-- Notas se insertan aquí -->
-  </div>
-</div>
-
+    <div class="content-area">
+      <h1>Bienvenido 👋</h1>
+      <p>Este dashboard está inspirado en la estética de iOS.</p>
+    </div>
   </div>
 
-<script>
-  const noteGrid = document.getElementById('noteGrid');
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("collapsed");
+    }
+
+    function toggleMobileSidebar() {
+      document.getElementById("sidebar").classList.toggle("active");
+      document.getElementById("overlay").classList.toggle("show");
+    }
+
+    function closeMobileSidebar() {
+      document.getElementById("sidebar").classList.remove("active");
+      document.getElementById("overlay").classList.remove("show");
+    }
+
+    function toggleDropdown() {
+      document.getElementById("dropdown").classList.toggle("show");
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const icon = document.getElementById("theme-icon");
+      const label = document.querySelector(".switch-label");
+      const isDark = body.getAttribute("data-theme") === "dark";
+      body.setAttribute("data-theme", isDark ? "light" : "dark");
+      icon.textContent = isDark ? "🌙" : "☀️";
+      label.textContent = isDark ? "Modo oscuro" : "Modo claro";
+    }
+
+    function logout() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "login.html";
+    }
+
+    window.onclick = function (e) {
+      if (!e.target.closest('.profile-section')) {
+        const dropdown = document.getElementById("dropdown");
+        if (dropdown && dropdown.classList.contains("show")) {
+          dropdown.classList.remove("show");
+        }
+      }
+    }
+
+
+
+
+
+//codigos de pagina tareas
+ const noteGrid = document.getElementById('noteGrid');
   const filtroFecha = document.getElementById('filtroFecha');
 
   function saveNotes() {
@@ -406,9 +582,15 @@
   }
 
   window.addEventListener('DOMContentLoaded', loadNotes);
-</script>
 
 
 
+
+
+
+
+
+    
+  </script>
 </body>
 </html>
