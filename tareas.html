@@ -392,10 +392,21 @@
       </div>
     </div>
 
-    <div class="content-area">
-      <h1>Bienvenido 👋</h1>
-      <p>Este dashboard está inspirado en la estética de iOS.</p>
-    </div>
+     <!-- === Contenido exclusivo de tareas.html === -->
+    <div class="content-area container-fluid">
+<div class="row justify-content-between align-items-center mb-3">
+<div class="col-lg-3 col-12"><h1 class="h4">Tareas Diarias 🗓️</h1></div>
+<div class="col-lg-9 col-12 caja-menu">
+<div class="row">
+<div class="col-lg-6 col-12"><input type="text" class="form-control" placeholder="Buscar por título..." id="busquedaTexto" oninput="filtrarPorTexto()" /></div>
+<div class="col-lg-3 col-12"><input type="date" class="form-control" id="filtroFecha" onchange="filtrarPorFecha()" /></div>
+<div class="col-lg-3 col-12"><button class="btn btn-primary" onclick="addNote()">Nueva Nota +</button></div>
+</div></div></div>
+  <div class="row" id="noteGrid">
+    <!-- Notas se insertan aquí -->
+  </div>
+</div>
+
   </div>
 
   <script>
