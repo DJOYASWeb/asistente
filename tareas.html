@@ -6,6 +6,7 @@
   <title>Tareas Diarias</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
+    /* === Estilos base de layout (dashboard) === */
     :root {
       --bg-color: #f2f2f7;
       --text-color: #000;
@@ -117,7 +118,7 @@
       flex-grow: 1;
     }
 
-    /* Tareas */
+    /* === Estilos exclusivos para tareas.html === */
     .note-grid {
       display: flex;
       flex-wrap: wrap;
@@ -220,6 +221,7 @@
       </div>
     </div>
 
+    <!-- === Contenido exclusivo de tareas.html === -->
     <div class="content-area">
       <h1>Tareas Diarias 🗓️</h1>
       <button class="add-note-btn" onclick="addNote()">Agregar día +</button>
@@ -228,6 +230,7 @@
   </div>
 
   <script>
+    // === Funciones globales (layout/header) ===
     function toggleDropdown() {
       document.getElementById("dropdown").classList.toggle("show");
     }
@@ -248,6 +251,7 @@
       window.location.href = "login.html";
     }
 
+    // === Script exclusivo para tareas.html ===
     function formatDate(date = new Date()) {
       return date.toLocaleDateString('es-ES', {
         day: '2-digit',
@@ -296,7 +300,6 @@
       taskText.classList.toggle('completed', checkbox.checked);
     }
 
-    // Crear nota del día al cargar
     window.addEventListener("DOMContentLoaded", () => {
       addNote();
     });
