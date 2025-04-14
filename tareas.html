@@ -239,6 +239,78 @@
         transform: translateX(0);
       }
     }
+
+
+ /* === Estilos exclusivos para tareas.html === */
+    .note-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .note {
+      background-color: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 1rem;
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .note h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .task {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .task input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    .add-task {
+      display: flex;
+      margin-top: 0.5rem;
+    }
+
+    .add-task input {
+      flex: 1;
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 8px 0 0 8px;
+      font-size: 14px;
+    }
+
+    .add-task button {
+      background-color: #0a84ff;
+      color: white;
+      border: none;
+      border-radius: 0 8px 8px 0;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+    }
+
+    .add-note-btn {
+      background-color: #0a84ff;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 16px;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      color: #999;
+    }
+    
   </style>
 </head>
 <body data-theme="light">
