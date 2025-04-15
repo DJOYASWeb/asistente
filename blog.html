@@ -1,1 +1,365 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tareas diarias</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #f2f2f7;
+      --text-color: #000;
+      --sidebar-bg: #1c1c1e;
+      --sidebar-hover: #2c2c2e;
+      --sidebar-text: #ccc;
+      --primary: #0a84ff;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #000;
+      --text-color: #fff;
+      --sidebar-bg: #1c1c1e;
+      --sidebar-hover: #2c2c2e;
+      --sidebar-text: #aaa;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+     h2 {
+    font-size: 18px!important;
+}
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif!important;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .sidebar {
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      width: 250px;
+      min-width: 250px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 90px;
+      min-width: 75px;
+    }
+
+    .sidebar nav a,
+    .bottom-links a,
+    .sidebar h2 {
+      color: var(--sidebar-text);
+      text-decoration: none;
+      margin: 0.25rem 0;
+      height: 48px;
+      padding: 0 1rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar nav a:hover,
+    .bottom-links a:hover {
+      background-color: var(--sidebar-hover);
+    }
+
+    .sidebar .icon {
+      width: 24px;
+      min-width: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .sidebar .label {
+      margin-left: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity 0.2s ease, width 0.2s ease, margin 0.2s ease;
+    }
+
+    .sidebar.collapsed .label {
+      opacity: 0;
+      width: 0;
+      margin: 0;
+    }
+
+    .topbar {
+      background-color: var(--bg-color);
+      padding: 1rem;
+      border-bottom: 1px solid #d1d1d6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .content-area {
+      padding: 2rem;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--text-color);
+    }
+
+    .profile-section {
+      position: relative;
+    }
+
+    .profile-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background-color: var(--bg-color);
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      min-width: 220px;
+      padding: 0.5rem;
+      z-index: 1000;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    .badge {
+    --bs-badge-padding-x: 0;
+    --bs-badge-padding-y: 0;
+    --bs-badge-font-size: 0;
+    --bs-badge-font-weight: 300;
+    --bs-badge-color: #fff;
+    --bs-badge-border-radius: var(--bs-border-radius);
+    display: inline-block;
+    padding: var(--bs-badge-padding-y) var(--bs-badge-padding-x);
+    font-size: var(--bs-badge-font-size);
+    font-weight: var(--bs-badge-font-weight);
+    /* line-height: 3; */
+    color: var(--bs-badge-color);
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: var(--bs-badge-border-radius);
+    width: 100%;
+}
+
+    .user-info {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #e5e5ea;
+      margin-bottom: 0.5rem;
+    }
+
+    .theme-switch,
+    .dropdown-menu a {
+      display: flex;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      text-decoration: none;
+      color: var(--text-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .theme-switch:hover,
+    .dropdown-menu a:hover {
+      background-color: #e5e5ea;
+    }
+
+    .switch-icon {
+      margin-right: 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    /* Overlay móvil */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+
+    .overlay.show {
+      display: block;
+    }
+
+    /* Tooltips solo en colapsado */
+    .sidebar.collapsed a[data-tooltip]::after,
+    .sidebar.collapsed h2[data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      border-radius: 6px;
+      margin-left: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 9999;
+    }
+
+    .sidebar.collapsed a[data-tooltip]:hover::after,
+    .sidebar.collapsed h2[data-tooltip]:hover::after {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        transform: translateX(-100%);
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+    }
+     .bottom-links a:active{
+       background:aqua;
+     }
+
+
+  /* === Estilos exclusivos para tareas.html === */
+    .btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #000;
+    --bs-btn-border-color: #000;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #1a1a1a;
+    --bs-btn-hover-border-color: #1a1a1a;
+    --bs-btn-focus-shadow-rgb: 0, 0, 0;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #333;
+    --bs-btn-active-border-color: #333;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #000;
+    --bs-btn-disabled-border-color: #000;
+}
+
+
+
+    
+  </style>
+</head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <script>
+
+/* === FUNCIONES GLOBALES === */
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("collapsed");
+}
+
+function toggleMobileSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("overlay").classList.toggle("show");
+}
+
+function closeMobileSidebar() {
+  document.getElementById("sidebar").classList.remove("active");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+function toggleDropdown() {
+  document.getElementById("dropdown").classList.toggle("show");
+}
+
+function toggleTheme() {
+  const body = document.body;
+  const icon = document.getElementById("theme-icon");
+  const label = document.querySelector(".switch-label");
+  const isDark = body.getAttribute("data-theme") === "dark";
+  body.setAttribute("data-theme", isDark ? "light" : "dark");
+  icon.textContent = isDark ? "🌙" : "☀️";
+  label.textContent = isDark ? "Modo oscuro" : "Modo claro";
+}
+
+function logout() {
+  sessionStorage.clear();
+  window.location.href = "login.html";
+}
+
+window.onclick = function (e) {
+  if (!e.target.closest('.profile-section')) {
+    const dropdown = document.getElementById("dropdown");
+    if (dropdown && dropdown.classList.contains("show")) {
+      dropdown.classList.remove("show");
+    }
+  }
+};
+/* === BLOG === */
+
+
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
