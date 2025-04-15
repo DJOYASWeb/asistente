@@ -159,6 +159,9 @@
     .dropdown-menu.show {
       display: block;
     }
+    .dropdown{
+      display:flex;
+    }
 
     .badge {
     --bs-badge-padding-x: 0;
@@ -167,7 +170,8 @@
     --bs-badge-font-weight: 300;
     --bs-badge-color: #fff;
     --bs-badge-border-radius: var(--bs-border-radius);
-    display: inline-block;
+    display: grid;
+    align-items: center;
     padding: var(--bs-badge-padding-y) var(--bs-badge-padding-x);
     font-size: var(--bs-badge-font-size);
     font-weight: var(--bs-badge-font-weight);
@@ -630,7 +634,7 @@ function createNote(data = {}) {
       <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
         <i class="fas fa-bell"></i>
       </button>
-      <span class="badge bg-warning mt-2 d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
+      <span class="badge bg-warning d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
       <div class="dropdown-menu p-3" style="min-width: 250px">
         <label>Fecha:</label>
         <input type="date" class="form-control mb-2" id="fecha-${noteId}">
