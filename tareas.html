@@ -628,9 +628,9 @@ function createNote(data = {}) {
     <div class="dropdown">
       <button class="btn btn-sm btn-light" onclick="deshacer()" title="Deshacer"><i class="fas fa-arrow-left"></i></button>
       <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
-          <span class="badge bg-warning mt-2 d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
         <i class="fas fa-bell"></i>
       </button>
+      <span class="badge bg-warning mt-2 d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
       <div class="dropdown-menu p-3" style="min-width: 250px">
         <label>Fecha:</label>
         <input type="date" class="form-control mb-2" id="fecha-${noteId}">
