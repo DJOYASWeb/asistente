@@ -264,18 +264,23 @@
       flex-direction: column;
           border: none !important;
     }
-    .btn-outline-primary{
-     color: #323232;
-    border:1px solid #dee2e6;
-    }
-    .btn-outline-primary:hover{
-     background: #323232!important;
-    border:1px solid #323232;
-    }
-     .btn-outline-primary:active{
-     background: #323232!important;
-    border:1px solid #323232;
-    }
+    .btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #000;
+    --bs-btn-border-color: #000;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #1a1a1a;
+    --bs-btn-hover-border-color: #1a1a1a;
+    --bs-btn-focus-shadow-rgb: 0, 0, 0;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #333;
+    --bs-btn-active-border-color: #333;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #000;
+    --bs-btn-disabled-border-color: #000;
+}
+
     .task button{
       color:#c3c3c3!important;
     }
