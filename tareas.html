@@ -27,6 +27,9 @@
     * {
       box-sizing: border-box;
     }
+     h2 {
+    font-size: 18px!important;
+}
 
     body {
       margin: 0;
@@ -40,94 +43,824 @@
       line-height: 1.5;
     }
 
+    .sidebar {
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      width: 250px;
+      min-width: 250px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar.collapsed {
+      width: 90px;
+      min-width: 75px;
+    }
+
+    .sidebar nav a,
+    .bottom-links a,
+    .sidebar h2 {
+      color: var(--sidebar-text);
+      text-decoration: none;
+      margin: 0.25rem 0;
+      height: 48px;
+      padding: 0 1rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      transition: background 0.2s ease;
+    }
+
+    .sidebar nav a:hover,
+    .bottom-links a:hover {
+      background-color: var(--sidebar-hover);
+    }
+
+    .sidebar .icon {
+      width: 24px;
+      min-width: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .sidebar .label {
+      margin-left: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity 0.2s ease, width 0.2s ease, margin 0.2s ease;
+    }
+
+    .sidebar.collapsed .label {
+      opacity: 0;
+      width: 0;
+      margin: 0;
+    }
+
+    .topbar {
+      background-color: var(--bg-color);
+      padding: 1rem;
+      border-bottom: 1px solid #d1d1d6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .content-area {
+      padding: 2rem;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--text-color);
+    }
+
+    .profile-section {
+      position: relative;
+    }
+
+    .profile-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 40px;
+      background-color: var(--bg-color);
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      min-width: 220px;
+      padding: 0.5rem;
+      z-index: 1000;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+    .dropdown{
+      display:flex;
+    }
+
+    .badge {
+    --bs-badge-padding-x: 0;
+    --bs-badge-padding-y: 0;
+    --bs-badge-font-size: 0;
+    --bs-badge-font-weight: 300;
+    --bs-badge-color: #fff;
+    --bs-badge-border-radius: var(--bs-border-radius);
+    display: grid;
+    align-items: center;
+    padding: var(--bs-badge-padding-y) var(--bs-badge-padding-x);
+    font-size: var(--bs-badge-font-size);
+    font-weight: var(--bs-badge-font-weight);
+    /* line-height: 3; */
+    color: var(--bs-badge-color);
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: var(--bs-badge-border-radius);
+    width: 100%;
+}
+
+    .user-info {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid #e5e5ea;
+      margin-bottom: 0.5rem;
+    }
+
+    .theme-switch,
+    .dropdown-menu a {
+      display: flex;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      text-decoration: none;
+      color: var(--text-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .theme-switch:hover,
+    .dropdown-menu a:hover {
+      background-color: #e5e5ea;
+    }
+
+    .switch-icon {
+      margin-right: 0.5rem;
+      font-size: 1.2rem;
+    }
+
+    /* Overlay móvil */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+
+    .overlay.show {
+      display: block;
+    }
+
+    /* Tooltips solo en colapsado */
+    .sidebar.collapsed a[data-tooltip]::after,
+    .sidebar.collapsed h2[data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      border-radius: 6px;
+      margin-left: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 9999;
+    }
+
+    .sidebar.collapsed a[data-tooltip]:hover::after,
+    .sidebar.collapsed h2[data-tooltip]:hover::after {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        transform: translateX(-100%);
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+    }
+     .bottom-links a:active{
+       background:aqua;
+     }
+
+
+  /* === Estilos exclusivos para tareas.html === */
+    .note-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
     .note {
+      background-color: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+          border: none !important;
+    }
+    .btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #000;
+    --bs-btn-border-color: #000;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #1a1a1a;
+    --bs-btn-hover-border-color: #1a1a1a;
+    --bs-btn-focus-shadow-rgb: 0, 0, 0;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #333;
+    --bs-btn-active-border-color: #333;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #000;
+    --bs-btn-disabled-border-color: #000;
+}
+
+    .task button{
+      color:#c3c3c3!important;
+    }
+    .form-check-input:checked {
+    background-color: #323232;
+    border-color: #323232;
+}
+.btn:hover {
+    color:#fff!important;
+}
+    .note input.note-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      border: none;
+      background: transparent;
+      color: var(--text-color);
+    }
+
+    .note input.note-title:focus {
+      outline: none;
+    }
+
+    .task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .task input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+
+    .task span {
+      flex: 1;
+    }
+
+    .task button {
+      background: none;
+      border: none;
+      color: red;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .add-task {
+      display: flex;
+      margin-top: 0.5rem;
+    }
+
+    .add-task input {
+      flex: 1;
+      padding: 0.4rem;
+      border: 1px solid #ccc;
+      border-radius: 8px 0 0 8px;
+      font-size: 14px;
+    }
+
+    .add-task button {
+      background-color: #0a84ff;
+      color: white;
+      border: none;
+      border-radius: 0 8px 8px 0;
+      padding: 0.4rem 0.8rem;
+      cursor: pointer;
+    }
+
+    .add-note-btn {
+      background-color: #0a84ff;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 16px;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      color: #999;
+    }
+    .caja-menu{
+          background: #fff;
+    border-radius: 20px;
+    padding: 2rem;
+    }
+    .fecha-visual {
+     font-size: 0.75rem;
+     margin-left: 0.25rem;
+    }
+
+      .note {
       background: #fff;
       border-radius: 14px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.08);
       padding: 1rem;
       margin-bottom: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      border: none !important;
     }
-
-    .badge {
-      font-size: 0.8rem;
-      padding: 0.25em 0.5em;
+    .toast {
+      min-width: 280px;
     }
-
     .dropdown-menu {
       z-index: 1055;
-      background-color: var(--bg-color);
     }
+    .form-check-label {
+      font-size: 0.9rem;
+    }
+    .badge {
+      font-size: 0.8rem;
+    }
+    
+
+
+
+    
   </style>
 </head>
 <body data-theme="light">
   <audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+  <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
-  <div class="note" id="testNote">
-    <input type="text" class="note-title" value="Mi tarea importante" />
-    <button onclick="programarRecordatorio('testNote')">Programar recordatorio</button>
-    <div class="dropdown-menu p-3" style="min-width: 250px">
-      <label>Fecha:</label>
-      <input type="date" class="form-control mb-2" id="fecha-testNote">
-      <label>Hora:</label>
-      <input type="time" class="form-control mb-2" id="hora-testNote">
-      <div class="form-check mb-2">
-        <input type="checkbox" class="form-check-input" id="repetir-testNote">
-        <label class="form-check-label" for="repetir-testNote">Repetir</label>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">Dashboard</span>
+      </h2>
+      <nav>
+        <a href="dashboard.html" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
+        <a href="#" data-tooltip="Playground"><span class="icon"><i class="fas fa-flask"></i></span><span class="label">DJOYAS Blog</span></a>
+        <a href="#" data-tooltip="Uso"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="label">Descripciones</span></a>
+        <a href="#" data-tooltip="Facturación"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">DJOYAS Inspira</span></a>
+      </nav>
+    </div>
+    <div class="bottom-links">
+      <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias"><span class="icon"><i class="fas fa-list-check"></i></span><span class="label">Tareas Diarias</span></a>
+      <a href="#" data-tooltip="Por definir"><span class="icon"><i class="fas fa-cube"></i></span><span class="label">Calendario</span></a>
+      <a href="settings.html" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
+      <div class="profile-section">
+        <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" id="avatar" onclick="toggleDropdown()" />
+        <div class="dropdown-menu" id="dropdown">
+          <div class="user-info">
+            <div class="user-name"><strong id="userName">Juan Pérez</strong></div>
+            <div class="user-email"><span id="userEmail">juan@correo.com</span></div>
+          </div>
+          <div class="theme-switch" onclick="toggleTheme()">
+            <span class="switch-icon" id="theme-icon">🌙</span>
+            <span class="switch-label">Modo oscuro</span>
+          </div>
+          <a href="settings.html">Configuración</a>
+          <a href="#" onclick="logout()">Cerrar sesión</a>
+        </div>
       </div>
     </div>
-    <span class="badge bg-warning d-none" id="etiqueta-testNote">Recordatorio activado</span>
+
+     <!-- === Contenido exclusivo de tareas.html === -->
+    <div class="content-area container-fluid">
+<div class="row justify-content-between align-items-center mb-3">
+<div class="col-lg-3 col-12"><h1 class="h4">Tareas Diarias 🗓️</h1></div>
+<div class="col-lg-9 col-12 caja-menu">
+<div class="row">
+<div class="col-lg-6 col-12 my-2"><input type="text" class="form-control" placeholder="Buscar por título..." id="busquedaTexto" oninput="filtrarPorTexto()" /></div>
+<div class="col-lg-3 col-12 my-2"><input type="date" class="form-control" id="filtroFecha" onchange="filtrarPorFecha()" /></div>
+<div class="col-lg-3 col-12 my-2"><button class="btn btn-dark w-100" onclick="addNote()">Nueva Nota</button></div>
+</div></div></div>
+  <div class="row" id="noteGrid">
+    <!-- Notas se insertan aquí -->
+  </div>
+</div>
+ <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+    <div id="toast-container"></div>
+  </div>
   </div>
 
   <script>
-    const recordatoriosActivos = JSON.parse(localStorage.getItem('recordatoriosActivos') || '[]');
 
-    if (Notification.permission !== 'granted') {
-      Notification.requestPermission();
+/* === FUNCIONES GLOBALES === */
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("collapsed");
+}
+
+function toggleMobileSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("overlay").classList.toggle("show");
+}
+
+function closeMobileSidebar() {
+  document.getElementById("sidebar").classList.remove("active");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+function toggleDropdown() {
+  document.getElementById("dropdown").classList.toggle("show");
+}
+
+function toggleTheme() {
+  const body = document.body;
+  const icon = document.getElementById("theme-icon");
+  const label = document.querySelector(".switch-label");
+  const isDark = body.getAttribute("data-theme") === "dark";
+  body.setAttribute("data-theme", isDark ? "light" : "dark");
+  icon.textContent = isDark ? "🌙" : "☀️";
+  label.textContent = isDark ? "Modo oscuro" : "Modo claro";
+}
+
+function logout() {
+  sessionStorage.clear();
+  window.location.href = "login.html";
+}
+
+window.onclick = function (e) {
+  if (!e.target.closest('.profile-section')) {
+    const dropdown = document.getElementById("dropdown");
+    if (dropdown && dropdown.classList.contains("show")) {
+      dropdown.classList.remove("show");
     }
+  }
+};
 
-    recordatoriosActivos.forEach(({ id, fecha, hora, repetir }) => {
-      const tiempoRestante = new Date(`${fecha}T${hora}`) - new Date();
-      if (tiempoRestante > 0) {
-        setTimeout(() => mostrarNotificacion('Nota reprogramada', hora, id), tiempoRestante);
+/* === TAREAS === */
+const noteGrid = document.getElementById('noteGrid');
+const filtroFecha = document.getElementById('filtroFecha');
+let historial = [];
+let rehacerHistorial = [];
+
+function guardarEstado() {
+  const estadoActual = localStorage.getItem('tareasNotas');
+  if (estadoActual) historial.push(estadoActual);
+  if (historial.length > 50) historial.shift();
+  rehacerHistorial = [];
+}
+
+function deshacer() {
+  if (historial.length === 0) return;
+  const estadoAnterior = historial.pop();
+  const actual = localStorage.getItem('tareasNotas');
+  if (actual) rehacerHistorial.push(actual);
+  localStorage.setItem('tareasNotas', estadoAnterior);
+  loadNotes();
+}
+
+function rehacer() {
+  if (rehacerHistorial.length === 0) return;
+  const siguiente = rehacerHistorial.pop();
+  localStorage.setItem('tareasNotas', siguiente);
+  loadNotes();
+}
+
+function saveNotes() {
+  guardarEstado();
+  const notes = [...document.querySelectorAll('.note')].map(note => ({
+    title: note.querySelector('.note-title').value,
+    date: note.querySelector('.note-date').value,
+    tasks: [...note.querySelectorAll('.task')].map(task => ({
+      text: task.querySelector('span').textContent,
+      checked: task.querySelector('input[type="checkbox"]').checked
+    }))
+  }));
+  localStorage.setItem('tareasNotas', JSON.stringify(notes));
+}
+
+function loadNotes() {
+  const data = JSON.parse(localStorage.getItem('tareasNotas') || '[]');
+  noteGrid.innerHTML = '';
+  data.forEach(note => createNote(note));
+}
+
+function addNote() {
+  createNote();
+}
+
+function createNote(data = {}) {
+  const col = document.createElement('div');
+  col.className = 'col-12 col-sm-6 col-lg-3 mb-3';
+
+  const noteId = 'note_' + Date.now();
+
+  const note = document.createElement('div');
+  note.className = 'card note p-3';
+  note.setAttribute('id', noteId);
+
+  note.innerHTML = 
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      <input type="text" class="form-control note-title border-0 fw-bold fs-6 me-2" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-secondary position-relative overflow-hidden">
+          <i class="fas fa-calendar-alt"></i>
+          <input type="date" class="note-date position-absolute top-0 start-0 opacity-0"
+                 style="width: 100%; height: 100%; cursor: pointer;"
+                 value="${data.date || ''}" onchange="actualizarFecha(this)">
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteNote(this)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <small class="text-muted fecha-visual ms-1 mb-2">${data.date ? 📅 ${data.date} : ''}</small>
+    <hr style="py-2">
+    <div class="tasks mb-2">
+      ${(data.tasks || []).map(t => 
+        <div class="task d-flex align-items-center mb-1">
+          <input type="checkbox" class="form-check-input me-2" ${t.checked ? 'checked' : ''} onchange="toggleComplete(this)">
+          <span class="flex-grow-1 ${t.checked ? 'text-decoration-line-through text-muted' : ''}" ondblclick="editarTarea(this)">${t.text}</span>
+          <button class="btn btn-sm btn-outline-secondary ms-2" onclick="removeTask(this)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      ).join('')}
+    </div>
+
+    <div class="input-group input-group-sm mb-2">
+      <input type="text" class="form-control" placeholder="Nueva tarea..." />
+      <button class="btn btn-outline-primary" onclick="addTask(this)">+</button>
+    </div>
+
+    <div class="dropdown">
+      <button class="btn btn-sm btn-light" onclick="deshacer()" title="Deshacer"><i class="fas fa-arrow-left"></i></button>
+      <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="fas fa-bell"></i>
+      </button>
+      <span class="badge bg-warning d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
+      <div class="dropdown-menu p-3" style="min-width: 250px">
+        <label>Fecha:</label>
+        <input type="date" class="form-control mb-2" id="fecha-${noteId}">
+        <label>Hora:</label>
+        <input type="time" class="form-control mb-2" id="hora-${noteId}">
+        <div class="form-check mb-2">
+          <input type="checkbox" class="form-check-input" id="repetir-${noteId}">
+          <label class="form-check-label" for="repetir-${noteId}">Repetir</label>
+        </div>
+        <button class="btn btn-primary w-100" onclick="programarRecordatorio('${noteId}')">Programar</button>
+      </div>
+    </div>
+
+
+
+
+  ;
+
+  col.appendChild(note);
+  noteGrid.appendChild(col);
+  saveNotes();
+}
+
+function programarRecordatorio(noteId) {
+  const fecha = document.getElementById(fecha-${noteId}).value;
+  const hora = document.getElementById(hora-${noteId}).value;
+  const repetir = document.getElementById(repetir-${noteId}).checked;
+  const nota = document.getElementById(noteId);
+  const titulo = nota.querySelector('.note-title').value || 'Nota sin título';
+
+  const fechaHora = new Date(${fecha}T${hora});
+  const ahora = new Date();
+
+  const diff = fechaHora - ahora;
+  if (diff <= 0) return alert('Elige una hora futura');
+
+  document.getElementById(etiqueta-${noteId}).classList.remove('d-none');
+  document.getElementById(etiqueta-${noteId}).textContent = ⏰ ${hora} del ${fecha};
+
+  setTimeout(() => {
+    mostrarNotificacion(titulo, fechaHora.toLocaleTimeString(), noteId);
+    if (repetir) {
+      // Reprogramar para el día siguiente a la misma hora
+      programarRecordatorio(noteId);
+    }
+  }, diff);
+}
+
+function mostrarNotificacion(titulo, hora, noteId) {
+  const toast = document.createElement('div');
+  toast.className = 'toast align-items-center text-bg-dark border-0 show position-fixed bottom-0 end-0 m-3';
+  toast.style.zIndex = '9999';
+  toast.innerHTML = 
+    <div class="d-flex">
+      <div class="toast-body">
+        🔔 <strong>${titulo}</strong><br>Recordatorio para las ${hora}
+      </div>
+      <button class="btn btn-warning btn-sm m-2" onclick="verNota('${noteId}')">Ver nota</button>
+    </div>
+  ;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 10000);
+}
+
+function verNota(id) {
+  const target = document.getElementById(id);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('border', 'border-warning');
+    setTimeout(() => target.classList.remove('border', 'border-warning'), 2000);
+  }
+}
+
+function addTask(button) {
+  const note = button.closest('.note');
+  const input = note.querySelector('.input-group input');
+  const tasks = note.querySelector('.tasks');
+  const taskText = input.value.trim();
+  if (!taskText) return;
+
+  const taskEl = document.createElement('div');
+  taskEl.className = 'task d-flex align-items-center mb-1';
+  taskEl.innerHTML = 
+    <input type="checkbox" class="form-check-input me-2" onchange="toggleComplete(this)">
+    <span class="flex-grow-1" ondblclick="editarTarea(this)">${taskText}</span>
+    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="removeTask(this)">
+      <i class="fas fa-times"></i>
+    </button>
+  ;
+  tasks.appendChild(taskEl);
+  input.value = "";
+  saveNotes();
+}
+
+function removeTask(btn) {
+  btn.parentElement.remove();
+  saveNotes();
+}
+
+function toggleComplete(checkbox) {
+  const span = checkbox.nextElementSibling;
+  span.classList.toggle('text-decoration-line-through', checkbox.checked);
+  span.classList.toggle('text-muted', checkbox.checked);
+  saveNotes();
+}
+
+function deleteNote(btn) {
+  btn.closest('.col-12').remove();
+  saveNotes();
+}
+
+function filtrarPorFecha() {
+  const filtro = filtroFecha.value;
+  const cards = document.querySelectorAll('.note');
+  cards.forEach(note => {
+    const fecha = note.querySelector('.note-date').value;
+    note.closest('.col-12').style.display = (!filtro || filtro === fecha) ? '' : 'none';
+  });
+}
+
+function filtrarPorTexto() {
+  const texto = document.getElementById('busquedaTexto').value.toLowerCase();
+  const notas = document.querySelectorAll('.note');
+  notas.forEach(nota => {
+    const titulo = nota.querySelector('.note-title')?.value.toLowerCase() || '';
+    nota.closest('.col-12').style.display = titulo.includes(texto) ? '' : 'none';
+  });
+}
+
+function actualizarFecha(input) {
+  const small = input.closest('.note').querySelector('.fecha-visual');
+  small.textContent = input.value ? 📅 ${input.value} : '';
+  saveNotes();
+}
+
+function editarTarea(span) {
+  const textoOriginal = span.textContent;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = textoOriginal;
+  input.className = 'form-control form-control-sm';
+  input.style.flex = '1';
+
+  span.replaceWith(input);
+  input.focus();
+
+  input.addEventListener('blur', () => {
+    guardarTextoEditado(input, textoOriginal);
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      input.blur();
+    }
+  });
+}
+
+function guardarTextoEditado(input, textoOriginal) {
+  const nuevoTexto = input.value.trim() || textoOriginal;
+  const span = document.createElement('span');
+  span.textContent = nuevoTexto;
+  span.style.flex = '1';
+  span.addEventListener('dblclick', () => editarTarea(span));
+  if (input.previousElementSibling?.checked) {
+    span.classList.add('text-decoration-line-through', 'text-muted');
+  }
+  input.replaceWith(span);
+  saveNotes();
+}
+
+window.addEventListener('DOMContentLoaded', loadNotes);
+
+
+ if (Notification.permission !== 'granted') {
+    Notification.requestPermission();
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const activos = JSON.parse(localStorage.getItem('recordatoriosActivos') || '[]');
+    activos.forEach(({ id, fecha, hora, repetir }) => {
+      const diff = new Date(`${fecha}T${hora}`) - new Date();
+      if (diff > 0) {
+        setTimeout(() => mostrarNotificacion("Tarea pendiente", hora, id), diff);
       }
     });
+    loadNotes();
+  });
 
-    function programarRecordatorio(noteId) {
-      const fecha = document.getElementById(`fecha-${noteId}`).value;
-      const hora = document.getElementById(`hora-${noteId}`).value;
-      const repetir = document.getElementById(`repetir-${noteId}`).checked;
-      const nota = document.getElementById(noteId);
-      const titulo = nota.querySelector('.note-title').value || 'Nota sin título';
+  function programarRecordatorio(noteId) {
+    const fecha = document.getElementById(`fecha-${noteId}`).value;
+    const hora = document.getElementById(`hora-${noteId}`).value;
+    const repetir = document.getElementById(`repetir-${noteId}`).checked;
+    const nota = document.getElementById(noteId);
+    const titulo = nota.querySelector('.note-title').value || 'Nota sin título';
+    const fechaHora = new Date(`${fecha}T${hora}`);
+    const ahora = new Date();
+    const diff = fechaHora - ahora;
 
-      const fechaHora = new Date(`${fecha}T${hora}`);
-      const ahora = new Date();
-      const diff = fechaHora - ahora;
+    if (diff <= 0) return alert('Elige una hora futura');
 
-      if (diff <= 0) return alert('Elige una hora futura');
+    document.getElementById(`etiqueta-${noteId}`).classList.remove('d-none');
+    document.getElementById(`etiqueta-${noteId}`).textContent = `⏰ ${hora} del ${fecha}`;
 
-      document.getElementById(`etiqueta-${noteId}`).classList.remove('d-none');
-      document.getElementById(`etiqueta-${noteId}`).textContent = `⏰ ${hora} del ${fecha}`;
+    const anteriores = JSON.parse(localStorage.getItem('recordatoriosActivos') || '[]');
+    const nuevos = [...anteriores.filter(r => r.id !== noteId), { id: noteId, fecha, hora, repetir }];
+    localStorage.setItem('recordatoriosActivos', JSON.stringify(nuevos));
 
-      const nuevosRecordatorios = [...recordatoriosActivos.filter(r => r.id !== noteId), { id: noteId, fecha, hora, repetir }];
-      localStorage.setItem('recordatoriosActivos', JSON.stringify(nuevosRecordatorios));
+    setTimeout(() => {
+      mostrarNotificacion(titulo, hora, noteId);
+      if (repetir) programarRecordatorio(noteId);
+    }, diff);
+  }
 
-      setTimeout(() => {
-        mostrarNotificacion(titulo, hora, noteId);
-        if (repetir) programarRecordatorio(noteId);
-      }, diff);
+  function mostrarNotificacion(titulo, hora, noteId) {
+    if (Notification.permission === 'granted') {
+      new Notification("🔔 Recordatorio", { body: `Tarea: ${titulo} a las ${hora}` });
     }
+    document.getElementById("alertSound").play();
+    alert(`🔔 ${titulo} - Recordatorio para las ${hora}`);
+  }
+    
 
-    function mostrarNotificacion(titulo, hora, noteId) {
-      if (Notification.permission === 'granted') {
-        new Notification("🔔 Recordatorio", { body: `Tarea: ${titulo} a las ${hora}` });
-      }
-      document.getElementById("alertSound").play();
-      alert(`🔔 ${titulo} - Recordatorio para las ${hora}`);
-    }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
