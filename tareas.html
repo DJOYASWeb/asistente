@@ -478,11 +478,40 @@ window.onclick = function (e) {
   }
 }
 
-// Tareas
 const noteGrid = document.getElementById('noteGrid');
 const filtroFecha = document.getElementById('filtroFecha');
 
+// === Historial de cambios para deshacer/rehacer ===
+let historial = [];
+let rehacerHistorial = [];
+
+function guardarEstado() {
+  const estadoActual = localStorage.getItem('tareasNotas');
+  if (estadoActual) historial.push(estadoActual);
+  if (historial.length > 50) historial.shift();
+  rehacerHistorial = [];
+}
+
+function deshacer() {
+  if (historial.length === 0) return;
+  const estadoAnterior = historial.pop();
+  const actual = localStorage.getItem('tareasNotas');
+  if (actual) rehacerHistorial.push(actual);
+  localStorage.setItem('tareasNotas', estadoAnterior);
+  loadNotes();
+}
+
+function rehacer() {
+  if (rehacerHistorial.length === 0) return;
+  const siguiente = rehacerHistorial.pop();
+  const actual = localStorage.getItem('tareasNotas');
+  if (actual) historial.push(actual);
+  localStorage.setItem('tareasNotas', siguiente);
+  loadNotes();
+}
+
 function saveNotes() {
+  guardarEstado();
   const notes = [...document.querySelectorAll('.note')].map(note => ({
     title: note.querySelector('.note-title').value,
     date: note.querySelector('.note-date').value,
@@ -540,9 +569,20 @@ function createNote(data = {}) {
       `).join('')}
     </div>
 
-    <div class="input-group input-group-sm">
+    <div class="input-group input-group-sm mb-2">
       <input type="text" class="form-control" placeholder="Nueva tarea..." />
       <button class="btn btn-outline-primary" onclick="addTask(this)">+</button>
+    </div>
+    <div class="d-flex justify-content-between px-1">
+      <button class="btn btn-sm btn-light" onclick="setRecordatorio(this)" title="Agregar recordatorio">
+        <i class="fas fa-bell"></i>
+      </button>
+      <button class="btn btn-sm btn-light" onclick="deshacer()" title="Deshacer">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <button class="btn btn-sm btn-light" onclick="rehacer()" title="Rehacer">
+        <i class="fas fa-arrow-right"></i>
+      </button>
     </div>
   `;
 
@@ -613,7 +653,7 @@ function actualizarFecha(input) {
   saveNotes();
 }
 
-// === NUEVO: editar tarea con doble clic ===
+// === EDITAR TAREA ===
 function editarTarea(span) {
   const textoOriginal = span.textContent;
   const input = document.createElement('input');
@@ -652,8 +692,23 @@ function guardarTextoEditado(input, textoOriginal) {
   saveNotes();
 }
 
+// === RECORDATORIO ===
+function setRecordatorio(btn) {
+  const minutos = prompt("¿En cuántos minutos deseas recibir el recordatorio?");
+  const minNum = parseInt(minutos);
+  if (isNaN(minNum) || minNum <= 0) {
+    alert("Ingresa un número válido en minutos.");
+    return;
+  }
+
+  const tarea = btn.closest('.note').querySelector('.note-title')?.value || 'una nota';
+  setTimeout(() => {
+    alert(`⏰ Recordatorio de "${tarea}"`);
+  }, minNum * 60000);
+}
+
 window.addEventListener('DOMContentLoaded', loadNotes);
-    
+
   </script>
 </body>
 </html>
