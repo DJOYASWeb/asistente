@@ -424,7 +424,6 @@
   </style>
 </head>
 <body data-theme="light">
-  <audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
   <!-- Sidebar -->
@@ -808,56 +807,6 @@ function guardarTextoEditado(input, textoOriginal) {
 }
 
 window.addEventListener('DOMContentLoaded', loadNotes);
-
-
- if (Notification.permission !== 'granted') {
-    Notification.requestPermission();
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    const activos = JSON.parse(localStorage.getItem('recordatoriosActivos') || '[]');
-    activos.forEach(({ id, fecha, hora, repetir }) => {
-      const diff = new Date(`${fecha}T${hora}`) - new Date();
-      if (diff > 0) {
-        setTimeout(() => mostrarNotificacion("Tarea pendiente", hora, id), diff);
-      }
-    });
-    loadNotes();
-  });
-
-  function programarRecordatorio(noteId) {
-    const fecha = document.getElementById(`fecha-${noteId}`).value;
-    const hora = document.getElementById(`hora-${noteId}`).value;
-    const repetir = document.getElementById(`repetir-${noteId}`).checked;
-    const nota = document.getElementById(noteId);
-    const titulo = nota.querySelector('.note-title').value || 'Nota sin título';
-    const fechaHora = new Date(`${fecha}T${hora}`);
-    const ahora = new Date();
-    const diff = fechaHora - ahora;
-
-    if (diff <= 0) return alert('Elige una hora futura');
-
-    document.getElementById(`etiqueta-${noteId}`).classList.remove('d-none');
-    document.getElementById(`etiqueta-${noteId}`).textContent = `⏰ ${hora} del ${fecha}`;
-
-    const anteriores = JSON.parse(localStorage.getItem('recordatoriosActivos') || '[]');
-    const nuevos = [...anteriores.filter(r => r.id !== noteId), { id: noteId, fecha, hora, repetir }];
-    localStorage.setItem('recordatoriosActivos', JSON.stringify(nuevos));
-
-    setTimeout(() => {
-      mostrarNotificacion(titulo, hora, noteId);
-      if (repetir) programarRecordatorio(noteId);
-    }, diff);
-  }
-
-  function mostrarNotificacion(titulo, hora, noteId) {
-    if (Notification.permission === 'granted') {
-      new Notification("🔔 Recordatorio", { body: `Tarea: ${titulo} a las ${hora}` });
-    }
-    document.getElementById("alertSound").play();
-    alert(`🔔 ${titulo} - Recordatorio para las ${hora}`);
-  }
-    
 
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
