@@ -436,6 +436,8 @@
   </div>
 
   <script>
+
+/* === FUNCIONES GLOBALES === */
 function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("collapsed");
 }
@@ -476,12 +478,11 @@ window.onclick = function (e) {
       dropdown.classList.remove("show");
     }
   }
-}
+};
 
+/* === TAREAS === */
 const noteGrid = document.getElementById('noteGrid');
 const filtroFecha = document.getElementById('filtroFecha');
-
-// === Historial de cambios para deshacer/rehacer ===
 let historial = [];
 let rehacerHistorial = [];
 
@@ -504,8 +505,6 @@ function deshacer() {
 function rehacer() {
   if (rehacerHistorial.length === 0) return;
   const siguiente = rehacerHistorial.pop();
-  const actual = localStorage.getItem('tareasNotas');
-  if (actual) historial.push(actual);
   localStorage.setItem('tareasNotas', siguiente);
   loadNotes();
 }
@@ -537,8 +536,12 @@ function createNote(data = {}) {
   const col = document.createElement('div');
   col.className = 'col-12 col-sm-6 col-lg-3 mb-3';
 
+  const noteId = 'note_' + Date.now();
+
   const note = document.createElement('div');
   note.className = 'card note p-3';
+  note.setAttribute('id', noteId);
+
   note.innerHTML = `
     <div class="d-flex align-items-center justify-content-between mb-1">
       <input type="text" class="form-control note-title border-0 fw-bold fs-6 me-2" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
@@ -573,22 +576,85 @@ function createNote(data = {}) {
       <input type="text" class="form-control" placeholder="Nueva tarea..." />
       <button class="btn btn-outline-primary" onclick="addTask(this)">+</button>
     </div>
-    <div class="d-flex justify-content-between px-1">
-      <button class="btn btn-sm btn-light" onclick="setRecordatorio(this)" title="Agregar recordatorio">
+
+    <div class="dropdown">
+      <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
         <i class="fas fa-bell"></i>
       </button>
-      <button class="btn btn-sm btn-light" onclick="deshacer()" title="Deshacer">
-        <i class="fas fa-arrow-left"></i>
-      </button>
-      <button class="btn btn-sm btn-light" onclick="rehacer()" title="Rehacer">
-        <i class="fas fa-arrow-right"></i>
-      </button>
+      <div class="dropdown-menu p-3" style="min-width: 250px">
+        <label>Fecha:</label>
+        <input type="date" class="form-control mb-2" id="fecha-${noteId}">
+        <label>Hora:</label>
+        <input type="time" class="form-control mb-2" id="hora-${noteId}">
+        <div class="form-check mb-2">
+          <input type="checkbox" class="form-check-input" id="repetir-${noteId}">
+          <label class="form-check-label" for="repetir-${noteId}">Repetir</label>
+        </div>
+        <button class="btn btn-primary w-100" onclick="programarRecordatorio('${noteId}')">Programar</button>
+      </div>
+    </div>
+
+    <span class="badge bg-warning mt-2 d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
+
+    <div class="d-flex gap-2 mt-2">
+      <button class="btn btn-sm btn-light" onclick="deshacer()" title="Deshacer"><i class="fas fa-arrow-left"></i></button>
+      <button class="btn btn-sm btn-light" onclick="rehacer()" title="Rehacer"><i class="fas fa-arrow-right"></i></button>
     </div>
   `;
 
   col.appendChild(note);
   noteGrid.appendChild(col);
   saveNotes();
+}
+
+function programarRecordatorio(noteId) {
+  const fecha = document.getElementById(`fecha-${noteId}`).value;
+  const hora = document.getElementById(`hora-${noteId}`).value;
+  const repetir = document.getElementById(`repetir-${noteId}`).checked;
+  const nota = document.getElementById(noteId);
+  const titulo = nota.querySelector('.note-title').value || 'Nota sin título';
+
+  const fechaHora = new Date(`${fecha}T${hora}`);
+  const ahora = new Date();
+
+  const diff = fechaHora - ahora;
+  if (diff <= 0) return alert('Elige una hora futura');
+
+  document.getElementById(`etiqueta-${noteId}`).classList.remove('d-none');
+  document.getElementById(`etiqueta-${noteId}`).textContent = `⏰ ${hora} del ${fecha}`;
+
+  setTimeout(() => {
+    mostrarNotificacion(titulo, fechaHora.toLocaleTimeString(), noteId);
+    if (repetir) {
+      // Reprogramar para el día siguiente a la misma hora
+      programarRecordatorio(noteId);
+    }
+  }, diff);
+}
+
+function mostrarNotificacion(titulo, hora, noteId) {
+  const toast = document.createElement('div');
+  toast.className = 'toast align-items-center text-bg-dark border-0 show position-fixed bottom-0 end-0 m-3';
+  toast.style.zIndex = '9999';
+  toast.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">
+        🔔 <strong>${titulo}</strong><br>Recordatorio para las ${hora}
+      </div>
+      <button class="btn btn-warning btn-sm m-2" onclick="verNota('${noteId}')">Ver nota</button>
+    </div>
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 10000);
+}
+
+function verNota(id) {
+  const target = document.getElementById(id);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('border', 'border-warning');
+    setTimeout(() => target.classList.remove('border', 'border-warning'), 2000);
+  }
 }
 
 function addTask(button) {
@@ -653,7 +719,6 @@ function actualizarFecha(input) {
   saveNotes();
 }
 
-// === EDITAR TAREA ===
 function editarTarea(span) {
   const textoOriginal = span.textContent;
   const input = document.createElement('input');
@@ -683,28 +748,11 @@ function guardarTextoEditado(input, textoOriginal) {
   span.textContent = nuevoTexto;
   span.style.flex = '1';
   span.addEventListener('dblclick', () => editarTarea(span));
-
   if (input.previousElementSibling?.checked) {
     span.classList.add('text-decoration-line-through', 'text-muted');
   }
-
   input.replaceWith(span);
   saveNotes();
-}
-
-// === RECORDATORIO ===
-function setRecordatorio(btn) {
-  const minutos = prompt("¿En cuántos minutos deseas recibir el recordatorio?");
-  const minNum = parseInt(minutos);
-  if (isNaN(minNum) || minNum <= 0) {
-    alert("Ingresa un número válido en minutos.");
-    return;
-  }
-
-  const tarea = btn.closest('.note').querySelector('.note-title')?.value || 'una nota';
-  setTimeout(() => {
-    alert(`⏰ Recordatorio de "${tarea}"`);
-  }, minNum * 60000);
 }
 
 window.addEventListener('DOMContentLoaded', loadNotes);
