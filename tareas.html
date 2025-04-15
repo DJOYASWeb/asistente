@@ -601,6 +601,7 @@ function createNote(data = {}) {
     </div>
 
     <div class="dropdown">
+      <button class="btn btn-sm btn-light" onclick="deshacer()" title="Deshacer"><i class="fas fa-arrow-left"></i></button>
       <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
         <i class="fas fa-bell"></i>
       </button>
@@ -619,10 +620,7 @@ function createNote(data = {}) {
 
     <span class="badge bg-warning mt-2 d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
 
-    <div class="d-flex gap-2 mt-2">
-      <button class="btn btn-sm btn-light" onclick="deshacer()" title="Deshacer"><i class="fas fa-arrow-left"></i></button>
-      <button class="btn btn-sm btn-light" onclick="rehacer()" title="Rehacer"><i class="fas fa-arrow-right"></i></button>
-    </div>
+
   `;
 
   col.appendChild(note);
