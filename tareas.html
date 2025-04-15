@@ -459,11 +459,10 @@
       label.textContent = isDark ? "Modo oscuro" : "Modo claro";
     }
 
-    function logout() {
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = "login.html";
-    }
+function logout() {
+  sessionStorage.clear();
+  window.location.href = "login.html";
+}
 
     window.onclick = function (e) {
       if (!e.target.closest('.profile-section')) {
