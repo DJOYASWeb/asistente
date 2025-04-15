@@ -665,14 +665,14 @@ function programarRecordatorio(noteId) {
   const nota = document.getElementById(noteId);
   const titulo = nota.querySelector('.note-title').value || 'Nota sin título';
 
-  const fechaHora = new Date(${fecha}T${hora});
+const fechaHora = new Date(`${fecha}T${hora}`);
   const ahora = new Date();
 
   const diff = fechaHora - ahora;
   if (diff <= 0) return alert('Elige una hora futura');
 
-  document.getElementById(etiqueta-${noteId}).classList.remove('d-none');
-  document.getElementById(etiqueta-${noteId}).textContent = ⏰ ${hora} del ${fecha};
+document.getElementById(`etiqueta-${noteId}`).classList.remove('d-none');
+document.getElementById(`etiqueta-${noteId}`).textContent = ⏰ ${hora} del ${fecha};
 
   setTimeout(() => {
     mostrarNotificacion(titulo, fechaHora.toLocaleTimeString(), noteId);
