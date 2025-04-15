@@ -159,9 +159,6 @@
     .dropdown-menu.show {
       display: block;
     }
-    .dropdown{
-      display:flex;
-    }
 
     .badge {
     --bs-badge-padding-x: 0;
@@ -170,8 +167,7 @@
     --bs-badge-font-weight: 300;
     --bs-badge-color: #fff;
     --bs-badge-border-radius: var(--bs-border-radius);
-    display: grid;
-    align-items: center;
+    display: inline-block;
     padding: var(--bs-badge-padding-y) var(--bs-badge-padding-x);
     font-size: var(--bs-badge-font-size);
     font-weight: var(--bs-badge-font-weight);
@@ -610,10 +606,10 @@ function createNote(data = {}) {
       </div>
     </div>
 
-<small class="text-muted fecha-visual ms-1 mb-2">${data.date ? `📅 ${data.date}` : ''}</small>
+    <small class="text-muted fecha-visual ms-1 mb-2">${data.date ? `📅 ${data.date}` : ''}</small>
     <hr style="py-2">
     <div class="tasks mb-2">
-      ${(data.tasks || []).map(t => 
+      ${(data.tasks || []).map(t => `
         <div class="task d-flex align-items-center mb-1">
           <input type="checkbox" class="form-check-input me-2" ${t.checked ? 'checked' : ''} onchange="toggleComplete(this)">
           <span class="flex-grow-1 ${t.checked ? 'text-decoration-line-through text-muted' : ''}" ondblclick="editarTarea(this)">${t.text}</span>
@@ -621,7 +617,7 @@ function createNote(data = {}) {
             <i class="fas fa-times"></i>
           </button>
         </div>
-      ).join('')}
+      `).join('')}
     </div>
 
     <div class="input-group input-group-sm mb-2">
@@ -634,7 +630,6 @@ function createNote(data = {}) {
       <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
         <i class="fas fa-bell"></i>
       </button>
-      <span class="badge bg-warning d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
       <div class="dropdown-menu p-3" style="min-width: 250px">
         <label>Fecha:</label>
         <input type="date" class="form-control mb-2" id="fecha-${noteId}">
@@ -648,10 +643,10 @@ function createNote(data = {}) {
       </div>
     </div>
 
+    <span class="badge bg-warning mt-2 d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
 
 
-
-  ;
+  `;
 
   col.appendChild(note);
   noteGrid.appendChild(col);
@@ -659,20 +654,20 @@ function createNote(data = {}) {
 }
 
 function programarRecordatorio(noteId) {
-  const fecha = document.getElementById(fecha-${noteId}).value;
-  const hora = document.getElementById(hora-${noteId}).value;
-  const repetir = document.getElementById(repetir-${noteId}).checked;
+  const fecha = document.getElementById(`fecha-${noteId}`).value;
+  const hora = document.getElementById(`hora-${noteId}`).value;
+  const repetir = document.getElementById(`repetir-${noteId}`).checked;
   const nota = document.getElementById(noteId);
   const titulo = nota.querySelector('.note-title').value || 'Nota sin título';
 
-const fechaHora = new Date(`${fecha}T${hora}`);
+  const fechaHora = new Date(`${fecha}T${hora}`);
   const ahora = new Date();
 
   const diff = fechaHora - ahora;
   if (diff <= 0) return alert('Elige una hora futura');
 
-document.getElementById(`etiqueta-${noteId}`).classList.remove('d-none');
-document.getElementById(`etiqueta-${noteId}`).textContent = ⏰ ${hora} del ${fecha};
+  document.getElementById(`etiqueta-${noteId}`).classList.remove('d-none');
+  document.getElementById(`etiqueta-${noteId}`).textContent = `⏰ ${hora} del ${fecha}`;
 
   setTimeout(() => {
     mostrarNotificacion(titulo, fechaHora.toLocaleTimeString(), noteId);
@@ -687,14 +682,14 @@ function mostrarNotificacion(titulo, hora, noteId) {
   const toast = document.createElement('div');
   toast.className = 'toast align-items-center text-bg-dark border-0 show position-fixed bottom-0 end-0 m-3';
   toast.style.zIndex = '9999';
-  toast.innerHTML = 
+  toast.innerHTML = `
     <div class="d-flex">
       <div class="toast-body">
         🔔 <strong>${titulo}</strong><br>Recordatorio para las ${hora}
       </div>
       <button class="btn btn-warning btn-sm m-2" onclick="verNota('${noteId}')">Ver nota</button>
     </div>
-  ;
+  `;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 10000);
 }
@@ -717,13 +712,13 @@ function addTask(button) {
 
   const taskEl = document.createElement('div');
   taskEl.className = 'task d-flex align-items-center mb-1';
-  taskEl.innerHTML = 
+  taskEl.innerHTML = `
     <input type="checkbox" class="form-check-input me-2" onchange="toggleComplete(this)">
     <span class="flex-grow-1" ondblclick="editarTarea(this)">${taskText}</span>
     <button class="btn btn-sm btn-outline-secondary ms-2" onclick="removeTask(this)">
       <i class="fas fa-times"></i>
     </button>
-  ;
+  `;
   tasks.appendChild(taskEl);
   input.value = "";
   saveNotes();
@@ -766,7 +761,7 @@ function filtrarPorTexto() {
 
 function actualizarFecha(input) {
   const small = input.closest('.note').querySelector('.fecha-visual');
-  small.textContent = input.value ? 📅 ${input.value} : '';
+  small.textContent = input.value ? `📅 ${input.value}` : '';
   saveNotes();
 }
 
