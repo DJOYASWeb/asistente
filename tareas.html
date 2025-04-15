@@ -160,6 +160,26 @@
       display: block;
     }
 
+    .badge {
+    --bs-badge-padding-x: 0;
+    --bs-badge-padding-y: 0;
+    --bs-badge-font-size: 0;
+    --bs-badge-font-weight: 300;
+    --bs-badge-color: #fff;
+    --bs-badge-border-radius: var(--bs-border-radius);
+    display: inline-block;
+    padding: var(--bs-badge-padding-y) var(--bs-badge-padding-x);
+    font-size: var(--bs-badge-font-size);
+    font-weight: var(--bs-badge-font-weight);
+    /* line-height: 3; */
+    color: var(--bs-badge-color);
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: var(--bs-badge-border-radius);
+    width: 100%;
+}
+
     .user-info {
       padding: 0.5rem 1rem;
       border-bottom: 1px solid #e5e5ea;
