@@ -594,7 +594,7 @@ function createNote(data = {}) {
   note.className = 'card note p-3';
   note.setAttribute('id', noteId);
 
-  note.innerHTML = 
+  note.innerHTML = `
     <div class="d-flex align-items-center justify-content-between mb-1">
       <input type="text" class="form-control note-title border-0 fw-bold fs-6 me-2" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
       <div class="d-flex align-items-center gap-2">
