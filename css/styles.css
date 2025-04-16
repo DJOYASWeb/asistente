@@ -345,7 +345,6 @@
       font-size: 14px;
     }
 
-    }
      h2 {
     font-size: 18px!important;
 }
@@ -621,7 +620,6 @@
 
       .sidebar.active {
         transform: translateX(0);
-      }
     }
      .bottom-links a:active{
        background:aqua;
