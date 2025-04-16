@@ -130,11 +130,7 @@ function toggleSidebar() {
 // DASHBOARD FIN
 
 // INSPIRA INICIO
- <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
-  <script>
-    // Tab ingresar
+
     const firebaseConfig = {
       apiKey: "AIzaSyD6xqVEHb5eGrFr4cEu6y-OHxcpXjvybv4",
       authDomain: "djoyas-asistente.firebaseapp.com",
