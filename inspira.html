@@ -86,6 +86,7 @@
   <div class="tab-header">
     <button class="tab-btn active" id="btnContenidos" onclick="showTab('contenidos')">Contenidos</button>
     <button class="tab-btn" id="btnRecursos" onclick="showTab('recursos')">Recursos</button>
+    <button class="tab-btn" id="btnIngreso" onclick="showTab('ingreso')">Ingreso</button>
   </div>
 
   <!-- Contenido dinámico -->
@@ -117,27 +118,29 @@
         <p>Lorem ipsum dolor sit amet. Aquí irán herramientas o links útiles más adelante.</p>
       </div>
     </div>
+
+    <!-- Ingreso -->
+    <div id="ingreso" class="tab-section d-none">
+      <div class="ios-card">
+        <h5>Ingreso</h5>
+        <p>Esta sección está reservada para inicio de sesión, validaciones u otras funciones más adelante.</p>
+      </div>
+    </div>
   </div>
 
   <!-- Script de comportamiento -->
   <script>
     function showTab(tab) {
-      const contenidosBtn = document.getElementById("btnContenidos");
-      const recursosBtn = document.getElementById("btnRecursos");
-      const contenidosTab = document.getElementById("contenidos");
-      const recursosTab = document.getElementById("recursos");
+      const tabs = ['contenidos', 'recursos', 'ingreso'];
 
-      if (tab === 'contenidos') {
-        contenidosBtn.classList.add('active');
-        recursosBtn.classList.remove('active');
-        contenidosTab.classList.remove('d-none');
-        recursosTab.classList.add('d-none');
-      } else {
-        recursosBtn.classList.add('active');
-        contenidosBtn.classList.remove('active');
-        recursosTab.classList.remove('d-none');
-        contenidosTab.classList.add('d-none');
-      }
+      tabs.forEach(t => {
+        document.getElementById(t).classList.toggle('d-none', t !== tab);
+        document.getElementById(`btn${capitalize(t)}`).classList.toggle('active', t === tab);
+      });
+    }
+
+    function capitalize(word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
     }
 
     function mostrarContenido() {
