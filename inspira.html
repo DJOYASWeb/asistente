@@ -1,1 +1,68 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Estilo iOS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body data-theme="light">
+  <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">Dashboard</span>
+      </h2>
+      <nav>
+        <a href="dashboard.html" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
+        <a href="blog.html" data-tooltip="blog"><span class="icon"><i class="fas fa-flask"></i></span><span class="label">DJOYAS Blog</span></a>
+        <a href="#" data-tooltip="Uso"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="label">Descripciones</span></a>
+        <a href="inspira.html" data-tooltip="Facturación"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">DJOYAS Inspira</span></a>
+      </nav>
+    </div>
+    <div class="bottom-links">
+      <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias"><span class="icon"><i class="fas fa-list-check"></i></span><span class="label">Tareas Diarias</span></a>
+      <a href="#" data-tooltip="Por definir"><span class="icon"><i class="fas fa-cube"></i></span><span class="label">Calendario</span></a>
+      <a href="settings.html" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
+      <div class="profile-section">
+        <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" id="avatar" onclick="toggleDropdown()" />
+        <div class="dropdown-menu" id="dropdown">
+          <div class="user-info">
+            <div class="user-name"><strong id="userName">Juan Pérez</strong></div>
+            <div class="user-email"><span id="userEmail">juan@correo.com</span></div>
+          </div>
+          <div class="theme-switch" onclick="toggleTheme()">
+            <span class="switch-icon" id="theme-icon">🌙</span>
+            <span class="switch-label">Modo oscuro</span>
+          </div>
+          <a href="settings.html">Configuración</a>
+          <a href="#" onclick="logout()">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
+  <!-- Contenido EN LA PANTALLA AQUI REEMPLAZAR -->
+    <div class="content-area">
+      <h1>Bienvenido 👋</h1>
+      <p>Este dashboard está inspirado en la estética de iOS.</p>
+    </div>
+  <!-- Contenido EN LA PANTALLA AQUI REEMPLAZAR -->
+
+  </div>
+
+
+<script src="js/script.js"></script>
+</body>
+</html>
