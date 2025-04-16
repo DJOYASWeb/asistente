@@ -669,6 +669,280 @@ window.addEventListener('load', cargarContenidos);
 // INSPIRA FIN
 
 // TAREAS INICIO
+const noteGrid = document.getElementById('noteGrid');
+const filtroFecha = document.getElementById('filtroFecha');
+let historial = [];
+let rehacerHistorial = [];
+
+function guardarEstado() {
+  const estadoActual = localStorage.getItem('tareasNotas');
+  if (estadoActual) historial.push(estadoActual);
+  if (historial.length > 50) historial.shift();
+  rehacerHistorial = [];
+}
+
+function deshacer() {
+  if (historial.length === 0) return;
+  const estadoAnterior = historial.pop();
+  const actual = localStorage.getItem('tareasNotas');
+  if (actual) rehacerHistorial.push(actual);
+  localStorage.setItem('tareasNotas', estadoAnterior);
+  loadNotes();
+}
+
+function rehacer() {
+  if (rehacerHistorial.length === 0) return;
+  const siguiente = rehacerHistorial.pop();
+  localStorage.setItem('tareasNotas', siguiente);
+  loadNotes();
+}
+
+function saveNotes() {
+  guardarEstado();
+  const notes = [...document.querySelectorAll('.note')].map(note => ({
+    title: note.querySelector('.note-title').value,
+    date: note.querySelector('.note-date').value,
+    tasks: [...note.querySelectorAll('.task')].map(task => ({
+      text: task.querySelector('span').textContent,
+      checked: task.querySelector('input[type="checkbox"]').checked
+    }))
+  }));
+  localStorage.setItem('tareasNotas', JSON.stringify(notes));
+}
+
+function loadNotes() {
+  const data = JSON.parse(localStorage.getItem('tareasNotas') || '[]');
+  noteGrid.innerHTML = '';
+  data.forEach(note => createNote(note));
+}
+
+function addNote() {
+  createNote();
+}
+
+function createNote(data = {}) {
+  const col = document.createElement('div');
+  col.className = 'col-12 col-sm-6 col-lg-3 mb-3';
+
+  const noteId = 'note_' + Date.now();
+
+  const note = document.createElement('div');
+  note.className = 'card note p-3';
+  note.setAttribute('id', noteId);
+
+  note.innerHTML = `
+    <div class="d-flex align-items-center justify-content-between mb-1">
+      <input type="text" class="form-control note-title border-0 fw-bold fs-6 me-2" placeholder="Título..." value="${data.title || ''}" oninput="saveNotes()" />
+      <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-secondary position-relative overflow-hidden">
+          <i class="fas fa-calendar-alt"></i>
+          <input type="date" class="note-date position-absolute top-0 start-0 opacity-0"
+                 style="width: 100%; height: 100%; cursor: pointer;"
+                 value="${data.date || ''}" onchange="actualizarFecha(this)">
+        </button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteNote(this)">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+
+    <small class="text-muted fecha-visual ms-1 mb-2">${data.date ? `📅 ${data.date}` : ''}</small>
+    <hr style="py-2">
+    <div class="tasks mb-2">
+      ${(data.tasks || []).map(t => `
+        <div class="task d-flex align-items-center mb-1">
+          <input type="checkbox" class="form-check-input me-2" ${t.checked ? 'checked' : ''} onchange="toggleComplete(this)">
+          <span class="flex-grow-1 ${t.checked ? 'text-decoration-line-through text-muted' : ''}" ondblclick="editarTarea(this)">${t.text}</span>
+          <button class="btn btn-sm btn-outline-secondary ms-2" onclick="removeTask(this)">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="input-group input-group-sm mb-2">
+      <input type="text" class="form-control" placeholder="Nueva tarea..." />
+      <button class="btn btn-outline-primary" onclick="addTask(this)">+</button>
+    </div>
+
+    <div class="dropdown">
+      <button class="btn btn-sm btn-light" onclick="deshacer()" title="Deshacer"><i class="fas fa-arrow-left"></i></button>
+      <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="fas fa-bell"></i>
+      </button>
+      <div class="dropdown-menu p-3" style="min-width: 250px">
+        <label>Fecha:</label>
+        <input type="date" class="form-control mb-2" id="fecha-${noteId}">
+        <label>Hora:</label>
+        <input type="time" class="form-control mb-2" id="hora-${noteId}">
+        <div class="form-check mb-2">
+          <input type="checkbox" class="form-check-input" id="repetir-${noteId}">
+          <label class="form-check-label" for="repetir-${noteId}">Repetir</label>
+        </div>
+        <button class="btn btn-primary w-100" onclick="programarRecordatorio('${noteId}')">Programar</button>
+      </div>
+    </div>
+
+    <span class="badge bg-warning mt-2 d-none" id="etiqueta-${noteId}">Recordatorio activado</span>
+
+
+  `;
+
+  col.appendChild(note);
+  noteGrid.appendChild(col);
+  saveNotes();
+}
+
+function programarRecordatorio(noteId) {
+  const fecha = document.getElementById(`fecha-${noteId}`).value;
+  const hora = document.getElementById(`hora-${noteId}`).value;
+  const repetir = document.getElementById(`repetir-${noteId}`).checked;
+  const nota = document.getElementById(noteId);
+  const titulo = nota.querySelector('.note-title').value || 'Nota sin título';
+
+  const fechaHora = new Date(`${fecha}T${hora}`);
+  const ahora = new Date();
+
+  const diff = fechaHora - ahora;
+  if (diff <= 0) return alert('Elige una hora futura');
+
+  document.getElementById(`etiqueta-${noteId}`).classList.remove('d-none');
+  document.getElementById(`etiqueta-${noteId}`).textContent = `⏰ ${hora} del ${fecha}`;
+
+  setTimeout(() => {
+    mostrarNotificacion(titulo, fechaHora.toLocaleTimeString(), noteId);
+    if (repetir) {
+      // Reprogramar para el día siguiente a la misma hora
+      programarRecordatorio(noteId);
+    }
+  }, diff);
+}
+
+function mostrarNotificacion(titulo, hora, noteId) {
+  const toast = document.createElement('div');
+  toast.className = 'toast align-items-center text-bg-dark border-0 show position-fixed bottom-0 end-0 m-3';
+  toast.style.zIndex = '9999';
+  toast.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">
+        🔔 <strong>${titulo}</strong><br>Recordatorio para las ${hora}
+      </div>
+      <button class="btn btn-warning btn-sm m-2" onclick="verNota('${noteId}')">Ver nota</button>
+    </div>
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 10000);
+}
+
+function verNota(id) {
+  const target = document.getElementById(id);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('border', 'border-warning');
+    setTimeout(() => target.classList.remove('border', 'border-warning'), 2000);
+  }
+}
+
+function addTask(button) {
+  const note = button.closest('.note');
+  const input = note.querySelector('.input-group input');
+  const tasks = note.querySelector('.tasks');
+  const taskText = input.value.trim();
+  if (!taskText) return;
+
+  const taskEl = document.createElement('div');
+  taskEl.className = 'task d-flex align-items-center mb-1';
+  taskEl.innerHTML = `
+    <input type="checkbox" class="form-check-input me-2" onchange="toggleComplete(this)">
+    <span class="flex-grow-1" ondblclick="editarTarea(this)">${taskText}</span>
+    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="removeTask(this)">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  tasks.appendChild(taskEl);
+  input.value = "";
+  saveNotes();
+}
+
+function removeTask(btn) {
+  btn.parentElement.remove();
+  saveNotes();
+}
+
+function toggleComplete(checkbox) {
+  const span = checkbox.nextElementSibling;
+  span.classList.toggle('text-decoration-line-through', checkbox.checked);
+  span.classList.toggle('text-muted', checkbox.checked);
+  saveNotes();
+}
+
+function deleteNote(btn) {
+  btn.closest('.col-12').remove();
+  saveNotes();
+}
+
+function filtrarPorFecha() {
+  const filtro = filtroFecha.value;
+  const cards = document.querySelectorAll('.note');
+  cards.forEach(note => {
+    const fecha = note.querySelector('.note-date').value;
+    note.closest('.col-12').style.display = (!filtro || filtro === fecha) ? '' : 'none';
+  });
+}
+
+function filtrarPorTexto() {
+  const texto = document.getElementById('busquedaTexto').value.toLowerCase();
+  const notas = document.querySelectorAll('.note');
+  notas.forEach(nota => {
+    const titulo = nota.querySelector('.note-title')?.value.toLowerCase() || '';
+    nota.closest('.col-12').style.display = titulo.includes(texto) ? '' : 'none';
+  });
+}
+
+function actualizarFecha(input) {
+  const small = input.closest('.note').querySelector('.fecha-visual');
+  small.textContent = input.value ? `📅 ${input.value}` : '';
+  saveNotes();
+}
+
+function editarTarea(span) {
+  const textoOriginal = span.textContent;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = textoOriginal;
+  input.className = 'form-control form-control-sm';
+  input.style.flex = '1';
+
+  span.replaceWith(input);
+  input.focus();
+
+  input.addEventListener('blur', () => {
+    guardarTextoEditado(input, textoOriginal);
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      input.blur();
+    }
+  });
+}
+
+function guardarTextoEditado(input, textoOriginal) {
+  const nuevoTexto = input.value.trim() || textoOriginal;
+  const span = document.createElement('span');
+  span.textContent = nuevoTexto;
+  span.style.flex = '1';
+  span.addEventListener('dblclick', () => editarTarea(span));
+  if (input.previousElementSibling?.checked) {
+    span.classList.add('text-decoration-line-through', 'text-muted');
+  }
+  input.replaceWith(span);
+  saveNotes();
+}
+
+window.addEventListener('DOMContentLoaded', loadNotes);
+
 // TAREAS FIN
 
 // BLOG INICIO
