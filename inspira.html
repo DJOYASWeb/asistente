@@ -119,13 +119,49 @@
       </div>
     </div>
 
-    <!-- Ingreso -->
-    <div id="ingreso" class="tab-section d-none">
-      <div class="ios-card">
-        <h5>Ingreso</h5>
-        <p>Esta sección está reservada para inicio de sesión, validaciones u otras funciones más adelante.</p>
+   <!-- Ingreso -->
+<div id="ingreso" class="tab-section d-none">
+  <div class="ios-card">
+    <h5>Ingreso DJOYAS Inspira</h5>
+
+    <form id="formInspira" onsubmit="guardarInspira(event)">
+      <div class="mb-3">
+        <label>Título</label>
+        <input type="text" class="form-control" id="inspiraTitulo" required>
       </div>
-    </div>
+      <div class="mb-3">
+        <label>Descripción</label>
+        <textarea class="form-control" id="inspiraDescripcion" rows="2" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label>Imagen URL</label>
+        <input type="url" class="form-control" id="inspiraImagen" required>
+      </div>
+      <div class="mb-3">
+        <label>Categoría</label>
+        <input type="text" class="form-control" id="inspiraCategoria">
+      </div>
+      <div class="mb-3">
+        <label>Fecha</label>
+        <input type="date" class="form-control" id="inspiraFecha">
+      </div>
+      <div class="mb-3">
+        <label>Link (opcional)</label>
+        <input type="url" class="form-control" id="inspiraLink">
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Guardar Entrada</button>
+    </form>
+  </div>
+
+  <div class="ios-card mt-4">
+    <h6>📄 JSON generado:</h6>
+    <pre id="jsonOutput" style="white-space: pre-wrap;"></pre>
+  </div>
+</div>
+
+
+
+
   </div>
 
   <!-- Script de comportamiento -->
@@ -148,6 +184,40 @@
       document.getElementById("contenidoTarjetas").classList.toggle("d-none", selector !== "tarjetas");
       document.getElementById("contenidoInfluencers").classList.toggle("d-none", selector !== "influencers");
     }
+
+    function guardarInspira(e) {
+    e.preventDefault();
+
+    const nuevaEntrada = {
+      titulo: document.getElementById('inspiraTitulo').value,
+      descripcion: document.getElementById('inspiraDescripcion').value,
+      imagen: document.getElementById('inspiraImagen').value,
+      categoria: document.getElementById('inspiraCategoria').value,
+      fecha: document.getElementById('inspiraFecha').value,
+      link: document.getElementById('inspiraLink').value,
+    };
+
+    // Leer la base actual desde localStorage o iniciar vacía
+    const baseActual = JSON.parse(localStorage.getItem('inspiraData') || '[]');
+    baseActual.push(nuevaEntrada);
+
+    // Guardar en localStorage
+    localStorage.setItem('inspiraData', JSON.stringify(baseActual, null, 2));
+
+    // Mostrar el JSON generado
+    document.getElementById('jsonOutput').textContent = JSON.stringify(baseActual, null, 2);
+
+    // Resetear formulario
+    document.getElementById('formInspira').reset();
+  }
+
+  // Mostrar JSON al cargar si existe
+  window.addEventListener('load', () => {
+    const datosGuardados = localStorage.getItem('inspiraData');
+    if (datosGuardados) {
+      document.getElementById('jsonOutput').textContent = datosGuardados;
+    }
+  });
   </script>
 </body>
 </html>
