@@ -131,16 +131,6 @@ function toggleSidebar() {
 
 // INSPIRA INICIO
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD6xqVEHb5eGrFr4cEu6y-OHxcpXjvybv4",
-      authDomain: "djoyas-asistente.firebaseapp.com",
-      projectId: "djoyas-asistente",
-      storageBucket: "djoyas-asistente.appspot.com",
-      messagingSenderId: "990292345351",
-      appId: "1:990292345351:web:72ae605299387fa31c20a2",
-      measurementId: "G-9ZTSMFYFE1"
-    };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
