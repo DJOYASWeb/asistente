@@ -528,6 +528,85 @@
     .form-check-label {
       font-size: 0.9rem;
     }
+ .tab-btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      background: none;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+      transition: color 0.2s;
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .ios-card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 3.5rem;
+      box-shadow: var(--shadow);
+      margin-top: 1rem;
+    }
+    .card-ingreso{
+        width: 650px;
+        margin: auto;
+    }
+    .modal-contenidos{
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    margin: 4rem 12rem;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    overflow-y: auto;
+    max-height: 80vh;
+    }
+    .tab-content-ios {
+      margin-top: 1.5rem;
+    }
+
+    .select-ios {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: var(--card-bg);
+      border: 1px solid #ccc;
+      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+      width: 100%;
+      font-size: 1rem;
+      box-shadow: var(--shadow);
+      margin-top: 0.5rem;
+    }
+
+    .tab-header {
+      display: flex;
+      justify-content: space-around;
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+    }
+
+    #popupSuccess {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--card-bg);
+      color: var(--text);
+      padding: 1rem 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      font-weight: 500;
+      display: none;
+      z-index: 9999;
+      transition: opacity 0.3s ease-in-out;
+    }
+
 
 
     @media (max-width: 768px) {
@@ -547,6 +626,13 @@
      .bottom-links a:active{
        background:aqua;
      }
+    .ios-card {
+      padding: 1.5rem;
+    }
+    .modal-contenidos{
+    margin: 3rem ;
+    }
+        
     }
  
     
