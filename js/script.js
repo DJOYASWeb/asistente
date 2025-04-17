@@ -139,6 +139,7 @@ function toggleSidebar() {
         document.getElementById(t).classList.toggle('d-none', t !== tab);
         document.getElementById(`btn${capitalize(t)}`).classList.toggle('active', t === tab);
       });
+      if (tab === "recursos") abrirModalEntradas();  // << Añadido
     }
 
     function capitalize(word) {
