@@ -296,18 +296,25 @@ function renderizarEntradas(entradas) {
 <div id="edit-${ent.id}" class="d-none">
   <div class="row">
     <div class="col-lg-6 col-12">
-      <span class="mt-2">Titulo</span>
+  <h6 class="mt-2">Titulo</h6>
   <input type="text" class="form-control mb-1" id="editTitulo-${ent.id}" value="${ent.titulo}">
-  <span class="mt-2">Descripcion</span>
+  <h6 class="mt-2">Descripcion</h6>
   <textarea class="form-control mb-1" id="editDescripcion-${ent.id}">${ent.descripcion}</textarea>
+    <h6 class="mt-2">Imagen</h6>
   <input type="text" class="form-control mb-1" id="editImagen-${ent.id}" value="${ent.imagen}">
+    <h6 class="mt-2">Duracion</h6>
   <input type="text" class="form-control mb-1" id="editDuracion-${ent.id}" value="${ent.duracion}">
     </div>
     <div class="col-lg-6 col-12">
+      <h6 class="mt-2">Tematica</h6>
       <input type="text" class="form-control mb-1" id="editTematica-${ent.id}" value="${ent.tematica}">
+        <h6 class="mt-2">Autor</h6>
   <input type="text" class="form-control mb-1" id="editAutor-${ent.id}" value="${ent.autor}">
+    <h6 class="mt-2">categoria</h6>
   <input type="text" class="form-control mb-1" id="editCategoria-${ent.id}" value="${ent.categoria}">
+    <h6 class="mt-2">Fecha</h6>
   <input type="date" class="form-control mb-1" id="editFecha-${ent.id}" value="${ent.fecha || ""}">
+    <h6 class="mt-2">Link</h6>
   <input type="text" class="form-control mb-1" id="editLink-${ent.id}" value="${ent.link || ""}">
     </div>
   </div>
