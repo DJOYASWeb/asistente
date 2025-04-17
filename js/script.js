@@ -435,7 +435,7 @@ async function generarBloqueContenido() {
   data-date="${fechaFormato}" 
   data-category="${data.categoria}" 
   data-duration="${data.duracion}" 
-  data-duration="${data.autor}" 
+  data-autor="${data.autor}" 
   data-link="${data.link}">
   <div class="img-text-portada">
     <img src="${data.imagen}" alt="Imagen" draggable="false">
