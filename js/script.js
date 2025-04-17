@@ -294,7 +294,9 @@ function renderizarEntradas(entradas) {
 
       </div>
       <div id="edit-${ent.id}" class="d-none">
+        <span class="mt-2">Titulo</span>
         <input type="text" class="form-control mb-1" id="editTitulo-${ent.id}" value="${ent.titulo}">
+        <span class="mt-2">Descripcion</span>
         <textarea class="form-control mb-1" id="editDescripcion-${ent.id}">${ent.descripcion}</textarea>
         <input type="text" class="form-control mb-1" id="editImagen-${ent.id}" value="${ent.imagen}">
         <input type="text" class="form-control mb-1" id="editDuracion-${ent.id}" value="${ent.duracion}">
