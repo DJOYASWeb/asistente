@@ -273,7 +273,7 @@
       background-color: var(--card-bg);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      margin-bottom: 1rem;
+      margin: 1.5rem;
     }
    
 
