@@ -210,9 +210,9 @@ function toggleSidebar() {
           ${data.imagen ? `<img src="${data.imagen}" alt="Imagen" class="img-fluid mb-2" style="border-radius:var(--radius); max-height:200px; object-fit:cover;">` : ""}
           <small><strong>Duración:</strong> ${data.duracion || "N/A"} | 
           <strong>Temática:</strong> ${data.tematica || "-"} | 
-          <strong>Categoría:</strong> ${data.categoria || "-"}<br>
+          <strong>Categoría:</strong> ${data.categoria || "-"}
           <strong>Fecha:</strong> ${data.fecha || "-"} | 
-          <strong>ID:</strong> ${data.id || "-"}</small>
+          <strong>ID:</strong> ${data.id || "-"}
           <strong>Autor:</strong> ${data.autor || "-"} | 
         `;
         contenedor.appendChild(card);
@@ -314,6 +314,10 @@ function renderizarEntradas(entradas) {
       </div>
       </div>
       <div class="col-lg-3 col-12">
+              <div class="flex-input my-2">
+          <h6 class="m-2 col-lg-3 col-12">ID</h6>
+          <input type="date" class="form-control mb-1" id="editFecha-${ent.id}" value="${ent.id || ""}">  
+        </div>
         <div class="flex-input my-2">
           <h6 class="m-2 col-lg-3 col-12">Fecha</h6>
           <input type="date" class="form-control mb-1" id="editFecha-${ent.id}" value="${ent.fecha || ""}">  
