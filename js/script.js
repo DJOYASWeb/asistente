@@ -293,8 +293,8 @@ function renderizarEntradas(entradas) {
         </div>
 
       </div>
- <div id="edit-${ent.id}" class="">
-    <div class="row m-1"">
+ <div id="edit-${ent.id}" class="d-none">
+    <div class="row m-1">
    <div class="col-lg-6 col-12">
     <div class="flex-input my-2">
     <h6 class="m-2 col-lg-2 col-12">Titulo</h6>
