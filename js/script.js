@@ -704,7 +704,11 @@ window.addEventListener('load', cargarContenidos);
 // INSPIRA FIN
 
 // TAREAS INICIO
-const noteGrid = document.getElementById('noteGrid');
+let noteGrid;
+document.addEventListener('DOMContentLoaded', () => {
+  noteGrid = document.getElementById('noteGrid');
+  loadNotes();
+});
 const filtroFecha = document.getElementById('filtroFecha');
 let historial = [];
 let rehacerHistorial = [];
