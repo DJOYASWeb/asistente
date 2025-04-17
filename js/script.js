@@ -135,7 +135,7 @@ function toggleSidebar() {
     const db = firebase.firestore();
 
     function showTab(tab) {
-      ['contenidos', 'recursos', 'ingreso'].forEach(t => {
+      ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar'].forEach(t => {
         document.getElementById(t).classList.toggle('d-none', t !== tab);
         document.getElementById(`btn${capitalize(t)}`).classList.toggle('active', t === tab);
       });
