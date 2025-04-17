@@ -293,34 +293,57 @@ function renderizarEntradas(entradas) {
         </div>
 
       </div>
-<div id="edit-${ent.id}" class="d-none">
-  <div class="row">
-    <div class="col-lg-6 col-12">
-  <h6 class="mt-2">Titulo</h6>
-  <input type="text" class="form-control mb-1" id="editTitulo-${ent.id}" value="${ent.titulo}">
-  <h6 class="mt-2">Descripcion</h6>
-  <textarea class="form-control mb-1" id="editDescripcion-${ent.id}">${ent.descripcion}</textarea>
-    <h6 class="mt-2">Imagen</h6>
-  <input type="text" class="form-control mb-1" id="editImagen-${ent.id}" value="${ent.imagen}">
-    <h6 class="mt-2">Duracion</h6>
-  <input type="text" class="form-control mb-1" id="editDuracion-${ent.id}" value="${ent.duracion}">
+ <div id="edit-${ent.id}" class="">
+    <div class="row m-1"">
+   <div class="col-lg-6 col-12">
+    <div class="flex-input my-2">
+    <h6 class="m-2 col-lg-2 col-12">Titulo</h6>
+    <input type="text" class="form-control mb-1" id="editTitulo-${ent.id}" value="${ent.titulo}">
     </div>
-    <div class="col-lg-6 col-12">
-      <h6 class="mt-2">Tematica</h6>
-      <input type="text" class="form-control mb-1" id="editTematica-${ent.id}" value="${ent.tematica}">
-        <h6 class="mt-2">Autor</h6>
-  <input type="text" class="form-control mb-1" id="editAutor-${ent.id}" value="${ent.autor}">
-    <h6 class="mt-2">categoria</h6>
-  <input type="text" class="form-control mb-1" id="editCategoria-${ent.id}" value="${ent.categoria}">
-    <h6 class="mt-2">Fecha</h6>
-  <input type="date" class="form-control mb-1" id="editFecha-${ent.id}" value="${ent.fecha || ""}">
-    <h6 class="mt-2">Link</h6>
-  <input type="text" class="form-control mb-1" id="editLink-${ent.id}" value="${ent.link || ""}">
+    <div class="flex-input my-2">
+    <h6 class="m-2 col-lg-2 col-12">Descripcion</h6>
+    <textarea class="form-control mb-1" id="editDescripcion-${ent.id}">${ent.descripcion}</textarea>
+      </div>
+      <div class="flex-input my-2">
+        <h6 class="m-2 col-lg-2 col-12">Imagen</h6>
+        <input type="text" class="form-control mb-1" id="editImagen-${ent.id}" value="${ent.imagen}">
+      </div>
+      <div class="flex-input my-2">
+        <h6 class="m-2 col-lg-2 col-12">Url</h6>
+        <input type="text" class="form-control mb-1" id="editLink-${ent.id}" value="${ent.link || ""}">
+      </div>
+      </div>
+      <div class="col-lg-3 col-12">
+        <div class="flex-input my-2">
+          <h6 class="m-2 col-lg-3 col-12">Fecha</h6>
+          <input type="date" class="form-control mb-1" id="editFecha-${ent.id}" value="${ent.fecha || ""}">  
+        </div>
+        <div class="flex-input my-2">
+          <h6 class="m-2 col-lg-3 col-12">Duracion</h6>
+          <input type="text" class="form-control mb-1" id="editDuracion-${ent.id}" value="${ent.duracion}">
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-12">
+        <div class="flex-input my-2">
+          <h6 class="m-2 col-lg-3 col-12">Autor</h6>
+           <input type="text" class="form-control mb-1" id="editAutor-${ent.id}" value="${ent.autor}">
+         </div>
+      <div class="flex-input my-2">
+          <h6 class="m-2 col-lg-3 col-12">Tematica</h6>
+           <input type="text" class="form-control mb-1" id="editTematica-${ent.id}" value="${ent.tematica}">
+         </div>
+      <div class="flex-input my-2">
+          <h6 class="m-2 col-lg-3 col-12">Categoria</h6>
+           <input type="text" class="form-control mb-1" id="editCategoria-${ent.id}" value="${ent.categoria}">
+         </div>
+      </div>
+
     </div>
+    <button class="btn btn-sm btn-success mt-2" onclick="guardarEdicion('${ent.id}')">💾 Guardar cambios</button>
+    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="cancelarEdicion('${ent.id}')">Cancelar</button>
   </div>
-  <button class="btn btn-sm btn-success mt-2" onclick="guardarEdicion('${ent.id}')">💾 Guardar cambios</button>
-  <button class="btn btn-sm btn-outline-secondary mt-2" onclick="cancelarEdicion('${ent.id}')">Cancelar</button>
-</div>
+  
 
     `;
     contenedor.appendChild(card);
