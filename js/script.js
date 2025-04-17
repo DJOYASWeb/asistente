@@ -188,16 +188,17 @@ function toggleSidebar() {
     }
 
     async function abrirModalEntradas() {
-    document.getElementById('modalEntradas').style.display = 'block';
-    const contenedor = document.getElementById('contenedorEntradasFirestore');
-    contenedor.innerHTML = "<p class='text-muted'>Cargando entradas...</p>";
-
-    try {
-      const snapshot = await db.collection("inspira").orderBy("timestamp", "desc").get();
-      if (snapshot.empty) {
-        contenedor.innerHTML = "<p class='text-muted'>No hay entradas disponibles.</p>";
-        return;
+      const contenedor = document.getElementById('contenedorEntradasFirestore');
+      contenedor.innerHTML = "<p class='text-muted'>Cargando entradas...</p>";
+    
+      try {
+        const snapshot = await db.collection("inspira").orderBy("timestamp", "desc").get();
+        cacheEntradas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderizarEntradas(cacheEntradas);
+      } catch (err) {
+        contenedor.innerHTML = "<p class='text-danger'>Error al cargar las entradas.</p>";
       }
+    }
 
       contenedor.innerHTML = "";
       snapshot.forEach(doc => {
@@ -229,19 +230,6 @@ function toggleSidebar() {
 
   let cacheEntradas = [];
 
-async function abrirModalEntradas() {
-  document.getElementById('modalEntradas').style.display = 'block';
-  const contenedor = document.getElementById('contenedorEntradasFirestore');
-  contenedor.innerHTML = "<p class='text-muted'>Cargando entradas...</p>";
-
-  try {
-    const snapshot = await db.collection("inspira").orderBy("timestamp", "desc").get();
-    cacheEntradas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderizarEntradas(cacheEntradas);
-  } catch (err) {
-    contenedor.innerHTML = "<p class='text-danger'>Error al cargar las entradas.</p>";
-  }
-}
 
 function cerrarModalEntradas() {
   document.getElementById('modalEntradas').style.display = 'none';
