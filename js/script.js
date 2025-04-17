@@ -167,6 +167,7 @@ function toggleSidebar() {
       const nuevaEntrada = {
         id: document.getElementById('inspiraId').value,
         titulo: document.getElementById('inspiraTitulo').value,
+        autor: document.getElementById('inspiraAutor').value,
         descripcion: document.getElementById('inspiraDescripcion').value,
         imagen: document.getElementById('inspiraImagen').value,
         duracion: document.getElementById('inspiraDuracion').value + ' ' + document.getElementById('inspiraUnidad').value,
@@ -209,9 +210,10 @@ function toggleSidebar() {
           ${data.imagen ? `<img src="${data.imagen}" alt="Imagen" class="img-fluid mb-2" style="border-radius:var(--radius); max-height:200px; object-fit:cover;">` : ""}
           <small><strong>Duración:</strong> ${data.duracion || "N/A"} | 
           <strong>Temática:</strong> ${data.tematica || "-"} | 
-          <strong>Categoría:</strong> ${data.categoria || "-"}</small><br>
-          <small><strong>Fecha:</strong> ${data.fecha || "-"} | 
+          <strong>Categoría:</strong> ${data.categoria || "-"}<br>
+          <strong>Fecha:</strong> ${data.fecha || "-"} | 
           <strong>ID:</strong> ${data.id || "-"}</small>
+          <strong>Autor:</strong> ${data.autor || "-"} | 
         `;
         contenedor.appendChild(card);
       });
@@ -282,6 +284,7 @@ function renderizarEntradas(entradas) {
         <strong>Fecha:</strong> ${ent.fecha || "-"}<br>
         </div>
         <div class="col-lg-2 col-6">
+        <strong>Autor:</strong> ${ent.autor || "-"}<br>
         <strong>Temática:</strong> ${ent.tematica || "-"}<br>
         <strong>Categoría:</strong> ${ent.categoria || "-"}<br>   
         </div>
@@ -296,6 +299,7 @@ function renderizarEntradas(entradas) {
         <input type="text" class="form-control mb-1" id="editImagen-${ent.id}" value="${ent.imagen}">
         <input type="text" class="form-control mb-1" id="editDuracion-${ent.id}" value="${ent.duracion}">
         <input type="text" class="form-control mb-1" id="editTematica-${ent.id}" value="${ent.tematica}">
+        <input type="text" class="form-control mb-1" id="editAutor-${ent.id}" value="${ent.autor}">
         <input type="text" class="form-control mb-1" id="editCategoria-${ent.id}" value="${ent.categoria}">
         <input type="date" class="form-control mb-1" id="editFecha-${ent.id}" value="${ent.fecha || ""}">
         <input type="text" class="form-control mb-1" id="editLink-${ent.id}" value="${ent.link || ""}">
@@ -322,6 +326,7 @@ async function guardarEdicion(id) {
   const updated = {
     titulo: document.getElementById(`editTitulo-${id}`).value,
     descripcion: document.getElementById(`editDescripcion-${id}`).value,
+    autor: document.getElementById(`editAutor-${id}`).value,
     imagen: document.getElementById(`editImagen-${id}`).value,
     duracion: document.getElementById(`editDuracion-${id}`).value,
     tematica: document.getElementById(`editTematica-${id}`).value,
@@ -430,6 +435,7 @@ async function generarBloqueContenido() {
   data-date="${fechaFormato}" 
   data-category="${data.categoria}" 
   data-duration="${data.duracion}" 
+  data-duration="${data.autor}" 
   data-link="${data.link}">
   <div class="img-text-portada">
     <img src="${data.imagen}" alt="Imagen" draggable="false">
@@ -465,7 +471,7 @@ async function generarBloqueContenido() {
   data-category="${data.categoria}" 
   data-duration="${data.duracion}" 
   data-link="${data.link}" 
-  data-autor="${data.autor || 'Autor desconocido'}" 
+  data-autor="${data.autor}" 
   data-section="${data.categoria}">
   <div class="img-text-overlay">
     <img src="${data.imagen}" alt="Imagen" draggable="false">
@@ -500,7 +506,7 @@ async function generarBloqueContenido() {
   data-category="${data.categoria}" 
   data-duration="${data.duracion}" 
   data-link="${data.link}" 
-  data-autor="${data.autor || 'Autor desconocido'}" 
+  data-autor="${data.autor}" 
   data-section="${data.tematica || data.categoria}">
   <div class="img-text-overlay">
     <img src="${data.imagen}" alt="Imagen" draggable="false">
