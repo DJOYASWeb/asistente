@@ -59,23 +59,31 @@
 
 
 
-    <div class="tab-header">
-      <button class="tab-btn active" id="btnIngreso" onclick="showTab('ingreso')">Ingreso</button>
-      <button class="tab-btn" id="btnContenidos" onclick="showTab('contenidos')">Contenidos</button>
-    </div>
-  <div class="container">
-    <div class="tab-content-ios">
-      
-      <div id="ingreso" class="tab-section">
- a
-          </div>  
-      
-      <div id="contenidos" class="tab-section d-none">
-          b
-      </div>
+  <!-- Tabs -->
+  <div class="tab-header">
+    <button class="tab-btn active" id="btnCrear" onclick="showTab('crear')">Crear Blog</button>
+    <button class="tab-btn" id="btnRedactar" onclick="showTab('redactar')">Redactar Blog</button>
+  </div>
 
+  <!-- Contenido de Tabs -->
+  <div class="tab-content-ios">
+    <div id="crear" class="tab-section">
+      <div class="ios-card">
+        <h5>Crear Blog</h5>
+      </div>
+    </div>
+
+    <div id="redactar" class="tab-section d-none">
+      <div class="ios-card">
+        <h5>Redactar Blog</h5>
+          </div>
     </div>
   </div>
+
+
+
+
+
   </div>
 
 <script src="js/script.js"></script>
