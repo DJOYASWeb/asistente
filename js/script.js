@@ -219,7 +219,7 @@ function toggleSidebar() {
         `;
         contenedor.appendChild(card);
       });
-    } catch (err) {
+     catch (err) {
       contenedor.innerHTML = "<p class='text-danger'>Error al cargar las entradas.</p>";
     }
   }
