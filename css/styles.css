@@ -35,6 +35,9 @@
       font-size: 16px;
       line-height: 1.5;
     }
+    body::-webkit-scrollbar {
+      display: none; /* Chrome, Safari y Edge */
+    }
 
     .sidebar {
       background-color: var(--sidebar-bg);
