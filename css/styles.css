@@ -5,6 +5,11 @@
       --sidebar-hover: #2c2c2e;
       --sidebar-text: #ccc;
       --primary: #0a84ff;
+      --card-bg: #ffffff;
+      --radius: 16px;
+      --text: #1c1c1e;
+      --muted: #8e8e93;
+      --shadow: 0 10px 20px rgba(0,0,0,0.05);
     }
 
     [data-theme="dark"] {
