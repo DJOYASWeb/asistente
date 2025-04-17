@@ -135,7 +135,7 @@ function toggleSidebar() {
     const db = firebase.firestore();
 
     function showTab(tab) {
-      ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar'].forEach(t => {
+      ['contenidos', 'recursos', 'ingreso'].forEach(t => {
         document.getElementById(t).classList.toggle('d-none', t !== tab);
         document.getElementById(`btn${capitalize(t)}`).classList.toggle('active', t === tab);
       });
@@ -976,20 +976,6 @@ window.addEventListener('DOMContentLoaded', loadNotes);
 // BLOG INICIO
 
 
-
-  function showBlogTab(tab) {
-    const tabs = ['blogCreacion', 'blogRedaccion'];
-    tabs.forEach(t => {
-      document.getElementById(t).classList.toggle('d-none', t !== tab);
-      document.getElementById(`btnBlog${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.toggle('active', t === tab);
-    });
-  }
-
-  // Esperar al DOM y luego asignar eventos
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btnBlogCreacion').addEventListener('click', () => showBlogTab('blogCreacion'));
-    document.getElementById('btnBlogRedaccion').addEventListener('click', () => showBlogTab('blogRedaccion'));
-  });
 
 
 
