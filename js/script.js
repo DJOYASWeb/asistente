@@ -981,4 +981,20 @@ window.addEventListener('DOMContentLoaded', loadNotes);
 // TAREAS FIN
 
 // BLOG INICIO
+
+
+
+function showTab(tab) {
+  ['crear', 'redactar'].forEach(t => {
+    document.getElementById(t).classList.toggle('d-none', t !== tab);
+    document.getElementById(`btn${capitalize(t)}`).classList.toggle('active', t === tab);
+  });
+}
+
+function capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+
+
 // BLOG FIN
