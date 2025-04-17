@@ -316,7 +316,7 @@ function renderizarEntradas(entradas) {
       <div class="col-lg-3 col-12">
               <div class="flex-input my-2">
           <h6 class="m-2 col-lg-3 col-12">ID</h6>
-          <input type="date" class="form-control mb-1" id="editFecha-${ent.id}" value="${ent.id || ""}">  
+          <input type="date" class="form-control mb-1" id="editFecha-${ent.id}" value="${ent.fecha || ""}">  
         </div>
         <div class="flex-input my-2">
           <h6 class="m-2 col-lg-3 col-12">Fecha</h6>
