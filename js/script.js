@@ -716,6 +716,11 @@ function closeIosModal() {
   modal.style.display = 'none';
 }
 
+function refrescarContenidos() {
+  cargarContenidos();
+  showIosModal("🔄 Refrescado", "Se actualizaron los contenidos desde la base de datos.");
+}
+
 
 // INSPIRA FIN
 
