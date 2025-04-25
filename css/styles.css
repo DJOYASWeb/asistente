@@ -413,6 +413,8 @@
           border: none !important;
     }
     .btn-primary {
+    --bs-btn-padding-x: 2rem;
+    --bs-btn-padding-y: 0.75rem;
     --bs-btn-color: #fff;
     --bs-btn-bg: #000;
     --bs-btn-border-color: #000;
