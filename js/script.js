@@ -1,5 +1,5 @@
 // LOGIN INICIO
-   const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyD6xqVEHb5eGrFr4cEu6y-OHxcpXjvybv4",
     authDomain: "djoyas-asistente.firebaseapp.com",
     projectId: "djoyas-asistente",
@@ -407,178 +407,84 @@ select.innerHTML = '<option>Error al cargar</option>';
 
 //  FUNCIONALIDAD COMPLETA: incluye soporte especial para INFLUENCER con inputs dinámicos y render modal
 
+
 async function generarBloqueContenido() {
-const select = document.getElementById("contenidoSelect");
-const id = select.value;
-const isInfluencer = document.getElementById("checkInfluencer").checked;
+    const select = document.getElementById("contenidoSelect");
+    const id = select.value.trim();
+    const isInfluencer = document.getElementById("checkInfluencer").checked;
+  
+    console.clear(); // Limpia consola para ver solo info nueva
+    console.log("▶️ ID seleccionado:", id);
+    console.log("▶️ ¿Influencer marcado?:", isInfluencer);
+  
+    if (!id && !isInfluencer) {
+      alert("❗ Debes seleccionar un contenido o marcar Influencer para continuar.");
+      return;
+    }
+  
+    const contenedor = document.getElementById("bloqueGenerado");
+    contenedor.innerHTML = '<h6>🧩 Generando contenido...</h6>';
+    contenedor.classList.remove("d-none");
+  
+    if (isInfluencer) {
+      console.log("✏️ Generando formulario personalizado de Influencer...");
+      mostrarModalFormularioInfluencer();
+      return;
+    }
+  
+    try {
+      console.log("📥 Buscando contenido en Firestore...");
+      const doc = await db.collection("inspira").doc(id).get();
+  
+      if (!doc.exists) {
+        contenedor.innerHTML = '<p class="text-danger">❌ Contenido no encontrado en la base de datos.</p>';
+        console.error("❌ El documento no existe en Firestore.");
+        return;
+      }
+  
+      const data = doc.data();
+      console.log("✅ Documento encontrado:", data);
+  
+      const fechaObj = new Date(data.fecha || new Date());
+      const fechaFormato = fechaObj.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+  
+      let bloquesHTML = "";
+  
+      const etiquetas = {
+        destacados: document.getElementById("checkDestacados").checked,
+        carrusel: document.getElementById("checkCarrusel").checked,
+        popular: document.getElementById("checkPopular").checked,
+        influencer: isInfluencer
+      };
+  
+      if (etiquetas.destacados) {
+        bloquesHTML += `<div class="alert alert-primary" role="alert">🔹 Bloque DESTACADO generado</div>`;
+        // Aquí pegas el HTML real del bloque destacado
+      }
+  
+      if (etiquetas.carrusel) {
+        bloquesHTML += `<div class="alert alert-danger" role="alert">🎠 Bloque CARRUSEL generado</div>`;
+        // Aquí pegas el HTML real del carrusel
+      }
+  
+      if (etiquetas.popular) {
+        bloquesHTML += `<div class="alert alert-warning" role="alert">🔥 Bloque POPULAR generado</div>`;
+        // Aquí pegas el HTML real del popular
+      }
+  
+      if (bloquesHTML === "") {
+        bloquesHTML = '<p class="text-muted">☁️ No seleccionaste ninguna categoría para generar.</p>';
+      }
+  
+      contenedor.innerHTML = bloquesHTML;
+      console.log("🎉 Generación de contenido completada.");
+    } catch (error) {
+      contenedor.innerHTML = '<p class="text-danger">❌ Error al comunicarse con la base de datos.</p>';
+      console.error("🚨 Error en Firestore:", error);
+    }
+  }
+  
 
-if (!id && !isInfluencer) return alert("Debes seleccionar un contenido o marcar Influencer");
-
-const etiquetas = {
-destacados: document.getElementById("checkDestacados").checked,
-carrusel: document.getElementById("checkCarrusel").checked,
-popular: document.getElementById("checkPopular").checked,
-influencer: isInfluencer
-};
-
-const contenedor = document.getElementById("bloqueGenerado");
-const lista = document.createElement("div");
-lista.className = "row";
-contenedor.innerHTML = '<h6>🧩 Contenidos generados:</h6>';
-contenedor.appendChild(lista);
-
-if (isInfluencer) {
-const htmlInputs = `
-  <div class="mb-3">
-    <label>Nombre de usuario</label>
-    <input type="text" class="form-control" id="influencerNombre" placeholder="@ejemplo">
-  </div>
-  <div class="mb-3">
-    <label>Foto (URL)</label>
-    <input type="text" class="form-control" id="influencerImagen" placeholder="/img/...">
-  </div>
-  <div class="mb-3">
-    <label>Categoría</label>
-    <input type="text" class="form-control" id="influencerCategoria" placeholder="Ej: Marketing">
-  </div>
-  <button class="btn btn-primary mt-2" onclick="generarHTMLInfluencer()">✨ Generar HTML</button>
-`;
-
-const cardMini = document.createElement("div");
-cardMini.className = "col-md-6 col-lg-4 mb-3";
-cardMini.innerHTML = `
-  <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #ecf5ff, #ffffff);">
-    <div>
-      <h6 class="text-info">🌟 INFLUENCER</h6>
-      <strong>Formulario personalizado</strong>
-      <p class="text-muted small">Completa los datos a medida</p>
-    </div>
-    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="mostrarModalFormularioInfluencer()">Abrir editor</button>
-  </div>`;
-lista.appendChild(cardMini);
-contenedor.classList.remove("d-none");
-return;
-}
-
-try {
-const doc = await db.collection("inspira").doc(id).get();
-if (!doc.exists) return alert("Contenido no encontrado");
-const data = doc.data();
-
-const fechaObj = new Date(data.fecha);
-const fechaFormato = fechaObj.toLocaleDateString("es-ES", {
-  day: "2-digit", month: "short", year: "numeric"
-});
-
-if (etiquetas.destacados) {
-  const htmlDestacado = `<section class="card contenido" 
-data-title="${data.titulo}" 
-data-subtitle="${data.descripcion}" 
-data-img="${data.imagen}" 
-data-date="${fechaFormato}" 
-data-category="${data.categoria}" 
-data-duration="${data.duracion}" 
-data-autor="${data.autor}" 
-data-link="${data.link}">
-<div class="img-text-portada">
-<img src="${data.imagen}" alt="Imagen" draggable="false">
-<div class="overlay-gradient"></div>
-<div class="text">
-  <img id="marca-image" src="/img/cms/paginas internas/DJOYAS INSPIRA/logo-inspira-1.png" alt="Marca">
-  <h2>${data.titulo}</h2>
-  <span>${data.categoria}</span>
-</div>
-</div>
-</section>`;
-
-  const cardMini = document.createElement("div");
-  cardMini.className = "col-md-6 col-lg-4 mb-3";
-  cardMini.innerHTML = `
-    <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #ffffff, #f8f9fa);">
-      <div>
-        <h6 class="text-primary">🔹 DESTACADO</h6>
-        <strong>${data.titulo}</strong>
-        <p class="text-muted small mb-0 text-truncate">${data.descripcion}</p>
-      </div>
-      <button class="btn btn-sm btn-outline-secondary mt-2 ver-codigo-btn" data-html="${htmlDestacado.replace(/"/g, '&quot;')}">Ver código</button>
-    </div>`;
-  lista.appendChild(cardMini);
-}
-
-if (etiquetas.carrusel) {
-  const htmlCarrusel = `<li class="card" 
-data-title="${data.titulo}" 
-data-subtitle="${data.descripcion}" 
-data-img="${data.imagen}" 
-data-date="${fechaFormato}" 
-data-category="${data.categoria}" 
-data-duration="${data.duracion}" 
-data-link="${data.link}" 
-data-autor="${data.autor}" 
-data-section="${data.categoria}">
-<div class="img-text-overlay">
-<img src="${data.imagen}" alt="Imagen" draggable="false">
-<div class="overlay-gradient"></div>
-<div class="text">
-  <h2>${data.titulo}</h2>
-  <span>${data.tematica}</span>
-</div>
-</div>
-</li>`;
-
-  const cardMini = document.createElement("div");
-  cardMini.className = "col-md-6 col-lg-4 mb-3";
-  cardMini.innerHTML = `
-    <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #fff0f5, #fafafa);">
-      <div>
-        <h6 class="text-danger">🎠 CARRUSEL</h6>
-        <strong>${data.titulo}</strong>
-        <p class="text-muted small mb-0 text-truncate">${data.descripcion}</p>
-      </div>
-      <button class="btn btn-sm btn-outline-secondary mt-2 ver-codigo-btn" data-html="${htmlCarrusel.replace(/"/g, '&quot;')}">Ver código</button>
-    </div>`;
-  lista.appendChild(cardMini);
-}
-
-if (etiquetas.popular) {
-  const htmlPopular = `<li class="card" 
-data-title="${data.titulo}" 
-data-subtitle="${data.descripcion}" 
-data-img="${data.imagen}" 
-data-date="${fechaFormato}" 
-data-category="${data.categoria}" 
-data-duration="${data.duracion}" 
-data-link="${data.link}" 
-data-autor="${data.autor}" 
-data-section="${data.tematica || data.categoria}">
-<div class="img-text-overlay">
-<img src="${data.imagen}" alt="Imagen" draggable="false">
-</div>
-<div class="ranking">
-<span>1</span>
-<h3>${data.titulo}</h3>
-</div>
-</li>`;
-
-  const cardMini = document.createElement("div");
-  cardMini.className = "col-md-6 col-lg-4 mb-3";
-  cardMini.innerHTML = `
-    <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #fdf3e6, #ffffff);">
-      <div>
-        <h6 class="text-warning">🔥 POPULAR</h6>
-        <strong>${data.titulo}</strong>
-        <p class="text-muted small mb-0 text-truncate">${data.descripcion}</p>
-      </div>
-      <button class="btn btn-sm btn-outline-secondary mt-2 ver-codigo-btn" data-html="${htmlPopular.replace(/"/g, '&quot;')}">Ver código</button>
-    </div>`;
-  lista.appendChild(cardMini);
-}
-
-contenedor.classList.remove("d-none");
-} catch (err) {
-alert("Error al generar el contenido: " + err.message);
-}
-}
 
 function mostrarModalFormularioInfluencer() {
 const modal = document.createElement("div");
