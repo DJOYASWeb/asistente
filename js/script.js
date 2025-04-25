@@ -180,12 +180,14 @@ async function guardarInspira(e) {
 
   try {
     await db.collection("inspira").doc(nuevaEntrada.id).set(nuevaEntrada);
-    document.getElementById('jsonOutput').textContent = JSON.stringify(nuevaEntrada, null, 2);
     document.getElementById('formInspira').reset();
-    mostrarPopup();
+    showIosModal("✅ Éxito", "El contenido fue guardado correctamente.");
   } catch (err) {
-     }
+    console.error("❌ Error al guardar entrada:", err);
+    showIosModal("❌ Error", "No se pudo guardar. Intenta de nuevo.");
+  }
 }
+
 
 async function abrirModalEntradas() {
 document.getElementById('modalEntradas').style.display = 'block';
@@ -701,6 +703,20 @@ alert("¡Código HTML copiado al portapapeles!");
 }
 
 window.addEventListener('load', cargarContenidos);
+
+function showIosModal(title, message) {
+  document.getElementById('iosModalTitle').textContent = title;
+  document.getElementById('iosModalMessage').textContent = message;
+  const modal = document.getElementById('iosModal');
+  modal.style.display = 'flex';
+}
+
+function closeIosModal() {
+  const modal = document.getElementById('iosModal');
+  modal.style.display = 'none';
+}
+
+
 // INSPIRA FIN
 
 // TAREAS INICIO
