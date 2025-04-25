@@ -1,5 +1,5 @@
 // LOGIN INICIO
-const firebaseConfig = {
+   const firebaseConfig = {
     apiKey: "AIzaSyD6xqVEHb5eGrFr4cEu6y-OHxcpXjvybv4",
     authDomain: "djoyas-asistente.firebaseapp.com",
     projectId: "djoyas-asistente",
@@ -161,35 +161,31 @@ function mostrarPopup() {
   }, 3000);
 }
 
-
 async function guardarInspira(e) {
-    e.preventDefault();
-  
-    const nuevaEntrada = {
-      id: document.getElementById('inspiraId').value,
-      titulo: document.getElementById('inspiraTitulo').value,
-      autor: document.getElementById('inspiraAutor').value,
-      descripcion: document.getElementById('inspiraDescripcion').value,
-      imagen: document.getElementById('inspiraImagen').value,
-      duracion: document.getElementById('inspiraDuracion').value + ' ' + document.getElementById('inspiraUnidad').value,
-      tematica: document.getElementById('inspiraTematica').value,
-      categoria: document.getElementById('inspiraCategoria').value,
-      fecha: document.getElementById('inspiraFecha').value,
-      link: document.getElementById('inspiraLink').value,
-      timestamp: new Date().toISOString()
-    };
-  
-    try {
-      await db.collection("inspira").doc(nuevaEntrada.id).set(nuevaEntrada);
-      document.getElementById('formInspira').reset();
-      mostrarPopup();
-      console.log("✅ Entrada guardada en Firestore:", nuevaEntrada);
-    } catch (err) {
-      console.error("❌ Error al guardar entrada:", err);
-      alert("Error al guardar la entrada. Ver consola.");
-    }
-  }
-  
+  e.preventDefault();
+
+  const nuevaEntrada = {
+    id: document.getElementById('inspiraId').value,
+    titulo: document.getElementById('inspiraTitulo').value,
+    autor: document.getElementById('inspiraAutor').value,
+    descripcion: document.getElementById('inspiraDescripcion').value,
+    imagen: document.getElementById('inspiraImagen').value,
+    duracion: document.getElementById('inspiraDuracion').value + ' ' + document.getElementById('inspiraUnidad').value,
+    tematica: document.getElementById('inspiraTematica').value,
+    categoria: document.getElementById('inspiraCategoria').value,
+    fecha: document.getElementById('inspiraFecha').value,
+    link: document.getElementById('inspiraLink').value,
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    await db.collection("inspira").doc(nuevaEntrada.id).set(nuevaEntrada);
+    document.getElementById('jsonOutput').textContent = JSON.stringify(nuevaEntrada, null, 2);
+    document.getElementById('formInspira').reset();
+    mostrarPopup();
+  } catch (err) {
+     }
+}
 
 async function abrirModalEntradas() {
 document.getElementById('modalEntradas').style.display = 'block';
