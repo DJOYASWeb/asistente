@@ -118,7 +118,10 @@
     
     <div id="contenidos" class="tab-section">
         <div class="ios-card mb-4" id="contenidosControles">
-            <h5>Seleccionar contenido desde base de datos</h5>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">Seleccionar contenido desde base de datos</h5>
+  <button class="btn btn-sm btn-outline-primary" onclick="refrescarContenidos()">🔄 Refrescar</button>
+</div>
             <select class="form-select" id="contenidoSelect">
               <option value="">Cargando contenidos...</option>
             </select>
