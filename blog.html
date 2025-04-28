@@ -54,16 +54,24 @@
     </div>
 
  
-
-
-
-
-
-
   
-<div class="container">
+<div class="tab-header">
+  <button class="tab-btn active" id="btnPagina1" onclick="showTab('pagina1')">Página 1</button>
+  <button class="tab-btn" id="btnPagina2" onclick="showTab('pagina2')">Página 2</button>
+</div>
 
+<div class="tab-content-ios">
+  <div id="pagina1" class="tab-section">
+    <!-- Aquí pega TODO el contenido de tu Página 1 -->
+    <h1>Contenido de Página 1</h1>
+    <p>Bienvenido a la página uno.</p>
+  </div>
 
+  <div id="pagina2" class="tab-section d-none">
+    <!-- Aquí pega TODO el contenido de tu Página 2 -->
+    <h1>Contenido de Página 2</h1>
+    <p>Bienvenido a la página dos.</p>
+  </div>
 </div>
 
 
