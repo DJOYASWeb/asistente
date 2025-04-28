@@ -66,7 +66,106 @@
 
     <!-- TAB CREAR -->    
     <div id="crear" class="tab-section d-none">
-       <p>crear</p>
+<div class="container">
+  <h1>💎 Generador de Blog DJOYAS</h1>
+
+  <!-- ENCABEZADO -->
+  <div class="row">
+    <div class="col-lg-6 col-12">
+      <label>📌 TÍTULO DEL BLOG:</label>
+      <input type="text" id="titulo">
+    </div>
+    <div class="col-lg-6 col-12">
+      <label>📆 FECHA DE PUBLICACIÓN:</label>
+      <input type="text" id="fecha">
+    </div>
+  </div>
+
+  <div class="row pt-3">
+    <div class="col-lg-6 col-12">
+      <label>👩‍💻 AUTOR/A:</label>
+      <select id="autor">
+        <option value="Sofía de DJOYAS">Sofía de DJOYAS</option>
+        <option value="Camila de DJOYAS">Sandra Conejeros</option>
+      </select>
+    </div>
+    <div class="col-lg-6 col-12">
+      <label>🏷️ CATEGORÍA:</label>
+      <select id="categoria">
+        <option value="Emprendimiento">Emprendimiento</option>
+        <option value="Sabías que?">Sabías que?</option>
+        <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
+        <option value="Innovación">Innovación</option>
+        <option value="Beneficios">Beneficios</option>
+        <option value="Sustentable">Sustentable</option>
+        <option value="Tips">Tips</option>
+        <option value="Tendencias">Tendencias</option>
+      </select>
+    </div>
+  </div>
+  <div class="row pt-3">
+    <div class="col-lg-6 col-12">
+  <label>🖼️ URL DE LA IMAGEN PRINCIPAL:</label>
+  <input type="text" id="imagen">
+</div>
+<div class="col-lg-6 col-12">
+  <label>🔤 Texto ALT de la imagen:</label>
+  <input type="text" id="altImagen">
+</div>
+</div>
+  <!-- CUERPO -->
+   <section class="cuerpo py-3">
+ <div class="row alinear py-3">
+ <div class="col-lg-6 col-12">
+       <label>💎 CUERPO DEL BLOG:</label>
+ </div>
+ <div class="col-lg-6 col-12">
+      <a href="/generador-blog/redactor.html" target="_blank"> <button class="btn-copy">REDACTOR DE BLOG</button></a>
+ </div>
+ </div>
+     <textarea id="cuerpo" rows="6"></textarea>
+   </section>
+
+
+  <!-- NAVEGACIÓN -->
+   <section class="navegacion py-5">
+    <div class="row">
+      <div class="col-lg-6 col-12">
+        <h3>🔙 Blog Anterior</h3>
+        <label>Seleccionar blog anterior:</label>
+        <select id="selectAnterior"></select>
+      </div>
+      <div class="col-lg-6 col-12">
+        <h3>🔜 Blog Siguiente</h3>
+        <label>Seleccionar blog siguiente:</label>
+        <select id="selectSiguiente"></select>
+      </div>
+</div>
+</section>
+
+
+
+  <!-- DESTACADOS -->
+   <section class="destacados py-5">
+  <h3>🌟 Blogs Destacados</h3>
+  <label>Destacado 1</label>
+  <select id="select1"></select>
+  <label>Destacado 2</label>
+  <select id="select2"></select>
+  <label>Destacado 3</label>
+  <select id="select3"></select>
+</section>
+<div class="generar py-3">
+  <button onclick="generarHTML()">Generar HTML</button>
+</div>
+
+
+<section class="resultado pt-5">
+  <h2>📋 Código generado:</h2>
+    <button class="btn-copy" onclick="copiarHTML()">📋 Copiar al portapapeles</button>
+  <pre id="resultado"></pre>
+</section>
+</div>
         </div>
 
 
@@ -75,6 +174,7 @@
 
     <!-- TAB REDACTAR -->    
  <div id="redactar" class="tab-section d-none">
+   <div class="container">
 <h1>Conversor de BLOGS</h1>
 
 <label for="inputTexto">📄 Pega el cuerpo del blog (texto plano):</label>
@@ -99,7 +199,7 @@
       </div>
 
  
-  </div>
+  </div></div>
   <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
