@@ -135,12 +135,15 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 function showTab(tab) {
-  ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar'].forEach(t => {
+  const tabs = ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar', 'pagina1', 'pagina2']; // Agrega aquí tus nuevas páginas
+  tabs.forEach(t => {
     document.getElementById(t).classList.toggle('d-none', t !== tab);
-    document.getElementById(`btn${capitalize(t)}`).classList.toggle('active', t === tab);
+    const btn = document.getElementById(`btn${capitalize(t)}`);
+    if (btn) {
+      btn.classList.toggle('active', t === tab);
+    }
   });
 }
-
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
