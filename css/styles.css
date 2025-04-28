@@ -643,4 +643,48 @@
         
     }
  
+    /*estilo pagina de  blog - tab de creacion*/
+ #cuerpo{
+      height: 300px;
+    }
+    .division{
+      display: flex;
+      gap: 5rem;
+    }
+    .contenido-division{
+      width: 100%;
+    }
+     .btn-copy {
+    background-color: #e9e9e9;
+    color: #323232;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+        .alinear{
+display: flex;
+align-items: center;
+    }
+    pre {
+      background-color: #f4f4f4;
+      padding: 15px; margin-top: 30px;
+      white-space: pre-wrap; border: 1px solid #ccc;
+    }
+    /*fin estilo pagina de  blog - tab de creacion*/
+
+    /*estilo pagina de blog - tab de redaccion*/
+    textarea, button { width: 100%; margin-top: 10px; padding: 10px; font-size: 16px;   border-radius: 6px;}
+    textarea { height: 350px; border-radius: 10px;}
     
+    button { background-color: #323232; color: white; border: none; cursor: pointer; }
+    pre { background: #f4f4f4; padding: 20px; border: 1px solid #ccc; white-space: pre-wrap; margin-top: 20px;   border-radius: 6px; }
+    .alinear{
+display: flex;
+align-items: center;
+    }
+    .btn-copy {
+    background-color: #fff;
+    color: #323232;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+   /*fin estilo pagina de blog - tab de redaccion*/
