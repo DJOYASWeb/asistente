@@ -119,9 +119,6 @@
  <div class="col-lg-6 col-12">
        <label>💎 CUERPO DEL BLOG:</label>
  </div>
- <div class="col-lg-6 col-12">
-      <a href="/generador-blog/redactor.html" target="_blank"> <button class="btn-copy">REDACTOR DE BLOG</button></a>
- </div>
  </div>
      <textarea id="cuerpo" rows="6"></textarea>
    </section>
@@ -148,12 +145,14 @@
   <!-- DESTACADOS -->
    <section class="destacados py-5">
   <h3>🌟 Blogs Destacados</h3>
-  <label>Destacado 1</label>
-  <select id="select1"></select>
-  <label>Destacado 2</label>
-  <select id="select2"></select>
-  <label>Destacado 3</label>
-  <select id="select3"></select>
+     <div class="row">
+       <div class="col-lg-4 col-12">  <label>Destacado 1</label>
+  <select id="select1"></select></div>
+       <div class="col-lg-4 col-12">  <label>Destacado 2</label>
+  <select id="select2"></select></div>
+       <div class="col-lg-4 col-12">  <label>Destacado 3</label>
+  <select id="select3"></select></div>
+     </div>
 </section>
 <div class="generar py-3">
   <button onclick="generarHTML()">Generar HTML</button>
