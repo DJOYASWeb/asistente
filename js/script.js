@@ -1062,11 +1062,7 @@ function cargarNavegacionSelects() {
           });
         });
       })
-      .catch(error => {
-        console.error('Error al cargar el JSON externo:', error);
-        alert("No se pudo cargar el archivo de blogs destacados desde GitHub.");
-      });
-  }
+     }
 
   window.onload = llenarSelects;
 
