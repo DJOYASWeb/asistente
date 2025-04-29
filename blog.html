@@ -200,32 +200,49 @@
 
 
  <div id="calendario" class="tab-section d-none">
+     <div class="topbar">
+    <h2>✏️ Crear Entrada Manual</h2>
+    <button class="btn btn-primary" onclick="abrirModalBlog()">➕ Nueva Entrada</button>
+  </div>
       <div class="container ios-card mb-5">
-  <h2>📂 Gestión de Archivos - Blogs</h2>
-    <button class="btn btn-outline-primary" onclick="refrescarArchivos()">🔄 Refrescar</button>
-      </div>
-
-   <div class="ios-card">
-      <h4>Subir nuevo archivo 📤</h4>
-      <form id="uploadForm" onsubmit="subirArchivoBlog(event)">
-        <div class="mb-3">
-          <input type="file" class="-ios" id="fileInput" required />
-        </div>
-        <button type="submit" class="btn btn-primary">Subir Archivo</button>
-        <div class="progress mt-3 d-none" id="progressContainer">
-          <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%;">0%</div>
-        </div>
-      </form>
-    </div>
-
-    <!-- Listado de archivos -->
-    <div class="ios-card mt-4">
-      <h4>📄 Archivos disponibles</h4>
-      <div id="fileList" class="note-grid mt-3">
-        <!-- Aquí cargamos las tarjetas -->
+  <div class="content-area">
+    <div class="ios-card">
+      <h4>📜 Tus entradas creadas manualmente</h4>
+      <div id="blogList" class="note-grid mt-3">
+        <!-- Aquí cargaremos las entradas después -->
       </div>
     </div>
-    </div>
+  </div>
+      </div>
+<!-- MODAL de Creación -->
+<div id="modalCrearBlog" class="overlay" onclick="cerrarModalBlog()">
+  <div class="modal-contenidos" onclick="event.stopPropagation()">
+    <h3>➕ Nueva Entrada</h3>
+    <form id="formCrearBlog" onsubmit="guardarEntradaBlog(event)">
+      <div class="mb-3">
+        <label>ID</label>
+        <input type="text" id="blogId" class="-ios" required />
+      </div>
+      <div class="mb-3">
+        <label>Nombre</label>
+        <input type="text" id="blogNombre" class="-ios" required />
+      </div>
+      <div class="mb-3">
+        <label>Fecha</label>
+        <input type="date" id="blogFecha" class="-ios" required />
+      </div>
+      <div class="mb-3">
+        <label>Contenido</label>
+        <textarea id="blogContenido" class="-ios" rows="5" required></textarea>
+      </div>
+      <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-outline-primary" onclick="cerrarModalBlog()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 
 
 
