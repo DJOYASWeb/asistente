@@ -135,7 +135,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 function showTab(tab) {
-  const tabs = ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar'];
+  const tabs = ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar', 'calendario'];
   tabs.forEach(t => {
     const section = document.getElementById(t);
     const btn = document.getElementById(`btn${capitalize(t)}`);
