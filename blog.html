@@ -201,8 +201,37 @@
 
  <div id="calendario" class="tab-section d-none">
       <div class="container ios-card mb-5">
-    <button class="btn btn-primary mb-3" onclick="abrirModalNuevoBlog()">Nuevo Blog</button>
-    <div id="calendar"></div>
+<div id="storageSection" class="d-none">
+  <div class="topbar">
+    <h2>📂 Gestión de Archivos - Blogs</h2>
+    <button class="btn btn-outline-primary" onclick="refrescarArchivos()">🔄 Refrescar</button>
+  </div>
+
+  <div class="content-area">
+    <!-- Formulario de subida -->
+    <div class="ios-card">
+      <h4>Subir nuevo archivo 📤</h4>
+      <form id="uploadForm" onsubmit="subirArchivoBlog(event)">
+        <div class="mb-3">
+          <input type="file" class="-ios" id="fileInput" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Subir Archivo</button>
+        <div class="progress mt-3 d-none" id="progressContainer">
+          <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%;">0%</div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Listado de archivos -->
+    <div class="ios-card mt-4">
+      <h4>📄 Archivos disponibles</h4>
+      <div id="fileList" class="note-grid mt-3">
+        <!-- Aquí cargamos las tarjetas -->
+      </div>
+    </div>
+  </div>
+</div>
+
       </div>
     </div>
 
