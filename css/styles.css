@@ -257,7 +257,7 @@
       margin-top: 1.5rem;
     }
 
-    .select-ios {
+    .-ios {
       appearance: none;
       -webkit-appearance: none;
       background-color: var(--card-bg);
@@ -578,7 +578,7 @@
       margin-top: 1.5rem;
     }
 
-    .select-ios {
+    .-ios {
       appearance: none;
       -webkit-appearance: none;
       background-color: var(--card-bg);
@@ -688,12 +688,5 @@ align-items: center;
     border-radius: 6px;
 }
 
-input, textarea, select {
-    width: 100%;
-    padding: 8px;
-    margin-top: 4px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    height: 3rem;
-}
+
    /*fin estilo pagina de blog - tab de redaccion*/
