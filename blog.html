@@ -60,6 +60,7 @@
   <div class="tab-header">
     <button class="tab-btn active" id="btnCrear" onclick="showTab('crear')">Crear</button>
     <button class="tab-btn" id="btnRedactar" onclick="showTab('redactar')">Redactar</button>
+        <button class="tab-btn" id="btnCalendario" onclick="showTab('calendario')">Calendario</button>
   </div>
 <div class="container">
   <div class="tab-content-ios">
@@ -197,7 +198,16 @@
       </div>
 
  
-  </div></div>
+  </div>
+  
+ <div id="calendario" class="tab-section d-none">
+   <div class="container ios-card">
+     aqui va el calendario
+     </div>
+   </div>
+
+
+</div>
   <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
