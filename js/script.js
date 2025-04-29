@@ -1372,6 +1372,22 @@ function copiarResultado() {
 // BLOG REDACTOR FIN
 //ingreso de blogs a la base de datos
 
+function abrirModalBlog() {
+  const modal = new bootstrap.Modal(document.getElementById('modalBlog'));
+  modal.show();
+}
 
+function cerrarModalBlog() {
+  bootstrap.Modal.getInstance(document.getElementById('modalBlog')).hide();
+}
+
+function abrirModalListado() {
+  const modal = new bootstrap.Modal(document.getElementById('modalListado'));
+  modal.show();
+}
+
+function cerrarModalListado() {
+  bootstrap.Modal.getInstance(document.getElementById('modalListado')).hide();
+}
 
 //fin ingreso de blogs
