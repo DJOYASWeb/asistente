@@ -202,50 +202,15 @@
  <div id="calendario" class="tab-section d-none">
      <div class="topbar">
     <h2>✏️ Crear Entrada Manual</h2>
-    <button class="btn btn-primary" onclick="abrirModalBlog()">➕ Nueva Entrada</button>
+    <button class="btn btn-primary">Ingresar nuevo blog</button>
   </div>
       <div class="container ios-card mb-5">
-  <div class="content-area">
-    <div class="ios-card">
       <h4>📜 Tus entradas creadas manualmente</h4>
       <div id="blogList" class="note-grid mt-3">
         <!-- Aquí cargaremos las entradas después -->
       </div>
     </div>
   </div>
-      </div>
-<!-- MODAL de Creación -->
-<div id="modalCrearBlog" class="overlay" onclick="cerrarModalBlog()">
-  <div class="modal-contenidos" onclick="event.stopPropagation()">
-    <h3>➕ Nueva Entrada</h3>
-    <form id="formCrearBlog" onsubmit="guardarEntradaBlog(event)">
-      <div class="mb-3">
-        <label>ID</label>
-        <input type="text" id="blogId" class="-ios" required />
-      </div>
-      <div class="mb-3">
-        <label>Nombre</label>
-        <input type="text" id="blogNombre" class="-ios" required />
-      </div>
-      <div class="mb-3">
-        <label>Fecha</label>
-        <input type="date" id="blogFecha" class="-ios" required />
-      </div>
-      <div class="mb-3">
-        <label>Contenido</label>
-        <textarea id="blogContenido" class="-ios" rows="5" required></textarea>
-      </div>
-      <div class="d-flex justify-content-between">
-        <button type="button" class="btn btn-outline-primary" onclick="cerrarModalBlog()">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Guardar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-
-
 
 
     
