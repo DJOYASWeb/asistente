@@ -200,16 +200,42 @@
 
 
  <div id="calendario" class="tab-section d-none">
-     <div class="topbar">
-    <h2>✏️ Crear Entrada Manual</h2>
-    <button class="btn btn-primary">Ingresar nuevo blog</button>
+<div class="topbar">
+  <h2 class="mb-0">📘 Listado de Blogs</h2>
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary" onclick="abrirModalBlog()">Ingresar blog</button>
+    <button class="btn btn-outline-primary" onclick="abrirModalListado()">Listado de blogs</button>
   </div>
-      <div class="container ios-card mb-5">
-      <h4>📜 Tus entradas creadas manualmente</h4>
-      <div id="blogList" class="note-grid mt-3">
-        <!-- Aquí cargaremos las entradas después -->
+</div>
+<!-- MODAL INGRESAR BLOG -->
+<div class="modal fade" id="modalBlog" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content ios-card">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">📝 Ingresar Blog</h5>
+        <button type="button" class="btn-close" onclick="cerrarModalBlog()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Contenido de modal</p>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- MODAL LISTADO BLOGS -->
+<div class="modal fade" id="modalListado" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content ios-card">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">📚 Listado de Blogs</h5>
+        <button type="button" class="btn-close" onclick="cerrarModalListado()"></button>
+      </div>
+      <div class="modal-body">
+        <p>Listado de blogs</p>
+      </div>
+    </div>
+  </div>
+</div>
   </div>
 
 
