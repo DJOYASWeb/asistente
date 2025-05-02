@@ -1438,4 +1438,4 @@ function filtrarBlogs() {
   bootstrap.Modal.getInstance(document.getElementById('modalFiltrarBlogs')).hide();
 }
 
-//fin ingreso de blogs
+//fin ingreso de blogss
