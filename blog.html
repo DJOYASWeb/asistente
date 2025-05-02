@@ -201,25 +201,32 @@
 
  <div id="calendario" class="tab-section d-none">
 <div class="topbar">
-  <h2 class="mb-0">📘 Listado de Blogs</h2>
-  <div class="d-flex gap-2">
-    <button class="btn btn-primary" onclick="abrirModalBlog()">Ingresar blog</button>
-    <button class="btn btn-outline-primary" onclick="abrirModalListado()">Listado de blogs</button>
-  </div>
-</div>
-<!-- MODAL INGRESAR BLOG personalizado -->
-<div id="modalBlog" class="modal-contenidos" style="display: none;">
-  <h5>📝 Ingresar Blog</h5>
-  <p>Contenido de modal</p>
-  <button class="btn btn-primary" onclick="cerrarModalBlog()">Cerrar</button>
+  <h4 class="mb-0">Listado de Blogs</h4>
 </div>
 
-<!-- MODAL LISTADO BLOGS personalizado -->
-<div id="modalListado" class="modal-contenidos" style="display: none;">
-  <h5>📚 Listado de Blogs</h5>
-  <p>Listado de blogs</p>
-  <button class="btn btn-primary" onclick="cerrarModalListado()">Cerrar</button>
+<div class="content-area p-3">
+  <div class="d-flex gap-2 mb-3">
+    <button class="btn btn-primary" onclick="abrirModalBlog()">Ingresar Blog</button>
+    <button class="btn btn-outline-primary" onclick="abrirModalListado()">Listado de Blogs</button>
+  </div>
 </div>
+
+<!-- MODAL: Ingresar Blog -->
+<div id="modalBlog" class="modal-ios" style="display: none;">
+  <div class="modal-ios-content">
+    <h5>📝 Ingresar Blog</h5>
+    <p>Contenido de modal</p>
+    <button class="btn btn-primary mt-3" onclick="cerrarModalBlog()">Cerrar</button>
+  </div>
+</div>
+
+<!-- MODAL: Listado Blogs -->
+<div id="modalListado" class="modal-ios" style="display: none;">
+  <div class="modal-ios-content">
+    <h5>📚 Listado de Blogs</h5>
+    <p>Listado de blogs</p>
+    <button class="btn btn-primary mt-3" onclick="cerrarModalListado()">Cerrar</button>
+  </div>
 
 
     
