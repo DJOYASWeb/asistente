@@ -1373,21 +1373,19 @@ function copiarResultado() {
 //ingreso de blogs a la base de datos
 
 function abrirModalBlog() {
-  const modal = new bootstrap.Modal(document.getElementById('modalBlog'));
-  modal.show();
+  document.getElementById('modalBlog').style.display = 'flex';
 }
 
 function cerrarModalBlog() {
-  bootstrap.Modal.getInstance(document.getElementById('modalBlog')).hide();
+  document.getElementById('modalBlog').style.display = 'none';
 }
 
 function abrirModalListado() {
-  const modal = new bootstrap.Modal(document.getElementById('modalListado'));
-  modal.show();
+  document.getElementById('modalListado').style.display = 'flex';
 }
 
 function cerrarModalListado() {
-  bootstrap.Modal.getInstance(document.getElementById('modalListado')).hide();
+  document.getElementById('modalListado').style.display = 'none';
 }
 
 //fin ingreso de blogs
