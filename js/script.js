@@ -1372,20 +1372,5 @@ function copiarResultado() {
 // BLOG REDACTOR FIN
 //ingreso de blogs a la base de datos
 
-function abrirModalBlog() {
-  document.getElementById('modalBlog').style.display = 'flex';
-}
-
-function cerrarModalBlog() {
-  document.getElementById('modalBlog').style.display = 'none';
-}
-
-function abrirModalListado() {
-  document.getElementById('modalListado').style.display = 'flex';
-}
-
-function cerrarModalListado() {
-  document.getElementById('modalListado').style.display = 'none';
-}
 
 //fin ingreso de blogs
