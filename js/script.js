@@ -1372,66 +1372,6 @@ function copiarResultado() {
 // BLOG REDACTOR FIN
 //ingreso de blogs a la base de datos
 
-function abrirModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) modal.showModal();
-}
-
-function cerrarModal(id) {
-  const modal = document.getElementById(id);
-  if (modal) modal.close();
-}
-
-// Guardar nuevo blog
-function guardarNuevoBlog() {
-  const id = document.getElementById('inputId').value.trim();
-  const nombre = document.getElementById('inputNombre').value.trim();
-  const fecha = document.getElementById('inputFecha').value;
-  const contenido = document.getElementById('inputContenido').value.trim();
-
-  if (!id || !nombre || !fecha || !contenido) {
-    alert('Todos los campos son obligatorios');
-    return;
-  }
-
-  const tbody = document.getElementById('tablaBlogs').querySelector('tbody');
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${id}</td>
-    <td>${nombre}</td>
-    <td>${fecha}</td>
-    <td>${contenido}</td>
-    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarBlog(this)">🗑️</button></td>
-  `;
-  tbody.appendChild(tr);
-
-  document.getElementById('inputId').value = '';
-  document.getElementById('inputNombre').value = '';
-  document.getElementById('inputFecha').value = '';
-  document.getElementById('inputContenido').value = '';
-
-  cerrarModal('modalAgregarBlog');
-}
-
-// Eliminar blog
-function eliminarBlog(btn) {
-  if (confirm('¿Seguro que quieres eliminar este blog?')) {
-    btn.closest('tr').remove();
-  }
-}
-
-// Filtrar blogs
-function filtrarBlogs() {
-  const filtro = document.getElementById('filtroNombre').value.toLowerCase();
-  const filas = document.getElementById('tablaBlogs').querySelectorAll('tbody tr');
-
-  filas.forEach(fila => {
-    const nombre = fila.children[1].textContent.toLowerCase();
-    fila.style.display = nombre.includes(filtro) ? '' : 'none';
-  });
-
-  cerrarModal('modalFiltrarBlogs');
-}
 
 
 //fin ingreso de blogss
