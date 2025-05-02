@@ -1372,19 +1372,17 @@ function copiarResultado() {
 // BLOG REDACTOR FIN
 //ingreso de blogs a la base de datos
 
-// Función para abrir el modal de agregar
-function abrirModalAgregarBlog() {
-  const modal = new bootstrap.Modal(document.getElementById('modalAgregarBlog'));
-  modal.show();
+function abrirModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.showModal();
 }
 
-// Función para abrir el modal de filtrar
-function abrirModalFiltrarBlogs() {
-  const modal = new bootstrap.Modal(document.getElementById('modalFiltrarBlogs'));
-  modal.show();
+function cerrarModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.close();
 }
 
-// Función para guardar un nuevo blog
+// Guardar nuevo blog
 function guardarNuevoBlog() {
   const id = document.getElementById('inputId').value.trim();
   const nombre = document.getElementById('inputNombre').value.trim();
@@ -1407,24 +1405,22 @@ function guardarNuevoBlog() {
   `;
   tbody.appendChild(tr);
 
-  // Limpiar campos
   document.getElementById('inputId').value = '';
   document.getElementById('inputNombre').value = '';
   document.getElementById('inputFecha').value = '';
   document.getElementById('inputContenido').value = '';
 
-  // Cerrar modal
-  bootstrap.Modal.getInstance(document.getElementById('modalAgregarBlog')).hide();
+  cerrarModal('modalAgregarBlog');
 }
 
-// Función para eliminar un blog
+// Eliminar blog
 function eliminarBlog(btn) {
   if (confirm('¿Seguro que quieres eliminar este blog?')) {
     btn.closest('tr').remove();
   }
 }
 
-// Función para filtrar por nombre
+// Filtrar blogs
 function filtrarBlogs() {
   const filtro = document.getElementById('filtroNombre').value.toLowerCase();
   const filas = document.getElementById('tablaBlogs').querySelectorAll('tbody tr');
@@ -1434,8 +1430,8 @@ function filtrarBlogs() {
     fila.style.display = nombre.includes(filtro) ? '' : 'none';
   });
 
-  // Cerrar modal
-  bootstrap.Modal.getInstance(document.getElementById('modalFiltrarBlogs')).hide();
+  cerrarModal('modalFiltrarBlogs');
 }
+
 
 //fin ingreso de blogss

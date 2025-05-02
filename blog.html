@@ -207,76 +207,67 @@
 
 
 
-
-  <!-- TOPBAR -->
-  <div class="topbar-custom d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Listado de Blogs</h2>
-    <div>
-      <button class="btn ios-button btn-filled me-2" onclick="abrirModalAgregarBlog()">➕ Agregar Blog</button>
-      <button class="btn ios-button btn-outline" onclick="abrirModalFiltrarBlogs()">🔎 Filtrar Blogs</button>
-    </div>
+ <!-- TOPBAR -->
+ <div class="topbar-custom d-flex justify-content-between align-items-center mb-4">
+  <h2 class="mb-0">Listado de Blogs</h2>
+  <div>
+    <button class="btn ios-button btn-filled me-2" onclick="abrirModal('modalAgregarBlog')">➕ Agregar Blog</button>
+    <button class="btn ios-button btn-outline" onclick="abrirModal('modalFiltrarBlogs')">🔎 Filtrar Blogs</button>
   </div>
+</div>
 
-  <!-- TABLA SIMPLE -->
-  <div class="table-responsive">
-    <table id="tablaBlogs" class="table table-striped table-hover align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Fecha</th>
-          <th>Contenido</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Aquí irán los registros dinámicamente -->
-      </tbody>
-    </table>
-  </div>
-
-
+<!-- TABLA SIMPLE -->
+<div class="table-responsive">
+  <table id="tablaBlogs" class="table table-striped table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Fecha</th>
+        <th>Contenido</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- registros dinámicos -->
+    </tbody>
+  </table>
+</div>
 
 <!-- MODAL: AGREGAR BLOG -->
-<div class="modal fade" id="modalAgregarBlog" tabindex="-1" aria-labelledby="modalAgregarBlogLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content p-3" style="border-radius: var(--radius); background-color: var(--card-bg);">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalAgregarBlogLabel">➕ Agregar Nuevo Blog</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <input type="text" id="inputId" class="form-control mb-3 -ios" placeholder="ID">
-        <input type="text" id="inputNombre" class="form-control mb-3 -ios" placeholder="Nombre">
-        <input type="date" id="inputFecha" class="form-control mb-3 -ios">
-        <textarea id="inputContenido" class="form-control mb-3 -ios" placeholder="Contenido"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn ios-button btn-outline" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn ios-button btn-filled" onclick="guardarNuevoBlog()">Guardar</button>
-      </div>
-    </div>
+<dialog id="modalAgregarBlog" class="ios-modal">
+  <div class="modal-header">
+    <h5>➕ Agregar Nuevo Blog</h5>
+    <button class="btn-close" onclick="cerrarModal('modalAgregarBlog')">×</button>
   </div>
-</div>
+  <div class="modal-body">
+    <input type="text" id="inputId" class="form-control mb-3 -ios" placeholder="ID">
+    <input type="text" id="inputNombre" class="form-control mb-3 -ios" placeholder="Nombre">
+    <input type="date" id="inputFecha" class="form-control mb-3 -ios">
+    <textarea id="inputContenido" class="form-control mb-3 -ios" placeholder="Contenido"></textarea>
+  </div>
+  <div class="modal-footer">
+    <button class="btn ios-button btn-outline" onclick="cerrarModal('modalAgregarBlog')">Cancelar</button>
+    <button class="btn ios-button btn-filled" onclick="guardarNuevoBlog()">Guardar</button>
+  </div>
+</dialog>
 
 <!-- MODAL: FILTRAR BLOGS -->
-<div class="modal fade" id="modalFiltrarBlogs" tabindex="-1" aria-labelledby="modalFiltrarBlogsLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content p-3" style="border-radius: var(--radius); background-color: var(--card-bg);">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalFiltrarBlogsLabel">🔎 Filtrar Blogs</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <input type="text" id="filtroNombre" class="form-control mb-3 -ios" placeholder="Filtrar por nombre...">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn ios-button btn-outline" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn ios-button btn-filled" onclick="filtrarBlogs()">Aplicar Filtro</button>
-      </div>
-    </div>
+<dialog id="modalFiltrarBlogs" class="ios-modal">
+  <div class="modal-header">
+    <h5>🔎 Filtrar Blogs</h5>
+    <button class="btn-close" onclick="cerrarModal('modalFiltrarBlogs')">×</button>
   </div>
-</div>
+  <div class="modal-body">
+    <input type="text" id="filtroNombre" class="form-control mb-3 -ios" placeholder="Filtrar por nombre...">
+  </div>
+  <div class="modal-footer">
+    <button class="btn ios-button btn-outline" onclick="cerrarModal('modalFiltrarBlogs')">Cerrar</button>
+    <button class="btn ios-button btn-filled" onclick="filtrarBlogs()">Aplicar Filtro</button>
+  </div>
+</dialog>
+
+
 
 
 
