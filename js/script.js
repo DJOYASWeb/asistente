@@ -1288,10 +1288,12 @@ function convertirHTML() {
     if (enLista) {
       contenido += '<ul class="texto-blog">\n';
       buffer.forEach(line => {
-        const limpio = line.replace(/^[-\s]+/, '');
+        // No quitamos el guion, solo limpiamos espacios
+        const limpio = line.replace(/^\s*-?\s*/, '- ');
         contenido += `<li>${aplicarNegritaUltimaFraseConDosPuntos(limpio)}</li>\n`;
       });
       contenido += '</ul>\n';
+    }
     } else {
       buffer.forEach(line => {
         contenido += `<p class="texto-blog">${aplicarNegritaUltimaFraseConDosPuntos(line)}</p>\n`;
