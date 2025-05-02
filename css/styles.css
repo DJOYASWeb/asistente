@@ -691,30 +691,3 @@ align-items: center;
 
    /*fin estilo pagina de blog - tab de redaccion*/
 /*ingresar o redactar blog en la base de datos*/
-.modal-ios {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1050;
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.3s;
-}
-
-.modal-ios-content {
-  background: var(--card-bg);
-  padding: 2rem;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  max-width: 500px;
-  width: 90%;
-  text-align: center;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
