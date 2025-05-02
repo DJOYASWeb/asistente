@@ -1372,5 +1372,70 @@ function copiarResultado() {
 // BLOG REDACTOR FIN
 //ingreso de blogs a la base de datos
 
+// Función para abrir el modal de agregar
+function abrirModalAgregarBlog() {
+  const modal = new bootstrap.Modal(document.getElementById('modalAgregarBlog'));
+  modal.show();
+}
+
+// Función para abrir el modal de filtrar
+function abrirModalFiltrarBlogs() {
+  const modal = new bootstrap.Modal(document.getElementById('modalFiltrarBlogs'));
+  modal.show();
+}
+
+// Función para guardar un nuevo blog
+function guardarNuevoBlog() {
+  const id = document.getElementById('inputId').value.trim();
+  const nombre = document.getElementById('inputNombre').value.trim();
+  const fecha = document.getElementById('inputFecha').value;
+  const contenido = document.getElementById('inputContenido').value.trim();
+
+  if (!id || !nombre || !fecha || !contenido) {
+    alert('Todos los campos son obligatorios');
+    return;
+  }
+
+  const tbody = document.getElementById('tablaBlogs').querySelector('tbody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${id}</td>
+    <td>${nombre}</td>
+    <td>${fecha}</td>
+    <td>${contenido}</td>
+    <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarBlog(this)">🗑️</button></td>
+  `;
+  tbody.appendChild(tr);
+
+  // Limpiar campos
+  document.getElementById('inputId').value = '';
+  document.getElementById('inputNombre').value = '';
+  document.getElementById('inputFecha').value = '';
+  document.getElementById('inputContenido').value = '';
+
+  // Cerrar modal
+  bootstrap.Modal.getInstance(document.getElementById('modalAgregarBlog')).hide();
+}
+
+// Función para eliminar un blog
+function eliminarBlog(btn) {
+  if (confirm('¿Seguro que quieres eliminar este blog?')) {
+    btn.closest('tr').remove();
+  }
+}
+
+// Función para filtrar por nombre
+function filtrarBlogs() {
+  const filtro = document.getElementById('filtroNombre').value.toLowerCase();
+  const filas = document.getElementById('tablaBlogs').querySelectorAll('tbody tr');
+
+  filas.forEach(fila => {
+    const nombre = fila.children[1].textContent.toLowerCase();
+    fila.style.display = nombre.includes(filtro) ? '' : 'none';
+  });
+
+  // Cerrar modal
+  bootstrap.Modal.getInstance(document.getElementById('modalFiltrarBlogs')).hide();
+}
 
 //fin ingreso de blogs
