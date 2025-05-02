@@ -207,36 +207,19 @@
     <button class="btn btn-outline-primary" onclick="abrirModalListado()">Listado de blogs</button>
   </div>
 </div>
-<!-- MODAL INGRESAR BLOG -->
-<div class="modal fade" id="modalBlog" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content ios-card">
-      <div class="modal-header border-0">
-        <h5 class="modal-title">📝 Ingresar Blog</h5>
-        <button type="button" class="btn-close" onclick="cerrarModalBlog()"></button>
-      </div>
-      <div class="modal-body">
-        <p>Contenido de modal</p>
-      </div>
-    </div>
-  </div>
+<!-- MODAL INGRESAR BLOG personalizado -->
+<div id="modalBlog" class="modal-contenidos" style="display: none;">
+  <h5>📝 Ingresar Blog</h5>
+  <p>Contenido de modal</p>
+  <button class="btn btn-primary" onclick="cerrarModalBlog()">Cerrar</button>
 </div>
 
-<!-- MODAL LISTADO BLOGS -->
-<div class="modal fade" id="modalListado" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content ios-card">
-      <div class="modal-header border-0">
-        <h5 class="modal-title">📚 Listado de Blogs</h5>
-        <button type="button" class="btn-close" onclick="cerrarModalListado()"></button>
-      </div>
-      <div class="modal-body">
-        <p>Listado de blogs</p>
-      </div>
-    </div>
-  </div>
+<!-- MODAL LISTADO BLOGS personalizado -->
+<div id="modalListado" class="modal-contenidos" style="display: none;">
+  <h5>📚 Listado de Blogs</h5>
+  <p>Listado de blogs</p>
+  <button class="btn btn-primary" onclick="cerrarModalListado()">Cerrar</button>
 </div>
-  </div>
 
 
     
