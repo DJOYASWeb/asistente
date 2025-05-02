@@ -1372,6 +1372,69 @@ function copiarResultado() {
 // BLOG REDACTOR FIN
 //ingreso de blogs a la base de datos
 
+let datosTabla = [];
 
+function abrirModalAgregar() {
+  document.getElementById('modalAgregar').style.display = 'flex';
+}
+
+function cerrarModalAgregar() {
+  document.getElementById('modalAgregar').style.display = 'none';
+}
+
+function agregarNuevoDato() {
+  const nombre = document.getElementById('nuevoNombre').value.trim();
+  const fecha = document.getElementById('nuevaFecha').value;
+  const contenido = document.getElementById('nuevoContenido').value.trim();
+
+  if (!nombre || !fecha || !contenido) {
+    alert("Completa todos los campos");
+    return;
+  }
+
+  datosTabla.push({ nombre, fecha, contenido });
+  renderizarTabla();
+  cerrarModalAgregar();
+}
+
+function renderizarTabla() {
+  const tbody = document.querySelector('#tablaDatos tbody');
+  tbody.innerHTML = "";
+
+  datosTabla.forEach((dato, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td contenteditable="true">${dato.nombre}</td>
+      <td><input type="date" value="${dato.fecha}" onchange="actualizarDato(${index}, 'fecha', this.value)"></td>
+      <td contenteditable="true">${dato.contenido}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(${index})">🗑️</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function actualizarDato(index, campo, valor) {
+  datosTabla[index][campo] = valor;
+}
+
+function eliminarFila(index) {
+  datosTabla.splice(index, 1);
+  renderizarTabla();
+}
+
+function guardarCambiosTabla() {
+  alert("Cambios guardados (simulado)");
+  console.log(datosTabla);
+}
+
+function filtrarTabla() {
+  const texto = document.getElementById('filtroTexto').value.toLowerCase();
+  const filas = document.querySelectorAll('#tablaDatos tbody tr');
+
+  filas.forEach(fila => {
+    const coincide = fila.innerText.toLowerCase().includes(texto);
+    fila.style.display = coincide ? '' : 'none';
+  });
+}
 
 //fin ingreso de blogss

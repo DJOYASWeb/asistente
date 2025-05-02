@@ -200,9 +200,6 @@
 
 
  <div id="calendario" class="tab-section d-none">
-<div class="topbar">
-  <h4 class="mb-0">Listado de Blogs</h4>
-</div>
 
 
 
@@ -210,6 +207,47 @@
 
 
 
+  <div class="top-bar">
+    <h2>📋 Gestión de Datos</h2>
+    <div class="buttons">
+      <button class="btn-primary" onclick="abrirModalAgregar()">➕ Agregar dato</button>
+      <button class="btn-outline" onclick="guardarCambiosTabla()">💾 Guardar cambios</button>
+    </div>
+  </div>
+  
+  <!-- Filtro -->
+  <div class="filtro">
+    <input type="text" id="filtroTexto" placeholder="🔍 Buscar..." oninput="filtrarTabla()">
+  </div>
+  
+  <!-- Tabla -->
+  <div id="contenedorTabla" class="ios-card">
+    <table id="tablaDatos">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Fecha</th>
+          <th>Contenido</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Aquí JS irá agregando filas -->
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Modal Agregar -->
+  <div id="modalAgregar" style="display:none;" class="modal-ios">
+    <div class="modal-content-ios">
+      <button class="btn-close" onclick="cerrarModalAgregar()"></button>
+      <h3>➕ Agregar Nuevo Dato</h3>
+      <input type="text" id="nuevoNombre" placeholder="Nombre">
+      <input type="date" id="nuevaFecha">
+      <textarea id="nuevoContenido" placeholder="Contenido"></textarea>
+      <button class="btn-primary mt-2" onclick="agregarNuevoDato()">Guardar</button>
+    </div>
+  </div>
 
 
 
