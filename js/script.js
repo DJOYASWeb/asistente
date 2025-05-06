@@ -1507,7 +1507,7 @@ function editarFila(index) {
       <h6 class="mt-3">Cuerpo de Blog</h6>
       <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
       <h6 class="mt-3">Meta descripción</h6>
-      <textarea id="editBlog" class="form-control mb-2">${dato.meta}</textarea>
+      <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div> 
       </div>
 
