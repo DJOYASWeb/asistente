@@ -1389,6 +1389,7 @@ function limpiarFormulario() {
   document.getElementById('nuevoNombre').value = '';
   document.getElementById('nuevoEstado').value = '';
   document.getElementById('nuevoBlog').value = '';
+  document.getElementById('nuevoMeta').value = '';
   document.getElementById('nuevaFecha').value = '';
   document.getElementById('nuevaCategoria').value = '';
 }
@@ -1398,17 +1399,18 @@ async function agregarNuevoDato() {
   const nombre = document.getElementById('nuevoNombre')?.value.trim();
   const estado = document.getElementById('nuevoEstado')?.value.trim();
   const blog = document.getElementById('nuevoBlog')?.value.trim();
+  const meta = document.getElementById('nuevoMeta')?.value.trim();
   const fecha = document.getElementById('nuevaFecha')?.value.trim();
   const categoria = document.getElementById('nuevaCategoria')?.value.trim();
 
-  if (!id || !nombre || !estado || !blog || !fecha || !categoria) {
+  if (!id || !nombre || !estado || !blog || !meta || !fecha || !categoria) {
     alert('⚠️ Completa todos los campos antes de guardar.');
-    console.warn('Campos incompletos:', {id, nombre, estado, blog, fecha, categoria});
+    console.warn('Campos incompletos:', {id, nombre, estado, blog, meta, fecha, categoria});
     return;
   }
 
   const nuevoDato = { 
-    id, nombre, estado, blog, fecha, categoria,
+    id, nombre, estado, blog, meta, fecha, categoria,
     creadoEn: firebase.firestore.FieldValue.serverTimestamp()
   };
 
@@ -1440,6 +1442,7 @@ function renderizarTabla() {
       <td class="celda-nombre">${dato.nombre || ''}</td>
       <td class="celda-estado">${dato.estado || ''}</td>
       <td class="celda-blog" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.blog || ''}</td>
+      <td class="celda-meta" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.meta || ''}</td>
       <td class="celda-fecha">${dato.fecha || ''}</td>
       <td class="celda-categoria">${dato.categoria || ''}</td>
       <td class="alinear">
@@ -1503,6 +1506,8 @@ function editarFila(index) {
       <div class="col-lg-6 col-12">
       <h6 class="mt-3">Cuerpo de Blog</h6>
       <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
+      <h6 class="mt-3">Meta descripción</h6>
+      <textarea id="editBlog" class="form-control mb-2">${dato.meta}</textarea>
         </div> 
       </div>
 
@@ -1531,12 +1536,13 @@ async function guardarEdicionFila() {
   const nombre = modal.querySelector('#editNombre')?.value.trim();
   const estado = modal.querySelector('#editEstado')?.value;
   const blog = modal.querySelector('#editBlog')?.value.trim();
+  const meta = modal.querySelector('#editMeta')?.value.trim();
   const fecha = modal.querySelector('#editFecha')?.value;
   const categoria = modal.querySelector('#editCategoria')?.value;
 
-  console.log({ id, nombre, estado, blog, fecha, categoria }); // Para verificar en consola
+  console.log({ id, nombre, estado, blog, meta, fecha, categoria }); // Para verificar en consola
 
-  if (!id || !nombre || !estado || !blog || !fecha || !categoria) {
+  if (!id || !nombre || !estado || !blog || !meta || !fecha || !categoria) {
     alert('⚠️ Completa todos los campos antes de guardar.');
     return;
   }
@@ -1546,11 +1552,12 @@ async function guardarEdicionFila() {
       nombre,
       estado,
       blog,
+      meta,
       fecha,
       categoria
     });
 
-    datosTabla[index] = { id, nombre, estado, blog, fecha, categoria };
+    datosTabla[index] = { id, nombre, estado, blog, meta, fecha, categoria };
     renderizarTabla();
     modal.remove();
     console.log('✅ Blog actualizado correctamente:', id);
