@@ -207,46 +207,107 @@
 
 
 
-  <div class="top-bar">
+   <div class="top-bar">
     <h2>📋 Gestión de Datos</h2>
-    <div class="buttons row">
-<div class="col-lg-5 col-12 filtro"><input class="form-control" type="text" id="filtroTexto" placeholder="🔍 Buscar..." oninput="filtrarTabla()"></div>
-<div class="col-lg-3 col-12"><button class="btn-primary" onclick="abrirModalAgregar()">➕ Agregar dato</button></div>
-<div class="col-lg-3 col-12"><button class="btn-outline" onclick="guardarCambiosTabla()">💾 Guardar cambios</button></div>
-    </div>
+    <div class="buttons row alinear">
+<div class="col-lg-8 col-12 filtro"><input class="form-control" type="text" id="filtroTexto" placeholder="🔍 Buscar..." oninput="filtrarTabla()"></div>
+<div class="col-lg-3 col-12"><button class="btn btn-primary" onclick="abrirModalAgregarDato()">➕ Agregar Blog</button></div>
+<div class="col-lg-1 col-12"><button class="btn btn-outline-primary" onclick="cargarDatosDesdeFirestore()">🔄</button>
+</div>
+</div>
   </div>
-  
-
-  
-  <!-- Tabla -->
+    
   <div id="contenedorTabla" class="ios-card">
     <table id="tablaDatos">
       <thead>
         <tr>
+          <th>ID</th>
           <th>Nombre</th>
-          <th>Fecha</th>
-          <th>Contenido</th>
+          <th class="movil">Estado</th>
+          <th class="movil">Contenido</th>
+          <th class="movil">Fecha</th>
+          <th class="movil">Categoría</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Aquí JS irá agregando filas -->
+        <!-- JS agregará filas aquí -->
       </tbody>
     </table>
   </div>
   
-  <!-- Modal Agregar -->
-  <div id="modalAgregar" style="display:none;" class="modal-ios">
-    <div class="modal-content-ios">
-      <button class="btn-close" onclick="cerrarModalAgregar()"></button>
-      <h3>➕ Agregar Nuevo Dato</h3>
-      <input type="text" id="nuevoNombre" placeholder="Nombre">
-      <input type="date" id="nuevaFecha">
-      <textarea id="nuevoContenido" placeholder="Contenido"></textarea>
-      <button class="btn-primary mt-2" onclick="agregarNuevoDato()">Guardar</button>
+<!-- Modal para Agregar Dato -->
+<div id="modalAgregarDato" class="alinear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
+  <div style="background:white; max-width:600px; width:90%; padding:2rem; border-radius:16px; position:relative; overflow:auto; max-height:90vh;">
+    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalAgregarDato()"></button>
+    <h3 class="mb-4">➕ Agregar Nuevo Dato</h3>
+    
+
+    <input type="number" id="nuevoId" class="form-control mb-3" placeholder="ID">
+
+    <input type="text" id="nuevoNombre" class="form-control mb-3" placeholder="Nombre">
+
+    <select id="nuevoEstado" class="form-control mb-3">
+      <option value="">Selecciona estado</option>
+      <option value="transcrito">Transcrito</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="reescribir">Reescribir</option>
+    </select>
+
+    <textarea id="nuevoBlog" class="form-control mb-3" placeholder="Contenido del blog" rows="3" style="resize:none;"></textarea>
+
+    <input type="date" id="nuevaFecha" class="form-control mb-3">
+
+    <select id="nuevaCategoria" class="form-control mb-3">
+      <option value="">Selecciona categoría</option>
+      <option value="Tips">Tips</option>
+      <option value="Emprendimiento">Emprendimiento</option>
+      <option value="Sabías que?">Sabías que?</option>
+      <option value="Beneficios">Beneficios</option>
+      <option value="Tendencias">Tendencias</option>
+      <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
+      <option value="Sustentable">Sustentable</option>
+      <option value="Innovación">Innovación</option>
+    </select>
+
+    <button class="btn btn-primary w-100" onclick="agregarNuevoDato()">Guardar</button>
+  </div>
+</div>
+
+<!-- Modal Confirmar Eliminación -->
+<div class="alinear" id="modalConfirmarEliminar" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
+  <div style="background:white; max-width:400px; width:90%; padding:2rem; border-radius:16px; text-align:center; position:relative;">
+    <h4>¿Seguro que deseas eliminar este blog?</h4>
+    <div class="mt-4">
+      <button class="btn btn-danger" onclick="eliminarFilaConfirmado()">Sí, eliminar</button>
+      <button class="btn btn-outline-secondary mt-3" onclick="cerrarModalEliminar()">Cancelar</button>
     </div>
   </div>
+</div>
 
+<!-- Modal Editar Dato -->
+<div class="alinear" id="modalEditarDato" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
+  <div style="background:white; max-width:500px; width:90%; padding:4rem; border-radius:16px; position:relative;">
+    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalEditar()"></button>
+    <h3 class="mb-4">✏️ Editar Dato</h3>
+    <input type="text" id="editNombre" class="form-control mb-3" placeholder="Nombre">
+    <input type="date" id="editFecha" class="form-control mb-3">
+    <textarea id="editContenido" class="form-control mb-3" placeholder="Contenido" rows="4"></textarea>
+
+    <button class="btn btn-primary w-100" onclick="guardarEdicionDato()">Guardar cambios</button>
+  </div>
+  
+</div>
+
+<div id="iosModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+  <div class="iosModalContent" style="background:white; padding:1.5rem; border-radius:12px; max-width:400px; width:90%; text-align:center;">
+    <h5 id="iosModalTitle"></h5>
+    <p id="iosModalMessage"></p>
+    <button class="btn btn-primary mt-2" onclick="closeIosModal()">OK</button>
+  </div>
+</div>
+
+   
 
 
 
