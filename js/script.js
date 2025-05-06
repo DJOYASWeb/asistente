@@ -1372,69 +1372,303 @@ function copiarResultado() {
 // BLOG REDACTOR FIN
 //ingreso de blogs a la base de datos
 
+
 let datosTabla = [];
 
-function abrirModalAgregar() {
-  document.getElementById('modalAgregar').style.display = 'flex';
+// Modal Agregar
+function abrirModalAgregarDato() {
+  document.getElementById('modalAgregarDato').style.display = 'flex';
 }
 
-function cerrarModalAgregar() {
-  document.getElementById('modalAgregar').style.display = 'none';
+function cerrarModalAgregarDato() {
+  document.getElementById('modalAgregarDato').style.display = 'none';
 }
 
-function agregarNuevoDato() {
-  const nombre = document.getElementById('nuevoNombre').value.trim();
-  const fecha = document.getElementById('nuevaFecha').value;
-  const contenido = document.getElementById('nuevoContenido').value.trim();
+function limpiarFormulario() {
+  document.getElementById('nuevoId').value = '';
+  document.getElementById('nuevoNombre').value = '';
+  document.getElementById('nuevoEstado').value = '';
+  document.getElementById('nuevoBlog').value = '';
+  document.getElementById('nuevaFecha').value = '';
+  document.getElementById('nuevaCategoria').value = '';
+}
 
-  if (!nombre || !fecha || !contenido) {
-    alert("Completa todos los campos");
+async function agregarNuevoDato() {
+  const id = document.getElementById('nuevoId')?.value.trim();
+  const nombre = document.getElementById('nuevoNombre')?.value.trim();
+  const estado = document.getElementById('nuevoEstado')?.value.trim();
+  const blog = document.getElementById('nuevoBlog')?.value.trim();
+  const fecha = document.getElementById('nuevaFecha')?.value.trim();
+  const categoria = document.getElementById('nuevaCategoria')?.value.trim();
+
+  if (!id || !nombre || !estado || !blog || !fecha || !categoria) {
+    alert('⚠️ Completa todos los campos antes de guardar.');
+    console.warn('Campos incompletos:', {id, nombre, estado, blog, fecha, categoria});
     return;
   }
 
-  datosTabla.push({ nombre, fecha, contenido });
-  renderizarTabla();
-  cerrarModalAgregar();
+  const nuevoDato = { 
+    id, nombre, estado, blog, fecha, categoria,
+    creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    await firebase.firestore().collection('blogs').doc(id).set(nuevoDato);
+    datosTabla.push(nuevoDato);
+    renderizarTabla();
+    cerrarModalAgregarDato();
+    limpiarFormulario();
+    console.log('✅ Blog guardado:', nuevoDato);
+  } catch (error) {
+    console.error('❌ Error al guardar en Firestore:', error);
+    alert('Error al guardar en Firestore.');
+  }
 }
 
+
+
+
+// Renderizar tabla
 function renderizarTabla() {
   const tbody = document.querySelector('#tablaDatos tbody');
-  tbody.innerHTML = "";
+  tbody.innerHTML = '';
 
   datosTabla.forEach((dato, index) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td contenteditable="true">${dato.nombre}</td>
-      <td><input type="date" value="${dato.fecha}" onchange="actualizarDato(${index}, 'fecha', this.value)"></td>
-      <td contenteditable="true">${dato.contenido}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="eliminarFila(${index})">🗑️</button></td>
+    const fila = document.createElement('tr');
+    fila.innerHTML = `
+      <td class="celda-id">${dato.id || ''}</td>
+      <td class="celda-nombre">${dato.nombre || ''}</td>
+      <td class="celda-estado">${dato.estado || ''}</td>
+      <td class="celda-blog" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.blog || ''}</td>
+      <td class="celda-fecha">${dato.fecha || ''}</td>
+      <td class="celda-categoria">${dato.categoria || ''}</td>
+      <td class="alinear">
+        <button class="btn p-0 mx-1" onclick="editarFila(${index})">✏️</button>
+<button class="btn btn-sm p-0" onclick="confirmarEliminarFila(this)">🗑️</button>
+
+      </td>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(fila);
   });
+  
 }
 
-function actualizarDato(index, campo, valor) {
-  datosTabla[index][campo] = valor;
+
+
+// Modal Editar
+function editarFila(index) {
+  const dato = datosTabla[index];
+
+  const modal = document.createElement('div');
+  modal.id = 'modalEditarDato';
+  modal.className = 'modal-editar-blog'; 
+  modal.style.cssText = `
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.6); z-index:9999;
+  `;
+
+  modal.innerHTML = `
+    <div class="contenido-modal" style="background:white; padding:4rem; border-radius:16px; width:90%; max-width:60%; position:relative; margin:auto;">
+      <button class="btn-close position-absolute end-0 top-0 m-4" onclick="this.closest('.modal-editar-blog').remove()"></button>
+      <h5 class="mb-4">✏️ Editar Blog</h5>
+      <input type="hidden" id="editIndex" value="${index}">
+
+      <div class="row">
+      <div class="col-lg-6 col-12">
+        <h6 class="mt-3">ID de Blog</h6>
+      <input type="text" id="editId" class="form-control mb-2" value="${dato.id}" readonly>
+      <h6 class="mt-3">Nombre de Blog</h6>
+      <input type="text" id="editNombre" class="form-control mb-2" value="${dato.nombre}">
+      <h6 class="mt-3">Estado de Blog</h6>
+      <select id="editEstado" class="form-control mb-2">
+        <option ${dato.estado === 'transcrito' ? 'selected' : ''}>transcrito</option>
+        <option ${dato.estado === 'pendiente' ? 'selected' : ''}>pendiente</option>
+        <option ${dato.estado === 'reescribir' ? 'selected' : ''}>reescribir</option>
+      </select>
+
+      <h6 class="mt-3">Fecha</h6>
+      <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fecha}">
+      <h6 class="mt-3">Categoría</h6>
+      <select id="editCategoria" class="form-control mb-2">
+        <option ${dato.categoria === 'Tips' ? 'selected' : ''}>Tips</option>
+        <option ${dato.categoria === 'Emprendimiento' ? 'selected' : ''}>Emprendimiento</option>
+        <option ${dato.categoria === 'Sabías que?' ? 'selected' : ''}>Sabías que?</option>
+        <option ${dato.categoria === 'Beneficios' ? 'selected' : ''}>Beneficios</option>
+        <option ${dato.categoria === 'Tendencias' ? 'selected' : ''}>Tendencias</option>
+        <option ${dato.categoria === 'Cuidado y Mantenimiento' ? 'selected' : ''}>Cuidado y Mantenimiento</option>
+        <option ${dato.categoria === 'Sustentable' ? 'selected' : ''}>Sustentable</option>
+        <option ${dato.categoria === 'Innovación' ? 'selected' : ''}>Innovación</option>
+      </select>
+        </div>
+      <div class="col-lg-6 col-12">
+      <h6 class="mt-3">Cuerpo de Blog</h6>
+      <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
+        </div> 
+      </div>
+
+
+      
+
+      <button class="btn btn-primary w-100 mt-4" onclick="guardarEdicionFila()">Guardar cambios</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
 }
 
-function eliminarFila(index) {
-  datosTabla.splice(index, 1);
-  renderizarTabla();
+function cerrarModalEditarDato() {
+  const modalEditar = document.getElementById('modalEditarDato');
+  if (modalEditar) {
+    modalEditar.remove();
+  }
 }
 
-function guardarCambiosTabla() {
-  alert("Cambios guardados (simulado)");
-  console.log(datosTabla);
+async function guardarEdicionFila() {
+  const modal = document.querySelector('.modal-editar-blog');
+
+  const index = modal.querySelector('#editIndex')?.value;
+  const id = modal.querySelector('#editId')?.value;
+  const nombre = modal.querySelector('#editNombre')?.value.trim();
+  const estado = modal.querySelector('#editEstado')?.value;
+  const blog = modal.querySelector('#editBlog')?.value.trim();
+  const fecha = modal.querySelector('#editFecha')?.value;
+  const categoria = modal.querySelector('#editCategoria')?.value;
+
+  console.log({ id, nombre, estado, blog, fecha, categoria }); // Para verificar en consola
+
+  if (!id || !nombre || !estado || !blog || !fecha || !categoria) {
+    alert('⚠️ Completa todos los campos antes de guardar.');
+    return;
+  }
+
+  try {
+    await firebase.firestore().collection('blogs').doc(id).update({
+      nombre,
+      estado,
+      blog,
+      fecha,
+      categoria
+    });
+
+    datosTabla[index] = { id, nombre, estado, blog, fecha, categoria };
+    renderizarTabla();
+    modal.remove();
+    console.log('✅ Blog actualizado correctamente:', id);
+  } catch (error) {
+    console.error('❌ Error al actualizar en Firestore:', error);
+    alert('Error al actualizar.');
+  }
 }
 
+
+// Modal Eliminar
+let filaAEliminar = null;
+
+// Abre modal de eliminar
+function confirmarEliminarFila(boton) {
+  filaAEliminar = boton.closest('tr');
+
+  const modal = document.getElementById('modalConfirmarEliminar');
+  modal.style.display = 'flex'; // Mostrar modal
+}
+
+// Confirmar eliminación
+function eliminarFilaConfirmado() {
+  if (filaAEliminar) {
+    const idFila = filaAEliminar.querySelector('.celda-id')?.textContent;
+    
+    // Eliminar también de Firestore
+    firebase.firestore().collection('blogs').doc(idFila).delete()
+      .then(() => {
+        filaAEliminar.remove();  // Elimina la fila de la tabla
+        cerrarModalEliminar();   // Cierra el modal
+        showIosModal('✅ Eliminado', 'El blog fue eliminado exitosamente.');
+      })
+      .catch(error => {
+        console.error('❌ Error eliminando en Firestore:', error);
+        showIosModal('❌ Error', 'No se pudo eliminar. Revisa la consola.');
+      });
+  }
+}
+
+// Cierra modal eliminar
+function cerrarModalEliminar() {
+  document.getElementById('modalConfirmarEliminar').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  cargarDatosDesdeFirestore(); // Tu carga normal de datos
+
+  // Activar DataTables cuando los datos estén listos
+  setTimeout(() => {
+    $('#tablaDatos').DataTable({
+      language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+      },
+      order: [[4, 'desc']], // Ordenar por fecha por defecto (columna 5)
+      pageLength: 10, // Mostrar 10 resultados por página
+      lengthMenu: [5, 10, 25, 50, 100],
+    });
+  }, 1500); // Un pequeño delay para asegurar que ya cargaron los datos
+});
+
+// Filtro de búsqueda en vivo
 function filtrarTabla() {
   const texto = document.getElementById('filtroTexto').value.toLowerCase();
   const filas = document.querySelectorAll('#tablaDatos tbody tr');
 
   filas.forEach(fila => {
-    const coincide = fila.innerText.toLowerCase().includes(texto);
-    fila.style.display = coincide ? '' : 'none';
+    const contenidoFila = fila.textContent.toLowerCase();
+    fila.style.display = contenidoFila.includes(texto) ? '' : 'none';
   });
 }
 
+// Cargar datos al iniciar
+async function cargarDatosDesdeFirestore() {
+  const tbody = document.querySelector('#tablaDatos tbody');
+  tbody.innerHTML = '<tr><td colspan="7" class="text-center">🔄 Cargando datos...</td></tr>';
+
+  try {
+    const snapshot = await firebase.firestore().collection('blogs').orderBy('fecha', 'desc').get();
+    datosTabla = snapshot.docs.map(doc => doc.data());
+    renderizarTabla();
+  } catch (error) {
+    console.error('❌ Error al cargar:', error);
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar.</td></tr>';
+  }
+}
+
+window.addEventListener('DOMContentLoaded', cargarDatosDesdeFirestore);
 //fin ingreso de blogss
+
+
+//scripts generales de modal Cerrar cualquier modal al presionar ESC
+// 🚀 Cerrar modales al presionar ESCAPE, de forma segura
+window.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    // Cerrar modal Agregar
+    const modalAgregar = document.getElementById('modalAgregarDato');
+    if (modalAgregar && modalAgregar.style.display === 'flex') {
+      cerrarModalAgregarDato();
+    }
+
+    // Cerrar modal Confirmar Eliminar
+    const modalEliminar = document.getElementById('modalConfirmarEliminar');
+    if (modalEliminar && modalEliminar.style.display === 'flex') {
+      cerrarModalEliminar();
+    }
+    // Cerrar modal de editar
+    const modalEditar = document.getElementById('modalEditarDato');
+    if (modalEditar) {
+      cerrarModalEditarDato();
+    }
+
+    // Cerrar iOS Modal de mensajes
+    const iosModal = document.getElementById('iosModal');
+    if (iosModal && iosModal.style.display === 'flex') {
+      closeIosModal();
+    }
+  }
+});
+
+
