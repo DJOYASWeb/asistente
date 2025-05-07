@@ -681,10 +681,7 @@
     border: 1px solid #ccc;
     border-radius: 6px;
 }
-        .alinear{
-display: flex;
-align-items: center;
-    }
+
     pre {
       background-color: #f4f4f4;
       padding: 15px; margin-top: 30px;
@@ -698,10 +695,6 @@ align-items: center;
     
     button { background-color: #323232; color: white; border: none; cursor: pointer; }
     pre { background: #f4f4f4; padding: 20px; border: 1px solid #ccc; white-space: pre-wrap; margin-top: 20px;   border-radius: 6px; }
-    .alinear{
-    display: flex;
-    align-items: center;
-    }
     .btn-copy {
     background-color: #fff;
     color: #323232;
