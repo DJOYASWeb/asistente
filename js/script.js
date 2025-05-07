@@ -1445,10 +1445,11 @@ function renderizarTabla() {
       <td class="celda-meta" style="max-width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.meta || ''}</td>
       <td class="celda-fecha">${dato.fecha || ''}</td>
       <td class="celda-categoria">${dato.categoria || ''}</td>
-      <td class="alinear">
+      <td class="celda-indicadores">
+      <div class="alinear">
         <button class="btn p-0 mx-1" onclick="editarFila(${index})">✏️</button>
 <button class="btn btn-sm p-0" onclick="confirmarEliminarFila(this)">🗑️</button>
-
+</div>
       </td>
     `;
     tbody.appendChild(fila);
