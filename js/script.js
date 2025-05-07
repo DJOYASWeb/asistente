@@ -1439,7 +1439,7 @@ function renderizarTabla() {
     const fila = document.createElement('tr');
     fila.innerHTML = `
       <td class="celda-id">${dato.id || ''}</td>
-      <td class="celda-nombre">${dato.nombre || ''}</td>
+      <td class="celda-nombre" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.nombre || ''}</td>
       <td class="celda-estado">${dato.estado || ''}</td>
       <td class="celda-blog" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.blog || ''}</td>
       <td class="celda-meta" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.meta || ''}</td>
