@@ -735,6 +735,12 @@ tbody, td, tfoot, th, thead, tr {
   height: 130px;
 }
 
+#NombreBlog {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 768px) {
 .celda-estado, .celda-blog, .celda-fecha, .celda-categoria, .movil{
   display: none;
