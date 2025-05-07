@@ -1441,8 +1441,8 @@ function renderizarTabla() {
       <td class="celda-id">${dato.id || ''}</td>
       <td class="celda-nombre" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.nombre || ''}</td>
       <td class="celda-estado">${dato.estado || ''}</td>
-      <td class="celda-blog" style="max-width: overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.blog || ''}</td>
-      <td class="celda-meta" style="max-width: overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.meta || ''}</td>
+      <td class="celda-blog" style="max-width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.blog || ''}</td>
+      <td class="celda-meta" style="max-width: 50px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dato.meta || ''}</td>
       <td class="celda-fecha">${dato.fecha || ''}</td>
       <td class="celda-categoria">${dato.categoria || ''}</td>
       <td class="alinear">
