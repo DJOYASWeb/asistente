@@ -735,6 +735,13 @@ tbody, td, tfoot, th, thead, tr {
   padding: 0.75rem;
 }
 
+#editBlog{
+  height: 247px;
+}
+#editMeta{
+  height: 130px;
+}
+
 @media (max-width: 768px) {
 .celda-estado, .celda-blog, .celda-fecha, .celda-categoria, .movil{
   display: none;
