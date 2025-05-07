@@ -735,7 +735,7 @@ tbody, td, tfoot, th, thead, tr {
   height: 130px;
 }
 
-#NombreBlog {
+td .celda-blog {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
