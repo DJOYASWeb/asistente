@@ -1616,6 +1616,7 @@ document.addEventListener('DOMContentLoaded', function () {
       order: [[4, 'desc']], // Ordenar por fecha por defecto (columna 5)
       pageLength: 10, // Mostrar 10 resultados por página
       lengthMenu: [5, 10, 25, 50, 100],
+      dom: 'lrtip',
     });
   }, 1500); // Un pequeño delay para asegurar que ya cargaron los datos
 });
