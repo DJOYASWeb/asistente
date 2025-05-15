@@ -2,6 +2,7 @@
 
 firebase.auth().onAuthStateChanged(user => {
   if (user) {
+    db = firebase.firestore();
     cargarContenidos();
     cargarRecursos();
   } else {
@@ -19,11 +20,6 @@ function showIosModal(titulo, mensaje) {
 
 let db;
 let cacheEntradas = [];
-
-window.addEventListener('load', () => {
-  db = firebase.firestore();
-  cargarContenidos();
-});
 
 function showTab(tab) {
   const tabs = ['contenidos', 'recursos', 'ingreso'];
@@ -47,12 +43,6 @@ function mostrarPopup() {
     popup.style.opacity = '0';
     setTimeout(() => popup.style.display = 'none', 300);
   }, 3000);
-}
-
-function showIosModal(title, message) {
-  document.getElementById('iosModalTitle').textContent = title;
-  document.getElementById('iosModalMessage').textContent = message;
-  document.getElementById('iosModal').style.display = 'flex';
 }
 
 function closeIosModal() {
@@ -108,4 +98,7 @@ function refrescarContenidos() {
   showIosModal("🔄 Refrescado", "Se actualizaron los contenidos desde la base de datos.");
 }
 
-window.addEventListener('load', cargarContenidos);
+function cargarRecursos() {
+  // Función futura, implementa lógica según sea necesario
+  console.log("📦 cargarRecursos aún no está implementado.");
+}
