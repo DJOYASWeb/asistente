@@ -1,5 +1,22 @@
 // inspira.js
 
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    cargarContenidos();
+    cargarRecursos();
+  } else {
+    showIosModal("⚠️ Acceso denegado", "Debes iniciar sesión para ver Inspira.");
+  }
+});
+
+function showIosModal(titulo, mensaje) {
+  const modal = document.getElementById("iosModal");
+  document.getElementById("iosModalTitle").textContent = titulo;
+  document.getElementById("iosModalMessage").textContent = mensaje;
+  modal.style.display = "flex";
+  setTimeout(() => (modal.style.display = "none"), 3000);
+}
+
 let db;
 let cacheEntradas = [];
 
