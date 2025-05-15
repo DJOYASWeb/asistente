@@ -1605,6 +1605,7 @@ function cerrarModalEliminar() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  firebase.auth().currentUser
   cargarDatosDesdeFirestore(); // Tu carga normal de datos
 
   // Activar DataTables cuando los datos estén listos
