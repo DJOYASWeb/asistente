@@ -746,3 +746,11 @@ td .celda-blog {
   display: none;
 }
 }
+
+.celda-blog,
+.celda-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
