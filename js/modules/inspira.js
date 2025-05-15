@@ -1,7 +1,12 @@
 // inspira.js
 
-const db = firebase.firestore();
+let db;
 let cacheEntradas = [];
+
+window.addEventListener('load', () => {
+  db = firebase.firestore();
+  cargarContenidos();
+});
 
 function showTab(tab) {
   const tabs = ['contenidos', 'recursos', 'ingreso'];
