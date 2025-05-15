@@ -732,10 +732,10 @@ function refrescarContenidos() {
 
 // TAREAS INICIO
 let noteGrid;
-document.addEventListener('DOMContentLoaded', () => {
-  noteGrid = document.getElementById('noteGrid');
+noteGrid = document.getElementById('noteGrid');
+if (noteGrid) {
   loadNotes();
-});
+}
 const filtroFecha = document.getElementById('filtroFecha');
 let historial = [];
 let rehacerHistorial = [];
@@ -1690,3 +1690,8 @@ firebase.auth().onAuthStateChanged(function(user) {
     // window.location.href = "login.html";
   }
 });
+
+noteGrid = document.getElementById('noteGrid');
+if (noteGrid) {
+  loadNotes();
+}
