@@ -3,6 +3,15 @@
 let datosTabla = [];
 let filaAEliminar = null;
 
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    cargarDatosDesdeFirestore();
+  } else {
+    console.warn("🔒 Usuario no autenticado");
+    showIosModal("⚠️ Sin acceso", "Debes iniciar sesión para ver los blogs.");
+  }
+});
+
 async function cargarDatosDesdeFirestore() {
   const tbody = document.querySelector('#tablaDatos tbody');
   tbody.innerHTML = '<tr><td colspan="7" class="text-center">🔄 Cargando datos...</td></tr>';
