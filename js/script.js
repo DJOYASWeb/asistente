@@ -1605,7 +1605,6 @@ function cerrarModalEliminar() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  cargarDatosDesdeFirestore(); // Tu carga normal de datos
 
   // Activar DataTables cuando los datos estén listos
   setTimeout(() => {
