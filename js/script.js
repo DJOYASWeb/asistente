@@ -1605,7 +1605,6 @@ function cerrarModalEliminar() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  firebase.auth().currentUser
   cargarDatosDesdeFirestore(); // Tu carga normal de datos
 
   // Activar DataTables cuando los datos estén listos
@@ -1648,7 +1647,6 @@ async function cargarDatosDesdeFirestore() {
   }
 }
 
-window.addEventListener('DOMContentLoaded', cargarDatosDesdeFirestore);
 //fin ingreso de blogss
 
 
@@ -1681,4 +1679,13 @@ window.addEventListener('keydown', function(event) {
   }
 });
 
-
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    console.log("✅ Usuario autenticado:", user.email);
+    cargarDatosDesdeFirestore(); // ✅ Solo aquí cargas los datos
+  } else {
+    console.warn("⛔ No hay usuario autenticado.");
+    // Si quieres, puedes redirigir al login:
+    // window.location.href = "login.html";
+  }
+});
