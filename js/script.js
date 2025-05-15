@@ -131,7 +131,9 @@ function toggleSidebar() {
 
 // INSPIRA INICIO
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
 function showTab(tab) {
