@@ -777,10 +777,13 @@ function saveNotes() {
 }
 
 function loadNotes() {
+  if (!noteGrid) return; // ✅ Seguridad extra
+
   const data = JSON.parse(localStorage.getItem('tareasNotas') || '[]');
   noteGrid.innerHTML = '';
   data.forEach(note => createNote(note));
 }
+
 
 function addNote() {
   createNote();
