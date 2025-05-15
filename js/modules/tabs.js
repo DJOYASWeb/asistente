@@ -1,5 +1,5 @@
 function showTab(tab) {
-  const tabs = ['crear', 'editar', 'revisar']; // ajusta según tus secciones reales
+  const tabs = ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar', 'calendario'];
   tabs.forEach(t => {
     const section = document.getElementById(t);
     const btn = document.getElementById(`btn${capitalize(t)}`);
@@ -7,6 +7,7 @@ function showTab(tab) {
     if (btn) btn.classList.toggle('active', t === tab);
   });
 }
+
 
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
