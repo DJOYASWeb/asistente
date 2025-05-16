@@ -2,8 +2,15 @@ let db;
 let cacheEntradas = [];
 
 window.addEventListener('load', () => {
-  db = firebase.firestore();
-  cargarContenidos();
+  firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+      console.log("✅ Usuario autenticado:", user.email || user.uid);
+      db = firebase.firestore();
+      cargarContenidos();
+    } else {
+      showIosModal("⚠️ Acceso denegado", "Debes iniciar sesión para ver Inspira.");
+    }
+  });
 });
 
 function showTab(tab) {
