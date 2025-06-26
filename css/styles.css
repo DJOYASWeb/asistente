@@ -734,7 +734,7 @@ tbody, td, tfoot, th, thead, tr {
   height: 130px;
 }
 
-td .celda-blog {
+.celda-blog {
   white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
