@@ -735,9 +735,10 @@ tbody, td, tfoot, th, thead, tr {
 }
 
 td .celda-blog {
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 4rem;
 }
 
 @media (max-width: 768px) {
