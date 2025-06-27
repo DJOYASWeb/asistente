@@ -735,10 +735,12 @@ tbody, td, tfoot, th, thead, tr {
 }
 
 .celda-blog {
-  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  height: 4rem!important;
+  white-space: normal;
 }
 
 @media (max-width: 768px) {
