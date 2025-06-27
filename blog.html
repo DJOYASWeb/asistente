@@ -238,21 +238,25 @@
   
 <!-- Modal para Agregar Dato -->
 <div id="modalAgregarDato" class="alinear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
-  <div style="background:white; max-width:600px; width:90%; padding:2rem; border-radius:16px; position:relative; overflow:auto;">
+  <div style="background:white; max-width:80%; width:90%; padding:2rem; border-radius:16px; position:relative; overflow:auto;">
     <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalAgregarDato()"></button>
     <h3 class="mb-4">➕ Agregar Nuevo Dato</h3>
     
 <div class="row">
 <div class="col-lg-6 col-12">
 <div class="contenido-left">
+<span>ID de Blog</span>
 <input type="number" id="nuevoId" class="form-control mb-3" placeholder="ID">
+<span>Nombre de Blog</span>
 <input type="text" id="nuevoNombre" class="form-control mb-3" placeholder="Nombre">
-    <select id="nuevoEstado" class="form-control mb-3">
+<span>Estado de Blog</span>
+<select id="nuevoEstado" class="form-control mb-3">
       <option value="">Selecciona estado</option>
       <option value="transcrito">Transcrito</option>
       <option value="pendiente">Pendiente</option>
       <option value="reescribir">Reescribir</option>
     </select>
+ <span>Fecha de Blog</span>   
     <input type="date" id="nuevaFecha" class="form-control mb-3">
     <select id="nuevaCategoria" class="form-control mb-3">
       <option value="">Selecciona categoría</option>
@@ -270,7 +274,9 @@
 </div>
 <div class="col-lg-6 col-12">
 <div class="contenido-right">
+  <span>Contenido de Blog</span>
     <textarea id="nuevoBlog" class="form-control mb-3" placeholder="Contenido del blog" rows="3" style="resize:none;"></textarea>
+    <span>Meta Descripción</span>
     <textarea id="nuevoMeta" class="form-control mb-3" placeholder="Meta descripción" style="height: 150px;"></textarea>
 
 </div>
