@@ -741,6 +741,9 @@ tbody, td, tfoot, th, thead, tr {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
+border: none;
+padding: 0rem;
+margin: 1rem;
 }
 
 @media (max-width: 768px) {
