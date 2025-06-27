@@ -741,6 +741,8 @@ tbody, td, tfoot, th, thead, tr {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
+  line-clamp: 2;
+  box-orient: vertical;
 border: none;
 padding: 0rem;
 margin: 1rem;
