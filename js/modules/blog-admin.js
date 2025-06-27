@@ -97,7 +97,7 @@ function editarFila(index) {
   const modal = document.createElement('div');
   modal.id = 'modalEditarDato';
   modal.className = 'modal-editar-blog';
-  modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;';
+  modal.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex;';
 
   modal.innerHTML = `
     <div class="contenido-modal" style="background:white; padding:4rem; border-radius:16px; width:90%; max-width:60%; margin:auto; position:relative;">
