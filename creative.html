@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HTML</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+</head>
+
+<body data-theme="light">
+  <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">Dashboard</span>
+      </h2>
+      <nav>
+        <a href="dashboard.html" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
+        <a href="blog.html" data-tooltip="blog"><span class="icon"><i class="fas fa-flask"></i></span><span class="label">DJOYAS Blog</span></a>
+      <a href="creative.html" data-tooltip="Uso"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="label">HMTL</span></a>
+        <a href="inspira.html" data-tooltip="Facturación"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">DJOYAS Inspira</span></a>
+      </nav>
+    </div>
+    <div class="bottom-links">
+      <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias"><span class="icon"><i class="fas fa-list-check"></i></span><span class="label">Tareas Diarias</span></a>
+      <a href="#" data-tooltip="Por definir"><span class="icon"><i class="fas fa-cube"></i></span><span class="label">Calendario</span></a>
+      <a href="settings.html" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+
+
+
+
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>   
+
+<!-- DataTables Bootstrap 5 JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Firebase Core -->
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+
+<!-- Firestore -->
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+
+<!-- Auth (esto te falta) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-auth-compat.js"></script>
+
+<!-- Tu script -->
+<script src="js/modules/dashboard.js"></script>
+<script src="js/modules/firebase-init.js"></script>
+<script src="js/modules/blog-creador.js"></script>
+<script src="js/modules/blog-redactor.js"></script>
+<script src="js/modules/blog-admin.js"></script>
+<script src="js/modules/modales.js"></script>
+<script src="js/modules/tabs.js"></script>
+
+</body>
+</html>
