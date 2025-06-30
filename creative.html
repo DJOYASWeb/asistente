@@ -57,10 +57,10 @@
     </div>
 
 
-<div class="tabs">
-  <button onclick="mostrarTab('recursos')">Recursos</button>
-  <button onclick="mostrarTab('constructor')">Constructor</button>
-</div>
+ <div class="tab-header">
+    <button class="tab-btn active" id="btnCrear" onclick="showTab('constructor')">Constructor</button>
+    <button class="tab-btn" id="btnCalendario" onclick="showTab('recursos')">Recursos</button>
+  </div>
 
 <div id="tab-recursos" class="tab-content">
   <!-- Aquí va el formulario para crear y guardar bloques -->
