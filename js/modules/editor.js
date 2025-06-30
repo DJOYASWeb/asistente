@@ -1,19 +1,32 @@
-  function showTab(tab) {
-    // Mostrar contenido correcto
-    document.getElementById('tab-recursos').style.display = tab === 'recursos' ? 'block' : 'none';
-    document.getElementById('tab-constructor').style.display = tab === 'constructor' ? 'block' : 'none';
+  function showTab(tabName) {
+    // Ocultar todos los contenidos de tabs
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.style.display = 'none');
 
-    // Actualizar clase activa en los botones
-    document.getElementById('btnCrear').classList.remove('active');
-    document.getElementById('btnCalendario').classList.remove('active');
+    // Mostrar solo el tab seleccionado
+    const selectedTab = document.getElementById(`tab-${tabName}`);
+    if (selectedTab) selectedTab.style.display = 'block';
 
-    if (tab === 'constructor') {
-      document.getElementById('btnCrear').classList.add('active');
-      cargarRecursos(); // Cargar bloques si entramos al constructor
-    } else {
-      document.getElementById('btnCalendario').classList.add('active');
+    // Remover clase activa de todos los botones
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+
+    // Agregar clase activa al botón que corresponde
+    const buttonMap = {
+      'constructor': 'btnConstructor',
+      'recursos': 'btnRecursos'
+    };
+    const activeBtnId = buttonMap[tabName];
+    if (activeBtnId) {
+      document.getElementById(activeBtnId).classList.add('active');
     }
-  }
+
+    // Si es constructor, cargamos bloques disponibles
+    if (tabName === 'constructor') {
+      cargarRecursos();
+    }
+}
+
 
 
 function guardarRecurso(nombre, html) {
