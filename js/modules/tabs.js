@@ -1,5 +1,5 @@
 function showTab(tab) {
-  const tabs = ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar', 'calendario'];
+  const tabs = ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar', 'calendario','constructor','recursos'];
   tabs.forEach(t => {
     const section = document.getElementById(t);
     const btn = document.getElementById(`btn${capitalize(t)}`);
