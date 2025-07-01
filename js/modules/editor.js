@@ -150,6 +150,7 @@ function guardarBloquePersonalizado(event) {
 }
 
 // Cargar bloques desde Firebase
+console.log("🔥 cargando bloques desde Firebase...");
 function cargarBloquesEnBarra() {
   const barra = document.querySelector(".bloques-barra");
   barra.innerHTML = ""; // limpiar la barra primero
@@ -242,9 +243,3 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function cargarBloquesEnBarra() {
-  console.log("🔥 cargando bloques desde Firebase...");
-  const barra = document.querySelector(".bloques-barra");
-  barra.innerHTML = "";
-  // ...
-}
