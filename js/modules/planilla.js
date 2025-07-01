@@ -77,6 +77,33 @@ function leerExcelDesdeFila3(file) {
   reader.readAsArrayBuffer(file);
 }
 
+function construirCaracteristicas(row) {
+  const campos = [
+    { key: "Modelo", label: "Modelo" },
+    { key: "Dimensión", label: "Dimensión" },
+    { key: "Peso", label: "Peso" },
+    { key: "Material", label: "Material" },
+    { key: "Estilo", label: "Estilo" }
+  ];
+
+  let caracteristicas = campos
+    .map(c => {
+      const valor = (row[c.key] || "").toString().trim();
+      return valor ? `${c.label}: ${valor}` : null;
+    })
+    .filter(Boolean);
+
+  const ocasionRaw = (row["Ocasión"] || "").toString().trim();
+  if (ocasionRaw) {
+    const valores = ocasionRaw.split(",").map(o => o.trim()).filter(o => o);
+    valores.forEach(valor => {
+      caracteristicas.push(`Ocasión: ${valor}`);
+    });
+  }
+
+  return caracteristicas.join(", ");
+}
+
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     const codigo = row["Código"] || "";
@@ -97,7 +124,7 @@ function transformarDatosParaExportar(datos) {
       "Resumen": row["Resumen"] || "",
       "Descripción": row["Descripción"] || "",
       "Image URLs (x,y,z...)": codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "",
-      "Caracteristicas": row["Características"] || ""
+      "Caracteristicas": construirCaracteristicas(row)
     };
   });
 }
@@ -196,4 +223,5 @@ document.getElementById("btnReposicion").onclick = () => mostrarTabla("reposicio
 document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
-// miyo
+
+// upddd
