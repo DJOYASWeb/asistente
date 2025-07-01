@@ -115,41 +115,37 @@ function guardarBloquePersonalizado(event) {
 }
 
 // Cargar bloques desde Firebase
-function cargarBloquesGuardados() {
-  const contenedor = document.getElementById("bloquesGuardados");
-  if (!contenedor) return;
-
-  contenedor.innerHTML = "";
+function cargarBloquesEnBarra() {
+  const barra = document.querySelector(".bloques-barra");
+  barra.innerHTML = ""; // limpiar la barra primero
 
   db.collection("bloquesPersonalizados")
     .get()
     .then((querySnapshot) => {
       querySnapshot.forEach((doc) => {
         const bloque = doc.data();
-        const docId = doc.id;
+        const html = bloque.contenido;
+        const nombre = bloque.nombre;
 
-        const col = document.createElement("div");
-        col.className = "col";
+        const nuevo = document.createElement("div");
+        nuevo.className = "bloque-draggable";
+        nuevo.setAttribute("draggable", "true");
+        nuevo.dataset.html = html;
+        nuevo.title = nombre;
+        nuevo.textContent = `🧩 ${nombre}`;
 
-        col.innerHTML = `
-          <div class="card h-100 d-flex flex-row align-items-center p-2">
-            <img src="https://via.placeholder.com/60x60.png?text=📦" class="img-thumbnail me-3" style="width:60px; height:60px;" alt="Bloque">
-            <div class="d-flex flex-column justify-content-center flex-grow-1">
-              <div class="d-flex align-items-center justify-content-between">
-                <h6 class="mb-0">${bloque.nombre}</h6>
- <i class="fas fa-pen text-secondary cursor-pointer" onclick='abrirEditorBloque(${JSON.stringify(docId)}, ${JSON.stringify(bloque.nombre)}, ${JSON.stringify(bloque.contenido)})'></i>
-              </div>
-            </div>
-          </div>
-        `;
+        nuevo.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/html", html);
+        });
 
-        contenedor.appendChild(col);
+        barra.appendChild(nuevo);
       });
     })
     .catch((error) => {
-      console.error("Error al cargar bloques:", error);
+      console.error("Error al cargar bloques en la barra:", error);
     });
 }
+
 
 function abrirEditorBloque(id, nombre, contenido) {
   document.getElementById("editarBloqueId").value = id;
