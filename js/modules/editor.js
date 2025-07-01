@@ -43,21 +43,22 @@ function soltarBloque(event) {
   const html = event.dataTransfer.getData("text/html");
   const tipo = event.dataTransfer.getData("text/plain");
 
-  const nuevo = document.createElement("div");
+  const wrapper = document.createElement("div");
+  wrapper.className = "visual-preview";
 
   if (html) {
-    nuevo.innerHTML = html;
+    wrapper.innerHTML = html;
   } else if (tipo === "texto") {
-    nuevo.innerHTML = "<p>Este es un bloque de texto.</p>";
-    nuevo.style.padding = "1rem";
-    nuevo.style.border = "1px dashed #ccc";
+    wrapper.innerHTML = `<div class="bloque-preview">📝 Bloque de texto</div>`;
   } else if (tipo === "seccion") {
-    nuevo.innerHTML = "<div style='background: #f4f4f4; padding: 2rem;'>Sección nueva</div>";
-    nuevo.style.margin = "1rem 0";
+    wrapper.innerHTML = `
+      <div class="seccion-preview">
+        <div class="col-preview">Bloque 1</div>
+        <div class="col-preview">Bloque 2</div>
+      </div>`;
   }
 
-  nuevo.style.marginBottom = "1rem";
-  canvas.appendChild(nuevo);
+  canvas.appendChild(wrapper);
 }
 
 // Guardar bloque en Firebase
