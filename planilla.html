@@ -25,8 +25,8 @@
         <a href="dashboard.html" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
         <a href="blog.html" data-tooltip="blog"><span class="icon"><i class="fas fa-flask"></i></span><span class="label">DJOYAS Blog</span></a>
       <a href="creative.html" data-tooltip="Uso"><span class="icon"><i class="fas fa-chart-line"></i></span><span class="label">HMTL</span></a>
-        <a href="inspira.html" data-tooltip="Facturación"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">DJOYAS Inspira</span></a>
-                 <a href="planilla.html" data-tooltip="Planilla"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">Planilla</span></a>
+        <a href="inspira.html" data-tooltip="Inspira"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">DJOYAS Inspira</span></a>
+         <a href="planilla.html" data-tooltip="Planilla"><span class="icon"><i class="fas fa-credit-card"></i></span><span class="label">Planilla</span></a>
       </nav>
     </div>
     <div class="bottom-links">
@@ -59,50 +59,18 @@
 
 
  <div class="tab-header">
-    <button class="tab-btn active" id="btnConstructor" onclick="showTab('constructor')">Constructor</button>
-    <button class="tab-btn" id="btnRecursos" onclick="showTab('recursos')">Recursos</button>
+    <button class="tab-btn active" id="btnCarga" onclick="showTab('carga')">Carga</button>
+    <button class="tab-btn" id="btnHistorial" onclick="showTab('historial')">Historial</button>
   </div>
 
 
 <div class="container">
     <div class="tab-content-ios">
           <div id="constructor" class="tab-section ">     
-<div class="bloques-barra row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 my-5">
-  <!-- Aquí se insertan dinámicamente los bloques guardados -->
-</div>
-
-
-
-      <div id="canvas" class="canvas-construccion"
-           ondragover="permitirSoltar(event)"
-           ondrop="soltarBloque(event)">
-        <p class="contenedor-canva" style="color: #888;">Arrastra bloques aquí para construir tu diseño.</p>
-      </div>
-          
           </div>
             
 
           <div id="recursos" class="tab-section d-none">
-  <h2>Crear nuevo bloque</h2>
-  <form id="bloqueForm" onsubmit="guardarBloquePersonalizado(event)">
-    <div class="mb-3">
-      <label for="nombreBloque" class="form-label">Nombre del bloque</label>
-      <input type="text" id="nombreBloque" class="form-control" required />
-    </div>
-    <div class="mb-3">
-      <label for="contenidoBloque" class="form-label">Contenido HTML</label>
-      <textarea id="contenidoBloque" class="form-control" rows="4" required></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Guardar bloque</button>
-  </form>
-
-  <hr />
-
-  <h3>Mis bloques guardados</h3>
-<div id="bloquesGuardados" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 my-5">
-  <!-- Aquí se insertan las tarjetas -->
-</div>
-
           </div>
     </div>
 </div>
@@ -118,32 +86,7 @@
 
 
 
-<!-- Modal de edición de bloque -->
-<div class="modal fade" id="modalEditarBloque" tabindex="-1" aria-labelledby="modalEditarBloqueLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form id="formEditarBloque" class="modal-content" onsubmit="guardarCambiosBloque(event)">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEditarBloqueLabel">Editar bloque</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="editarBloqueId">
-        <div class="mb-3">
-          <label for="editarNombreBloque" class="form-label">Nombre</label>
-          <input type="text" id="editarNombreBloque" class="form-control" required />
-        </div>
-        <div class="mb-3">
-          <label for="editarContenidoBloque" class="form-label">Contenido HTML</label>
-          <textarea id="editarContenidoBloque" class="form-control" rows="4" required></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-      </div>
-    </form>
-  </div>
-</div>
+
 
 
 
@@ -172,7 +115,7 @@
 <script src="js/modules/firebase-init.js"></script>
 <script src="js/modules/modales.js"></script>
 <script src="js/modules/tabs.js"></script>
-<script src="js/modules/editor.js"></script>
+<script src="js/modules/planilla.js"></script>
 
 </body>
 </html>
