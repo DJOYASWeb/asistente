@@ -155,32 +155,42 @@ function cargarBloquesEnBarra() {
   const barra = document.querySelector(".bloques-barra");
   barra.innerHTML = ""; // limpiar la barra primero
 
-  db.collection("bloquesPersonalizados")
-    .get()
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        const bloque = doc.data();
-        const html = bloque.contenido;
-        const nombre = bloque.nombre;
+db.collection("bloquesPersonalizados")
+  .get()
+  .then((querySnapshot) => {
+    console.log("📦 Bloques obtenidos:", querySnapshot.size);
 
-        const nuevo = document.createElement("div");
-        nuevo.className = "bloque-draggable";
-        nuevo.setAttribute("draggable", "true");
-        nuevo.dataset.html = html;
-        nuevo.title = nombre;
-        nuevo.textContent = `🧩 ${nombre}`;
+    if (querySnapshot.empty) {
+      console.log("⚠️ No hay bloques guardados en Firebase.");
+      return;
+    }
 
-        nuevo.addEventListener("dragstart", (e) => {
-          e.dataTransfer.setData("text/html", html);
-        });
+    querySnapshot.forEach((doc) => {
+      const bloque = doc.data();
+      console.log("🧱 Bloque:", bloque.nombre, bloque.contenido);
 
-        barra.appendChild(nuevo);
+      const html = bloque.contenido;
+      const nombre = bloque.nombre;
+
+      const nuevo = document.createElement("div");
+      nuevo.className = "bloque-draggable";
+      nuevo.setAttribute("draggable", "true");
+      nuevo.dataset.html = html;
+      nuevo.title = nombre;
+      nuevo.textContent = `🧩 ${nombre}`;
+
+      nuevo.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/html", html);
       });
-    })
-    .catch((error) => {
-      console.error("Error al cargar bloques en la barra:", error);
+
+      const barra = document.querySelector(".bloques-barra");
+      barra.appendChild(nuevo);
     });
-}
+  })
+  .catch((error) => {
+    console.error("❌ Error al cargar bloques desde Firebase:", error);
+  });
+
 
 
 function abrirEditorBloque(id, nombre, contenido) {
