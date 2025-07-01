@@ -9,7 +9,7 @@ function slugify(text) {
 
 function aplicarNegritaUltimaFraseConDosPuntos(texto) {
   const match = texto.match(/^(.*?:)(\s*)(.*)$/);
-  return match ? `<b>${match[1]}</b>${match[3]}` : texto;
+  return match ? `<b>${match[1]}</b> ${match[3]}` : texto;
 }
 
 function convertirHTML() {
