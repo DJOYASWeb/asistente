@@ -848,5 +848,5 @@ width: 80px;
     border: 1px solid #e0e0e0;
     border-radius: 12px;
     background-color: #fff;
-    transition: box-shadow 0.2s;
+    padding: 1rem;
 }
