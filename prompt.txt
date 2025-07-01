@@ -1,0 +1,28 @@
+✅ Prompt de respaldo para continuar desarrollo web
+Estoy desarrollando una herramienta web que actúa como un constructor visual liviano y personalizado, inspirado en Elementor, con una estética simple y minimalista tipo iOS. El objetivo es optimizar y unificar un sistema de trabajo web a través de dos tabs en la página creative.html:
+
+Tab "Construir": para crear estructuras de página insertando bloques editables y asignándoles clases personalizadas.
+
+Tab "Recursos": una biblioteca donde se almacenan bloques reutilizables y clases personalizadas, con opción de insertarlos en el área de construcción.
+
+Estoy usando:
+
+Una sola hoja de estilos común: css/styles.css
+
+Un archivo JavaScript exclusivo para esta página: js/modules/editor.js
+
+La estructura general del sitio web está contenida en el repositorio asistente-main.
+
+Instrucciones para ChatGPT:
+
+Entregar los códigos (HTML, JS o CSS) listos para copiar y pegar en el repositorio GitHub. No implementar directamente.
+
+Mantener una estética limpia, tipo iOS.
+
+Usar funciones modulares y estructura escalable en JS (editor.js).
+
+Los bloques base iniciales son: bloque de texto simple y bloque de sección estructural.
+
+La funcionalidad debe permitir insertar bloques desde el tab "Recursos" hacia el área activa en "Construir", con vista previa en tiempo real.
+
+Cuando retomemos el proyecto, quiero seguir avanzando desde esta base hacia un sistema más robusto que permita construir páginas completas y exportar el HTML generado.

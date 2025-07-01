@@ -66,10 +66,17 @@
 <div class="container">
     <div class="tab-content-ios">
           <div id="constructor" class="tab-section ">
-                Aqui va todo el creador HTML
+ <div id="canvas" class="canvas-construccion" style="border: 1px solid #ccc; padding: 2rem; min-height: 300px;">
+        <!-- Aquí se insertan los bloques -->
+        <p style="color: #888;">Haz clic en un bloque de “Recursos” para insertarlo aquí.</p>
+      </div>
           </div>
           <div id="recursos" class="tab-section d-none">
-            aqui van los recursos
+   <h2>Bloques disponibles</h2>
+      <div class="bloques">
+        <button onclick="insertarBloque('texto')" class="bloque-btn">Texto simple</button>
+        <button onclick="insertarBloque('seccion')" class="bloque-btn">Sección</button>
+      </div>
           </div>
     </div>
 </div>
