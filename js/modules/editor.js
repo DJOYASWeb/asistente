@@ -38,19 +38,20 @@ function permitirSoltar(event) {
 
 function soltarBloque(event) {
   event.preventDefault();
-  const html = event.dataTransfer.getData("text/html");
-  const tipo = event.dataTransfer.getData("text/plain");
+
+  const html = event.dataTransfer.getData("text/html"); // contenido personalizado
+  const tipo = event.dataTransfer.getData("text/plain"); // tipo clásico: seccion, col, texto
 
   const target = event.target.closest("#canvas, .seccion-preview, .col-preview");
-
   if (!target) return;
 
+  // Bloque contenedor visual
   const wrapper = document.createElement("div");
   wrapper.className = "visual-preview";
 
-  // 1. Si es SECTION: solo permitido en el canvas
+  // --- 1. SECCIÓN: solo se permite soltar en el canvas ---
   if (tipo === "seccion") {
-    if (!target.id || target.id !== "canvas") return;
+    if (target.id !== "canvas") return;
 
     wrapper.innerHTML = `
       <div class="seccion-preview">
@@ -62,7 +63,7 @@ function soltarBloque(event) {
     return;
   }
 
-  // 2. Si es COLUMNA: solo permitido dentro de secciones
+  // --- 2. COLUMNA: solo dentro de secciones (aunque puede usarse poco si ya generamos 2 por defecto) ---
   if (tipo === "col") {
     if (!target.classList.contains("seccion-preview")) return;
 
@@ -73,23 +74,20 @@ function soltarBloque(event) {
     return;
   }
 
-  // 3. Si es contenido (texto o html): solo dentro de columnas
+  // --- 3. CONTENIDO (bloques personalizados con HTML o texto): solo dentro de columnas ---
   if (tipo === "texto" || html) {
     if (!target.classList.contains("col-preview")) return;
 
     const bloque = document.createElement("div");
     bloque.className = "bloque-preview";
 
-    if (html) {
-      bloque.innerHTML = html;
-    } else {
-      bloque.innerHTML = "📝 Bloque de texto";
-    }
+    bloque.innerHTML = html || "📝 Bloque de texto";
 
     target.appendChild(bloque);
     return;
   }
 }
+
 
 
 // Guardar bloque en Firebase
