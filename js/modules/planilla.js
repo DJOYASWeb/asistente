@@ -231,5 +231,21 @@ document.getElementById("btnReposicion").onclick = () => mostrarTabla("reposicio
 document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
+function filtrarProductos(tipo) {
+  const productosFiltrados = productosProcesados.filter(p => {
+    return !p.tieneCombinacion && p.tipo === tipo;
+  });
+  mostrarTabla(productosFiltrados);
+}
+
+function filtrarCombinaciones(tipo) {
+  const productosFiltrados = productosProcesados.filter(p => {
+    return p.tieneCombinacion && p.tipo === tipo;
+  });
+  mostrarTabla(productosFiltrados);
+}
+
+
+
 
 // sixx

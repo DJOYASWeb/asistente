@@ -70,14 +70,16 @@
           <div id="alertas" class="alertas mb-3"></div>
 
 <div id="botonesTipo" class="d-none mb-3">
-  <button class="btn btn-outline-primary" id="btnNuevo">Producto Nuevo</button>
-  <button class="btn btn-outline-success" id="btnCombinacion">Combinación</button>
-  <button class="btn btn-outline-warning" id="btnReposicion">Reposición</button>
+<button class="btn btn-outline-dark me-2" onclick="filtrarProductos('nuevo')">Producto Nuevo</button>
+<button class="btn btn-outline-dark me-2" onclick="filtrarProductos('reposición')">Reposición</button>
+<button class="btn btn-outline-dark me-2" onclick="filtrarCombinaciones('nuevo')">Combinaciones Nuevo</button>
+<button class="btn btn-outline-dark me-2" onclick="filtrarCombinaciones('reposición')">Combinaciones Reposición</button>
+
 </div>
 
 <div id="tablaPreview" class="table-responsive mb-3"></div>
 
-<button id="botonProcesar" class="btn btn-dark d-none" data-bs-toggle="modal" data-bs-target="#modalColumnas">Procesar</button>
+<button class="btn btn-primary mt-3" onclick="abrirModalProcesar()">Procesar</button>
 
 
 
