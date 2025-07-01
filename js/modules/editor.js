@@ -94,15 +94,19 @@ function cargarBloquesGuardados() {
     .then((querySnapshot) => {
       querySnapshot.forEach((doc) => {
         const bloque = doc.data();
+        const docId = doc.id;
 
         const col = document.createElement("div");
         col.className = "col";
 
         col.innerHTML = `
           <div class="card h-100 d-flex flex-row align-items-center p-2">
-            <img src="https://via.placeholder.com/60x60.png?text=📦" class="img-thumbnail me-3" style="width:60px; height:60px; object-fit:cover;" alt="Bloque">
-            <div class="d-flex flex-column justify-content-center">
-              <h6 class="mb-0">${bloque.nombre}</h6>
+            <img src="https://via.placeholder.com/60x60.png?text=📦" class="img-thumbnail me-3" style="width:60px; height:60px;" alt="Bloque">
+            <div class="d-flex flex-column justify-content-center flex-grow-1">
+              <div class="d-flex align-items-center justify-content-between">
+                <h6 class="mb-0">${bloque.nombre}</h6>
+                <i class="fas fa-pen text-secondary cursor-pointer" onclick="abrirEditorBloque('${docId}', \`${bloque.nombre}\`, \`${bloque.contenido.replace(/`/g, '\\`')}\`)"></i>
+              </div>
             </div>
           </div>
         `;
@@ -114,6 +118,43 @@ function cargarBloquesGuardados() {
       console.error("Error al cargar bloques:", error);
     });
 }
+
+function abrirEditorBloque(id, nombre, contenido) {
+  document.getElementById("editarBloqueId").value = id;
+  document.getElementById("editarNombreBloque").value = nombre;
+  document.getElementById("editarContenidoBloque").value = contenido;
+
+  const modal = new bootstrap.Modal(document.getElementById("modalEditarBloque"));
+  modal.show();
+}
+
+function guardarCambiosBloque(event) {
+  event.preventDefault();
+
+  const id = document.getElementById("editarBloqueId").value;
+  const nuevoNombre = document.getElementById("editarNombreBloque").value.trim();
+  const nuevoContenido = document.getElementById("editarContenidoBloque").value.trim();
+
+  if (!id || !nuevoNombre || !nuevoContenido) return;
+
+  db.collection("bloquesPersonalizados")
+    .doc(id)
+    .update({
+      nombre: nuevoNombre,
+      contenido: nuevoContenido,
+    })
+    .then(() => {
+      const modal = bootstrap.Modal.getInstance(document.getElementById("modalEditarBloque"));
+      modal.hide();
+      cargarBloquesGuardados();
+      alert("Bloque actualizado correctamente.");
+    })
+    .catch((error) => {
+      console.error("Error al actualizar bloque:", error);
+      alert("No se pudo actualizar el bloque.");
+    });
+}
+
 
 
 // Agregar bloque a la barra superior del constructor
