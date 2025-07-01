@@ -89,6 +89,32 @@
     </div>
   </div>
 
+
+<!-- Modal de Confirmación y Columnas -->
+<div class="modal fade" id="modalColumnas" tabindex="-1" aria-labelledby="modalColumnasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalColumnasLabel">Confirmar exportación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>Estas son las columnas que se incluirán en el archivo:</p>
+        <ul id="columnasFinales" class="list-group list-group-numbered small"></ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-success" id="confirmarExportar" data-bs-dismiss="modal">Exportar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
