@@ -80,7 +80,8 @@ function soltarBloque(event) {
     if (!target.classList.contains("col-preview")) return;
 
     const bloque = document.createElement("div");
-    bloque.className = "bloque-preview";
+bloque.className = "bloque-preview card h-100 p-3 d-flex flex-column justify-content-center align-items-start";
+
 
     bloque.innerHTML = html || "📝 Bloque de texto";
 
