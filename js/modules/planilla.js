@@ -81,13 +81,15 @@ function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     const codigo = row["Código"] || "";
     const idProducto = row["ID Producto"] || "";
+    const precioConIVA = parseFloat(row["Precio WEB Con IVA"] || 0);
+    const precioSinIVA = isNaN(precioConIVA) ? 0 : (precioConIVA / 1.19).toFixed(2);
 
     return {
       "ID": idProducto || "",
       "Activo (0/1)": 0,
       "Nombre": row["Nombre Producto"] || "",
       "Categorias": row["Categoría principal"] || "",
-      "Precio S/IVA": row["Precio"] || 0,
+      "Precio S/IVA": precioSinIVA,
       "Regla de Impuesto": 2,
       "Código Referencia SKU": codigo,
       "Marca": "DJOYAS",
@@ -194,5 +196,4 @@ document.getElementById("btnReposicion").onclick = () => mostrarTabla("reposicio
 document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
-
-// eme
+// miyo
