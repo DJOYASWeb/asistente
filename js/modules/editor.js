@@ -40,55 +40,41 @@ function permitirSoltar(event) {
 function soltarBloque(event) {
   event.preventDefault();
 
-  const html = event.dataTransfer.getData("text/html"); // contenido personalizado
-  const tipo = event.dataTransfer.getData("text/plain"); // tipo clásico: seccion, col, texto
+  const html = event.dataTransfer.getData("text/html");
+  const tipo = event.dataTransfer.getData("text/plain");
 
-let target = event.target.closest(".col-preview, .bloque-preview, #canvas");
-
-// Si lo soltaste en un bloque editable, insertamos dentro del bloque mismo
-if (target && target.classList.contains("bloque-preview")) {
-  target = target;
-} else if (!target) {
-  return;
-}
+  let target = event.target.closest("#canvas, .row, .col-12, .col-lg-4, section, div");
 
   if (!target) return;
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "visual-preview";
-
-  // --- 1. SECCIÓN: solo se permite soltar en el canvas ---
+  // Si es una sección, insertamos una estructura real
   if (tipo === "seccion") {
-    if (target.id !== "canvas") return;
-
-    wrapper.innerHTML = `
-      <div class="seccion-preview">
-        <div class="col-preview" data-dropzone="col"></div>
-        <div class="col-preview" data-dropzone="col"></div>
-      </div>
+    const section = document.createElement("section");
+    section.className = "row g-4 mb-3"; // margen y separación
+    section.innerHTML = `
+      <div class="col-12 col-lg-6 border p-3">Columna 1</div>
+      <div class="col-12 col-lg-6 border p-3">Columna 2</div>
     `;
-    target.appendChild(wrapper);
+    target.appendChild(section);
     return;
   }
 
-  // --- 2. COLUMNA: solo dentro de secciones ---
+  // Si es una columna vacía
   if (tipo === "col") {
-    if (!target.classList.contains("seccion-preview")) return;
-
     const columna = document.createElement("div");
-    columna.className = "col-preview";
-    columna.textContent = "Columna vacía";
+    columna.className = "col-12 col-lg-6 border p-3";
+    columna.textContent = "Nueva columna";
     target.appendChild(columna);
     return;
   }
 
-  // --- 3. CONTENIDO (HTML personalizado o tipo texto): se permite en col-preview o canvas ---
+  // Si es contenido HTML o texto
   if (tipo === "texto" || html) {
-    if (!target.classList.contains("col-preview") && target.id !== "canvas") return;
-    insertarBloqueDesdeHtml(html || "📝 Bloque de texto", target);
+    insertarBloqueDesdeHtml(html || "<p class='mb-0'>📝 Texto editable</p>", target);
     return;
   }
 }
+
 
 
 
@@ -255,13 +241,8 @@ function capitalize(str) {
 
 // Insertar bloque HTML personalizado en el canvas o columna
 function insertarBloqueDesdeHtml(html, target) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "visual-preview";
-
   const bloque = document.createElement("div");
-  bloque.className = "bloque-preview card p-3 mb-3";
   bloque.innerHTML = html;
-
-  wrapper.appendChild(bloque);
-  target.appendChild(wrapper);
+  bloque.classList.add("mb-3");
+  target.appendChild(bloque);
 }
