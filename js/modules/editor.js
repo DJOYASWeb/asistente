@@ -2,16 +2,16 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- Tabs (constructor / recursos) ---
-  window.showTab = function (tab) {
-    const tabs = document.querySelectorAll(".tab-section");
-    const buttons = document.querySelectorAll(".tab-btn");
+window.showTab = function (tab) {
+  const tabs = document.querySelectorAll(".tab-section");
+  const buttons = document.querySelectorAll(".tab-btn");
 
-    tabs.forEach((el) => el.classList.add("d-none"));
-    buttons.forEach((btn) => btn.classList.remove("active"));
+  tabs.forEach((el) => el.classList.add("d-none"));
+  buttons.forEach((btn) => btn.classList.remove("active"));
 
-    document.getElementById(tab).classList.remove("d-none");
-    document.getElementById("btn" + capitalize(tab)).classList.add("active");
-  };
+  document.getElementById(tab).classList.remove("d-none");
+  document.getElementById("btn" + capitalize(tab)).classList.add("active");
+};
 
   // --- Drag para bloques básicos ---
   const bloques = document.querySelectorAll(".bloque-draggable");
