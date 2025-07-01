@@ -190,6 +190,7 @@ db.collection("bloquesPersonalizados")
   .catch((error) => {
     console.error("❌ Error al cargar bloques desde Firebase:", error);
   });
+}
 
 
 
@@ -251,5 +252,4 @@ function agregarABarraDesdeFirebase(html, nombre) {
 // Capitalizar
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
-}
 }
