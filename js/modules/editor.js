@@ -43,7 +43,15 @@ function soltarBloque(event) {
   const html = event.dataTransfer.getData("text/html"); // contenido personalizado
   const tipo = event.dataTransfer.getData("text/plain"); // tipo clásico: seccion, col, texto
 
-  const target = event.target.closest("#canvas, .seccion-preview, .col-preview");
+let target = event.target.closest(".col-preview, .bloque-preview, #canvas");
+
+// Si lo soltaste en un bloque editable, insertamos dentro del bloque mismo
+if (target && target.classList.contains("bloque-preview")) {
+  target = target;
+} else if (!target) {
+  return;
+}
+
   if (!target) return;
 
   const wrapper = document.createElement("div");
