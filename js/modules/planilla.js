@@ -108,7 +108,7 @@ function construirCategorias(row) {
   const campos = ["Categoría principal", "CATEG. PRINCIPAL", "SUBCATEGORIA"];
 return campos
     .map(k => (row[k] || "").toString().trim())
-    .filter(v => v)
+    .filter(v => v && v.toLowerCase() !== "sin valor")
     .join(", ");
 }
 
@@ -232,4 +232,4 @@ document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
 
-// miiiyo
+// sixx
