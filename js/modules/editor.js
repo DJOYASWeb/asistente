@@ -46,7 +46,6 @@ function soltarBloque(event) {
   const target = event.target.closest("#canvas, .seccion-preview, .col-preview");
   if (!target) return;
 
-  // Bloque contenedor visual
   const wrapper = document.createElement("div");
   wrapper.className = "visual-preview";
 
@@ -64,7 +63,7 @@ function soltarBloque(event) {
     return;
   }
 
-  // --- 2. COLUMNA: solo dentro de secciones (aunque puede usarse poco si ya generamos 2 por defecto) ---
+  // --- 2. COLUMNA: solo dentro de secciones ---
   if (tipo === "col") {
     if (!target.classList.contains("seccion-preview")) return;
 
@@ -75,20 +74,14 @@ function soltarBloque(event) {
     return;
   }
 
-  // --- 3. CONTENIDO (bloques personalizados con HTML o texto): solo dentro de columnas ---
+  // --- 3. CONTENIDO (HTML personalizado o tipo texto): se permite en col-preview o canvas ---
   if (tipo === "texto" || html) {
-    if (!target.classList.contains("col-preview")) return;
-
-    const bloque = document.createElement("div");
-bloque.className = "bloque-preview card h-100 p-3 d-flex flex-column justify-content-center align-items-start";
-
-
-    bloque.innerHTML = html || "📝 Bloque de texto";
-
-    target.appendChild(bloque);
+    if (!target.classList.contains("col-preview") && target.id !== "canvas") return;
+    insertarBloqueDesdeHtml(html || "📝 Bloque de texto", target);
     return;
   }
 }
+
 
 
 function cargarBloquesGuardados() {
@@ -250,4 +243,17 @@ function agregarABarraDesdeFirebase(html, nombre) {
 // Capitalizar
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// Insertar bloque HTML personalizado en el canvas o columna
+function insertarBloqueDesdeHtml(html, target) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "visual-preview";
+
+  const bloque = document.createElement("div");
+  bloque.className = "bloque-preview card p-3 mb-3";
+  bloque.innerHTML = html;
+
+  wrapper.appendChild(bloque);
+  target.appendChild(wrapper);
 }
