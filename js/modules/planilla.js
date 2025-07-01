@@ -49,7 +49,7 @@ function leerExcelDesdeFila3(file) {
       const salida = (row["Salida"] || "").toString().trim().toLowerCase();
       const combinacion = (row["Combinaciones"] || "").toString().trim();
 
-      if (salida === "producto reposicion") {
+      if (salida === "Reposición") {
         datosReposicion.push(row);
         return false;
       }
