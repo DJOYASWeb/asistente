@@ -11,6 +11,8 @@ const categoriasPorMaterial = {
   "Insumos": "Joyas de plata por mayor"
 };
 
+let tipoSeleccionado = "nuevo";
+
 function leerExcelDesdeFila3(file) {
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -46,7 +48,7 @@ function leerExcelDesdeFila3(file) {
     datosReposicion = [];
 
     const datosFiltrados = datos.filter(row => {
-      const salida = (row["Salida"] || "").toString().trim().toLowerCase();
+      const salida = (row["Salida"] || "").toString().trim();
       const combinacion = (row["Combinaciones"] || "").toString().trim();
 
       if (salida === "Reposición") {
@@ -77,7 +79,8 @@ function leerExcelDesdeFila3(file) {
 
 function mostrarTabla(tipo) {
   const tablaDiv = document.getElementById("tablaPreview");
-  const exportBtn = document.getElementById("botonExportar");
+  const procesarBtn = document.getElementById("botonProcesar");
+  tipoSeleccionado = tipo;
   let datos = [];
 
   if (tipo === "nuevo") datos = datosOriginales;
@@ -86,7 +89,7 @@ function mostrarTabla(tipo) {
 
   if (datos.length === 0) {
     tablaDiv.innerHTML = `<p class='text-muted'>No hay productos en esta categoría.</p>`;
-    exportBtn.classList.add("d-none");
+    procesarBtn.classList.add("d-none");
     return;
   }
 
@@ -108,8 +111,7 @@ function mostrarTabla(tipo) {
   html += `</tbody></table>`;
   tablaDiv.innerHTML = html;
 
-  exportBtn.classList.remove("d-none");
-  exportBtn.onclick = () => exportarXLSX(tipo, datos);
+  procesarBtn.classList.remove("d-none");
 }
 
 function exportarXLSX(tipo, datos) {
@@ -125,6 +127,21 @@ function mostrarAlerta(mensaje, tipo = "info") {
   alertasDiv.innerHTML = `<div class="alert alert-${tipo}" role="alert">${mensaje}</div>`;
 }
 
+function prepararModal() {
+  const modalBody = document.getElementById("columnasFinales");
+  const datos = tipoSeleccionado === "nuevo" ? datosOriginales : tipoSeleccionado === "combinacion" ? datosCombinaciones : datosReposicion;
+  const columnas = Object.keys(datos[0] || {});
+  modalBody.innerHTML = "";
+  columnas.forEach((col, i) => {
+    modalBody.innerHTML += `<li>${i + 1}. ${col}</li>`;
+  });
+}
+
+function procesarExportacion() {
+  const datos = tipoSeleccionado === "nuevo" ? datosOriginales : tipoSeleccionado === "combinacion" ? datosCombinaciones : datosReposicion;
+  exportarXLSX(tipoSeleccionado, datos);
+}
+
 // Eventos
 const inputArchivo = document.getElementById("excelFile");
 inputArchivo.addEventListener("change", (e) => {
@@ -135,3 +152,5 @@ inputArchivo.addEventListener("change", (e) => {
 document.getElementById("btnNuevo").onclick = () => mostrarTabla("nuevo");
 document.getElementById("btnCombinacion").onclick = () => mostrarTabla("combinacion");
 document.getElementById("btnReposicion").onclick = () => mostrarTabla("reposicion");
+document.getElementById("botonProcesar").onclick = prepararModal;
+document.getElementById("confirmarExportar").onclick = procesarExportacion;
