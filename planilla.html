@@ -69,13 +69,17 @@
 
           <div id="alertas" class="alertas mb-3"></div>
 
-          <div id="tablaPreview" class="table-responsive mb-4"></div>
+<div id="botonesTipo" class="d-none mb-3">
+  <button class="btn btn-outline-primary" id="btnNuevo">Producto Nuevo</button>
+  <button class="btn btn-outline-success" id="btnCombinacion">Combinación</button>
+  <button class="btn btn-outline-warning" id="btnReposicion">Reposición</button>
+</div>
 
-          <div class="d-flex gap-2 mb-5">
-            <button id="validarBtn" class="btn btn-primary">Validar</button>
-            <button id="exportarSimplesBtn" class="btn btn-success">Exportar productos simples</button>
-            <button id="exportarCombinacionesBtn" class="btn btn-warning">Exportar combinaciones</button>
-          </div>
+<div id="tablaPreview" class="table-responsive mb-3"></div>
+
+<button id="botonExportar" class="btn btn-dark d-none">Exportar</button>
+
+
         </div>
 
         <div id="historial" class="tab-section d-none">
