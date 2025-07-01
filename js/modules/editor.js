@@ -29,6 +29,7 @@ window.showTab = function (tab) {
 
   // --- Cargar bloques personalizados desde Firebase ---
   cargarBloquesGuardados();
+   cargarBloquesEnBarra(); 
 });
 
 // Permitir soltar en el área de construcción
