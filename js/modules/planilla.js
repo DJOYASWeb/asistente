@@ -109,7 +109,7 @@ function construirCategorias(row) {
 return campos
     .map(k => (row[k] || "").toString().trim())
     .filter(v => v)
-    .join(" > ");
+    .join(", ");
 }
 
 function transformarDatosParaExportar(datos) {
@@ -232,4 +232,4 @@ document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
 
-// v2
+// miiiyo
