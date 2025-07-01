@@ -116,6 +116,32 @@
 
 
 
+<!-- Modal de edición de bloque -->
+<div class="modal fade" id="modalEditarBloque" tabindex="-1" aria-labelledby="modalEditarBloqueLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formEditarBloque" class="modal-content" onsubmit="guardarCambiosBloque(event)">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarBloqueLabel">Editar bloque</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editarBloqueId">
+        <div class="mb-3">
+          <label for="editarNombreBloque" class="form-label">Nombre</label>
+          <input type="text" id="editarNombreBloque" class="form-control" required />
+        </div>
+        <div class="mb-3">
+          <label for="editarContenidoBloque" class="form-label">Contenido HTML</label>
+          <textarea id="editarContenidoBloque" class="form-control" rows="4" required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 
 
