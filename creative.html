@@ -81,8 +81,25 @@
             
 
           <div id="recursos" class="tab-section d-none">
-    <h2>Recursos personalizables (pendiente)</h2>
-      <p>En esta sección podrás crear tus propios bloques personalizados.</p>
+  <h2>Crear nuevo bloque</h2>
+  <form id="bloqueForm" onsubmit="guardarBloquePersonalizado(event)">
+    <div class="mb-3">
+      <label for="nombreBloque" class="form-label">Nombre del bloque</label>
+      <input type="text" id="nombreBloque" class="form-control" required />
+    </div>
+    <div class="mb-3">
+      <label for="contenidoBloque" class="form-label">Contenido HTML</label>
+      <textarea id="contenidoBloque" class="form-control" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar bloque</button>
+  </form>
+
+  <hr />
+
+  <h3>Mis bloques guardados</h3>
+  <div id="bloquesGuardados" class="row mt-3">
+    <!-- Aquí aparecerán los bloques guardados -->
+  </div>
           </div>
     </div>
 </div>
