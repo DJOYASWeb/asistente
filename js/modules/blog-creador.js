@@ -172,7 +172,7 @@ function generarHTML() {
       <hr>
       ${destacadosHTML}
     </div>
-  </section>
+  </section></div></div>
 
   <!-- Newsletter -->
   <section class="newsletter-blog my-3">
