@@ -13,3 +13,4 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
+window.db = firebase.firestore();
