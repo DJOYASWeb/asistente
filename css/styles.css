@@ -761,3 +761,14 @@ margin: 1rem;
 .contenido{
 width: 80px;
 }
+
+#bloquesGuardados .card {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background-color: #fff;
+  transition: box-shadow 0.2s;
+}
+
+#bloquesGuardados .card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
