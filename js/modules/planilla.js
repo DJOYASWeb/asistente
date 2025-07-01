@@ -3,6 +3,14 @@
 let datosOriginales = [];
 let datosCombinaciones = [];
 
+// Reglas de categorización según Material
+const categoriasPorMaterial = {
+  "Plata": "Joyas de plata por mayor",
+  "Enchape": "ENCHAPADO",
+  "Accesorios": "ACCESORIOS",
+  "Insumos": "Joyas de plata por mayor"
+};
+
 // Función para leer archivo Excel desde fila 3
 function leerExcelDesdeFila3(file) {
   const reader = new FileReader();
@@ -12,8 +20,7 @@ function leerExcelDesdeFila3(file) {
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
 
-    // Convertir hoja a JSON desde fila 3 (índice 2)
-    const opciones = { header: 1 }; // Devuelve arrays por fila
+    const opciones = { header: 1 };
     const todasLasFilas = XLSX.utils.sheet_to_json(worksheet, opciones);
 
     if (todasLasFilas.length < 3) {
@@ -29,6 +36,13 @@ function leerExcelDesdeFila3(file) {
         obj[col?.toString().trim() || `Columna${i}`] = fila[i] ?? "";
       });
       return obj;
+    });
+
+    // Autocompletar columna "Categoría principal"
+    datos.forEach(row => {
+      const material = (row["Material"] || "").toString().trim();
+      const categoria = categoriasPorMaterial[material] || "";
+      row["Categoría principal"] = categoria;
     });
 
     datosOriginales = datos;
