@@ -38,28 +38,59 @@ function permitirSoltar(event) {
 
 function soltarBloque(event) {
   event.preventDefault();
-  const canvas = document.getElementById("canvas");
-
   const html = event.dataTransfer.getData("text/html");
   const tipo = event.dataTransfer.getData("text/plain");
+
+  const target = event.target.closest("#canvas, .seccion-preview, .col-preview");
+
+  if (!target) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = "visual-preview";
 
-  if (html) {
-    wrapper.innerHTML = html;
-  } else if (tipo === "texto") {
-    wrapper.innerHTML = `<div class="bloque-preview">📝 Bloque de texto</div>`;
-  } else if (tipo === "seccion") {
+  // 1. Si es SECTION: solo permitido en el canvas
+  if (tipo === "seccion") {
+    if (!target.id || target.id !== "canvas") return;
+
     wrapper.innerHTML = `
       <div class="seccion-preview">
-        <div class="col-preview">Bloque 1</div>
-        <div class="col-preview">Bloque 2</div>
-      </div>`;
+        <div class="col-preview" data-dropzone="col"></div>
+        <div class="col-preview" data-dropzone="col"></div>
+      </div>
+    `;
+    target.appendChild(wrapper);
+    return;
   }
 
-  canvas.appendChild(wrapper);
+  // 2. Si es COLUMNA: solo permitido dentro de secciones
+  if (tipo === "col") {
+    if (!target.classList.contains("seccion-preview")) return;
+
+    const columna = document.createElement("div");
+    columna.className = "col-preview";
+    columna.textContent = "Columna vacía";
+    target.appendChild(columna);
+    return;
+  }
+
+  // 3. Si es contenido (texto o html): solo dentro de columnas
+  if (tipo === "texto" || html) {
+    if (!target.classList.contains("col-preview")) return;
+
+    const bloque = document.createElement("div");
+    bloque.className = "bloque-preview";
+
+    if (html) {
+      bloque.innerHTML = html;
+    } else {
+      bloque.innerHTML = "📝 Bloque de texto";
+    }
+
+    target.appendChild(bloque);
+    return;
+  }
 }
+
 
 // Guardar bloque en Firebase
 function guardarBloquePersonalizado(event) {
