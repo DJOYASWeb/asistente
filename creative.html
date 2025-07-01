@@ -65,19 +65,24 @@
 
 <div class="container">
     <div class="tab-content-ios">
-          <div id="constructor" class="tab-section ">
-              <h2>Bloques disponibles</h2>
-      <div class="bloques">
-        <button onclick="insertarBloque('texto')" class="bloque-btn">Texto simple</button>
-        <button onclick="insertarBloque('seccion')" class="bloque-btn">Sección</button>
+          <div id="constructor" class="tab-section ">     
+             <div class="bloques-barra">
+        <div class="bloque-draggable" draggable="true" data-tipo="texto">📝 Texto</div>
+        <div class="bloque-draggable" draggable="true" data-tipo="seccion">📦 Sección</div>
       </div>
- <div id="canvas" class="canvas-construccion" style="border: 1px solid #ccc; padding: 2rem; min-height: 300px;">
-        <!-- Aquí se insertan los bloques -->
-        <p style="color: #888;">Haz clic en un bloque de “Recursos” para insertarlo aquí.</p>
+
+      <div id="canvas" class="canvas-construccion"
+           ondragover="permitirSoltar(event)"
+           ondrop="soltarBloque(event)">
+        <p style="color: #888;">Arrastra bloques aquí para construir tu diseño.</p>
       </div>
+          
           </div>
+            
+
           <div id="recursos" class="tab-section d-none">
- 
+    <h2>Recursos personalizables (pendiente)</h2>
+      <p>En esta sección podrás crear tus propios bloques personalizados.</p>
           </div>
     </div>
 </div>
