@@ -1,28 +1,68 @@
-✅ Prompt de respaldo para continuar desarrollo web
-Estoy desarrollando una herramienta web que actúa como un constructor visual liviano y personalizado, inspirado en Elementor, con una estética simple y minimalista tipo iOS. El objetivo es optimizar y unificar un sistema de trabajo web a través de dos tabs en la página creative.html:
+1. ID (desde columna "ID Producto", si está vacío queda vacío)
+2. Activo (0/1) – siempre 0
+3. Nombre (desde "Nombre Producto")
+4. Categorias (combinación de "Categoría principal", "CATEG. PRINCIPAL", "SUBCATEGORIA", excluyendo "Sin valor")
+5. Precio S/IVA (desde "Precio WEB Con IVA" dividido por 1,19, con 2 decimales)
+6. Regla de Impuesto – siempre 2
+7. Código Referencia SKU (desde "Código")
+8. Marca – siempre DJOYAS
+9. Cantidad (desde "WEB")
+10. Resumen (desde "Resumen")
+11. Descripción (desde "Descripción")
+12. Image URLs (construido como: `https://distribuidoradejoyas.cl/img/prod/[Código].jpg`)
+13. Características:
+    - Modelo, Dimensión, Peso, Material, Estilo: en formato `Nombre: Valor`
+    - Ocasión: separamos cada valor en formato `Ocasión: Valor`
+    - Si algún campo está vacío, se omite
 
-Tab "Construir": para crear estructuras de página insertando bloques editables y asignándoles clases personalizadas.
+Ejemplo de características:  
+`Modelo: Clásico, Dimensión: 2cm, Ocasión: Para ti, Ocasión: Para regalar`
 
-Tab "Recursos": una biblioteca donde se almacenan bloques reutilizables y clases personalizadas, con opción de insertarlos en el área de construcción.
+---
 
-Estoy usando:
+### 🔄 FLUJO GENERAL:
 
-Una sola hoja de estilos común: css/styles.css
+1. El usuario sube el archivo `.xlsx`
+2. Se clasifican los productos en:
+   - Nuevos (sin combinaciones)
+   - Combinaciones Nuevas
+   - Reposición
+   - Combinaciones de Reposición
+3. El usuario elige qué grupo revisar.
+4. Puede abrir el modal con el botón **Procesar**, revisar las columnas finales y exportar como `.xlsx`.
 
-Un archivo JavaScript exclusivo para esta página: js/modules/editor.js
+---
 
-La estructura general del sitio web está contenida en el repositorio asistente-main.
+### 🛠 LIBRERÍAS EN USO:
+- `xlsx.full.min.js` (SheetJS)
+- `FileSaver.js`
+- `Bootstrap 5`
+- `Font Awesome`
+- `jQuery`
+- `Firebase` (aunque no se usa en esta parte todavía)
 
-Instrucciones para ChatGPT:
+---
 
-Entregar los códigos (HTML, JS o CSS) listos para copiar y pegar en el repositorio GitHub. No implementar directamente.
+### ⚠️ NOTAS IMPORTANTES:
 
-Mantener una estética limpia, tipo iOS.
+- Si alguna categoría está vacía o dice `"Sin valor"`, no debe incluirse en el string de categorías.
+- Las combinaciones con formato inválido muestran una alerta y se ignoran.
+- El sistema debe escalar para usar Firebase más adelante, pero por ahora es local.
 
-Usar funciones modulares y estructura escalable en JS (editor.js).
+---
 
-Los bloques base iniciales son: bloque de texto simple y bloque de sección estructural.
+### 📂 ARCHIVOS CLAVE:
 
-La funcionalidad debe permitir insertar bloques desde el tab "Recursos" hacia el área activa en "Construir", con vista previa en tiempo real.
+1. `planilla.html` – contiene los tabs, botones y el contenedor para la tabla.
+2. `planilla.js` – toda la lógica de carga, validación, clasificación, tabla y exportación.
+3. `styles.css` – ya contiene estilos de tablas compactas y modo iOS.
+4. `modales.js` – controla la apertura del modal desde el botón "Procesar".
+5. `tabs.js` – gestiona la visibilidad de las secciones de tabs.
 
-Cuando retomemos el proyecto, quiero seguir avanzando desde esta base hacia un sistema más robusto que permita construir páginas completas y exportar el HTML generado.
+---
+
+Con este prompt, necesito continuar el proyecto exactamente desde este punto, asegurándome de mantener toda la lógica implementada hasta ahora.
+
+--- 
+
+¿Te gustaría que te lo entregue también en archivo `.txt` o `.md` para que lo guardes?
