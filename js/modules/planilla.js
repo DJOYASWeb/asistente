@@ -79,22 +79,22 @@ function leerExcelDesdeFila3(file) {
 
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
-    const sku = row["SKU"] || "";
+    const codigo = row["Código"] || "";
     const idProducto = row["ID Producto"] || "";
 
     return {
       "ID": idProducto || "",
       "Activo (0/1)": 0,
-      "Nombre": row["Nombre"] || "",
+      "Nombre": row["Nombre Producto"] || "",
       "Categorias": row["Categoría principal"] || "",
       "Precio S/IVA": row["Precio"] || 0,
-      "Regla de Impuesto": "IVA 19%",
-      "Código Referencia SKU": sku,
+      "Regla de Impuesto": 2,
+      "Código Referencia SKU": codigo,
       "Marca": "DJOYAS",
-      "Cantidad": row["Cantidad"] || 0,
+      "Cantidad": row["WEB"] || 0,
       "Resumen": row["Resumen"] || "",
       "Descripción": row["Descripción"] || "",
-      "Image URLs (x,y,z...)": sku ? `https://distribuidoradejoyas.cl/img/prod/${sku}.jpg` : "",
+      "Image URLs (x,y,z...)": codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "",
       "Caracteristicas": row["Características"] || ""
     };
   });
@@ -156,16 +156,18 @@ function prepararModal() {
   const datos = tipoSeleccionado === "nuevo" ? datosOriginales : tipoSeleccionado === "combinacion" ? datosCombinaciones : datosReposicion;
   const transformados = transformarDatosParaExportar(datos);
 
-  let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm"><thead><tr>`;
+  let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm align-middle"><thead><tr>`;
   const columnas = Object.keys(transformados[0] || {});
   columnas.forEach(col => {
-    html += `<th>${col}</th>`;
+    html += `<th class="small">${col}</th>`;
   });
   html += `</tr></thead><tbody>`;
   transformados.forEach(fila => {
-    html += `<tr>`;
+    html += `<tr style="height: 36px;">`;
     columnas.forEach(col => {
-      html += `<td>${fila[col]}</td>`;
+      const contenido = fila[col]?.toString() || "";
+      const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
+      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${previsual}</td>`;
     });
     html += `</tr>`;
   });
@@ -192,4 +194,5 @@ document.getElementById("btnReposicion").onclick = () => mostrarTabla("reposicio
 document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
-// upp
+
+// eme
