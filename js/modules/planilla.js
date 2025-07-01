@@ -45,8 +45,24 @@ function leerExcelDesdeFila3(file) {
       row["Categoría principal"] = categoria;
     });
 
-    datosOriginales = datos;
-    renderizarTabla(datos);
+    // Detectar combinaciones
+    datosCombinaciones = [];
+    const datosFiltrados = datos.filter(row => {
+      const combinacion = (row["Combinaciones"] || "").toString().trim();
+      if (combinacion) {
+        const esValida = combinacion.split(",").every(c => /^#\d+-\d+$/.test(c.trim()));
+        if (!esValida) {
+          mostrarAlerta(`Formato inválido en Combinaciones: "${combinacion}"`, "warning");
+        }
+        row["Cantidad"] = 0;
+        datosCombinaciones.push(row);
+        return false; // excluir de datos principales
+      }
+      return true;
+    });
+
+    datosOriginales = datosFiltrados;
+    renderizarTabla(datosFiltrados);
   };
   reader.readAsArrayBuffer(file);
 }
