@@ -172,7 +172,24 @@ function generarHTML() {
       <hr>
       ${destacadosHTML}
     </div>
-  </section></div></div>
+  </section>
+
+  <!-- Contenido publicidad -->
+<section class="publicidad-blog mt-5"><a  href="https://distribuidoradejoyas.cl/djoyas-inspira.24"><img src="/img/cms/paginas internas/blogs/inspira-blog.jpg" class="caja-img" alt="portada de blog"></a>
+</section>
+
+<!-- Etiquetas de contenido -->
+ <section class="contenidos">
+<div class="caja mt-5">
+<h2 class="titulo-card">Consejos, Tendencias y Mucho Más</h2>
+<ul class="list-group list-group-flush">
+<li class="list-group-item"><a href="https://distribuidoradejoyas.cl/blog/emprendimiento"><h3 class="etiqueta-blog">Emprendimiento </h3></a><i class="fa fa-angle-right"></i></li>
+  <li class="list-group-item"><a href="https://distribuidoradejoyas.cl/blog/sabias-que"><h3 class="etiqueta-blog">Sabias que? </h3></a><i class="fa fa-angle-right"></i></li>
+  <li class="list-group-item"><a href="https://distribuidoradejoyas.cl/blog/beneficios"><h3 class="etiqueta-blog">Beneficios</h3></a><i class="fa fa-angle-right"></i></li>
+  <li class="list-group-item"><a href="https://distribuidoradejoyas.cl/blog/cuidado-y-mantenimiento"><h3 class="etiqueta-blog">Cuidado y Mantenimiento</h3></a><i class="fa fa-angle-right"></i>
+  <li class="list-group-item"><a href="https://distribuidoradejoyas.cl/blog/innovacion"><h3 class="etiqueta-blog">Innovación</h3></a><i class="fa fa-angle-right"></i>
+</ul></div></section></div></div>
+
 
   <!-- Newsletter -->
   <section class="newsletter-blog my-3">
