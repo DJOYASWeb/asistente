@@ -814,3 +814,13 @@ width: 80px;
   font-size: 0.95rem;
   color: #333;
 }
+
+.contenedor-canva{
+    color: #888;
+    height: 200px;
+    display: flex;
+    border: 2px solid #ccc;
+    border-style: dashed solid;
+    align-items: center;
+    justify-content: center;
+}
