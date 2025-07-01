@@ -1,3 +1,4 @@
+// js/modules/planilla.js
 
 let datosOriginales = [];
 let datosCombinaciones = [];
@@ -42,15 +43,17 @@ function renderizarTabla(datos) {
   if (datos.length === 0) return (tablaDiv.innerHTML = "<p>No hay datos.</p>");
 
   const columnas = Object.keys(datos[0]);
-  let html = `<table class="table table-bordered table-sm"><thead><tr>`;
+  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
   columnas.forEach(col => {
-    html += `<th>${col}</th>`;
+    html += `<th class="small">${col}</th>`;
   });
   html += `</tr></thead><tbody>`;
   datos.forEach(fila => {
-    html += `<tr>`;
+    html += `<tr style="height: 36px;">`;
     columnas.forEach(col => {
-      html += `<td>${fila[col]}</td>`;
+      const contenido = fila[col]?.toString() || "";
+      const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
+      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${previsual}</td>`;
     });
     html += `</tr>`;
   });
