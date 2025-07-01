@@ -223,9 +223,12 @@ inputArchivo.addEventListener("change", (e) => {
   if (archivo) leerExcelDesdeFila3(archivo);
 });
 
-document.getElementById("btnNuevo").onclick = () => mostrarTabla("nuevo");
-document.getElementById("btnCombinacion").onclick = () => mostrarTabla("combinacion");
-document.getElementById("btnReposicion").onclick = () => mostrarTabla("reposicion");
+
+document.getElementById("excelFile").addEventListener("change", (e) => {
+  const archivo = e.target.files[0];
+  if (archivo) leerExcelDesdeFila3(archivo);
+});
+
 document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
@@ -295,4 +298,4 @@ function mostrarTablaFiltrada(datos) {
 
 
 
-// emig
+// Last
