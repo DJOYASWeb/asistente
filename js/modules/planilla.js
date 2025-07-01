@@ -78,20 +78,23 @@ function leerExcelDesdeFila3(file) {
 }
 
 function transformarDatosParaExportar(datos) {
-  return datos.map((row, index) => {
+  return datos.map(row => {
+    const sku = row["SKU"] || "";
+    const idProducto = row["ID Producto"] || "";
+
     return {
-      "ID": index + 1,
+      "ID": idProducto || "",
       "Activo (0/1)": 0,
       "Nombre": row["Nombre"] || "",
       "Categorias": row["Categoría principal"] || "",
       "Precio S/IVA": row["Precio"] || 0,
       "Regla de Impuesto": "IVA 19%",
-      "Código Referencia SKU": row["SKU"] || "",
+      "Código Referencia SKU": sku,
       "Marca": "DJOYAS",
       "Cantidad": row["Cantidad"] || 0,
       "Resumen": row["Resumen"] || "",
       "Descripción": row["Descripción"] || "",
-      "Image URLs (x,y,z...)": row["Imágenes"] || "",
+      "Image URLs (x,y,z...)": sku ? `https://distribuidoradejoyas.cl/img/prod/${sku}.jpg` : "",
       "Caracteristicas": row["Características"] || ""
     };
   });
@@ -188,3 +191,5 @@ document.getElementById("btnCombinacion").onclick = () => mostrarTabla("combinac
 document.getElementById("btnReposicion").onclick = () => mostrarTabla("reposicion");
 document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
+
+// upp
