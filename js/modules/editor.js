@@ -89,6 +89,43 @@ function soltarBloque(event) {
 }
 
 
+function cargarBloquesGuardados() {
+  const contenedor = document.getElementById("bloquesGuardados");
+  if (!contenedor) return;
+
+  contenedor.innerHTML = "";
+
+  db.collection("bloquesPersonalizados")
+    .get()
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        const bloque = doc.data();
+        const docId = doc.id;
+
+        const col = document.createElement("div");
+        col.className = "col";
+
+        col.innerHTML = `
+          <div class="card h-100 d-flex flex-row align-items-center p-2">
+            <img src="https://via.placeholder.com/60x60.png?text=📦" class="img-thumbnail me-3" style="width:60px; height:60px;" alt="Bloque">
+            <div class="d-flex flex-column justify-content-center flex-grow-1">
+              <div class="d-flex align-items-center justify-content-between">
+                <h6 class="mb-0">${bloque.nombre}</h6>
+                <i class="fas fa-pen text-secondary cursor-pointer" onclick='abrirEditorBloque(${JSON.stringify(docId)}, ${JSON.stringify(bloque.nombre)}, ${JSON.stringify(bloque.contenido)})'></i>
+              </div>
+            </div>
+          </div>
+        `;
+
+        contenedor.appendChild(col);
+      });
+    })
+    .catch((error) => {
+      console.error("Error al cargar bloques:", error);
+    });
+}
+
+
 
 // Guardar bloque en Firebase
 function guardarBloquePersonalizado(event) {
