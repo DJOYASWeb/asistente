@@ -77,6 +77,26 @@ function leerExcelDesdeFila3(file) {
   reader.readAsArrayBuffer(file);
 }
 
+function transformarDatosParaExportar(datos) {
+  return datos.map((row, index) => {
+    return {
+      "ID": index + 1,
+      "Activo (0/1)": 0,
+      "Nombre": row["Nombre"] || "",
+      "Categorias": row["Categoría principal"] || "",
+      "Precio S/IVA": row["Precio"] || 0,
+      "Regla de Impuesto": "IVA 19%",
+      "Código Referencia SKU": row["SKU"] || "",
+      "Marca": "DJOYAS",
+      "Cantidad": row["Cantidad"] || 0,
+      "Resumen": row["Resumen"] || "",
+      "Descripción": row["Descripción"] || "",
+      "Image URLs (x,y,z...)": row["Imágenes"] || "",
+      "Caracteristicas": row["Características"] || ""
+    };
+  });
+}
+
 function mostrarTabla(tipo) {
   const tablaDiv = document.getElementById("tablaPreview");
   const procesarBtn = document.getElementById("botonProcesar");
@@ -115,7 +135,8 @@ function mostrarTabla(tipo) {
 }
 
 function exportarXLSX(tipo, datos) {
-  const ws = XLSX.utils.json_to_sheet(datos);
+  const transformados = transformarDatosParaExportar(datos);
+  const ws = XLSX.utils.json_to_sheet(transformados);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
   const nombre = tipo === "nuevo" ? "productos_nuevos.xlsx" : tipo === "combinacion" ? "combinaciones.xlsx" : "reposicion.xlsx";
@@ -130,11 +151,24 @@ function mostrarAlerta(mensaje, tipo = "info") {
 function prepararModal() {
   const modalBody = document.getElementById("columnasFinales");
   const datos = tipoSeleccionado === "nuevo" ? datosOriginales : tipoSeleccionado === "combinacion" ? datosCombinaciones : datosReposicion;
-  const columnas = Object.keys(datos[0] || {});
-  modalBody.innerHTML = "";
-  columnas.forEach((col, i) => {
-    modalBody.innerHTML += `<li>${i + 1}. ${col}</li>`;
+  const transformados = transformarDatosParaExportar(datos);
+
+  let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm"><thead><tr>`;
+  const columnas = Object.keys(transformados[0] || {});
+  columnas.forEach(col => {
+    html += `<th>${col}</th>`;
   });
+  html += `</tr></thead><tbody>`;
+  transformados.forEach(fila => {
+    html += `<tr>`;
+    columnas.forEach(col => {
+      html += `<td>${fila[col]}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  modalBody.innerHTML = html;
 }
 
 function procesarExportacion() {
