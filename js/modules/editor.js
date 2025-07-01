@@ -105,7 +105,7 @@ function cargarBloquesGuardados() {
             <div class="d-flex flex-column justify-content-center flex-grow-1">
               <div class="d-flex align-items-center justify-content-between">
                 <h6 class="mb-0">${bloque.nombre}</h6>
-                <i class="fas fa-pen text-secondary cursor-pointer" onclick="abrirEditorBloque('${docId}', \`${bloque.nombre}\`, \`${bloque.contenido.replace(/`/g, '\\`')}\`)"></i>
+              <i class="fas fa-pen text-secondary cursor-pointer" onclick='abrirEditorBloque(${JSON.stringify(docId)}, ${JSON.stringify(bloque.nombre)}, ${JSON.stringify(bloque.contenido)})'></i>
               </div>
             </div>
           </div>
