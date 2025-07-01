@@ -152,7 +152,6 @@ function guardarBloquePersonalizado(event) {
 }
 
 // Cargar bloques desde Firebase
-console.log("🔥 cargando bloques desde Firebase...");
 function cargarBloquesEnBarra() {
   const barra = document.querySelector(".bloques-barra");
   barra.innerHTML = ""; // limpiar la barra primero
@@ -160,7 +159,7 @@ function cargarBloquesEnBarra() {
 db.collection("bloquesPersonalizados")
   .get()
   .then((querySnapshot) => {
-    console.log("📦 Bloques obtenidos:", querySnapshot.size);
+
 
     if (querySnapshot.empty) {
       console.log("⚠️ No hay bloques guardados en Firebase.");
