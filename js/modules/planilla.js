@@ -1,0 +1,71 @@
+
+let datosOriginales = [];
+let datosCombinaciones = [];
+
+// Función para leer archivo Excel desde fila 3
+function leerExcelDesdeFila3(file) {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+
+    // Convertir hoja a JSON desde fila 3 (índice 2)
+    const opciones = { header: 1 }; // Devuelve arrays por fila
+    const todasLasFilas = XLSX.utils.sheet_to_json(worksheet, opciones);
+
+    if (todasLasFilas.length < 3) {
+      mostrarAlerta("El archivo no tiene suficientes filas.", "danger");
+      return;
+    }
+
+    const headers = todasLasFilas[2];
+    const filas = todasLasFilas.slice(3);
+    const datos = filas.map(fila => {
+      const obj = {};
+      headers.forEach((col, i) => {
+        obj[col?.toString().trim() || `Columna${i}`] = fila[i] ?? "";
+      });
+      return obj;
+    });
+
+    datosOriginales = datos;
+    renderizarTabla(datos);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Mostrar tabla en el div tablaPreview
+function renderizarTabla(datos) {
+  const tablaDiv = document.getElementById("tablaPreview");
+  if (datos.length === 0) return (tablaDiv.innerHTML = "<p>No hay datos.</p>");
+
+  const columnas = Object.keys(datos[0]);
+  let html = `<table class="table table-bordered table-sm"><thead><tr>`;
+  columnas.forEach(col => {
+    html += `<th>${col}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+  datos.forEach(fila => {
+    html += `<tr>`;
+    columnas.forEach(col => {
+      html += `<td>${fila[col]}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  tablaDiv.innerHTML = html;
+}
+
+function mostrarAlerta(mensaje, tipo = "info") {
+  const alertasDiv = document.getElementById("alertas");
+  alertasDiv.innerHTML = `<div class="alert alert-${tipo}" role="alert">${mensaje}</div>`;
+}
+
+// Eventos
+const inputArchivo = document.getElementById("excelFile");
+inputArchivo.addEventListener("change", (e) => {
+  const archivo = e.target.files[0];
+  if (archivo) leerExcelDesdeFila3(archivo);
+});
