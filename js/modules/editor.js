@@ -168,11 +168,8 @@ db.collection("bloquesPersonalizados")
 
     querySnapshot.forEach((doc) => {
       const bloque = doc.data();
-      console.log("🧱 Bloque:", bloque.nombre, bloque.contenido);
-
       const html = bloque.contenido;
       const nombre = bloque.nombre;
-
       const nuevo = document.createElement("div");
       nuevo.className = "bloque-draggable";
       nuevo.setAttribute("draggable", "true");
