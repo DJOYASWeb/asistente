@@ -56,7 +56,7 @@ function leerExcelDesdeFila3(file) {
         }
         row["Cantidad"] = 0;
         datosCombinaciones.push(row);
-        return false; // excluir de datos principales
+        return false;
       }
       return true;
     });
@@ -68,12 +68,13 @@ function leerExcelDesdeFila3(file) {
 }
 
 // Mostrar tabla en el div tablaPreview
-function renderizarTabla(datos) {
+function renderizarTabla(datos, esCombinacion = false) {
   const tablaDiv = document.getElementById("tablaPreview");
   if (datos.length === 0) return (tablaDiv.innerHTML = "<p>No hay datos.</p>");
 
   const columnas = Object.keys(datos[0]);
-  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
+  let html = `<h6 class="text-muted">${esCombinacion ? "Combinaciones detectadas" : "Productos simples"}</h6>`;
+  html += `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
   columnas.forEach(col => {
     html += `<th class="small">${col}</th>`;
   });
@@ -101,4 +102,14 @@ const inputArchivo = document.getElementById("excelFile");
 inputArchivo.addEventListener("change", (e) => {
   const archivo = e.target.files[0];
   if (archivo) leerExcelDesdeFila3(archivo);
+});
+
+// Botón para ver combinaciones
+const btnVerCombinaciones = document.getElementById("exportarCombinacionesBtn");
+btnVerCombinaciones.addEventListener("click", () => {
+  if (datosCombinaciones.length === 0) {
+    mostrarAlerta("No se detectaron combinaciones en esta planilla.", "info");
+  } else {
+    renderizarTabla(datosCombinaciones, true);
+  }
 });
