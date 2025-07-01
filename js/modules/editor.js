@@ -95,24 +95,26 @@ function cargarBloquesGuardados() {
       querySnapshot.forEach((doc) => {
         const bloque = doc.data();
 
-        const card = document.createElement("div");
-        card.className = "col-md-6 mb-3";
-        card.innerHTML = `
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">${bloque.nombre}</h5>
-              <pre class="card-text" style="white-space:pre-wrap; background:#f8f9fa; padding:0.5rem;">${bloque.contenido}</pre>
-              <button class="btn btn-outline-primary btn-sm" onclick="agregarABarraDesdeFirebase(\`${bloque.contenido}\`, \`${bloque.nombre}\`)">Usar en constructor</button>
+        const col = document.createElement("div");
+        col.className = "col";
+
+        col.innerHTML = `
+          <div class="card h-100 d-flex flex-row align-items-center p-2">
+            <img src="https://via.placeholder.com/60x60.png?text=📦" class="img-thumbnail me-3" style="width:60px; height:60px; object-fit:cover;" alt="Bloque">
+            <div class="d-flex flex-column justify-content-center">
+              <h6 class="mb-0">${bloque.nombre}</h6>
             </div>
           </div>
         `;
-        contenedor.appendChild(card);
+
+        contenedor.appendChild(col);
       });
     })
     .catch((error) => {
       console.error("Error al cargar bloques:", error);
     });
 }
+
 
 // Agregar bloque a la barra superior del constructor
 function agregarABarraDesdeFirebase(html, nombre) {
