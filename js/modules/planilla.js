@@ -105,8 +105,11 @@ function construirCaracteristicas(row) {
 }
 
 function construirCategorias(row) {
-  const campos = ["Categoría principal", "Categoria", "Subcategoria"];
-  return campos.map(k => (row[k] || "").toString().trim()).filter(v => v).join(" > ");
+  const campos = ["Categoría principal", "CATEG. PRINCIPAL", "SUBCATEGORIA"];
+return campos
+    .map(k => (row[k] || "").toString().trim())
+    .filter(v => v)
+    .join(" > ");
 }
 
 function transformarDatosParaExportar(datos) {
@@ -229,4 +232,4 @@ document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
 
-// Emeiggg
+// v2
