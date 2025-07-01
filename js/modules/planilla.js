@@ -46,30 +46,28 @@ function leerExcelDesdeFila3(file) {
 
     datosCombinaciones = [];
     datosReposicion = [];
+    datosOriginales = [];
 
-    const datosFiltrados = datos.filter(row => {
+    datos.forEach(row => {
       const salida = (row["Salida"] || "").toString().trim();
       const combinacion = (row["Combinaciones"] || "").toString().trim();
 
-      if (salida === "Reposición") {
-        datosReposicion.push(row);
-        return false;
-      }
+      const tieneCombinacion = combinacion !== "";
 
-      if (combinacion) {
+      if (tieneCombinacion) {
         const esValida = combinacion.split(",").every(c => /^#\d+-\d+$/.test(c.trim()));
         if (!esValida) {
           mostrarAlerta(`Formato inválido en Combinaciones: "${combinacion}"`, "warning");
+          return; // descarta si no es válido
         }
         row["Cantidad"] = 0;
         datosCombinaciones.push(row);
-        return false;
+      } else if (salida === "Reposición") {
+        datosReposicion.push(row);
+      } else {
+        datosOriginales.push(row);
       }
-
-      return true;
     });
-
-    datosOriginales = datosFiltrados;
 
     document.getElementById("botonesTipo").classList.remove("d-none");
     mostrarTabla("nuevo");
@@ -106,7 +104,7 @@ function construirCaracteristicas(row) {
 
 function construirCategorias(row) {
   const campos = ["Categoría principal", "CATEG. PRINCIPAL", "SUBCATEGORIA"];
-return campos
+  return campos
     .map(k => (row[k] || "").toString().trim())
     .filter(v => v && v.toLowerCase() !== "sin valor")
     .join(", ");
@@ -231,21 +229,6 @@ document.getElementById("btnReposicion").onclick = () => mostrarTabla("reposicio
 document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
-function filtrarProductos(tipo) {
-  const productosFiltrados = productosProcesados.filter(p => {
-    return !p.tieneCombinacion && p.tipo === tipo;
-  });
-  mostrarTabla(productosFiltrados);
-}
-
-function filtrarCombinaciones(tipo) {
-  const productosFiltrados = productosProcesados.filter(p => {
-    return p.tieneCombinacion && p.tipo === tipo;
-  });
-  mostrarTabla(productosFiltrados);
-}
 
 
-
-
-// myan
+// Last
