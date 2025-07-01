@@ -104,6 +104,11 @@ function construirCaracteristicas(row) {
   return caracteristicas.join(", ");
 }
 
+function construirCategorias(row) {
+  const campos = ["Categoría principal", "Categoria", "Subcategoria"];
+  return campos.map(k => (row[k] || "").toString().trim()).filter(v => v).join(" > ");
+}
+
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     const codigo = row["Código"] || "";
@@ -115,7 +120,7 @@ function transformarDatosParaExportar(datos) {
       "ID": idProducto || "",
       "Activo (0/1)": 0,
       "Nombre": row["Nombre Producto"] || "",
-      "Categorias": row["Categoría principal"] || "",
+      "Categorias": construirCategorias(row),
       "Precio S/IVA": precioSinIVA,
       "Regla de Impuesto": 2,
       "Código Referencia SKU": codigo,
@@ -224,4 +229,4 @@ document.getElementById("botonProcesar").onclick = prepararModal;
 document.getElementById("confirmarExportar").onclick = procesarExportacion;
 
 
-// upddd
+// Emeiggg
