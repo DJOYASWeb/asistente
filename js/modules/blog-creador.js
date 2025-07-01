@@ -94,7 +94,8 @@ function generarHTML() {
 
   const html = `
 <div class="blog container">
-  <!-- Header Blog -->
+  <div class="row division">
+    <div class="col-12 col-md-12 col-lg-8 bloque-contenido px-3">
   <section class="header-blog">
     <h1 class="titulo-blog">${titulo}</h1>
     <div class="info-blog">
@@ -160,6 +161,9 @@ function generarHTML() {
       </div>
     </div>
   </section>
+
+</div>
+<div class="col-12 col-md-12 col-lg-4 bloque-lateral">
 
   <!-- Más vistos -->
   <section class="destacados mt-5">
