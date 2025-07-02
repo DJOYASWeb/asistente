@@ -129,8 +129,10 @@ function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     const codigo = row["Código"] || "";
     const idProducto = row["ID Producto"] || "";
-    const precioConIVA = parseFloat(row["Precio WEB Con IVA"] || 0);
-    const precioSinIVA = isNaN(precioConIVA) ? 0 : (precioConIVA / 1.19).toFixed(2);
+let precioRaw = (row["Precio WEB Con IVA"] || "").toString().replace(/\$/g, "").replace(/\./g, "").replace(",", ".");
+const precioConIVA = parseFloat(precioRaw);
+const precioSinIVA = isNaN(precioConIVA) ? 0 : (precioConIVA / 1.19).toFixed(2);
+
 
     return {
       "ID": idProducto || "",
