@@ -3,6 +3,7 @@
 let datosOriginales = [];
 let datosCombinaciones = [];
 let datosReposicion = [];
+let datosFiltrados = [];
 
 const categoriasPorMaterial = {
   "Plata": "Joyas de plata por mayor",
@@ -202,8 +203,7 @@ function mostrarAlerta(mensaje, tipo = "info") {
 
 function prepararModal() {
   const modalBody = document.getElementById("columnasFinales");
-  const datos = tipoSeleccionado === "nuevo" ? datosOriginales : tipoSeleccionado === "combinacion" ? datosCombinaciones : datosReposicion;
-  const transformados = transformarDatosParaExportar(datos);
+  const transformados = transformarDatosParaExportar(datosFiltrados);
 
   let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm align-middle"><thead><tr>`;
   const columnas = Object.keys(transformados[0] || {});
@@ -225,42 +225,41 @@ function prepararModal() {
   modalBody.innerHTML = html;
 }
 
+
 function procesarExportacion() {
-  const datos = tipoSeleccionado === "nuevo" ? datosOriginales : tipoSeleccionado === "combinacion" ? datosCombinaciones : datosReposicion;
-  exportarXLSX(tipoSeleccionado, datos);
+  exportarXLSX(tipoSeleccionado, datosFiltrados);
 }
 
 function filtrarProductos(tipo) {
   tipoSeleccionado = tipo;
-  let datos = [];
 
   if (tipo === "nuevo") {
-    datos = datosOriginales.filter(p => !p["Combinaciones"]);
+    datosFiltrados = datosOriginales.filter(p => !p["Combinaciones"]);
   } else if (tipo === "reposición") {
-    datos = datosReposicion.filter(p => !p["Combinaciones"]);
+    datosFiltrados = datosReposicion.filter(p => !p["Combinaciones"]);
   }
 
-  mostrarTablaFiltrada(datos);
+  mostrarTablaFiltrada(datosFiltrados);
 }
 
 function filtrarCombinaciones(tipo) {
   tipoSeleccionado = "combinacion";
-  let datos = [];
 
   if (tipo === "nuevo") {
-    datos = datosCombinaciones.filter(p => {
+    datosFiltrados = datosCombinaciones.filter(p => {
       const salida = (p["Salida"] || "").trim();
       return salida !== "Reposición";
     });
   } else if (tipo === "reposición") {
-    datos = datosCombinaciones.filter(p => {
+    datosFiltrados = datosCombinaciones.filter(p => {
       const salida = (p["Salida"] || "").trim();
       return salida === "Reposición";
     });
   }
 
-  mostrarTablaFiltrada(datos);
+  mostrarTablaFiltrada(datosFiltrados);
 }
+
 
 function mostrarTablaFiltrada(datos) {
   const tablaDiv = document.getElementById("tablaPreview");
