@@ -13,6 +13,21 @@ const categoriasPorMaterial = {
 
 let tipoSeleccionado = "nuevo";
 
+document.addEventListener("DOMContentLoaded", function () {
+  const botonProcesar = document.getElementById("botonProcesar");
+  const confirmarExportar = document.getElementById("confirmarExportar");
+  const inputArchivo = document.getElementById("excelFile");
+
+  if (botonProcesar) botonProcesar.onclick = prepararModal;
+  if (confirmarExportar) confirmarExportar.onclick = procesarExportacion;
+  if (inputArchivo) {
+    inputArchivo.addEventListener("change", (e) => {
+      const archivo = e.target.files[0];
+      if (archivo) leerExcelDesdeFila3(archivo);
+    });
+  }
+});
+
 function leerExcelDesdeFila3(file) {
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -51,14 +66,13 @@ function leerExcelDesdeFila3(file) {
     datos.forEach(row => {
       const salida = (row["Salida"] || "").toString().trim();
       const combinacion = (row["Combinaciones"] || "").toString().trim();
-
       const tieneCombinacion = combinacion !== "";
 
       if (tieneCombinacion) {
         const esValida = combinacion.split(",").every(c => /^#\d+-\d+$/.test(c.trim()));
         if (!esValida) {
           mostrarAlerta(`Formato inválido en Combinaciones: "${combinacion}"`, "warning");
-          return; // descarta si no es válido
+          return;
         }
         row["Cantidad"] = 0;
         datosCombinaciones.push(row);
@@ -216,23 +230,6 @@ function procesarExportacion() {
   exportarXLSX(tipoSeleccionado, datos);
 }
 
-// Eventos
-const inputArchivo = document.getElementById("excelFile");
-inputArchivo.addEventListener("change", (e) => {
-  const archivo = e.target.files[0];
-  if (archivo) leerExcelDesdeFila3(archivo);
-});
-
-
-document.getElementById("excelFile").addEventListener("change", (e) => {
-  const archivo = e.target.files[0];
-  if (archivo) leerExcelDesdeFila3(archivo);
-});
-
-document.getElementById("botonProcesar").onclick = prepararModal;
-document.getElementById("confirmarExportar").onclick = procesarExportacion;
-
-
 function filtrarProductos(tipo) {
   tipoSeleccionado = tipo;
   let datos = [];
@@ -296,6 +293,4 @@ function mostrarTablaFiltrada(datos) {
   procesarBtn.classList.remove("d-none");
 }
 
-
-
-// miyo2
+//myanez
