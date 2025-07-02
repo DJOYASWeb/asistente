@@ -332,7 +332,7 @@ function mostrarTablaCombinacionesCantidad() {
       resultado.push({
         "ID": idProducto,
         "Attribute (Name:Type:Position)*": "Número:radio:0",
-        "Value (Value:Position)*": `${num}`,
+"Value (Value:Position)*": `${num}:0`,
         "Referencia": `${codigoBase}${num}`,
         "Cantidad": cant,
         "Precio S/ IVA": precioSinIVA,
@@ -378,4 +378,4 @@ function exportarXLSXPersonalizado(nombre, datos) {
 }
 
 
-// miyo
+// upd
