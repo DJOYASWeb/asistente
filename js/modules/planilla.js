@@ -4,6 +4,7 @@ let datosOriginales = [];
 let datosCombinaciones = [];
 let datosReposicion = [];
 let datosFiltrados = [];
+let datosCombinacionCantidades = [];
 
 const categoriasPorMaterial = {
   "Plata": "Joyas de plata por mayor",
@@ -229,7 +230,16 @@ function prepararModal() {
 
 
 function procesarExportacion() {
-  exportarXLSX(tipoSeleccionado, datosFiltrados);
+  let datos = [];
+  if (tipoSeleccionado === "nuevo") datos = datosOriginales;
+  else if (tipoSeleccionado === "combinacion") datos = datosCombinaciones;
+  else if (tipoSeleccionado === "reposicion") datos = datosReposicion;
+  else if (tipoSeleccionado === "combinacion_cantidades") {
+    exportarXLSXPersonalizado("combinacion_cantidades", datosCombinacionCantidades);
+    return;
+  }
+
+  exportarXLSX(tipoSeleccionado, datos);
 }
 
 function filtrarProductos(tipo) {
@@ -294,4 +304,78 @@ function mostrarTablaFiltrada(datos) {
   procesarBtn.classList.remove("d-none");
 }
 
-// ivaa
+function mostrarTablaCombinacionesCantidad() {
+  tipoSeleccionado = "combinacion_cantidades";
+  const tablaDiv = document.getElementById("tablaPreview");
+  const procesarBtn = document.getElementById("botonProcesar");
+
+  if (!datosCombinaciones.length) {
+    tablaDiv.innerHTML = `<p class='text-muted'>No hay productos con combinaciones.</p>`;
+    procesarBtn.classList.add("d-none");
+    return;
+  }
+
+  const resultado = [];
+
+  datosCombinaciones.forEach(row => {
+    const combinaciones = (row["Combinaciones"] || "").toString().trim();
+    const codigoBase = (row["Código"] || "").substring(0, 12);
+    const idProducto = row["ID Producto"] || "";
+    const urlImagen = row["URL de Producto"] || "";
+    const precioConIVA = parseFloat(row["Precio WEB Con IVA"] || 0);
+    const precioSinIVA = isNaN(precioConIVA) ? 0 : (precioConIVA / 1.19).toFixed(2);
+
+    combinaciones.split(",").forEach(comb => {
+      const [num, cant] = comb.replace("#", "").split("-").map(s => s.trim());
+      if (!num || !cant) return;
+
+      resultado.push({
+        "ID": idProducto,
+        "Attribute (Name:Type:Position)*": "Número:radio:0",
+        "Value (Value:Position)*": `${num}`,
+        "Referencia": `${codigoBase}${num}`,
+        "Cantidad": cant,
+        "Precio S/ IVA": precioSinIVA,
+        "Imagen Url": urlImagen
+      });
+    });
+  });
+
+  if (!resultado.length) {
+    tablaDiv.innerHTML = `<p class='text-muted'>No hay combinaciones válidas.</p>`;
+    procesarBtn.classList.add("d-none");
+    return;
+  }
+
+  const columnas = Object.keys(resultado[0]);
+  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
+  columnas.forEach(col => {
+    html += `<th class="small">${col}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+  resultado.forEach(fila => {
+    html += `<tr>`;
+    columnas.forEach(col => {
+      const contenido = fila[col]?.toString() || "";
+      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px;">${contenido}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  tablaDiv.innerHTML = html;
+
+  procesarBtn.classList.remove("d-none");
+
+  // Guardar resultado para exportación
+  datosCombinacionCantidades = resultado;
+}
+
+function exportarXLSXPersonalizado(nombre, datos) {
+  const ws = XLSX.utils.json_to_sheet(datos);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
+  XLSX.writeFile(wb, `${nombre}.xlsx`);
+}
+
+
+// miyo
