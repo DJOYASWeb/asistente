@@ -141,7 +141,7 @@ function transformarDatosParaExportar(datos) {
       "Regla de Impuesto": 2,
       "Código Referencia SKU": codigo,
       "Marca": "DJOYAS",
-      "Cantidad": row["WEB"] || 0,
+"Cantidad": row["Combinaciones"] ? 0 : (row["WEB"] || 0),
       "Resumen": row["Resumen"] || "",
       "Descripción": row["Descripción"] || "",
       "Image URLs (x,y,z...)": codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "",
@@ -292,4 +292,4 @@ function mostrarTablaFiltrada(datos) {
   procesarBtn.classList.remove("d-none");
 }
 
-//emeee
+//updd
