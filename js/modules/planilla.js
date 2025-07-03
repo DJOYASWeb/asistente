@@ -408,7 +408,29 @@ function mostrarProductosNuevos() {
 }
 
 
+function mostrarProductosReposicion() {
+  tipoSeleccionado = "reposicion";
+
+  datosFiltrados = [];
+
+  // Productos reposición sin combinaciones
+  datosReposicion.forEach(row => {
+    datosFiltrados.push({ ...row });
+  });
+
+  // Productos reposición con combinaciones (cantidad = 0)
+  datosCombinaciones.forEach(row => {
+    const salida = (row["Salida"] || "").trim();
+    if (salida === "Reposición") {
+      const nuevo = { ...row };
+      nuevo["Cantidad"] = 0;
+      datosFiltrados.push(nuevo);
+    }
+  });
+
+  mostrarTablaFiltrada(datosFiltrados);
+}
 
 
 
-// miyo
+// bbb
