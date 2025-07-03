@@ -231,16 +231,21 @@ function prepararModal() {
 
 function procesarExportacion() {
   let datos = [];
-  if (tipoSeleccionado === "nuevo") datos = datosOriginales;
-  else if (tipoSeleccionado === "combinacion") datos = datosCombinaciones;
-  else if (tipoSeleccionado === "reposicion") datos = datosReposicion;
-  else if (tipoSeleccionado === "combinacion_cantidades") {
+
+  if (tipoSeleccionado === "nuevo") {
+    datos = datosFiltrados;
+  } else if (tipoSeleccionado === "combinacion") {
+    datos = datosCombinaciones;
+  } else if (tipoSeleccionado === "reposicion") {
+    datos = datosReposicion;
+  } else if (tipoSeleccionado === "combinacion_cantidades") {
     exportarXLSXPersonalizado("combinacion_cantidades", datosCombinacionCantidades);
     return;
   }
 
   exportarXLSX(tipoSeleccionado, datos);
 }
+
 
 function filtrarProductos(tipo) {
   tipoSeleccionado = tipo;
@@ -406,4 +411,4 @@ function mostrarProductosNuevos() {
 
 
 
-// eme
+// miyo
