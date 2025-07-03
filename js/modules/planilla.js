@@ -206,7 +206,13 @@ function mostrarAlerta(mensaje, tipo = "info") {
 
 function prepararModal() {
   const modalBody = document.getElementById("columnasFinales");
-  const transformados = transformarDatosParaExportar(datosFiltrados);
+  let transformados = [];
+
+  if (tipoSeleccionado === "combinacion_cantidades") {
+    transformados = datosCombinacionCantidades;
+  } else {
+    transformados = transformarDatosParaExportar(datosFiltrados);
+  }
 
   let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm align-middle"><thead><tr>`;
   const columnas = Object.keys(transformados[0] || {});
@@ -433,4 +439,4 @@ function mostrarProductosReposicion() {
 
 
 
-// bbb
+// modal
