@@ -45,3 +45,40 @@ window.addEventListener("click", function (e) {
 });
 
 
+document.addEventListener("DOMContentLoaded", () => {
+  actualizarFechaHora();
+  setInterval(actualizarHora, 60000);
+
+  // Cargar datos ficticios iniciales
+  document.getElementById("campanaActiva").textContent = "Campaña de Verano";
+  document.getElementById("campanaSiguiente").textContent = "Campaña de Primavera";
+  document.getElementById("semanasFaltan").textContent = "3";
+  document.getElementById("blogsSemana").innerHTML = `
+    <li>Cómo vender más en verano</li>
+    <li>Las joyas más buscadas</li>
+  `;
+  document.getElementById("inspiraSemana").textContent = "Inspiración: Joyas para el Día de la Madre";
+});
+
+function actualizarFechaHora() {
+  const now = new Date();
+  const fecha = now.toLocaleDateString("es-CL", { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const hora = now.toLocaleTimeString("es-CL", { hour: '2-digit', minute: '2-digit' });
+  document.getElementById("fechaActual").textContent = `Fecha: ${fecha}`;
+  document.getElementById("horaActual").textContent = `Hora: ${hora}`;
+}
+
+function actualizarHora() {
+  const now = new Date();
+  const hora = now.toLocaleTimeString("es-CL", { hour: '2-digit', minute: '2-digit' });
+  document.getElementById("horaActual").textContent = `Hora: ${hora}`;
+}
+
+function marcarCompleto(boton) {
+  const li = boton.closest("li");
+  li.classList.add("text-decoration-line-through", "text-muted");
+  boton.remove();
+}
+
+
+//eme1
