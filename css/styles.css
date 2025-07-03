@@ -850,3 +850,15 @@ width: 80px;
     background-color: #fff;
     padding: 1rem;
 }
+
+
+/* Dashboard ajustes adicionales */
+
+
+#pendientesDia li {
+  transition: all 0.2s ease-in-out;
+}
+
+#pendientesDia li.text-decoration-line-through {
+  opacity: 0.6;
+}
