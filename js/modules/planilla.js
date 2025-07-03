@@ -378,4 +378,32 @@ function exportarXLSXPersonalizado(nombre, datos) {
 }
 
 
-// upd
+function mostrarProductosNuevos() {
+  tipoSeleccionado = "nuevo";
+
+  datosFiltrados = [];
+
+  // Todos los productos nuevos sin combinaciones
+  datosOriginales.forEach(row => {
+    datosFiltrados.push({ ...row });
+  });
+
+  // Todos los productos nuevos con combinaciones
+  datosCombinaciones.forEach(row => {
+    const salida = (row["Salida"] || "").trim();
+    if (salida !== "Reposición") {
+      // Clonamos y forzamos cantidad a 0
+      const nuevo = { ...row };
+      nuevo["Cantidad"] = 0;
+      datosFiltrados.push(nuevo);
+    }
+  });
+
+  mostrarTablaFiltrada(datosFiltrados);
+}
+
+
+
+
+
+// eme
