@@ -317,9 +317,11 @@ function cargarRecursos() {
       const tr = document.createElement("tr");
 
       tr.innerHTML = `
-        <td>${data.titulo}</td>
-        <td>${data.categoria}</td>
+        <td>${doc.id}</td>
+        <td>${data.titulo || "-"}</td>
         <td>${data.fecha || "-"}</td>
+        <td>${data.tematica || "-"}</td>
+        <td>${data.autor || "-"}</td>
         <td>
           <button class="btn btn-sm btn-primary me-2" onclick="editarRecurso('${doc.id}')">Editar</button>
           <button class="btn btn-sm btn-danger" onclick="eliminarRecurso('${doc.id}')">Eliminar</button>
@@ -330,6 +332,7 @@ function cargarRecursos() {
     });
   });
 }
+
 
 // Editar recurso
 function editarRecurso(id) {
@@ -368,4 +371,4 @@ window.showTab = function(tab) {
   }
 };
 
-//upd  04-07
+//upd  04-07 v.2
