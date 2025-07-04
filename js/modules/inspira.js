@@ -372,4 +372,4 @@ window.showTab = function(tab) {
   }
 };
 
-//upd  04-07 v.2
+//upd  04-07 v.3
