@@ -309,17 +309,16 @@ function copiarAlPortapapeles() {
 function cargarRecursos() {
   const tbody = document.getElementById("tablaRecursos");
   tbody.innerHTML = "";
-db.collection("inspira").get().then((querySnapshot) => {
-  console.log("Docs encontrados:", querySnapshot.size);
-querySnapshot.forEach((doc) => {
-    console.log("Doc:", doc.id, doc.data());
-  const data = doc.data();
-  console.log("DOC:", doc.id, data);
+
+  db.collection("inspira").get().then((querySnapshot) => {
+    console.log("Docs encontrados:", querySnapshot.size);
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
 
       const tr = document.createElement("tr");
 
       tr.innerHTML = `
-        <td>${doc.id}</td>
+        <td>${data.id || doc.id}</td>
         <td>${data.titulo || "-"}</td>
         <td>${data.fecha || "-"}</td>
         <td>${data.tematica || "-"}</td>
