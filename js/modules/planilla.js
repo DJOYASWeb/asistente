@@ -370,8 +370,7 @@ function mostrarTablaCombinacionesCantidad() {
 "Value (Value:Position)*": `${num}:0`,
         "Referencia": `${codigoBase}${num}`,
         "Cantidad": cant,
-        "Precio S/ IVA": precioSinIVA,
-        "Imagen Url": urlImagen
+        "Precio S/ IVA": precioSinIVA
       });
     });
   });
@@ -463,4 +462,4 @@ function mostrarProductosReposicion() {
 
 
 
-// upd 04-07
+// upd v2 04-07
