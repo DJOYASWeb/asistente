@@ -305,6 +305,15 @@ function copiarAlPortapapeles() {
   });
 }
 
+
+
+
+
+
+
+
+
+
 // Llenar la tabla de recursos
 function cargarRecursos() {
   const tbody = document.getElementById("tablaRecursos");
@@ -364,12 +373,17 @@ window.showTab = function(tab) {
   tabs.forEach((el) => el.classList.add("d-none"));
   buttons.forEach((btn) => btn.classList.remove("active"));
 
-  document.getElementById(tab).classList.remove("d-none");
-  document.getElementById("btn" + capitalize(tab)).classList.add("active");
+  const currentTab = document.getElementById(tab);
+  const currentBtn = document.getElementById("btn" + capitalize(tab));
 
-  if (tab === "recursos") {
+  if (currentTab) currentTab.classList.remove("d-none");
+  if (currentBtn) currentBtn.classList.add("active");
+
+  if (tab.toLowerCase() === "recursos") {
+    console.log("✅ Tab recursos activado");
     cargarRecursos();
   }
 };
 
-//upd  04-07 v.4
+
+//upd  04-07 v.6
