@@ -195,9 +195,33 @@ function exportarXLSX(tipo, datos) {
   const ws = XLSX.utils.json_to_sheet(transformados);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
-  const nombre = tipo === "nuevo" ? "productos_nuevos.xlsx" : tipo === "combinacion" ? "combinaciones.xlsx" : "reposicion.xlsx";
+
+  // Obtiene la fecha actual y la formatea como DD-MM-YY
+  const ahora = new Date();
+  const dia = String(ahora.getDate()).padStart(2, "0");
+  const mes = String(ahora.getMonth() + 1).padStart(2, "0"); // meses empiezan en 0
+  const anio = String(ahora.getFullYear()).slice(-2); // últimos 2 dígitos
+
+  const fechaStr = `${dia}-${mes}-${anio}`;
+
+  let baseNombre;
+  switch (tipo) {
+    case "nuevo":
+      baseNombre = "productos_nuevos";
+      break;
+    case "combinacion":
+      baseNombre = "combinaciones";
+      break;
+    default:
+      baseNombre = "reposicion";
+      break;
+  }
+
+  const nombre = `${baseNombre}_${fechaStr}.xlsx`;
+
   XLSX.writeFile(wb, nombre);
 }
+
 
 function mostrarAlerta(mensaje, tipo = "info") {
   const alertasDiv = document.getElementById("alertas");
@@ -439,4 +463,4 @@ function mostrarProductosReposicion() {
 
 
 
-// modal
+// upd 04-07
