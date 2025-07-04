@@ -409,7 +409,7 @@ document.getElementById("editDescripcion").value = data.descripcion || "";
 }
 
 function cerrarModalEditarInspira() {
-  document.getElementById("modalEditarInspira").classList.add("d-none");
+  document.getElementById("modalEditarInspiraOverlay").style.display = "none";
 }
 
 function guardarEdicionInspira() {
@@ -470,4 +470,4 @@ function eliminarInspiraConfirmado() {
 
 
 
-//upd  04-07 v.2.3
+//upd  04-07 v.2.4
