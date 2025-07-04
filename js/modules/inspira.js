@@ -310,8 +310,10 @@ function cargarRecursos() {
   const tbody = document.getElementById("tablaRecursos");
   tbody.innerHTML = "";
 
-  db.collection("inspira").get().then((querySnapshot) => {
+db.collection("inspira").get().then((querySnapshot) => {
+  console.log("Docs encontrados:", querySnapshot.size);
 querySnapshot.forEach((doc) => {
+    console.log("Doc:", doc.id, doc.data());
   const data = doc.data();
   console.log("DOC:", doc.id, data);
 
@@ -372,4 +374,4 @@ window.showTab = function(tab) {
   }
 };
 
-//upd  04-07 v.3
+//upd  04-07 v.4
