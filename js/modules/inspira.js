@@ -304,3 +304,68 @@ function copiarAlPortapapeles() {
     alert("¡Código HTML copiado al portapapeles!");
   });
 }
+
+// Llenar la tabla de recursos
+function cargarRecursos() {
+  const tbody = document.getElementById("tablaRecursos");
+  tbody.innerHTML = "";
+
+  db.collection("inspira").get().then((querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${data.titulo}</td>
+        <td>${data.categoria}</td>
+        <td>${data.fecha || "-"}</td>
+        <td>
+          <button class="btn btn-sm btn-primary me-2" onclick="editarRecurso('${doc.id}')">Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarRecurso('${doc.id}')">Eliminar</button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+// Editar recurso
+function editarRecurso(id) {
+  alert(`Editar recurso con ID: ${id}`);
+  // Aquí puedes abrir un modal y precargar los datos para editar
+}
+
+// Eliminar recurso
+function eliminarRecurso(id) {
+  if (!confirm("¿Estás segura/o de eliminar esta entrada?")) return;
+
+  db.collection("inspira").doc(id).delete()
+    .then(() => {
+      alert("Entrada eliminada");
+      cargarRecursos();
+    })
+    .catch((error) => {
+      console.error("Error eliminando:", error);
+      alert("Error al eliminar la entrada");
+    });
+}
+
+// Si quieres, llama a esta función al mostrar el tab:
+window.showTab = function(tab) {
+  const tabs = document.querySelectorAll(".tab-section");
+  const buttons = document.querySelectorAll(".tab-btn");
+
+  tabs.forEach((el) => el.classList.add("d-none"));
+  buttons.forEach((btn) => btn.classList.remove("active"));
+
+  document.getElementById(tab).classList.remove("d-none");
+  document.getElementById("btn" + capitalize(tab)).classList.add("active");
+
+  if (tab === "recursos") {
+    cargarRecursos();
+  }
+};
+
+//upd  04-07
