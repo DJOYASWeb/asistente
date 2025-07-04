@@ -311,8 +311,9 @@ function cargarRecursos() {
   tbody.innerHTML = "";
 
   db.collection("inspira").get().then((querySnapshot) => {
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
+querySnapshot.forEach((doc) => {
+  const data = doc.data();
+  console.log("DOC:", doc.id, data);
 
       const tr = document.createElement("tr");
 
