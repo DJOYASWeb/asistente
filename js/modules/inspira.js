@@ -399,6 +399,11 @@ function editarRecurso(id) {
     document.getElementById("editInspiraFecha").value = data.fecha || "";
     document.getElementById("editInspiraTematica").value = data.tematica || "";
     document.getElementById("editInspiraAutor").value = data.autor || "";
+        document.getElementById("editLink").value = data.link || "";
+        document.getElementById("editDuracion").value = data.duration || "";  
+        document.getElementById("editCategoria").value = data.category || "";   
+        document.getElementById("editImagen").value = data.img || "";     
+        document.getElementById("editDescripcion").value = data.subtitle || "";           
     document.getElementById("modalEditarInspira").classList.remove("d-none");
   });
 }
@@ -412,12 +417,22 @@ function guardarEdicionInspira() {
   const fecha = document.getElementById("editInspiraFecha").value.trim();
   const tematica = document.getElementById("editInspiraTematica").value.trim();
   const autor = document.getElementById("editInspiraAutor").value.trim();
+  const link = document.getElementById("editLink").value.trim();
+  const duracion = document.getElementById("editDuracion").value.trim();
+  const categoria = document.getElementById("editCategoria").value.trim();
+  const imagen = document.getElementById("editImagen").value.trim();
+  const descripcion = document.getElementById("editDescripcion").value.trim();
 
   db.collection("inspira").doc(idActualInspira).update({
     titulo,
     fecha,
     tematica,
-    autor
+    autor,
+    link,
+    duracion,
+    categoria,
+    imagen,
+    descripcion
   }).then(() => {
     cerrarModalEditarInspira();
     cargarRecursos();
