@@ -320,7 +320,6 @@ function cargarRecursos() {
   tbody.innerHTML = "";
 
   db.collection("inspira").get().then((querySnapshot) => {
-    console.log("Docs encontrados:", querySnapshot.size);
     querySnapshot.forEach((doc) => {
       const data = doc.data();
 
@@ -405,7 +404,7 @@ function editarRecurso(id) {
     document.getElementById("editImagen").value = data.img || "";     
     document.getElementById("editDescripcion").value = data.subtitle || "";           
     document.getElementById("modalEditarInspiraOverlay").style.display = "flex";
-    document.getElementById("modalEditarInspiraOverlay").style.display = "none";
+
   });
 }
 
@@ -471,4 +470,4 @@ function eliminarInspiraConfirmado() {
 
 
 
-//upd  04-07 v.2.1
+//upd  04-07 v.2.2
