@@ -404,7 +404,8 @@ function editarRecurso(id) {
     document.getElementById("editCategoria").value = data.category || "";   
     document.getElementById("editImagen").value = data.img || "";     
     document.getElementById("editDescripcion").value = data.subtitle || "";           
-    document.getElementById("modalEditarInspira").classList.remove("d-none");
+    document.getElementById("modalEditarInspiraOverlay").style.display = "flex";
+    document.getElementById("modalEditarInspiraOverlay").style.display = "none";
   });
 }
 
@@ -470,4 +471,4 @@ function eliminarInspiraConfirmado() {
 
 
 
-//upd  04-07 v.7
+//upd  04-07 v.2.1
