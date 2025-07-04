@@ -309,7 +309,6 @@ function copiarAlPortapapeles() {
 function cargarRecursos() {
   const tbody = document.getElementById("tablaRecursos");
   tbody.innerHTML = "";
-
 db.collection("inspira").get().then((querySnapshot) => {
   console.log("Docs encontrados:", querySnapshot.size);
 querySnapshot.forEach((doc) => {
