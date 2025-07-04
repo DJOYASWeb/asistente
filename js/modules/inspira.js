@@ -386,4 +386,73 @@ window.showTab = function(tab) {
 };
 
 
-//upd  04-07 v.6
+
+
+let idActualInspira = "";
+
+function editarRecurso(id) {
+  db.collection("inspira").doc(id).get().then(doc => {
+    const data = doc.data();
+    idActualInspira = id;
+    document.getElementById("editInspiraId").value = data.id || id;
+    document.getElementById("editInspiraTitulo").value = data.titulo || "";
+    document.getElementById("editInspiraFecha").value = data.fecha || "";
+    document.getElementById("editInspiraTematica").value = data.tematica || "";
+    document.getElementById("editInspiraAutor").value = data.autor || "";
+    document.getElementById("modalEditarInspira").classList.remove("d-none");
+  });
+}
+
+function cerrarModalEditarInspira() {
+  document.getElementById("modalEditarInspira").classList.add("d-none");
+}
+
+function guardarEdicionInspira() {
+  const titulo = document.getElementById("editInspiraTitulo").value.trim();
+  const fecha = document.getElementById("editInspiraFecha").value.trim();
+  const tematica = document.getElementById("editInspiraTematica").value.trim();
+  const autor = document.getElementById("editInspiraAutor").value.trim();
+
+  db.collection("inspira").doc(idActualInspira).update({
+    titulo,
+    fecha,
+    tematica,
+    autor
+  }).then(() => {
+    cerrarModalEditarInspira();
+    cargarRecursos();
+    alert("Entrada actualizada correctamente");
+  }).catch(err => {
+    console.error(err);
+    alert("Error al guardar los cambios");
+  });
+}
+
+function eliminarRecurso(id) {
+  idActualInspira = id;
+  document.getElementById("modalConfirmarEliminarInspira").style.display = "flex";
+}
+
+function cerrarModalEliminarInspira() {
+  document.getElementById("modalConfirmarEliminarInspira").style.display = "none";
+}
+
+function eliminarInspiraConfirmado() {
+  db.collection("inspira").doc(idActualInspira).delete().then(() => {
+    cerrarModalEliminarInspira();
+    cargarRecursos();
+    alert("Entrada eliminada correctamente");
+  }).catch(err => {
+    console.error(err);
+    alert("Error al eliminar la entrada");
+  });
+}
+
+
+
+
+
+
+
+
+//upd  04-07 v.7
