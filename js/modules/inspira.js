@@ -399,10 +399,10 @@ function editarRecurso(id) {
     document.getElementById("editInspiraTematica").value = data.tematica || "";
     document.getElementById("editInspiraAutor").value = data.autor || "";
     document.getElementById("editLink").value = data.link || "";
-    document.getElementById("editDuracion").value = data.duration || "";  
-    document.getElementById("editCategoria").value = data.category || "";   
-    document.getElementById("editImagen").value = data.img || "";     
-    document.getElementById("editDescripcion").value = data.subtitle || "";           
+document.getElementById("editDuracion").value = data.duracion || "";  
+document.getElementById("editCategoria").value = data.categoria || "";   
+document.getElementById("editImagen").value = data.imagen || "";     
+document.getElementById("editDescripcion").value = data.descripcion || "";    
     document.getElementById("modalEditarInspiraOverlay").style.display = "flex";
 
   });
@@ -470,4 +470,4 @@ function eliminarInspiraConfirmado() {
 
 
 
-//upd  04-07 v.2.2
+//upd  04-07 v.2.3
