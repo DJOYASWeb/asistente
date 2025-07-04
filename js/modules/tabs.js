@@ -1,4 +1,4 @@
-function showTab(tab) {
+window.showTab = function(tab) {
   const tabs = ['contenidos', 'recursos', 'ingreso', 'crear', 'redactar', 'calendario','constructor','recursos','carga','historial'];
   tabs.forEach(t => {
     const section = document.getElementById(t);
