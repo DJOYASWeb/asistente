@@ -230,8 +230,6 @@ function copiarHTML() {
 
 // NUevo aut
 
-const db = firebase.firestore();
-
 function cargarBlogsEnSelect() {
   const select = document.getElementById('selectBlogExistente');
   select.innerHTML = `<option value="">-- Selecciona un blog existente --</option>`;
