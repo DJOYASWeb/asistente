@@ -287,8 +287,14 @@
 </div>
 <div class="col-lg-6 col-12">
 <div class="contenido-right">
-  <span>Contenido de Blog</span>
-    <textarea id="nuevoBlog" class="form-control mb-3" placeholder="Contenido del blog" rows="3" style="resize:none;"></textarea>
+<span>Contenido de Blog (texto plano)</span>
+<textarea id="nuevoBlog" class="form-control mb-3" placeholder="Contenido del blog" rows="6" style="resize:none;"></textarea>
+
+<button class="btn btn-secondary mb-2" type="button" onclick="convertirNuevoHtml()">✨ Convertir a HTML</button>
+
+<span>Contenido de Blog (HTML generado)</span>
+<textarea id="nuevoBlogHtml" class="form-control mb-3" placeholder="HTML generado" rows="6" style="resize:none;" readonly></textarea>
+
     <span>Meta Descripción</span>
     <textarea id="nuevoMeta" class="form-control mb-3" placeholder="Meta descripción" style="height: 150px;"></textarea>
 
