@@ -226,3 +226,55 @@ function copiarHTML() {
     .then(() => alert("Código copiado al portapapeles"))
     .catch(err => alert("Error al copiar: " + err));
 }
+
+
+const db = firebase.firestore();
+
+// Cargar blogs al select
+function cargarBlogsEnSelect() {
+  const select = document.getElementById('selectBlogExistente');
+  select.innerHTML = `<option value="">-- Selecciona un blog existente --</option>`;
+
+  db.collection("blogs").get().then(snapshot => {
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const opt = document.createElement('option');
+      opt.value = doc.id;
+      opt.textContent = `${data.titulo} (${data.fecha || 'sin fecha'})`;
+      select.appendChild(opt);
+    });
+  }).catch(err => {
+    console.error("Error al cargar blogs:", err);
+  });
+}
+
+// Autocompletar al elegir uno
+document.getElementById('selectBlogExistente').addEventListener('change', e => {
+  const id = e.target.value;
+  if (!id) return;
+
+  db.collection("blogs").doc(id).get().then(doc => {
+    if (!doc.exists) return alert("Blog no encontrado");
+    const data = doc.data();
+
+    document.getElementById('titulo').value = data.titulo || "";
+    document.getElementById('fecha').value = data.fecha || "";
+    document.getElementById('autor').value = data.autor || "";
+    document.getElementById('categoria').value = data.categoria || "";
+    document.getElementById('imagen').value = data.imagen || "";
+    document.getElementById('altImagen').value = data.altImagen || "";
+    document.getElementById('cuerpo').value = data.cuerpo || "";
+
+    // Navegación
+    document.getElementById('selectAnterior').value = data.anterior || "";
+    document.getElementById('selectSiguiente').value = data.siguiente || "";
+
+    // Destacados
+    document.getElementById('select1').value = data.destacado1 || "";
+    document.getElementById('select2').value = data.destacado2 || "";
+    document.getElementById('select3').value = data.destacado3 || "";
+  });
+});
+
+// Llamar al cargar la página
+window.addEventListener('load', cargarBlogsEnSelect);
