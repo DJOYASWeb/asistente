@@ -3,13 +3,104 @@
 let datosTabla = [];
 let filaAEliminar = null;
 
-firebase.auth().onAuthStateChanged(user => {
-  if (user) {
-    cargarDatosDesdeFirestore();
-  } else {
-    console.warn("🔒 Usuario no autenticado");
-    showIosModal("⚠️ Sin acceso", "Debes iniciar sesión para ver los blogs.");
+// 🔷 Función adaptada de blog-redactor.js para devolver el HTML como string
+function slugify(text) {
+  return text.toLowerCase()
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function aplicarNegritaUltimaFraseConDosPuntos(texto) {
+  const match = texto.match(/^(.*?:)(\s*)(.*)$/);
+  return match ? `<b>${match[1]}</b> ${match[3]}` : texto;
+}
+
+function convertirTextoABlogHtml(input) {
+  const lineas = input.trim().split(/\n/);
+  let html = '<section class="blog-container">\n';
+  let contenido = '';
+  let secciones = [];
+  let bloqueIndice = '';
+  let buffer = [];
+  let enLista = false;
+
+  const flushBuffer = () => {
+    if (buffer.length === 0) return;
+    if (enLista) {
+      contenido += '<ul class="texto-blog">\n';
+      buffer.forEach(line => {
+        const limpio = line.replace(/^\s*-?\s*/, '- ');
+        contenido += `<li>${aplicarNegritaUltimaFraseConDosPuntos(limpio)}</li>\n`;
+      });
+      contenido += '</ul>\n';
+    } else {
+      buffer.forEach(line => {
+        contenido += `<p class="texto-blog">${aplicarNegritaUltimaFraseConDosPuntos(line)}</p>\n`;
+      });
+    }
+    buffer = [];
+    enLista = false;
+  };
+
+  lineas.forEach(linea => {
+    linea = linea.trim();
+    if (!linea) {
+      flushBuffer();
+      return;
+    }
+
+    const h2Match = linea.match(/^(\d+)\.\s+(.*)/);
+    const h3Match = linea.match(/^(\d+\.\d+)\s+(.*)/);
+
+    if (h3Match) {
+      flushBuffer();
+      const id = slugify(h3Match[2]);
+      contenido += `<h3 id="${id}" class="blog-h3">${h3Match[1]} ${h3Match[2]}</h3>\n`;
+      return;
+    }
+
+    if (h2Match) {
+      flushBuffer();
+      const id = slugify(h2Match[2]);
+      const tituloCompleto = `${h2Match[1]}. ${h2Match[2]}`;
+      secciones.push({ id, titulo: tituloCompleto });
+      contenido += `<h2 id="${id}" class="blog-h2"><span class="blog-h2">${h2Match[1]}. </span>${h2Match[2]}</h2>\n`;
+      return;
+    }
+
+    if (/^-\s*[^\s]/.test(linea)) {
+      if (!enLista) flushBuffer();
+      enLista = true;
+      buffer.push(linea);
+    } else {
+      flushBuffer();
+      buffer.push(linea);
+    }
+  });
+
+  flushBuffer();
+
+  if (secciones.length > 0) {
+    bloqueIndice += '<section class="indice">\n<h2 class="blog-h3">Índice de Contenidos</h2>\n<ul class="texto-blog">\n';
+    secciones.forEach(sec => {
+      bloqueIndice += `<li><a href="#${sec.id}">${sec.titulo}</a></li>\n`;
+    });
+    bloqueIndice += '</ul>\n</section>\n';
   }
+
+  const contenidoPartido = contenido.split('</p>\n');
+  if (contenidoPartido.length >= 2) {
+    contenido = contenidoPartido.slice(0, 2).join('</p>\n') + '</p>\n' + bloqueIndice + contenidoPartido.slice(2).join('</p>\n');
+  }
+
+  html += contenido + '</section>';
+  return html.trim();
+}
+
+firebase.auth().onAuthStateChanged(user => {
+  if (user) cargarDatosDesdeFirestore();
+  else showIosModal("⚠️ Sin acceso", "Debes iniciar sesión para ver los blogs.");
 });
 
 async function cargarDatosDesdeFirestore() {
@@ -21,7 +112,6 @@ async function cargarDatosDesdeFirestore() {
     datosTabla = snapshot.docs.map(doc => doc.data());
     renderizarTabla();
   } catch (error) {
-    console.error('❌ Error al cargar:', error);
     tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar.</td></tr>';
   }
 }
@@ -40,11 +130,9 @@ function renderizarTabla() {
       <td class="celda-meta">${dato.meta || ''}</td>
       <td class="celda-fecha">${dato.fecha || ''}</td>
       <td class="celda-categoria">${dato.categoria || ''}</td>
-      <td class="celda-indicadores">
-        <div class="alinear">
-          <button class="btn p-0 mx-1" onclick="editarFila(${index})">✏️</button>
-          <button class="btn btn-sm p-0" onclick="confirmarEliminarFila(this)">🗑️</button>
-        </div>
+      <td>
+        <button class="btn p-0 mx-1" onclick="editarFila(${index})">✏️</button>
+        <button class="btn btn-sm p-0" onclick="confirmarEliminarFila(this)">🗑️</button>
       </td>
     `;
     tbody.appendChild(fila);
@@ -60,7 +148,7 @@ function cerrarModalAgregarDato() {
 }
 
 function limpiarFormulario() {
-  ['nuevoId', 'nuevoNombre', 'nuevoEstado', 'nuevoBlog', 'nuevoMeta', 'nuevaFecha', 'nuevaCategoria']
+  ['nuevoId', 'nuevoNombre', 'nuevoEstado', 'nuevoBlog', 'nuevoBlogHtml', 'nuevoMeta', 'nuevaFecha', 'nuevaCategoria']
     .forEach(id => document.getElementById(id).value = '');
 }
 
@@ -69,6 +157,7 @@ async function agregarNuevoDato() {
   const nombre = document.getElementById('nuevoNombre').value.trim();
   const estado = document.getElementById('nuevoEstado').value.trim();
   const blog = document.getElementById('nuevoBlog').value.trim();
+  const blogHtml = document.getElementById('nuevoBlogHtml').value.trim();
   const meta = document.getElementById('nuevoMeta').value.trim();
   const fecha = document.getElementById('nuevaFecha').value.trim();
   const categoria = document.getElementById('nuevaCategoria').value.trim();
@@ -78,8 +167,6 @@ async function agregarNuevoDato() {
     return;
   }
 
-  const blogHtml = convertirTextoAHtml(blog);
-
   const nuevoDato = { id, nombre, estado, blog, blogHtml, meta, fecha, categoria, creadoEn: firebase.firestore.FieldValue.serverTimestamp() };
 
   try {
@@ -88,8 +175,7 @@ async function agregarNuevoDato() {
     renderizarTabla();
     cerrarModalAgregarDato();
     limpiarFormulario();
-  } catch (error) {
-    console.error('❌ Error al guardar:', error);
+  } catch {
     alert('Error al guardar en Firestore.');
   }
 }
@@ -109,26 +195,21 @@ function editarFila(index) {
 
       <div class="row">
         <div class="col-lg-6 col-12">
-          <h6>ID de Blog</h6>
           <input type="text" id="editId" class="form-control mb-2" value="${dato.id}" readonly>
-          <h6>Nombre de Blog</h6>
           <input type="text" id="editNombre" class="form-control mb-2" value="${dato.nombre}">
-          <h6>Estado</h6>
           <select id="editEstado" class="form-control mb-2">
             <option ${dato.estado === 'transcrito' ? 'selected' : ''}>transcrito</option>
             <option ${dato.estado === 'pendiente' ? 'selected' : ''}>pendiente</option>
             <option ${dato.estado === 'reescribir' ? 'selected' : ''}>reescribir</option>
           </select>
-          <h6>Fecha</h6>
           <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fecha}">
-          <h6>Categoría</h6>
           <input type="text" id="editCategoria" class="form-control mb-2" value="${dato.categoria}">
-                    <h6>Meta descripción</h6>
-          <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
         <div class="col-lg-6 col-12">
-          <h6>Cuerpo de Blog (Texto)</h6>
           <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
+          <button class="btn btn-secondary mb-2" onclick="convertirEditBlogHtml()">✨ Convertir a HTML</button>
+          <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
+          <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
       </div>
 
@@ -142,6 +223,12 @@ function editarFila(index) {
 function cerrarModalEditarDato() {
   const modal = document.getElementById('modalEditarDato');
   if (modal) modal.remove();
+}
+
+function convertirEditBlogHtml() {
+  const texto = document.getElementById('editBlog').value;
+  const html = convertirTextoABlogHtml(texto);
+  document.getElementById('editBlogHtml').value = html;
 }
 
 async function guardarEdicionFila() {
@@ -166,62 +253,9 @@ async function guardarEdicionFila() {
     datosTabla[index] = { id, nombre, estado, blog, blogHtml, meta, fecha, categoria };
     renderizarTabla();
     cerrarModalEditarDato();
-  } catch (error) {
-    console.error('❌ Error al actualizar:', error);
+  } catch {
     alert('Error al actualizar.');
   }
 }
 
-function confirmarEliminarFila(boton) {
-  filaAEliminar = boton.closest('tr');
-  document.getElementById('modalConfirmarEliminar').style.display = 'flex';
-}
-
-function eliminarFilaConfirmado() {
-  if (!filaAEliminar) return;
-  const id = filaAEliminar.querySelector('.celda-id').textContent;
-
-  firebase.firestore().collection('blogs').doc(id).delete()
-    .then(() => {
-      filaAEliminar.remove();
-      cerrarModalEliminar();
-      showIosModal('✅ Eliminado', 'El blog fue eliminado exitosamente.');
-    })
-    .catch(err => {
-      console.error('❌ Error al eliminar:', err);
-      showIosModal('❌ Error', 'No se pudo eliminar el blog.');
-    });
-}
-
-function cerrarModalEliminar() {
-  document.getElementById('modalConfirmarEliminar').style.display = 'none';
-}
-
-function filtrarTabla() {
-  const texto = document.getElementById('filtroTexto').value.toLowerCase();
-  const filas = document.querySelectorAll('#tablaDatos tbody tr');
-
-  filas.forEach(fila => {
-    const contenido = fila.textContent.toLowerCase();
-    fila.style.display = contenido.includes(texto) ? '' : 'none';
-  });
-}
-
-// 👇 Nueva función para convertir texto plano a HTML
-function convertirTextoAHtml(texto) {
-  const lineas = texto.split("\n").filter(l => l.trim() !== "");
-  return lineas.map(l => {
-    if (l.startsWith("- ")) return `<li>${l.slice(2)}</li>`;
-    if (/^\d+\./.test(l)) return `<h3>${l}</h3>`;
-    return `<p>${l}</p>`;
-  }).join("\n");
-}
-
-// 👇 Para el modal de edición
-function convertirHtmlEnModal() {
-  const textarea = document.getElementById('editBlog');
-  const htmlArea = document.getElementById('editBlogHtml');
-  htmlArea.value = convertirTextoAHtml(textarea.value);
-}
-
-//upd 07.07
+//upd 7-7
