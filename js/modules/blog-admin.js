@@ -123,15 +123,12 @@ function editarFila(index) {
           <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fecha}">
           <h6>Categoría</h6>
           <input type="text" id="editCategoria" class="form-control mb-2" value="${dato.categoria}">
+                    <h6>Meta descripción</h6>
+          <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
         <div class="col-lg-6 col-12">
           <h6>Cuerpo de Blog (Texto)</h6>
           <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
-          <button class="btn btn-secondary mb-2" type="button" onclick="convertirHtmlEnModal()">✨ Convertir a HTML</button>
-          <h6>Cuerpo de Blog (HTML)</h6>
-          <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
-          <h6>Meta descripción</h6>
-          <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
       </div>
 
