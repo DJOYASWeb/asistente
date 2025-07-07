@@ -272,4 +272,4 @@ document.getElementById('selectBlogExistente').addEventListener('change', e => {
 window.addEventListener('load', cargarBlogsEnSelect);
 
 
-//updd 07-07
+//updd 07-07 v1
