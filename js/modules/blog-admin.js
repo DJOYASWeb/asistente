@@ -78,7 +78,9 @@ async function agregarNuevoDato() {
     return;
   }
 
-  const nuevoDato = { id, nombre, estado, blog, meta, fecha, categoria, creadoEn: firebase.firestore.FieldValue.serverTimestamp() };
+  const blogHtml = convertirTextoAHtml(blog);
+
+  const nuevoDato = { id, nombre, estado, blog, blogHtml, meta, fecha, categoria, creadoEn: firebase.firestore.FieldValue.serverTimestamp() };
 
   try {
     await firebase.firestore().collection('blogs').doc(id).set(nuevoDato);
@@ -123,8 +125,11 @@ function editarFila(index) {
           <input type="text" id="editCategoria" class="form-control mb-2" value="${dato.categoria}">
         </div>
         <div class="col-lg-6 col-12">
-          <h6>Cuerpo de Blog</h6>
+          <h6>Cuerpo de Blog (Texto)</h6>
           <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
+          <button class="btn btn-secondary mb-2" type="button" onclick="convertirHtmlEnModal()">✨ Convertir a HTML</button>
+          <h6>Cuerpo de Blog (HTML)</h6>
+          <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
           <h6>Meta descripción</h6>
           <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
@@ -149,6 +154,7 @@ async function guardarEdicionFila() {
   const nombre = modal.querySelector('#editNombre').value.trim();
   const estado = modal.querySelector('#editEstado').value;
   const blog = modal.querySelector('#editBlog').value.trim();
+  const blogHtml = modal.querySelector('#editBlogHtml').value.trim();
   const meta = modal.querySelector('#editMeta').value.trim();
   const fecha = modal.querySelector('#editFecha').value;
   const categoria = modal.querySelector('#editCategoria').value;
@@ -159,8 +165,8 @@ async function guardarEdicionFila() {
   }
 
   try {
-    await firebase.firestore().collection('blogs').doc(id).update({ nombre, estado, blog, meta, fecha, categoria });
-    datosTabla[index] = { id, nombre, estado, blog, meta, fecha, categoria };
+    await firebase.firestore().collection('blogs').doc(id).update({ nombre, estado, blog, blogHtml, meta, fecha, categoria });
+    datosTabla[index] = { id, nombre, estado, blog, blogHtml, meta, fecha, categoria };
     renderizarTabla();
     cerrarModalEditarDato();
   } catch (error) {
@@ -203,3 +209,22 @@ function filtrarTabla() {
     fila.style.display = contenido.includes(texto) ? '' : 'none';
   });
 }
+
+// 👇 Nueva función para convertir texto plano a HTML
+function convertirTextoAHtml(texto) {
+  const lineas = texto.split("\n").filter(l => l.trim() !== "");
+  return lineas.map(l => {
+    if (l.startsWith("- ")) return `<li>${l.slice(2)}</li>`;
+    if (/^\d+\./.test(l)) return `<h3>${l}</h3>`;
+    return `<p>${l}</p>`;
+  }).join("\n");
+}
+
+// 👇 Para el modal de edición
+function convertirHtmlEnModal() {
+  const textarea = document.getElementById('editBlog');
+  const htmlArea = document.getElementById('editBlogHtml');
+  htmlArea.value = convertirTextoAHtml(textarea.value);
+}
+
+//upd 07.07
