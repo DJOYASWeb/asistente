@@ -15,7 +15,7 @@ firebase.auth().onAuthStateChanged(function(user) {
         if (emailEl) emailEl.textContent = user.email;
 
         // Ya puedes mostrar el contenido
-        document.body.style.display = "block";
+        document.body.style.display = "flex";
     }
 });
 
