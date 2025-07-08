@@ -195,21 +195,29 @@ function editarFila(index) {
 
       <div class="row">
         <div class="col-lg-6 col-12">
+<span>ID de Blog</span>
           <input type="text" id="editId" class="form-control mb-2" value="${dato.id}" readonly>
+<span>Nombre de Blog</span>
           <input type="text" id="editNombre" class="form-control mb-2" value="${dato.nombre}">
+          <span>Estado de Blog</span>
           <select id="editEstado" class="form-control mb-2">
             <option ${dato.estado === 'transcrito' ? 'selected' : ''}>transcrito</option>
             <option ${dato.estado === 'pendiente' ? 'selected' : ''}>pendiente</option>
             <option ${dato.estado === 'reescribir' ? 'selected' : ''}>reescribir</option>
           </select>
+           <span>Fecha de Blog</span>   
           <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fecha}">
+          <span>Categoría</span>
           <input type="text" id="editCategoria" class="form-control mb-2" value="${dato.categoria}">
+              <span>Meta Descripción</span>
+           <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
         <div class="col-lg-6 col-12">
+        <span>Contenido de Blog </span>
           <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
           <button class="btn btn-secondary mb-2" onclick="convertirEditBlogHtml()">✨ Convertir a HTML</button>
+          <span>Contenido de Blog (HTML generado)</span>
           <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
-          <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
       </div>
 
@@ -258,4 +266,4 @@ async function guardarEdicionFila() {
   }
 }
 
-//upd 7-7
+//upd 8-7
