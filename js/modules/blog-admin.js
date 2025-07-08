@@ -228,6 +228,7 @@ function editarFila(index) {
           <button class="btn btn-secondary mb-2" onclick="convertirEditBlogHtml()">✨ Convertir a HTML</button>
           <span>Contenido de Blog (HTML generado)</span>
           <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
+          <button id="btnCopiarBlog" type="button" class="btn btn-outline-primary btn-sm mt-2">📋 Copiar HTML</button>
         </div>
       </div>
 
@@ -276,4 +277,24 @@ async function guardarEdicionFila() {
   }
 }
 
-//upd 8-7 v1
+
+
+document.addEventListener('click', e => {
+  if (e.target && e.target.id === 'btnCopiarBlog') {
+    const contenido = document.getElementById('editBlog').value.trim();
+    if (!contenido) {
+      alert('No hay contenido para copiar.');
+      return;
+    }
+    navigator.clipboard.writeText(contenido)
+      .then(() => alert('✅ Contenido HTML copiado al portapapeles.'))
+      .catch(err => alert('❌ Error al copiar: ' + err));
+  }
+});
+
+
+
+
+
+
+//upd 8-7 v2
