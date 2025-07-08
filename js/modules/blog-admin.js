@@ -228,7 +228,7 @@ function editarFila(index) {
           <span>Contenido de Blog (HTML generado)</span>
           <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
           <button class="btn btn-secondary mb-2" onclick="convertirEditBlogHtml()">✨ Convertir a HTML</button>
-          <button id="btnCopiarBlog" type="button" class="btn btn-outline-primary btn-sm mt-2">📋 Copiar HTML</button>
+          <button class="btn btn-outline-primary btn-sm mt-2" id="btnCopiarBlog" type="button" >📋 Copiar HTML</button>
         </div>
       </div>
 
