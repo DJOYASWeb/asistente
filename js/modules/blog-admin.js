@@ -208,7 +208,7 @@ function editarFila(index) {
            <span>Fecha de Blog</span>   
           <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fecha}">
           <span>Categoría</span>
-  <select id="nuevaCategoria" class="form-control mb-3">
+  <select id="editCategoria" class="form-control mb-3">
       <option value="">Selecciona categoría</option>
       <option value="Tips">Tips</option>
       <option value="Emprendimiento">Emprendimiento</option>
