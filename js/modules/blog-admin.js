@@ -281,7 +281,7 @@ async function guardarEdicionFila() {
 
 document.addEventListener('click', e => {
   if (e.target && e.target.id === 'btnCopiarBlog') {
-    const contenido = document.getElementById('editBlog').value.trim();
+    const contenido = document.getElementById('editBlogHtml').value.trim();
     if (!contenido) {
       alert('No hay contenido para copiar.');
       return;
