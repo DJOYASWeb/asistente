@@ -3,17 +3,18 @@
 // Escuchar cambios en la sesión
 firebase.auth().onAuthStateChanged(function(user) {
     if (!user) {
-        // No autenticado, redirigir al login
         window.location.href = "login.html";
     } else {
-        // Usuario autenticado, mostrar su info en el menú si existe
+        // Usuario autenticado
         var nameEl = document.getElementById("userName");
         var emailEl = document.getElementById("userEmail");
         if (nameEl) nameEl.textContent = user.displayName || "(Sin nombre)";
         if (emailEl) emailEl.textContent = user.email;
 
-        // Mostrar la página privada
-        document.body.style.display = "block";
+        // Solo mostrar si el body tiene la clase protegido
+        if (document.body.classList.contains("protegido")) {
+            document.body.style.display = "block";
+        }
     }
 });
 
