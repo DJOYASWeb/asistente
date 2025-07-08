@@ -1,57 +1,27 @@
-import { auth } from "./firebase-init.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
-
-// Cambia esto si tu página de login tiene otro nombre
-const loginPage = "login.html";
-
-onAuthStateChanged(auth, user => {
+firebase.auth().onAuthStateChanged(function(user) {
     if (!user) {
         // No autenticado
-        window.location.href = loginPage;
+        window.location.href = "login.html";
     } else if (!user.emailVerified) {
-        // Opcional: fuerza verificación de email
         alert("Debes verificar tu correo electrónico antes de continuar.");
-        signOut(auth).then(() => {
-            window.location.href = loginPage;
-        });
-    }
-});
-
-
-import { auth } from "./firebase-init.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
-
-// Cambia si tu login está en otro lugar
-const loginPage = "login.html";
-
-// Verifica sesión y rellena datos
-onAuthStateChanged(auth, user => {
-    if (!user) {
-        // No autenticado
-        window.location.href = loginPage;
-    } else if (!user.emailVerified) {
-        // Opcional: sólo permitir usuarios con email verificado
-        alert("Debes verificar tu correo electrónico antes de continuar.");
-        signOut(auth).then(() => {
-            window.location.href = loginPage;
+        firebase.auth().signOut().then(function() {
+            window.location.href = "login.html";
         });
     } else {
         // Usuario autenticado: mostrar su info en el menú si existe
-        const nameEl = document.getElementById("userName");
-        const emailEl = document.getElementById("userEmail");
+        var nameEl = document.getElementById("userName");
+        var emailEl = document.getElementById("userEmail");
         if (nameEl) nameEl.textContent = user.displayName || "(Sin nombre)";
         if (emailEl) emailEl.textContent = user.email;
     }
 });
 
-// Cerrar sesión
+// Logout
 window.logout = function () {
-    signOut(auth)
-        .then(() => {
-            window.location.href = loginPage;
-        })
-        .catch(error => {
-            console.error("Error al cerrar sesión:", error);
-            alert("Hubo un error al cerrar sesión.");
-        });
+    firebase.auth().signOut().then(function() {
+        window.location.href = "login.html";
+    }).catch(function(error) {
+        console.error("Error al cerrar sesión:", error);
+        alert("Hubo un error al cerrar sesión.");
+    });
 };
