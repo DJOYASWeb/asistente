@@ -314,7 +314,7 @@ body.protegido {
   width: 100%;
   max-width: 400px;
   text-align: center;
-  margin: 0;
+  margin: auto;
 }
 
     .login-container h1 {
