@@ -12,9 +12,9 @@ firebase.auth().onAuthStateChanged(function(user) {
         if (emailEl) emailEl.textContent = user.email;
 
         // Solo mostrar si el body tiene la clase protegido
-        if (document.body.classList.contains("protegido")) {
-            document.body.style.display = "";
-        }
+if (document.body.classList.contains("protegido")) {
+    document.body.classList.remove("protegido");
+}
     }
 });
 
