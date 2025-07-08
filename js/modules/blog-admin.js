@@ -208,7 +208,17 @@ function editarFila(index) {
            <span>Fecha de Blog</span>   
           <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fecha}">
           <span>Categoría</span>
-          <input type="text" id="editCategoria" class="form-control mb-2" value="${dato.categoria}">
+  <select id="nuevaCategoria" class="form-control mb-3">
+      <option value="">Selecciona categoría</option>
+      <option value="Tips">Tips</option>
+      <option value="Emprendimiento">Emprendimiento</option>
+      <option value="Sabías que?">Sabías que?</option>
+      <option value="Beneficios">Beneficios</option>
+      <option value="Tendencias">Tendencias</option>
+      <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
+      <option value="Sustentable">Sustentable</option>
+      <option value="Innovación">Innovación</option>
+    </select>
               <span>Meta Descripción</span>
            <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
@@ -266,4 +276,4 @@ async function guardarEdicionFila() {
   }
 }
 
-//upd 8-7
+//upd 8-7 v1
