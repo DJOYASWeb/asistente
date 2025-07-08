@@ -13,7 +13,7 @@ firebase.auth().onAuthStateChanged(function(user) {
 
         // Solo mostrar si el body tiene la clase protegido
         if (document.body.classList.contains("protegido")) {
-            document.body.style.display = "block";
+            document.body.style.display = "";
         }
     }
 });
