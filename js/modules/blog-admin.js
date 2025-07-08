@@ -225,9 +225,9 @@ function editarFila(index) {
         <div class="col-lg-6 col-12">
         <span>Contenido de Blog </span>
           <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
-          <button class="btn btn-secondary mb-2" onclick="convertirEditBlogHtml()">✨ Convertir a HTML</button>
           <span>Contenido de Blog (HTML generado)</span>
           <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
+          <button class="btn btn-secondary mb-2" onclick="convertirEditBlogHtml()">✨ Convertir a HTML</button>
           <button id="btnCopiarBlog" type="button" class="btn btn-outline-primary btn-sm mt-2">📋 Copiar HTML</button>
         </div>
       </div>
@@ -297,4 +297,4 @@ document.addEventListener('click', e => {
 
 
 
-//upd 8-7 v2
+//upd 8-7 v3
