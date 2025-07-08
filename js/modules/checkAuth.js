@@ -16,3 +16,20 @@ onAuthStateChanged(auth, user => {
         });
     }
 });
+
+
+import { auth } from "./firebase-init.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
+
+// Esta función es llamada desde tu enlace en el HTML
+window.logout = function () {
+    signOut(auth)
+        .then(() => {
+            // Redirige al login después de cerrar sesión
+            window.location.href = "login.html";
+        })
+        .catch((error) => {
+            console.error("Error al cerrar sesión:", error);
+            alert("Hubo un error al cerrar sesión. Intenta de nuevo.");
+        });
+}
