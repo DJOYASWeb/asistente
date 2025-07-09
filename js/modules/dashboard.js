@@ -1,23 +1,17 @@
-// dashboard.js
-
 function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("collapsed");
 }
-
 function toggleMobileSidebar() {
   document.getElementById("sidebar").classList.toggle("active");
   document.getElementById("overlay").classList.toggle("show");
 }
-
 function closeMobileSidebar() {
   document.getElementById("sidebar").classList.remove("active");
   document.getElementById("overlay").classList.remove("show");
 }
-
 function toggleDropdown() {
   document.getElementById("dropdown").classList.toggle("show");
 }
-
 function toggleTheme() {
   const body = document.body;
   const icon = document.getElementById("theme-icon");
@@ -27,64 +21,23 @@ function toggleTheme() {
   icon.textContent = isDark ? "🌙" : "☀️";
   label.textContent = isDark ? "Modo oscuro" : "Modo claro";
 }
-
 function logout() {
   localStorage.clear();
   sessionStorage.clear();
   window.location.href = "login.html";
 }
 
-// Cerrar dropdown si haces clic fuera
 window.addEventListener("click", function (e) {
   if (!e.target.closest(".profile-section")) {
     const dropdown = document.getElementById("dropdown");
-    if (dropdown && dropdown.classList.contains("show")) {
-      dropdown.classList.remove("show");
-    }
+    if (dropdown?.classList.contains("show")) dropdown.classList.remove("show");
   }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
   actualizarFechaHora();
   setInterval(actualizarHora, 60000);
-
-  // 🔷 Leer datos reales desde Firestore
-  const db = firebase.firestore();
-
-  db.collection("dashboard_archivos")
-    .orderBy("fecha", "desc")
-    .limit(1)
-    .get()
-    .then(snapshot => {
-      if (!snapshot.empty) {
-        const doc = snapshot.docs[0].data();
-        const data = doc.data; // Es el objeto que subimos desde archivos.js
-
-        // 👇 Aquí personalizas según tu estructura del excel
-        const campanaActiva = data?.General?.[1]?.[1] || "Sin datos";
-        const campanaSiguiente = data?.General?.[2]?.[1] || "Sin datos";
-        const semanasFaltan = data?.General?.[3]?.[1] || "0";
-        const blogs = data?.Blogs || [];
-        const inspira = data?.Inspira?.[1]?.[1] || "Sin datos";
-
-        document.getElementById("campanaActiva").textContent = campanaActiva;
-        document.getElementById("campanaSiguiente").textContent = campanaSiguiente;
-        document.getElementById("semanasFaltan").textContent = semanasFaltan;
-
-        const blogsList = document.getElementById("blogsSemana");
-        blogsList.innerHTML = "";
-        blogs.forEach(blog => {
-          blogsList.innerHTML += `<li>${blog[0]}</li>`;
-        });
-
-        document.getElementById("inspiraSemana").textContent = inspira;
-      } else {
-        console.warn("No hay archivo subido aún.");
-      }
-    })
-    .catch(err => {
-      console.error("Error al obtener datos del dashboard:", err);
-    });
+  cargarCampañasDesdeFirebase();
 });
 
 function actualizarFechaHora() {
@@ -101,10 +54,76 @@ function actualizarHora() {
   document.getElementById("horaActual").textContent = `Hora: ${hora}`;
 }
 
-function marcarCompleto(boton) {
-  const li = boton.closest("li");
-  li.classList.add("text-decoration-line-through", "text-muted");
-  boton.remove();
+async function cargarCampañasDesdeFirebase() {
+  const db = firebase.firestore();
+  const snapshot = await db.collection("archivos").orderBy("fechaSubida", "desc").limit(1).get();
+  if (snapshot.empty) {
+    console.warn("No hay archivos cargados.");
+    return;
+  }
+  const archivo = snapshot.docs[0].data();
+  const url = archivo.url;
+
+  fetch(url)
+    .then(res => res.arrayBuffer())
+    .then(data => procesarExcel(data))
+    .catch(err => console.error("Error al descargar el archivo:", err));
 }
 
-//upd 09-07
+function procesarExcel(data) {
+  const workbook = XLSX.read(data, { type: "array" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const allRows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+  const filas = {
+    diasSemana: allRows[1],
+    principal: allRows[2],
+    segunda: allRows[3],
+    tercera: allRows[4],
+    activacion: allRows[5],
+  };
+
+  const hoy = new Date();
+  const hoyStr = hoy.toLocaleDateString("es-CL", { day: '2-digit', month: '2-digit' });
+
+  let semanaActual = -1;
+  for (let i = 1; i < filas.diasSemana.length; i++) {
+    const rango = filas.diasSemana[i]?.toString().trim();
+    if (!rango.includes("-")) continue;
+
+    const [diaIni, diaFin] = rango.split("-").map(s => parseInt(s));
+    if (diaIni <= hoy.getDate() && hoy.getDate() <= diaFin) {
+      semanaActual = i;
+      break;
+    }
+  }
+
+  if (semanaActual === -1) {
+    console.warn("No se encontró semana actual.");
+    return;
+  }
+
+  // Campañas activas
+  document.getElementById("campanaPrincipalActual").textContent = filas.principal[semanaActual] || "-";
+  document.getElementById("campanaSegundaActual").textContent = filas.segunda[semanaActual] || "-";
+  document.getElementById("campanaTerceraActual").textContent = filas.tercera[semanaActual] || "-";
+
+  // Campañas próximas
+  document.getElementById("campanaPrincipalProxima").textContent = filas.principal[semanaActual + 1] || "-";
+  document.getElementById("campanaSegundaProxima").textContent = filas.segunda[semanaActual + 1] || "-";
+  document.getElementById("campanaTerceraProxima").textContent = filas.tercera[semanaActual + 1] || "-";
+
+  // Semanas restantes para próxima principal
+  let semanasFaltan = 0;
+  for (let i = semanaActual + 1; i < filas.principal.length; i++) {
+    if (filas.principal[i] && filas.principal[i] !== filas.principal[semanaActual]) {
+      semanasFaltan = i - semanaActual;
+      break;
+    }
+  }
+  document.getElementById("semanasFaltan").textContent = semanasFaltan;
+
+  // Pendientes del día (opcionalmente podrías cargarlos aquí también)
+}
+
+//upd 09-07 v2
