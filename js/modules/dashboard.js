@@ -1,21 +1,17 @@
 function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("collapsed");
 }
-
 function toggleMobileSidebar() {
   document.getElementById("sidebar").classList.toggle("active");
   document.getElementById("overlay").classList.toggle("show");
 }
-
 function closeMobileSidebar() {
   document.getElementById("sidebar").classList.remove("active");
   document.getElementById("overlay").classList.remove("show");
 }
-
 function toggleDropdown() {
   document.getElementById("dropdown").classList.toggle("show");
 }
-
 function toggleTheme() {
   const body = document.body;
   const icon = document.getElementById("theme-icon");
@@ -25,7 +21,6 @@ function toggleTheme() {
   icon.textContent = isDark ? "🌙" : "☀️";
   label.textContent = isDark ? "Modo oscuro" : "Modo claro";
 }
-
 function logout() {
   localStorage.clear();
   sessionStorage.clear();
@@ -66,21 +61,17 @@ async function cargarCampañasDesdeFirebase() {
     console.warn("No hay archivos cargados.");
     return;
   }
+
   const archivo = snapshot.docs[0].data();
-  const data = archivo.data;
-
-  // Solo tomamos la primera hoja
-  const hojaNombre = Object.keys(data)[0];
-  const hoja = JSON.parse(data[hojaNombre]);
-
-  const allRows = hoja;
+  const sheetName = Object.keys(archivo.data)[0];
+  const allRows = JSON.parse(archivo.data[sheetName]);
 
   const filas = {
-    diasSemana: allRows[1].slice(2),
-    principal: allRows[2].slice(2),
-    segunda: allRows[3].slice(2),
-    tercera: allRows[4].slice(2),
-    activacion: allRows[5].slice(2),
+    diasSemana: allRows[1],
+    principal: allRows[2],
+    segunda: allRows[3],
+    tercera: allRows[4],
+    activacion: allRows[5],
   };
 
   const hoy = new Date();
@@ -88,19 +79,14 @@ async function cargarCampañasDesdeFirebase() {
 
   let semanaActual = -1;
 
-  for (let i = 0; i < filas.diasSemana.length; i++) {
-    const valor = filas.diasSemana[i];
-    if (typeof valor !== "string") continue;
-
-    const rango = valor.trim();
-    if (!rango.includes("-")) continue;
+  for (let col = 2; col < filas.diasSemana.length; col++) { // empezar desde la columna C (índice 2)
+    const rango = filas.diasSemana[col];
+    if (!rango || typeof rango !== "string" || !rango.includes("-")) continue;
 
     const [diaIni, diaFin] = rango.split("-").map(s => parseInt(s));
-    if (!isNaN(diaIni) && !isNaN(diaFin)) {
-      if (diaIni <= diaHoy && diaHoy <= diaFin) {
-        semanaActual = i;
-        break;
-      }
+    if (diaHoy >= diaIni && diaHoy <= diaFin) {
+      semanaActual = col;
+      break;
     }
   }
 
@@ -111,27 +97,31 @@ async function cargarCampañasDesdeFirebase() {
 
   console.log("Semana actual:", semanaActual);
 
-  // Campañas activas
-  document.getElementById("campanaActiva").textContent = `Principal: ${filas.principal[semanaActual] || "-"}`;
-  document.getElementById("campanaActiva").innerHTML += `<br>Segunda: ${filas.segunda[semanaActual] || "-"}`;
-  document.getElementById("campanaActiva").innerHTML += `<br>Tercera: ${filas.tercera[semanaActual] || "-"}`;
+  const campPrincipalActual = filas.principal[semanaActual] || "-";
+  const campSegundaActual = filas.segunda[semanaActual] || "-";
+  const campTerceraActual = filas.tercera[semanaActual] || "-";
 
-  // Campañas próximas
-  document.getElementById("campanaSiguiente").innerHTML =
-    `Principal: ${filas.principal[semanaActual + 1] || "-"}<br>` +
-    `Segunda: ${filas.segunda[semanaActual + 1] || "-"}<br>` +
-    `Tercera: ${filas.tercera[semanaActual + 1] || "-"}`;
+  const campPrincipalProxima = filas.principal[semanaActual + 1] || "-";
+  const campSegundaProxima = filas.segunda[semanaActual + 1] || "-";
+  const campTerceraProxima = filas.tercera[semanaActual + 1] || "-";
 
-  // Semanas restantes para próxima principal distinta
+  // Mostrar en los elementos que ya tienes en el HTML
+  document.getElementById("campanaActiva").textContent =
+    `Principal: ${campPrincipalActual}, Segunda: ${campSegundaActual}, Tercera: ${campTerceraActual}`;
+
+  document.getElementById("campanaSiguiente").textContent =
+    `Principal: ${campPrincipalProxima}, Segunda: ${campSegundaProxima}, Tercera: ${campTerceraProxima}`;
+
+  // calcular semanas hasta próxima principal distinta
   let semanasFaltan = 0;
   for (let i = semanaActual + 1; i < filas.principal.length; i++) {
-    if (filas.principal[i] && filas.principal[i] !== filas.principal[semanaActual]) {
+    if (filas.principal[i] && filas.principal[i] !== campPrincipalActual) {
       semanasFaltan = i - semanaActual;
       break;
     }
   }
-  document.getElementById("semanasFaltantes").textContent = semanasFaltan || "-";
+  document.getElementById("semanasFaltantes").textContent = semanasFaltan;
 }
 
 
-//upd 09-07 v2.5
+//upd 09-07 v2.6
