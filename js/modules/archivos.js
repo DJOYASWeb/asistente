@@ -3,8 +3,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const inputArchivo = document.getElementById("archivoDashboard");
   const infoArchivo = document.getElementById("infoArchivo");
+  const btnDescargar = document.getElementById("descargarNormalizado");
 
   if (!inputArchivo) return;
+
+  let ultimaDataNormalizada = null; // para descargar después
 
   inputArchivo.addEventListener("change", (e) => {
     const file = e.target.files[0];
@@ -20,8 +23,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const sheet = workbook.Sheets[name];
         normalizarCeldasCombinadas(sheet);
         const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        sheets[name] = sheetData;
+        const primeras6 = sheetData.slice(0, 6);
+        sheets[name] = primeras6;
       });
+
+      ultimaDataNormalizada = sheets;
 
       const now = new Date();
       const nowStr = now.toLocaleString();
@@ -67,10 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  /**
-   * Normaliza las celdas combinadas en la hoja
-   * @param {object} sheet hoja de XLSX
-   */
   function normalizarCeldasCombinadas(sheet) {
     if (!sheet["!merges"]) return;
 
@@ -86,8 +88,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-    delete sheet["!merges"]; // opcional: elimina las combinaciones
+    delete sheet["!merges"];
+  }
+
+  // Botón para descargar última normalizada
+  if (btnDescargar) {
+    btnDescargar.addEventListener("click", () => {
+      if (!ultimaDataNormalizada) {
+        alert("Primero carga un archivo.");
+        return;
+      }
+      const wb = XLSX.utils.book_new();
+      Object.keys(ultimaDataNormalizada).forEach(name => {
+        const ws = XLSX.utils.aoa_to_sheet(ultimaDataNormalizada[name]);
+        XLSX.utils.book_append_sheet(wb, ws, name);
+      });
+      XLSX.writeFile(wb, "archivo_normalizado.xlsx");
+    });
   }
 });
 
-//upd 09-07 v1.3
+//upd 09-07 v1.4
