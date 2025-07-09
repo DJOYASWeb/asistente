@@ -32,11 +32,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const now = new Date();
       const nowStr = now.toLocaleString();
 
-      const archivo = {
-        nombre: file.name,
-        fecha: firebase.firestore.Timestamp.fromDate(now),
-        data: sheets
-      };
+const archivo = {
+  nombre: file.name,
+  fecha: firebase.firestore.Timestamp.fromDate(now),
+  data: JSON.stringify(sheets)  // <<--- aquí
+};
 
       db.collection("dashboard_archivos").add(archivo)
         .then(() => {
@@ -108,4 +108,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//upd 09-07 v1.4
+//upd 09-07 v1.5
