@@ -14,11 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = new Uint8Array(ev.target.result);
         const workbook = XLSX.read(data, { type: "array" });
 
-        const sheets = {};
-        workbook.SheetNames.forEach(name => {
-          const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
-          sheets[name] = sheet;
-        });
+const sheets = {};
+workbook.SheetNames.forEach(name => {
+  const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
+  sheets[name] = JSON.stringify(sheet);
+});
 
         const now = new Date();
         const nowStr = now.toLocaleString();
@@ -67,4 +67,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//upd 09-07
+//upd 09-07 v1.2
