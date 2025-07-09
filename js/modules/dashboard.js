@@ -27,7 +27,7 @@ function logout() {
   window.location.href = "login.html";
 }
 
-window.addEventListener("click", function (e) {
+window.addEventListener("click", (e) => {
   if (!e.target.closest(".profile-section")) {
     const dropdown = document.getElementById("dropdown");
     if (dropdown?.classList.contains("show")) dropdown.classList.remove("show");
@@ -44,14 +44,14 @@ function actualizarFechaHora() {
   const now = new Date();
   const fecha = now.toLocaleDateString("es-CL", { day: '2-digit', month: '2-digit', year: 'numeric' });
   const hora = now.toLocaleTimeString("es-CL", { hour: '2-digit', minute: '2-digit' });
-  document.getElementById("fechaActual").textContent = `Fecha: ${fecha}`;
-  document.getElementById("horaActual").textContent = `Hora: ${hora}`;
+  document.getElementById("fechaActual").textContent = fecha;
+  document.getElementById("horaActual").textContent = hora;
 }
 
 function actualizarHora() {
   const now = new Date();
   const hora = now.toLocaleTimeString("es-CL", { hour: '2-digit', minute: '2-digit' });
-  document.getElementById("horaActual").textContent = `Hora: ${hora}`;
+  document.getElementById("horaActual").textContent = hora;
 }
 
 async function cargarCampañasDesdeFirebase() {
@@ -63,15 +63,15 @@ async function cargarCampañasDesdeFirebase() {
   }
 
   const archivo = snapshot.docs[0].data();
-  const sheetName = Object.keys(archivo.data)[0];
-  const allRows = JSON.parse(archivo.data[sheetName]);
+  const sheetDataStr = archivo.data[Object.keys(archivo.data)[0]];
+  const allRows = JSON.parse(sheetDataStr);
 
   const filas = {
-    diasSemana: allRows[1],
-    principal: allRows[2],
-    segunda: allRows[3],
-    tercera: allRows[4],
-    activacion: allRows[5],
+    diasSemana: allRows[1].slice(2),  // desde la columna C
+    principal: allRows[2].slice(2),
+    segunda: allRows[3].slice(2),
+    tercera: allRows[4].slice(2),
+    activacion: allRows[5].slice(2),
   };
 
   const hoy = new Date();
@@ -79,13 +79,13 @@ async function cargarCampañasDesdeFirebase() {
 
   let semanaActual = -1;
 
-  for (let col = 2; col < filas.diasSemana.length; col++) { // empezar desde la columna C (índice 2)
-    const rango = filas.diasSemana[col];
-    if (!rango || typeof rango !== "string" || !rango.includes("-")) continue;
+  for (let i = 0; i < filas.diasSemana.length; i++) {
+    const rango = filas.diasSemana[i];
+    if (typeof rango !== "string" || !rango.includes("-")) continue;
 
-    const [diaIni, diaFin] = rango.split("-").map(s => parseInt(s));
-    if (diaHoy >= diaIni && diaHoy <= diaFin) {
-      semanaActual = col;
+    const [ini, fin] = rango.split("-").map(Number);
+    if (!isNaN(ini) && !isNaN(fin) && ini <= diaHoy && diaHoy <= fin) {
+      semanaActual = i;
       break;
     }
   }
@@ -95,8 +95,6 @@ async function cargarCampañasDesdeFirebase() {
     return;
   }
 
-  console.log("Semana actual:", semanaActual);
-
   const campPrincipalActual = filas.principal[semanaActual] || "-";
   const campSegundaActual = filas.segunda[semanaActual] || "-";
   const campTerceraActual = filas.tercera[semanaActual] || "-";
@@ -105,14 +103,6 @@ async function cargarCampañasDesdeFirebase() {
   const campSegundaProxima = filas.segunda[semanaActual + 1] || "-";
   const campTerceraProxima = filas.tercera[semanaActual + 1] || "-";
 
-  // Mostrar en los elementos que ya tienes en el HTML
-  document.getElementById("campanaActiva").textContent =
-    `Principal: ${campPrincipalActual}, Segunda: ${campSegundaActual}, Tercera: ${campTerceraActual}`;
-
-  document.getElementById("campanaSiguiente").textContent =
-    `Principal: ${campPrincipalProxima}, Segunda: ${campSegundaProxima}, Tercera: ${campTerceraProxima}`;
-
-  // calcular semanas hasta próxima principal distinta
   let semanasFaltan = 0;
   for (let i = semanaActual + 1; i < filas.principal.length; i++) {
     if (filas.principal[i] && filas.principal[i] !== campPrincipalActual) {
@@ -120,8 +110,17 @@ async function cargarCampañasDesdeFirebase() {
       break;
     }
   }
-  document.getElementById("semanasFaltantes").textContent = semanasFaltan;
+
+  document.getElementById("campanaPrincipalActual").textContent = campPrincipalActual;
+  document.getElementById("campanaSegundaActual").textContent = campSegundaActual;
+  document.getElementById("campanaTerceraActual").textContent = campTerceraActual;
+
+  document.getElementById("campanaPrincipalProxima").textContent = campPrincipalProxima;
+  document.getElementById("campanaSegundaProxima").textContent = campSegundaProxima;
+  document.getElementById("campanaTerceraProxima").textContent = campTerceraProxima;
+
+  document.getElementById("semanasFaltan").textContent = semanasFaltan;
 }
 
 
-//upd 09-07 v2.6
+//upd 09-07 v2.7
