@@ -60,9 +60,9 @@ const producto = datosPDV.find(p => (p["Código"] || "").trim().toLowerCase() ==
 
   const columnas = {
     "Código Producto *": "Código",
-    "Modelo Producto": "Modelo",
     "PrestaShop ID": "ID Producto",
     "Nombre Producto *": "Nombre Producto",
+    "Modelo Producto": "Modelo",
     "Precio Tienda": "Precio Tienda Con IVA",
     "Precio PrestaShop": "Precio WEB Con IVA",
     "Material": "Material",
