@@ -1,90 +1,40 @@
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("collapsed");
-}
-function toggleMobileSidebar() {
-  document.getElementById("sidebar").classList.toggle("active");
-  document.getElementById("overlay").classList.toggle("show");
-}
-function closeMobileSidebar() {
-  document.getElementById("sidebar").classList.remove("active");
-  document.getElementById("overlay").classList.remove("show");
-}
-function toggleDropdown() {
-  document.getElementById("dropdown").classList.toggle("show");
-}
-function toggleTheme() {
-  const body = document.body;
-  const icon = document.getElementById("theme-icon");
-  const label = document.querySelector(".switch-label");
-  const isDark = body.getAttribute("data-theme") === "dark";
-  body.setAttribute("data-theme", isDark ? "light" : "dark");
-  icon.textContent = isDark ? "🌙" : "☀️";
-  label.textContent = isDark ? "Modo oscuro" : "Modo claro";
-}
-function logout() {
-  localStorage.clear();
-  sessionStorage.clear();
-  window.location.href = "login.html";
-}
-
-window.addEventListener("click", (e) => {
-  if (!e.target.closest(".profile-section")) {
-    const dropdown = document.getElementById("dropdown");
-    if (dropdown?.classList.contains("show")) dropdown.classList.remove("show");
-  }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  actualizarFechaHora();
-  setInterval(actualizarHora, 60000);
-  cargarCampañasDesdeFirebase();
-});
-
-function actualizarFechaHora() {
-  const now = new Date();
-  const fecha = now.toLocaleDateString("es-CL", { day: '2-digit', month: '2-digit', year: 'numeric' });
-  const hora = now.toLocaleTimeString("es-CL", { hour: '2-digit', minute: '2-digit' });
-  document.getElementById("fechaActual").textContent = fecha;
-  document.getElementById("horaActual").textContent = hora;
-}
-
-function actualizarHora() {
-  const now = new Date();
-  const hora = now.toLocaleTimeString("es-CL", { hour: '2-digit', minute: '2-digit' });
-  document.getElementById("horaActual").textContent = hora;
-}
-
 async function cargarCampañasDesdeFirebase() {
   const db = firebase.firestore();
   const snapshot = await db.collection("dashboard_archivos").orderBy("fecha", "desc").limit(1).get();
+
   if (snapshot.empty) {
     console.warn("No hay archivos cargados.");
     return;
   }
 
   const archivo = snapshot.docs[0].data();
-  const sheetDataStr = archivo.data[Object.keys(archivo.data)[0]];
-  const allRows = JSON.parse(sheetDataStr);
 
-  const filas = {
-    diasSemana: allRows[1].slice(2),  // desde la columna C
-    principal: allRows[2].slice(2),
-    segunda: allRows[3].slice(2),
-    tercera: allRows[4].slice(2),
-    activacion: allRows[5].slice(2),
-  };
+  const sheets = JSON.parse(archivo.data);  // ✅ aquí parseamos
+  const hoja = sheets[Object.keys(sheets)[0]];  // asumimos la primera hoja
+
+  const filas = hoja.slice(0, 6);  // solo las primeras 6 filas
+
+  const mesesFila = filas[0];
+  const semanasFila = filas[1];
+  const principalFila = filas[2];
+  const segundaFila = filas[3];
+  const terceraFila = filas[4];
+  const activacionFila = filas[5];
 
   const hoy = new Date();
-  const diaHoy = hoy.getDate();
+  const mesActual = hoy.toLocaleString("es-CL", { month: "long" }).toUpperCase();
+  const dia = hoy.getDate();
 
   let semanaActual = -1;
 
-  for (let i = 0; i < filas.diasSemana.length; i++) {
-    const rango = filas.diasSemana[i];
-    if (typeof rango !== "string" || !rango.includes("-")) continue;
+  // 👇 recorremos desde columna 2 (índice 2)
+  for (let i = 2; i < semanasFila.length; i++) {
+    const mesCelda = mesesFila[i] || mesesFila[i - 1];
+    const semanaStr = semanasFila[i];
+    if (!semanaStr || typeof semanaStr !== "string" || !semanaStr.includes("-")) continue;
 
-    const [ini, fin] = rango.split("-").map(Number);
-    if (!isNaN(ini) && !isNaN(fin) && ini <= diaHoy && diaHoy <= fin) {
+    const [inicio, fin] = semanaStr.split("-").map(n => parseInt(n));
+    if (mesCelda?.toUpperCase().includes(mesActual) && dia >= inicio && dia <= fin) {
       semanaActual = i;
       break;
     }
@@ -95,32 +45,27 @@ async function cargarCampañasDesdeFirebase() {
     return;
   }
 
-  const campPrincipalActual = filas.principal[semanaActual] || "-";
-  const campSegundaActual = filas.segunda[semanaActual] || "-";
-  const campTerceraActual = filas.tercera[semanaActual] || "-";
+  // ✅ Mostramos campañas activas
+  document.getElementById("campanaPrincipalActual").textContent = principalFila[semanaActual] || "-";
+  document.getElementById("campanaSegundaActual").textContent = segundaFila[semanaActual] || "-";
+  document.getElementById("campanaTerceraActual").textContent = terceraFila[semanaActual] || "-";
 
-  const campPrincipalProxima = filas.principal[semanaActual + 1] || "-";
-  const campSegundaProxima = filas.segunda[semanaActual + 1] || "-";
-  const campTerceraProxima = filas.tercera[semanaActual + 1] || "-";
+  // ✅ Mostramos campañas próximas
+  document.getElementById("campanaPrincipalProxima").textContent = principalFila[semanaActual + 1] || "-";
+  document.getElementById("campanaSegundaProxima").textContent = segundaFila[semanaActual + 1] || "-";
+  document.getElementById("campanaTerceraProxima").textContent = terceraFila[semanaActual + 1] || "-";
 
+  // ✅ Semanas hasta próxima principal distinta
   let semanasFaltan = 0;
-  for (let i = semanaActual + 1; i < filas.principal.length; i++) {
-    if (filas.principal[i] && filas.principal[i] !== campPrincipalActual) {
+  for (let i = semanaActual + 1; i < principalFila.length; i++) {
+    if (principalFila[i] && principalFila[i] !== principalFila[semanaActual]) {
       semanasFaltan = i - semanaActual;
       break;
     }
   }
 
-  document.getElementById("campanaPrincipalActual").textContent = campPrincipalActual;
-  document.getElementById("campanaSegundaActual").textContent = campSegundaActual;
-  document.getElementById("campanaTerceraActual").textContent = campTerceraActual;
-
-  document.getElementById("campanaPrincipalProxima").textContent = campPrincipalProxima;
-  document.getElementById("campanaSegundaProxima").textContent = campSegundaProxima;
-  document.getElementById("campanaTerceraProxima").textContent = campTerceraProxima;
-
   document.getElementById("semanasFaltan").textContent = semanasFaltan;
 }
 
 
-//upd 09-07 v2.7
+//upd 09-07 v2.8
