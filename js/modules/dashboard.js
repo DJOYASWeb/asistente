@@ -56,24 +56,19 @@ function actualizarHora() {
 
 async function cargarCampañasDesdeFirebase() {
   const db = firebase.firestore();
-  const snapshot = await db.collection("archivos").orderBy("fechaSubida", "desc").limit(1).get();
+  const snapshot = await db.collection("dashboard_archivos").orderBy("fecha", "desc").limit(1).get();
+
   if (snapshot.empty) {
     console.warn("No hay archivos cargados.");
     return;
   }
+
   const archivo = snapshot.docs[0].data();
-  const url = archivo.url;
 
-  fetch(url)
-    .then(res => res.arrayBuffer())
-    .then(data => procesarExcel(data))
-    .catch(err => console.error("Error al descargar el archivo:", err));
-}
-
-function procesarExcel(data) {
-  const workbook = XLSX.read(data, { type: "array" });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const allRows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  // Tomamos la primera hoja disponible
+  const hojaNombre = Object.keys(archivo.data)[0];
+  const hojaJSON = archivo.data[hojaNombre];
+  const allRows = JSON.parse(hojaJSON);
 
   const filas = {
     diasSemana: allRows[1],
@@ -84,7 +79,6 @@ function procesarExcel(data) {
   };
 
   const hoy = new Date();
-  const hoyStr = hoy.toLocaleDateString("es-CL", { day: '2-digit', month: '2-digit' });
 
   let semanaActual = -1;
   for (let i = 1; i < filas.diasSemana.length; i++) {
@@ -122,8 +116,6 @@ function procesarExcel(data) {
     }
   }
   document.getElementById("semanasFaltan").textContent = semanasFaltan;
-
-  // Pendientes del día (opcionalmente podrías cargarlos aquí también)
 }
 
-//upd 09-07 v2
+//upd 09-07 v2.2
