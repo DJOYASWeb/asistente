@@ -44,20 +44,47 @@ window.addEventListener("click", function (e) {
   }
 });
 
-
 document.addEventListener("DOMContentLoaded", () => {
   actualizarFechaHora();
   setInterval(actualizarHora, 60000);
 
-  // Cargar datos ficticios iniciales
-  document.getElementById("campanaActiva").textContent = "Campaña de Verano";
-  document.getElementById("campanaSiguiente").textContent = "Campaña de Primavera";
-  document.getElementById("semanasFaltan").textContent = "3";
-  document.getElementById("blogsSemana").innerHTML = `
-    <li>Cómo vender más en verano</li>
-    <li>Las joyas más buscadas</li>
-  `;
-  document.getElementById("inspiraSemana").textContent = "Inspiración: Joyas para el Día de la Madre";
+  // 🔷 Leer datos reales desde Firestore
+  const db = firebase.firestore();
+
+  db.collection("dashboard_archivos")
+    .orderBy("fecha", "desc")
+    .limit(1)
+    .get()
+    .then(snapshot => {
+      if (!snapshot.empty) {
+        const doc = snapshot.docs[0].data();
+        const data = doc.data; // Es el objeto que subimos desde archivos.js
+
+        // 👇 Aquí personalizas según tu estructura del excel
+        const campanaActiva = data?.General?.[1]?.[1] || "Sin datos";
+        const campanaSiguiente = data?.General?.[2]?.[1] || "Sin datos";
+        const semanasFaltan = data?.General?.[3]?.[1] || "0";
+        const blogs = data?.Blogs || [];
+        const inspira = data?.Inspira?.[1]?.[1] || "Sin datos";
+
+        document.getElementById("campanaActiva").textContent = campanaActiva;
+        document.getElementById("campanaSiguiente").textContent = campanaSiguiente;
+        document.getElementById("semanasFaltan").textContent = semanasFaltan;
+
+        const blogsList = document.getElementById("blogsSemana");
+        blogsList.innerHTML = "";
+        blogs.forEach(blog => {
+          blogsList.innerHTML += `<li>${blog[0]}</li>`;
+        });
+
+        document.getElementById("inspiraSemana").textContent = inspira;
+      } else {
+        console.warn("No hay archivo subido aún.");
+      }
+    })
+    .catch(err => {
+      console.error("Error al obtener datos del dashboard:", err);
+    });
 });
 
 function actualizarFechaHora() {
@@ -80,5 +107,4 @@ function marcarCompleto(boton) {
   boton.remove();
 }
 
-
-//eme1
+//upd 09-07
