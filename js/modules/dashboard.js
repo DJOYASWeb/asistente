@@ -85,7 +85,7 @@ async function cargarCampañasDesdeFirebase() {
     };
 
     const hoy = new Date();
-
+console.table(filas.diasSemana);
     let semanaActual = -1;
 
     for (let i = 1; i < filas.diasSemana.length; i++) {
@@ -142,4 +142,4 @@ async function cargarCampañasDesdeFirebase() {
 }
 
 
-//upd 09-07 v2.3
+//upd 09-07 v2.4
