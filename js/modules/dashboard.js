@@ -56,66 +56,90 @@ function actualizarHora() {
 
 async function cargarCampañasDesdeFirebase() {
   const db = firebase.firestore();
-  const snapshot = await db.collection("dashboard_archivos").orderBy("fecha", "desc").limit(1).get();
 
-  if (snapshot.empty) {
-    console.warn("No hay archivos cargados.");
-    return;
-  }
+  try {
+    const snapshot = await db
+      .collection("dashboard_archivos")
+      .orderBy("fecha", "desc")
+      .limit(1)
+      .get();
 
-  const archivo = snapshot.docs[0].data();
-
-  // Tomamos la primera hoja disponible
-  const hojaNombre = Object.keys(archivo.data)[0];
-  const hojaJSON = archivo.data[hojaNombre];
-  const allRows = JSON.parse(hojaJSON);
-
-  const filas = {
-    diasSemana: allRows[1],
-    principal: allRows[2],
-    segunda: allRows[3],
-    tercera: allRows[4],
-    activacion: allRows[5],
-  };
-
-  const hoy = new Date();
-
-  let semanaActual = -1;
-  for (let i = 1; i < filas.diasSemana.length; i++) {
-    const rango = filas.diasSemana[i]?.toString().trim();
-    if (!rango.includes("-")) continue;
-
-    const [diaIni, diaFin] = rango.split("-").map(s => parseInt(s));
-    if (diaIni <= hoy.getDate() && hoy.getDate() <= diaFin) {
-      semanaActual = i;
-      break;
+    if (snapshot.empty) {
+      console.warn("No hay archivos cargados en Firebase.");
+      return;
     }
-  }
 
-  if (semanaActual === -1) {
-    console.warn("No se encontró semana actual.");
-    return;
-  }
+    const archivo = snapshot.docs[0].data();
 
-  // Campañas activas
-  document.getElementById("campanaPrincipalActual").textContent = filas.principal[semanaActual] || "-";
-  document.getElementById("campanaSegundaActual").textContent = filas.segunda[semanaActual] || "-";
-  document.getElementById("campanaTerceraActual").textContent = filas.tercera[semanaActual] || "-";
+    // Ya no es URL, porque tú guardas el Excel parseado en JSON (como string en sheets)
+    // Parseamos directamente desde la data guardada
+    const sheetName = Object.keys(archivo.data)[0];
+    const allRows = JSON.parse(archivo.data[sheetName]);
 
-  // Campañas próximas
-  document.getElementById("campanaPrincipalProxima").textContent = filas.principal[semanaActual + 1] || "-";
-  document.getElementById("campanaSegundaProxima").textContent = filas.segunda[semanaActual + 1] || "-";
-  document.getElementById("campanaTerceraProxima").textContent = filas.tercera[semanaActual + 1] || "-";
+    const filas = {
+      diasSemana: allRows[1],
+      principal: allRows[2],
+      segunda: allRows[3],
+      tercera: allRows[4],
+      activacion: allRows[5],
+    };
 
-  // Semanas restantes para próxima principal
-  let semanasFaltan = 0;
-  for (let i = semanaActual + 1; i < filas.principal.length; i++) {
-    if (filas.principal[i] && filas.principal[i] !== filas.principal[semanaActual]) {
-      semanasFaltan = i - semanaActual;
-      break;
+    const hoy = new Date();
+
+    let semanaActual = -1;
+
+    for (let i = 1; i < filas.diasSemana.length; i++) {
+      const celda = filas.diasSemana[i];
+      if (!celda || typeof celda !== "string") continue;
+
+      const rango = celda.trim();
+      if (!rango.includes("-")) continue;
+
+      const [diaIni, diaFin] = rango.split("-").map((s) => parseInt(s));
+      if (diaIni <= hoy.getDate() && hoy.getDate() <= diaFin) {
+        semanaActual = i;
+        break;
+      }
     }
+
+    if (semanaActual === -1) {
+      console.warn("No se encontró semana actual.");
+      return;
+    }
+
+    // Campañas activas
+    document.getElementById("campanaPrincipalActual").textContent =
+      filas.principal[semanaActual] || "-";
+    document.getElementById("campanaSegundaActual").textContent =
+      filas.segunda[semanaActual] || "-";
+    document.getElementById("campanaTerceraActual").textContent =
+      filas.tercera[semanaActual] || "-";
+
+    // Campañas próximas
+    document.getElementById("campanaPrincipalProxima").textContent =
+      filas.principal[semanaActual + 1] || "-";
+    document.getElementById("campanaSegundaProxima").textContent =
+      filas.segunda[semanaActual + 1] || "-";
+    document.getElementById("campanaTerceraProxima").textContent =
+      filas.tercera[semanaActual + 1] || "-";
+
+    // Semanas restantes para próxima principal distinta
+    let semanasFaltan = 0;
+    for (let i = semanaActual + 1; i < filas.principal.length; i++) {
+      if (
+        filas.principal[i] &&
+        filas.principal[i] !== filas.principal[semanaActual]
+      ) {
+        semanasFaltan = i - semanaActual;
+        break;
+      }
+    }
+    document.getElementById("semanasFaltan").textContent = semanasFaltan;
+
+  } catch (err) {
+    console.error("Error al cargar campañas desde Firebase:", err);
   }
-  document.getElementById("semanasFaltan").textContent = semanasFaltan;
 }
 
-//upd 09-07 v2.2
+
+//upd 09-07 v2.3
