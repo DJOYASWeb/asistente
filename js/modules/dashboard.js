@@ -94,4 +94,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-//upd 10-07 v2.9.1 con logs
+//upd 10-07 v2.9.2 con logs
