@@ -120,4 +120,4 @@ workbook.SheetNames.forEach(name => {
   }
 });
 
-//upd 10-07 v1.9
+//upd 10-07 v2
