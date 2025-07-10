@@ -16,10 +16,29 @@ document.addEventListener("DOMContentLoaded", () => {
         const workbook = XLSX.read(data, { type: "array" });
 
         const sheets = {};
-        workbook.SheetNames.forEach(name => {
-          const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
-          sheets[name] = sheet;
-        });
+workbook.SheetNames.forEach(name => {
+  const ws = workbook.Sheets[name];
+
+  // Rellenar celdas combinadas antes de convertir a JSON
+  if (ws["!merges"]) {
+    ws["!merges"].forEach(merge => {
+      const startCell = XLSX.utils.encode_cell(merge.s);
+      const value = ws[startCell]?.v;
+      for (let R = merge.s.r; R <= merge.e.r; ++R) {
+        for (let C = merge.s.c; C <= merge.e.c; ++C) {
+          const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+          if (!ws[cellRef]) ws[cellRef] = {};
+          if (typeof ws[cellRef].v === "undefined" || ws[cellRef].v === null) {
+            ws[cellRef].v = value;
+          }
+        }
+      }
+    });
+  }
+
+  const sheet = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  sheets[name] = sheet;
+});
 
         const now = new Date();
         const nowStr = now.toLocaleString();
