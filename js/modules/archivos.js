@@ -98,26 +98,28 @@ workbook.SheetNames.forEach(name => {
     `;
   }
 
-  function mostrarTabla(sheets) {
-    if (!tablaPreview) return;
+function mostrarTabla(sheets) {
+  if (!tablaPreview) return;
 
-    const primeraHoja = Object.keys(sheets)[0];
-    const datos = sheets[primeraHoja];
+  const primeraHoja = Object.keys(sheets)[0];
+  const datos = sheets[primeraHoja];
 
-    let html = `<h4>Vista previa: ${primeraHoja}</h4><table border="1"><tbody>`;
-    datos.forEach((fila, i) => {
-      html += "<tr>";
-      fila.forEach(celda => {
-        html += i === 0
-          ? `<th>${celda}</th>`
-          : `<td>${celda}</td>`;
-      });
-      html += "</tr>";
+  let html = `<h4>Vista previa: ${primeraHoja}</h4>`;
+  html += `<div class="scroll-x"><table border="1"><tbody>`;
+
+  datos.forEach((fila, i) => {
+    html += "<tr>";
+    fila.forEach(celda => {
+      html += i === 0
+        ? `<th>${celda ?? ""}</th>`
+        : `<td>${celda ?? ""}</td>`;
     });
-    html += "</tbody></table>";
+    html += "</tr>";
+  });
 
-    tablaPreview.innerHTML = html;
-  }
-});
+  html += `</tbody></table></div>`;
 
-//upd 10-07 v2
+  tablaPreview.innerHTML = html;
+}
+
+//upd 10-07 v2.1
