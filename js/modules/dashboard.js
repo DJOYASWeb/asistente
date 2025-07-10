@@ -13,7 +13,8 @@ async function cargarCampañasDesdeFirebase() {
   const hoja = sheets[Object.keys(sheets)[0]];  // asumimos la primera hoja
 
   const filas = hoja.slice(0, 6);  // solo las primeras 6 filas
-console.table(filas);
+  console.table(filas);
+
   const mesesFila = filas[0];
   const semanasFila = filas[1];
   const principalFila = filas[2];
@@ -36,6 +37,7 @@ console.table(filas);
     const [inicio, fin] = semanaStr.split("-").map(n => parseInt(n));
     if (mesCelda?.toUpperCase().includes(mesActual) && dia >= inicio && dia <= fin) {
       semanaActual = i;
+      console.log(`✅ Semana actual detectada en columna: ${semanaActual} Rango: ${semanaStr}`);
       break;
     }
   }
@@ -45,10 +47,6 @@ console.table(filas);
     return;
   }
 
-  // ✅ Mostramos campañas activas
-  document.getElementById("campanaPrincipalActual").textContent = principalFila[semanaActual] || "-";
-  document.getElementById("campanaSegundaActual").textContent = segundaFila[semanaActual] || "-";
-  document.getElementById("campanaTerceraActual").textContent = terceraFila[semanaActual] || "-";
   console.log("📊 Datos para la semana actual:", semanaActual);
   console.log("Meses fila:", mesesFila);
   console.log("Semanas fila:", semanasFila);
@@ -58,11 +56,14 @@ console.table(filas);
   console.log("Valor principal actual:", principalFila[semanaActual]);
   console.log("Valor segunda actual:", segundaFila[semanaActual]);
   console.log("Valor tercera actual:", terceraFila[semanaActual]);
+  console.log("Valor principal próxima:", principalFila[semanaActual + 1]);
+  console.log("Valor segunda próxima:", segundaFila[semanaActual + 1]);
+  console.log("Valor tercera próxima:", terceraFila[semanaActual + 1]);
 
-
-
-
-
+  // ✅ Mostramos campañas activas
+  document.getElementById("campanaPrincipalActual").textContent = principalFila[semanaActual] || "-";
+  document.getElementById("campanaSegundaActual").textContent = segundaFila[semanaActual] || "-";
+  document.getElementById("campanaTerceraActual").textContent = terceraFila[semanaActual] || "-";
 
   // ✅ Mostramos campañas próximas
   document.getElementById("campanaPrincipalProxima").textContent = principalFila[semanaActual + 1] || "-";
@@ -81,5 +82,4 @@ console.table(filas);
   document.getElementById("semanasFaltan").textContent = semanasFaltan;
 }
 
-
-//upd 10-07 v2.9
+//upd 10-07 v2.9.1 con logs
