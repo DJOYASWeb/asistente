@@ -47,19 +47,6 @@ async function cargarCampañasDesdeFirebase() {
     return;
   }
 
-  console.log("📊 Datos para la semana actual:", semanaActual);
-  console.log("Meses fila:", mesesFila);
-  console.log("Semanas fila:", semanasFila);
-  console.log("Principal fila:", principalFila);
-  console.log("Segunda fila:", segundaFila);
-  console.log("Tercera fila:", terceraFila);
-  console.log("Valor principal actual:", principalFila[semanaActual]);
-  console.log("Valor segunda actual:", segundaFila[semanaActual]);
-  console.log("Valor tercera actual:", terceraFila[semanaActual]);
-  console.log("Valor principal próxima:", principalFila[semanaActual + 1]);
-  console.log("Valor segunda próxima:", segundaFila[semanaActual + 1]);
-  console.log("Valor tercera próxima:", terceraFila[semanaActual + 1]);
-
   // ✅ Mostramos campañas activas
   document.getElementById("campanaPrincipalActual").textContent = principalFila[semanaActual] || "-";
   document.getElementById("campanaSegundaActual").textContent = segundaFila[semanaActual] || "-";
@@ -94,4 +81,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-//upd 10-07 v2.9.2 con logs
+//upd 10-07 v2.9.3 con logs
