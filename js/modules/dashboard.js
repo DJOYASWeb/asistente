@@ -49,6 +49,20 @@ console.table(filas);
   document.getElementById("campanaPrincipalActual").textContent = principalFila[semanaActual] || "-";
   document.getElementById("campanaSegundaActual").textContent = segundaFila[semanaActual] || "-";
   document.getElementById("campanaTerceraActual").textContent = terceraFila[semanaActual] || "-";
+  console.log("📊 Datos para la semana actual:", semanaActual);
+  console.log("Meses fila:", mesesFila);
+  console.log("Semanas fila:", semanasFila);
+  console.log("Principal fila:", principalFila);
+  console.log("Segunda fila:", segundaFila);
+  console.log("Tercera fila:", terceraFila);
+  console.log("Valor principal actual:", principalFila[semanaActual]);
+  console.log("Valor segunda actual:", segundaFila[semanaActual]);
+  console.log("Valor tercera actual:", terceraFila[semanaActual]);
+
+
+
+
+
 
   // ✅ Mostramos campañas próximas
   document.getElementById("campanaPrincipalProxima").textContent = principalFila[semanaActual + 1] || "-";
