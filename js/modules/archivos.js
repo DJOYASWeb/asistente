@@ -22,6 +22,9 @@ workbook.SheetNames.forEach(name => {
   // Convertir hoja a matriz 2D básica
   const sheet = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false });
 
+  // Limitar a las primeras 6 filas
+  const limitedSheet = sheet.slice(0, 6);
+
   // Procesar las celdas combinadas
   if (ws["!merges"]) {
     ws["!merges"].forEach(merge => {
@@ -30,18 +33,20 @@ workbook.SheetNames.forEach(name => {
 
       for (let R = merge.s.r; R <= merge.e.r; ++R) {
         for (let C = merge.s.c; C <= merge.e.c; ++C) {
-          if (typeof sheet[R] === "undefined") sheet[R] = [];
-          if (!sheet[R][C]) {
-            sheet[R][C] = value;
+          // Solo rellenar si está dentro de las filas que nos interesan
+          if (R < 6) {
+            if (typeof limitedSheet[R] === "undefined") limitedSheet[R] = [];
+            if (!limitedSheet[R][C]) {
+              limitedSheet[R][C] = value;
+            }
           }
         }
       }
     });
   }
 
-  sheets[name] = sheet;
+  sheets[name] = limitedSheet;
 });
-
 
         const now = new Date();
         const nowStr = now.toLocaleString();
