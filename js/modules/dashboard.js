@@ -82,4 +82,16 @@ async function cargarCampañasDesdeFirebase() {
   document.getElementById("semanasFaltan").textContent = semanasFaltan;
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  cargarCampañasDesdeFirebase();
+});
+
+
+
+
+
+
+
+
+
 //upd 10-07 v2.9.1 con logs
