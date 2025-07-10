@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const inputArchivo = document.getElementById("archivoDashboard");
   const infoArchivo = document.getElementById("infoArchivo");
+  const tablaPreview = document.getElementById("tablaPreview"); // 👈 un div donde poner la tabla
 
   if (inputArchivo) {
     inputArchivo.addEventListener("change", (e) => {
@@ -17,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const sheets = {};
         workbook.SheetNames.forEach(name => {
           const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1 });
-          sheets[name] = sheet;  // 👈 aquí no JSON todavía
+          sheets[name] = sheet;
         });
 
         const now = new Date();
@@ -26,12 +27,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const archivo = {
           nombre: file.name,
           fecha: firebase.firestore.Timestamp.fromDate(now),
-          data: JSON.stringify(sheets)  // ✅ Guardamos string JSON
+          data: JSON.stringify(sheets)
         };
 
         db.collection("dashboard_archivos").add(archivo)
           .then(() => {
             mostrarInfoArchivo({ nombre: archivo.nombre, fecha: nowStr });
+            mostrarTabla(sheets); // 👈 muestra tabla recién subida
             console.log("Archivo guardado en Firestore");
           })
           .catch(err => {
@@ -51,6 +53,9 @@ document.addEventListener("DOMContentLoaded", () => {
           const doc = snapshot.docs[0].data();
           const fecha = doc.fecha.toDate().toLocaleString();
           mostrarInfoArchivo({ nombre: doc.nombre, fecha });
+
+          const sheets = JSON.parse(doc.data); // 👈 parsea el JSON
+          mostrarTabla(sheets); // 👈 muestra tabla
         }
       })
       .catch(err => {
@@ -65,7 +70,27 @@ document.addEventListener("DOMContentLoaded", () => {
       <p>El dashboard ya está usando esta información.</p>
     `;
   }
+
+  function mostrarTabla(sheets) {
+    if (!tablaPreview) return;
+
+    const primeraHoja = Object.keys(sheets)[0];
+    const datos = sheets[primeraHoja];
+
+    let html = `<h4>Vista previa: ${primeraHoja}</h4><table border="1"><tbody>`;
+    datos.forEach((fila, i) => {
+      html += "<tr>";
+      fila.forEach(celda => {
+        html += i === 0
+          ? `<th>${celda}</th>`
+          : `<td>${celda}</td>`;
+      });
+      html += "</tr>";
+    });
+    html += "</tbody></table>";
+
+    tablaPreview.innerHTML = html;
+  }
 });
 
-
-//upd 09-07 v1.6
+//upd 09-07 v1.7
