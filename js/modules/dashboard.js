@@ -13,7 +13,7 @@ async function cargarCampañasDesdeFirebase() {
   const hoja = sheets[Object.keys(sheets)[0]];  // asumimos la primera hoja
 
   const filas = hoja.slice(0, 6);  // solo las primeras 6 filas
-
+console.table(filas);
   const mesesFila = filas[0];
   const semanasFila = filas[1];
   const principalFila = filas[2];
@@ -68,4 +68,4 @@ async function cargarCampañasDesdeFirebase() {
 }
 
 
-//upd 09-07 v2.8
+//upd 10-07 v2.9
