@@ -124,4 +124,4 @@ function mostrarTabla(sheets) {
 
 });
 
-//upd 10-07 v2.1
+//upd 10-07 v2.2
