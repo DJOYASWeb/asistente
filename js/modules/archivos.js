@@ -122,4 +122,6 @@ function mostrarTabla(sheets) {
   tablaPreview.innerHTML = html;
 }
 
+});
+
 //upd 10-07 v2.1

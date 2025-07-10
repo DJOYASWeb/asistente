@@ -960,3 +960,30 @@ width: 80px;
   background: rgba(0,0,0,0.2);
   border-radius: 3px;
 }
+
+.ios-card {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.scroll-x {
+  overflow-x: auto;
+}
+
+.scroll-x table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.scroll-x::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scroll-x::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
