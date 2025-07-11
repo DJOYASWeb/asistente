@@ -64,25 +64,33 @@ async function cargarCampañasDesdeFirebase() {
   document.getElementById("semanasFaltan").textContent = semanasFaltan;
 }
 
-async function cargarBlogsDeLaSemanaActual() {
+async function cargarBlogsSemanaActual() {
   const db = firebase.firestore();
+
   const blogsSemana = document.getElementById("blogsSemana");
   blogsSemana.innerHTML = "";
 
   const hoy = new Date();
-  const anio = hoy.getFullYear();
 
-  const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes
-  const diffLunes = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+  // 📅 Calcular lunes y domingo de la semana actual
+  const diaSemana = hoy.getDay(); // 0=Domingo, 1=Lunes...
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
+  const domingo = new Date(lunes);
+  domingo.setDate(lunes.getDate() + 6);
 
-  const inicioSemana = new Date(anio, hoy.getMonth(), diffLunes, 0, 0, 0);
-  const finSemana = new Date(anio, hoy.getMonth(), diffLunes + 6, 23, 59, 59);
+  // 🔢 Formatear en YYYY-MM-DD
+  const formato = (fecha) =>
+    fecha.toISOString().split("T")[0];
 
-  console.log("📆 Semana actual:", inicioSemana.toLocaleDateString(), "→", finSemana.toLocaleDateString());
+  const inicioStr = formato(lunes);
+  const finStr = formato(domingo);
+
+  console.log(`🔍 Buscando blogs entre ${inicioStr} y ${finStr}`);
 
   const snapshot = await db.collection("blogs")
-    .where("fecha", ">=", firebase.firestore.Timestamp.fromDate(inicioSemana))
-    .where("fecha", "<=", firebase.firestore.Timestamp.fromDate(finSemana))
+    .where("fecha", ">=", inicioStr)
+    .where("fecha", "<=", finStr)
     .orderBy("fecha")
     .get();
 
@@ -99,6 +107,7 @@ async function cargarBlogsDeLaSemanaActual() {
     blogsSemana.appendChild(li);
   });
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   cargarCampañasDesdeFirebase();
