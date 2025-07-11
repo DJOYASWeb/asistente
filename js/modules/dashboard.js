@@ -108,11 +108,49 @@ snapshot.forEach(doc => {
 });
 }
 
+async function cargarInspiraDeLaSemana() {
+  const db = firebase.firestore();
+
+  const inspiraSemana = document.getElementById("inspiraSemana");
+  inspiraSemana.innerHTML = "";
+
+  // Calculamos lunes y domingo de esta semana
+  const hoy = new Date();
+  const diaSemana = hoy.getDay(); // 0 = domingo, 1 = lunes
+  const difLunes = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+  const lunes = new Date(hoy.getFullYear(), hoy.getMonth(), difLunes, 0, 0, 0);
+  const domingo = new Date(hoy.getFullYear(), hoy.getMonth(), difLunes + 6, 23, 59, 59);
+
+  const inicioTimestamp = firebase.firestore.Timestamp.fromDate(lunes);
+  const finTimestamp = firebase.firestore.Timestamp.fromDate(domingo);
+
+  const snapshot = await db.collection("inspira")
+    .where("fecha", ">=", inicioTimestamp)
+    .where("fecha", "<=", finTimestamp)
+    .orderBy("fecha")
+    .get();
+
+  if (snapshot.empty) {
+    inspiraSemana.innerHTML = "<li class='list-group-item text-muted'>No hay contenido Inspira esta semana</li>";
+    return;
+  }
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const li = document.createElement("li");
+    li.className = "list-group-item";
+    li.textContent = `${doc.id} - ${data.titulo || "(Sin título)"}`;
+    inspiraSemana.appendChild(li);
+  });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   cargarCampañasDesdeFirebase();
   cargarBlogsSemanaActual();
+  cargarInspiraDeLaSemana();
 });
 
 
-//upd 11-07 v2.9.9
+
+
+//upd 11-07 v3
