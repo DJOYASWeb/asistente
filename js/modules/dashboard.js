@@ -114,35 +114,43 @@ async function cargarInspiraDeLaSemana() {
   const inspiraSemana = document.getElementById("inspiraSemana");
   inspiraSemana.innerHTML = "";
 
-  // Calculamos lunes y domingo de esta semana
   const hoy = new Date();
-  const diaSemana = hoy.getDay(); // 0 = domingo, 1 = lunes
-  const difLunes = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
-  const lunes = new Date(hoy.getFullYear(), hoy.getMonth(), difLunes, 0, 0, 0);
-  const domingo = new Date(hoy.getFullYear(), hoy.getMonth(), difLunes + 6, 23, 59, 59);
 
-  const inicioTimestamp = firebase.firestore.Timestamp.fromDate(lunes);
-  const finTimestamp = firebase.firestore.Timestamp.fromDate(domingo);
+  const primerDiaSemana = new Date(hoy);
+  primerDiaSemana.setDate(hoy.getDate() - hoy.getDay() + 1); // Lunes
+  primerDiaSemana.setHours(0, 0, 0, 0);
 
-  const snapshot = await db.collection("inspira")
-    .where("fecha", ">=", inicioTimestamp)
-    .where("fecha", "<=", finTimestamp)
-    .orderBy("fecha")
-    .get();
+  const ultimoDiaSemana = new Date(primerDiaSemana);
+  ultimoDiaSemana.setDate(primerDiaSemana.getDate() + 6); // Domingo
+  ultimoDiaSemana.setHours(23, 59, 59, 999);
 
-  if (snapshot.empty) {
-    inspiraSemana.innerHTML = "<li class='list-group-item text-muted'>No hay contenido Inspira esta semana</li>";
-    return;
-  }
+  const fechaInicioStr = primerDiaSemana.toISOString().slice(0, 10);
+  const fechaFinStr = ultimoDiaSemana.toISOString().slice(0, 10);
+
+  console.log(`Buscando contenido inspira entre ${fechaInicioStr} y ${fechaFinStr}`);
+
+  const snapshot = await db.collection("inspira").get();
+
+  let encontrado = false;
 
   snapshot.forEach(doc => {
     const data = doc.data();
-    const li = document.createElement("li");
-    li.className = "list-group-item";
-    li.textContent = `${doc.id} - ${data.titulo || "(Sin título)"}`;
-    inspiraSemana.appendChild(li);
+    const fechaStr = data.fecha; // ya en "YYYY-MM-DD"
+    if (fechaStr >= fechaInicioStr && fechaStr <= fechaFinStr) {
+      const li = document.createElement("li");
+      li.className = "list-group-item";
+      li.textContent = `${data.id} - ${data.titulo || "(Sin título)"}`;
+      inspiraSemana.appendChild(li);
+      encontrado = true;
+    }
   });
+
+  if (!encontrado) {
+    inspiraSemana.innerHTML = `<li class="list-group-item text-muted">No hay contenido esta semana</li>`;
+  }
 }
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
   cargarCampañasDesdeFirebase();
@@ -153,4 +161,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-//upd 11-07 v3
+//upd 11-07 v3.1
