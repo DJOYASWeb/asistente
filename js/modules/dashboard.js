@@ -103,7 +103,7 @@ snapshot.forEach(doc => {
   const data = doc.data();
   const li = document.createElement("li");
   li.className = "list-group-item";
-  li.textContent = `${doc.id} - ${data.titulo || "(Sin título)"}`;
+  li.textContent = `${doc.id} - ${data.nombre || "(Sin título)"}`;
   blogsSemana.appendChild(li);
 });
 }
@@ -115,4 +115,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//upd 11-07 v2.9.8
+//upd 11-07 v2.9.9
