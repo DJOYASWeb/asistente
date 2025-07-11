@@ -9,16 +9,17 @@ async function cargarCampañasDesdeFirebase() {
 
   const archivo = snapshot.docs[0].data();
 
-  const sheets = JSON.parse(archivo.data);  // ✅ aquí parseamos
-  const hoja = sheets[Object.keys(sheets)[0]];  // asumimos la primera hoja
+  const sheets = JSON.parse(archivo.data);
+  const hoja = sheets[Object.keys(sheets)[0]];
 
-  const filas = hoja.slice(0, 6);  // solo las primeras 6 filas
+  const filas = hoja.slice(0, 6);
+  console.table(filas);
+
   const mesesFila = filas[0];
   const semanasFila = filas[1];
   const principalFila = filas[2];
   const segundaFila = filas[3];
   const terceraFila = filas[4];
-  const activacionFila = filas[5];
 
   const hoy = new Date();
   const mesActual = hoy.toLocaleString("es-CL", { month: "long" }).toUpperCase();
@@ -26,7 +27,6 @@ async function cargarCampañasDesdeFirebase() {
 
   let semanaActual = -1;
 
-  // 👇 recorremos desde columna 2 (índice 2)
   for (let i = 2; i < semanasFila.length; i++) {
     const mesCelda = mesesFila[i] || mesesFila[i - 1];
     const semanaStr = semanasFila[i];
@@ -45,17 +45,14 @@ async function cargarCampañasDesdeFirebase() {
     return;
   }
 
-  // ✅ Mostramos campañas activas
   document.getElementById("campanaPrincipalActual").textContent = principalFila[semanaActual] || "-";
   document.getElementById("campanaSegundaActual").textContent = segundaFila[semanaActual] || "-";
   document.getElementById("campanaTerceraActual").textContent = terceraFila[semanaActual] || "-";
 
-  // ✅ Mostramos campañas próximas
   document.getElementById("campanaPrincipalProxima").textContent = principalFila[semanaActual + 1] || "-";
   document.getElementById("campanaSegundaProxima").textContent = segundaFila[semanaActual + 1] || "-";
   document.getElementById("campanaTerceraProxima").textContent = terceraFila[semanaActual + 1] || "-";
 
-  // ✅ Semanas hasta próxima principal distinta
   let semanasFaltan = 0;
   for (let i = semanaActual + 1; i < principalFila.length; i++) {
     if (principalFila[i] && principalFila[i] !== principalFila[semanaActual]) {
@@ -65,45 +62,27 @@ async function cargarCampañasDesdeFirebase() {
   }
 
   document.getElementById("semanasFaltan").textContent = semanasFaltan;
-  cargarBlogsDeLaSemana(semanaActual, semanasFila, mesesFila);
 }
 
-
-async function cargarBlogsDeLaSemana(semanaActual, semanasFila, mesesFila) {
+async function cargarBlogsDeLaSemanaActual() {
   const db = firebase.firestore();
-
   const blogsSemana = document.getElementById("blogsSemana");
   blogsSemana.innerHTML = "";
 
-  // Obtenemos el rango de la semana en texto
-  const semanaStr = semanasFila[semanaActual];
-  const mesStr = mesesFila[semanaActual] || mesesFila[semanaActual - 1];
-  if (!semanaStr || !mesStr) {
-    blogsSemana.innerHTML = "<li class='list-group-item text-muted'>No hay rango definido</li>";
-    return;
-  }
+  const hoy = new Date();
+  const anio = hoy.getFullYear();
 
-  const [inicioDia, finDia] = semanaStr.split("-").map(n => parseInt(n));
-  const mesActual = (new Date()).getFullYear(); // para incluir año actual
+  const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes
+  const diffLunes = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
 
-  const meses = {
-    "ENERO": 0, "FEBRERO": 1, "MARZO": 2, "ABRIL": 3,
-    "MAYO": 4, "JUNIO": 5, "JULIO": 6, "AGOSTO": 7,
-    "SEPTIEMBRE": 8, "OCTUBRE": 9, "NOVIEMBRE": 10, "DICIEMBRE": 11
-  };
+  const inicioSemana = new Date(anio, hoy.getMonth(), diffLunes, 0, 0, 0);
+  const finSemana = new Date(anio, hoy.getMonth(), diffLunes + 6, 23, 59, 59);
 
-  const mesIndex = meses[mesStr.trim().toUpperCase()];
-  if (mesIndex === undefined) {
-    blogsSemana.innerHTML = "<li class='list-group-item text-muted'>Mes no válido</li>";
-    return;
-  }
-
-  const inicioFecha = new Date(mesActual, mesIndex, inicioDia, 0, 0, 0);
-  const finFecha = new Date(mesActual, mesIndex, finDia, 23, 59, 59);
+  console.log("📆 Semana actual:", inicioSemana.toLocaleDateString(), "→", finSemana.toLocaleDateString());
 
   const snapshot = await db.collection("blogs")
-    .where("fecha", ">=", firebase.firestore.Timestamp.fromDate(inicioFecha))
-    .where("fecha", "<=", firebase.firestore.Timestamp.fromDate(finFecha))
+    .where("fecha", ">=", firebase.firestore.Timestamp.fromDate(inicioSemana))
+    .where("fecha", "<=", firebase.firestore.Timestamp.fromDate(finSemana))
     .orderBy("fecha")
     .get();
 
@@ -121,20 +100,10 @@ async function cargarBlogsDeLaSemana(semanaActual, semanasFila, mesesFila) {
   });
 }
 
-
-
-
-
 document.addEventListener("DOMContentLoaded", () => {
   cargarCampañasDesdeFirebase();
+  cargarBlogsDeLaSemanaActual();
 });
 
 
-
-
-
-
-
-
-
-//upd 11-07 v2.9.4 con logs
+//upd 11-07 v2.9.5
