@@ -111,8 +111,8 @@ async function cargarBlogsSemanaActual() {
 
 document.addEventListener("DOMContentLoaded", () => {
   cargarCampañasDesdeFirebase();
-  cargarBlogsDeLaSemanaActual();
+  cargarBlogsSemanaActual();
 });
 
 
-//upd 11-07 v2.9.6
+//upd 11-07 v2.9.7
