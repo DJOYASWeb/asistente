@@ -115,4 +115,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//upd 11-07 v2.9.5
+//upd 11-07 v2.9.6
