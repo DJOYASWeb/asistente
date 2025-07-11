@@ -67,7 +67,65 @@ async function cargarCampañasDesdeFirebase() {
   }
 
   document.getElementById("semanasFaltan").textContent = semanasFaltan;
+  cargarBlogsDeLaSemana(semanaActual, semanasFila, mesesFila);
 }
+
+
+async function cargarBlogsDeLaSemana(semanaActual, semanasFila, mesesFila) {
+  const db = firebase.firestore();
+
+  const blogsSemana = document.getElementById("blogsSemana");
+  blogsSemana.innerHTML = "";
+
+  // Obtenemos el rango de la semana en texto
+  const semanaStr = semanasFila[semanaActual];
+  const mesStr = mesesFila[semanaActual] || mesesFila[semanaActual - 1];
+  if (!semanaStr || !mesStr) {
+    blogsSemana.innerHTML = "<li class='list-group-item text-muted'>No hay rango definido</li>";
+    return;
+  }
+
+  const [inicioDia, finDia] = semanaStr.split("-").map(n => parseInt(n));
+  const mesActual = (new Date()).getFullYear(); // para incluir año actual
+
+  const meses = {
+    "ENERO": 0, "FEBRERO": 1, "MARZO": 2, "ABRIL": 3,
+    "MAYO": 4, "JUNIO": 5, "JULIO": 6, "AGOSTO": 7,
+    "SEPTIEMBRE": 8, "OCTUBRE": 9, "NOVIEMBRE": 10, "DICIEMBRE": 11
+  };
+
+  const mesIndex = meses[mesStr.trim().toUpperCase()];
+  if (mesIndex === undefined) {
+    blogsSemana.innerHTML = "<li class='list-group-item text-muted'>Mes no válido</li>";
+    return;
+  }
+
+  const inicioFecha = new Date(mesActual, mesIndex, inicioDia, 0, 0, 0);
+  const finFecha = new Date(mesActual, mesIndex, finDia, 23, 59, 59);
+
+  const snapshot = await db.collection("blogs")
+    .where("fecha", ">=", firebase.firestore.Timestamp.fromDate(inicioFecha))
+    .where("fecha", "<=", firebase.firestore.Timestamp.fromDate(finFecha))
+    .orderBy("fecha")
+    .get();
+
+  if (snapshot.empty) {
+    blogsSemana.innerHTML = "<li class='list-group-item text-muted'>No hay blogs esta semana</li>";
+    return;
+  }
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const li = document.createElement("li");
+    li.className = "list-group-item";
+    li.textContent = data.titulo || "(Sin título)";
+    blogsSemana.appendChild(li);
+  });
+}
+
+
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
   cargarCampañasDesdeFirebase();
@@ -81,4 +139,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-//upd 10-07 v2.9.3 con logs
+//upd 11-07 v2.9.4 con logs
