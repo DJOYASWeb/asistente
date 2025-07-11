@@ -988,8 +988,15 @@ width: 80px;
   border-radius: 3px;
 }
 
-#campanaPrincipalProxima {
+#campanaPrincipalProxima, #campanaSegundaProxima, #campanaTerceraProxima {
     background: #ededed;
+    padding: 0.5rem 1rem;
+    border-radius: 7px;
+    margin: 0.5rem 0;
+}
+
+#campanaPrincipalActual, #campanaSegundaActual, #campanaTerceraActual {
+    background: #def3db;
     padding: 0.5rem 1rem;
     border-radius: 7px;
     margin: 0.5rem 0;
