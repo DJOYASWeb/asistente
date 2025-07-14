@@ -135,7 +135,30 @@ function inyectarClasesCSS() {
   styleTag.innerHTML = css;
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const textarea = document.getElementById("html-editor");
+  const btnRenderizar = document.getElementById("btn-renderizar");
+  const modal = document.getElementById("modal-preview");
+  const modalContenido = document.getElementById("modal-contenido");
+  const btnCerrarModal = document.getElementById("btn-cerrar-modal");
+
+  btnRenderizar.addEventListener("click", () => {
+    const html = textarea.value.trim();
+    if (!html) {
+      alert("⚠️ Por favor ingresa contenido HTML.");
+      return;
+    }
+
+    modalContenido.innerHTML = html;
+    modal.style.display = "flex";
+  });
+
+  btnCerrarModal.addEventListener("click", () => {
+    modal.style.display = "none";
+    modalContenido.innerHTML = "";
+  });
+});
 
 
 
-//upd v1
+//upd v1.1
