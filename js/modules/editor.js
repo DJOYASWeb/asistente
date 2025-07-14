@@ -68,75 +68,99 @@ function inyectarClasesCSS() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const btnGuardarSeccion = document.getElementById("guardarSeccionBtn");
-  const nombreSeccion = document.getElementById("nombreSeccion");
-  const htmlSeccion = document.getElementById("htmlSeccion");
-  const listaSecciones = document.getElementById("listaSecciones");
+  const nombreBloque = document.getElementById("nombreBloque");
+  const contenidoBloque = document.getElementById("contenidoBloque");
+  const guardarBloqueBtn = document.getElementById("guardarBloqueBtn");
+  const listaBloques = document.getElementById("listaBloques");
+  const selectorBloques = document.getElementById("selectorBloques");
 
-  if (!btnGuardarSeccion) return; // por si no estás en la pestaña
+  // Inicializar
+  renderizarBloques();
+  poblarSelectorConstructor();
 
-  // Al guardar
-  btnGuardarSeccion.addEventListener("click", () => {
-    const nombre = nombreSeccion.value.trim();
-    const html = htmlSeccion.value.trim();
+  guardarBloqueBtn.addEventListener("click", () => {
+    const nombre = nombreBloque.value.trim();
+    const html = contenidoBloque.value.trim();
 
     if (!nombre || !html) {
       alert("Por favor completa ambos campos.");
       return;
     }
 
-    const secciones = JSON.parse(localStorage.getItem("seccionesPersonalizadas")) || [];
-    const existenteIndex = secciones.findIndex(s => s.nombre === nombre);
+    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
+    const existenteIndex = bloques.findIndex(b => b.nombre === nombre);
 
     if (existenteIndex >= 0) {
-      secciones[existenteIndex].html = html;
+      bloques[existenteIndex].html = html;
     } else {
-      secciones.push({ nombre, html });
+      bloques.push({ nombre, html });
     }
 
-    localStorage.setItem("seccionesPersonalizadas", JSON.stringify(secciones));
-    nombreSeccion.value = "";
-    htmlSeccion.value = "";
-    renderizarSecciones();
+    localStorage.setItem("bloques", JSON.stringify(bloques));
+    nombreBloque.value = "";
+    contenidoBloque.value = "";
+    renderizarBloques();
+    poblarSelectorConstructor();
   });
 
-  // Renderizar en lista
-  function renderizarSecciones() {
-    listaSecciones.innerHTML = "";
-    const secciones = JSON.parse(localStorage.getItem("seccionesPersonalizadas")) || [];
-
-    secciones.forEach((seccion, i) => {
+  function renderizarBloques() {
+    listaBloques.innerHTML = "";
+    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
+    bloques.forEach((bloque, i) => {
       const li = document.createElement("li");
-      li.className = "list-group-item";
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
       li.innerHTML = `
-        <span>${seccion.nombre}</span>
-        <div class="acciones-seccion">
-          <button class="btn btn-sm btn-warning" onclick="editarSeccion(${i})">✏️ Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="eliminarSeccion(${i})">🗑️ Eliminar</button>
+        <span>${bloque.nombre}</span>
+        <div>
+          <button class="btn btn-sm btn-warning" onclick="editarBloque(${i})">✏️ Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️ Eliminar</button>
         </div>
       `;
-      listaSecciones.appendChild(li);
+      listaBloques.appendChild(li);
     });
   }
 
-  window.editarSeccion = (index) => {
-    const secciones = JSON.parse(localStorage.getItem("seccionesPersonalizadas")) || [];
-    const seccion = secciones[index];
-    nombreSeccion.value = seccion.nombre;
-    htmlSeccion.value = seccion.html;
+  window.editarBloque = (index) => {
+    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
+    const bloque = bloques[index];
+    nombreBloque.value = bloque.nombre;
+    contenidoBloque.value = bloque.html;
   };
 
-  window.eliminarSeccion = (index) => {
-    const secciones = JSON.parse(localStorage.getItem("seccionesPersonalizadas")) || [];
-    if (!confirm(`¿Eliminar la sección "${secciones[index].nombre}"?`)) return;
-
-    secciones.splice(index, 1);
-    localStorage.setItem("seccionesPersonalizadas", JSON.stringify(secciones));
-    renderizarSecciones();
+  window.eliminarBloque = (index) => {
+    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
+    if (!confirm(`¿Eliminar el bloque "${bloques[index].nombre}"?`)) return;
+    bloques.splice(index, 1);
+    localStorage.setItem("bloques", JSON.stringify(bloques));
+    renderizarBloques();
+    poblarSelectorConstructor();
   };
 
-  renderizarSecciones();
+  function poblarSelectorConstructor() {
+    if (!selectorBloques) return;
+    selectorBloques.innerHTML = `<option value="">-- Selecciona un bloque --</option>`;
+    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
+    bloques.forEach((bloque, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = bloque.nombre;
+      selectorBloques.appendChild(opt);
+    });
+  }
+
+  if (selectorBloques) {
+    selectorBloques.addEventListener("change", () => {
+      const index = selectorBloques.value;
+      if (index === "") return;
+      const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
+      const bloque = bloques[index];
+      const textarea = document.getElementById("htmlInput");
+      const vistaPrevia = document.getElementById("vistaPrevia");
+      textarea.value += `\n${bloque.html}`;
+      vistaPrevia.innerHTML = textarea.value;
+    });
+  }
 });
 
 
-//upd v1.6
+//upd v1.7
