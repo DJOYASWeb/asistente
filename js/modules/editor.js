@@ -36,13 +36,14 @@ function inicializarConstructor() {
     selectorBloques.appendChild(opt);
   });
 
-  selectorBloques.addEventListener("change", () => {
-    const index = selectorBloques.value;
-    if (index === "") return;
-    const seccion = secciones[index];
-    textarea.value += `\n${seccion.html}`;
-    vistaPrevia.innerHTML = textarea.value;
-  });
+selectorBloques.addEventListener("change", () => {
+  const index = selectorBloques.value;
+  if (index === "") return;
+  const seccion = secciones[index];
+  const caja = crearCajaSeccion(seccion.nombre, seccion.html);
+  vistaPrevia.appendChild(caja);
+  textarea.value = vistaPrevia.innerHTML;
+});
 
   // Renderiza drag & drop
   if (dragBloques) {
@@ -63,13 +64,15 @@ function inicializarConstructor() {
 
     vistaPrevia.addEventListener("dragover", (e) => e.preventDefault());
 
-    vistaPrevia.addEventListener("drop", (e) => {
-      e.preventDefault();
-      const index = e.dataTransfer.getData("text/plain");
-      const seccion = secciones[index];
-      vistaPrevia.innerHTML += seccion.html;
-      textarea.value = vistaPrevia.innerHTML;
-    });
+
+vistaPrevia.addEventListener("drop", (e) => {
+  e.preventDefault();
+  const index = e.dataTransfer.getData("text/plain");
+  const seccion = secciones[index];
+  const caja = crearCajaSeccion(seccion.nombre, seccion.html);
+  vistaPrevia.appendChild(caja);
+  textarea.value = vistaPrevia.innerHTML;
+});
   }
 
   // Seleccionar elemento en vista previa
@@ -269,5 +272,34 @@ function eliminarBloque(index) {
 
 
 
+function crearCajaSeccion(nombre, html) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "caja-seccion border p-2 mb-2 position-relative";
+  wrapper.setAttribute("data-seccion", nombre);
 
-//upd v2.3
+  const etiqueta = document.createElement("span");
+  etiqueta.textContent = nombre;
+  etiqueta.className = "badge bg-secondary position-absolute top-0 start-0 m-1";
+
+  const contenido = document.createElement("div");
+  contenido.innerHTML = html;
+
+  wrapper.appendChild(etiqueta);
+  wrapper.appendChild(contenido);
+
+  // permite seleccionar contenido interno
+  wrapper.addEventListener("click", (e) => {
+    e.stopPropagation(); 
+    if (elementoSeleccionado) {
+      elementoSeleccionado.style.outline = "";
+    }
+    elementoSeleccionado = wrapper;
+    elementoSeleccionado.style.outline = "2px dashed red";
+    actualizarSelectorClases();
+  });
+
+  return wrapper;
+}
+
+
+//upd v2.4
