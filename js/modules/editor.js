@@ -301,5 +301,32 @@ function crearCajaSeccion(nombre, html) {
   return wrapper;
 }
 
+function cargarBloques() {
+  const lista = document.getElementById('listaBloques');
+  lista.innerHTML = '';
+  const bloques = JSON.parse(localStorage.getItem('bloques')) || [];
 
-//upd v2.4
+  bloques.forEach((bloque, i) => {
+    const div = document.createElement('div');
+    div.className = 'bloque-draggable';
+    div.draggable = true;
+    div.dataset.index = i;
+
+    div.innerHTML = `
+      <span>${bloque.nombre}</span>
+      <div class="acciones">
+        <button class="btn btn-sm btn-warning" onclick="editarBloque(${i})">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️</button>
+      </div>
+    `;
+
+    div.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/plain", i);
+    });
+
+    lista.appendChild(div);
+  });
+}
+
+
+//upd v2.5

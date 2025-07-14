@@ -1068,3 +1068,28 @@ width: 80px;
 .caja-seccion .badge {
   font-size: 0.75rem;
 }
+
+.bloque-draggable {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  cursor: grab;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bloque-draggable:hover {
+  background-color: #e9ecef;
+}
+
+.bloque-draggable span {
+  font-weight: 500;
+}
+
+.bloque-draggable .acciones {
+  display: flex;
+  gap: 4px;
+}
