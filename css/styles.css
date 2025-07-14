@@ -1043,3 +1043,16 @@ width: 80px;
 #modal-contenido {
   margin-top: 2rem;
 }
+.formulario-bloques textarea {
+  resize: vertical;
+}
+
+.lista-bloques .list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lista-bloques .acciones-bloque button {
+  margin-left: 4px;
+}

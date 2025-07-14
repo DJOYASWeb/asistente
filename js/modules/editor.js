@@ -160,5 +160,74 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+document.addEventListener('DOMContentLoaded', () => {
+  cargarBloques();
 
-//upd v1.1
+  document.getElementById('guardarBloqueBtn').addEventListener('click', () => {
+    const nombre = document.getElementById('nombreBloque').value.trim();
+    const contenido = document.getElementById('contenidoBloque').value.trim();
+    if (!nombre || !contenido) {
+      alert('Por favor completa ambos campos.');
+      return;
+    }
+
+    const bloques = JSON.parse(localStorage.getItem('bloques')) || [];
+    const existenteIndex = bloques.findIndex(b => b.nombre === nombre);
+
+    if (existenteIndex >= 0) {
+      bloques[existenteIndex].contenido = contenido;
+    } else {
+      bloques.push({ nombre, contenido });
+    }
+
+    localStorage.setItem('bloques', JSON.stringify(bloques));
+    document.getElementById('nombreBloque').value = '';
+    document.getElementById('contenidoBloque').value = '';
+    cargarBloques();
+  });
+});
+
+function cargarBloques() {
+  const lista = document.getElementById('listaBloques');
+  lista.innerHTML = '';
+  const bloques = JSON.parse(localStorage.getItem('bloques')) || [];
+
+  bloques.forEach((bloque, i) => {
+    const li = document.createElement('li');
+    li.className = 'list-group-item';
+    li.innerHTML = `
+      <span>${bloque.nombre}</span>
+      <div class="acciones-bloque">
+        <button class="btn btn-sm btn-success" onclick="insertarBloque(${i})">➕ Insertar</button>
+        <button class="btn btn-sm btn-warning" onclick="editarBloque(${i})">✏️ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️ Eliminar</button>
+      </div>
+    `;
+    lista.appendChild(li);
+  });
+}
+
+function insertarBloque(index) {
+  const bloques = JSON.parse(localStorage.getItem('bloques')) || [];
+  const bloque = bloques[index];
+  document.getElementById('editorHTML').value = bloque.contenido;
+}
+
+function editarBloque(index) {
+  const bloques = JSON.parse(localStorage.getItem('bloques')) || [];
+  const bloque = bloques[index];
+  document.getElementById('nombreBloque').value = bloque.nombre;
+  document.getElementById('contenidoBloque').value = bloque.contenido;
+}
+
+function eliminarBloque(index) {
+  const bloques = JSON.parse(localStorage.getItem('bloques')) || [];
+  bloques.splice(index, 1);
+  localStorage.setItem('bloques', JSON.stringify(bloques));
+  cargarBloques();
+}
+
+
+
+
+//upd v1.2
