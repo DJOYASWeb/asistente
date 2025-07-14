@@ -272,6 +272,20 @@ vistaPrevia.addEventListener("drop", (e) => {
   vistaPrevia.innerHTML += seccion.html;
 });
 
+let elementoSeleccionado = null;
+
+vistaPrevia.addEventListener("click", (e) => {
+  e.preventDefault();
+  if (elementoSeleccionado) {
+    elementoSeleccionado.style.outline = ""; // limpia anterior
+  }
+  elementoSeleccionado = e.target;
+  elementoSeleccionado.style.outline = "2px dashed red";
+
+  // Actualiza select de clases
+  actualizarSelectClases();
+});
 
 
-//upd v1.9
+
+//upd v2
