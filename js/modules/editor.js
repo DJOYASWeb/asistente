@@ -245,5 +245,33 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+const dragBloques = document.getElementById("dragBloques");
+dragBloques.innerHTML = "";
+seccionesGuardadas.forEach((seccion, i) => {
+  const div = document.createElement("div");
+  div.className = "badge bg-primary text-white p-2";
+  div.draggable = true;
+  div.textContent = seccion.nombre;
+  div.dataset.index = i;
 
-//upd v1.8
+  div.addEventListener("dragstart", (e) => {
+    e.dataTransfer.setData("text/plain", i);
+  });
+
+  dragBloques.appendChild(div);
+});
+
+vistaPrevia.addEventListener("dragover", (e) => {
+  e.preventDefault();
+});
+
+vistaPrevia.addEventListener("drop", (e) => {
+  e.preventDefault();
+  const index = e.dataTransfer.getData("text/plain");
+  const seccion = seccionesGuardadas[index];
+  vistaPrevia.innerHTML += seccion.html;
+});
+
+
+
+//upd v1.9
