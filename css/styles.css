@@ -1056,3 +1056,15 @@ width: 80px;
 .lista-bloques .acciones-bloque button {
   margin-left: 4px;
 }
+
+.caja-seccion {
+  background-color: #f8f9fa;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  position: relative;
+}
+
+.caja-seccion .badge {
+  font-size: 0.75rem;
+}
