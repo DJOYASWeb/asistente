@@ -1,8 +1,39 @@
-// 📄 Lógica para gestionar las clases personalizadas
-document.addEventListener("DOMContentLoaded", () => {
-  cargarClases();
+// ===============================================
+// 📄 editor.js: Constructor visual básico + Recursos
+// ===============================================
 
-  document.getElementById("btnGuardarClase").addEventListener("click", () => {
+// ====================
+// 🖋️ Constructor Visual
+// ====================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const inputHtml = document.getElementById("inputHtml");
+  const btnRenderizar = document.getElementById("btnRenderizar");
+  const previsualizacion = document.getElementById("previsualizacion");
+
+  btnRenderizar.addEventListener("click", () => {
+    const html = inputHtml.value.trim();
+    if (!html) {
+      alert("Escribe algún código HTML para renderizar.");
+      return;
+    }
+    previsualizacion.innerHTML = html;
+  });
+
+  // Cargar las clases personalizadas al iniciar
+  cargarClases();
+});
+
+// ====================
+// 🎨 Recursos: Clases Personalizadas
+// ====================
+
+// Guardar una clase personalizada
+document.addEventListener("DOMContentLoaded", () => {
+  const btnGuardarClase = document.getElementById("btnGuardarClase");
+  if (!btnGuardarClase) return; // si no estamos en la pestaña Recursos
+
+  btnGuardarClase.addEventListener("click", () => {
     const nombre = document.getElementById("nombreClase").value.trim();
     const valores = document.getElementById("valoresCSS").value.trim();
 
@@ -23,19 +54,20 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("clasesPersonalizadas", JSON.stringify(clases));
     limpiarFormulario();
     renderizarClases();
+    inyectarClasesCSS(); // opcional: aplicar en la página
   });
 });
 
+// Obtener todas las clases desde localStorage
 function obtenerClases() {
   return JSON.parse(localStorage.getItem("clasesPersonalizadas") || "[]");
 }
 
-function cargarClases() {
-  renderizarClases();
-}
-
+// Renderizar la tabla con las clases
 function renderizarClases() {
   const tbody = document.getElementById("tablaClases");
+  if (!tbody) return;
+
   tbody.innerHTML = "";
 
   const clases = obtenerClases();
@@ -54,11 +86,19 @@ function renderizarClases() {
   });
 }
 
+// Cargar y renderizar las clases al iniciar
+function cargarClases() {
+  renderizarClases();
+  inyectarClasesCSS();
+}
+
+// Limpiar el formulario de clases
 function limpiarFormulario() {
   document.getElementById("nombreClase").value = "";
   document.getElementById("valoresCSS").value = "";
 }
 
+// Editar una clase
 function editarClase(index) {
   const clases = obtenerClases();
   const clase = clases[index];
@@ -66,6 +106,7 @@ function editarClase(index) {
   document.getElementById("valoresCSS").value = clase.valores;
 }
 
+// Eliminar una clase
 function eliminarClase(index) {
   const clases = obtenerClases();
   if (!confirm(`¿Eliminar la clase "${clases[index].nombre}"?`)) return;
@@ -73,4 +114,25 @@ function eliminarClase(index) {
   clases.splice(index, 1);
   localStorage.setItem("clasesPersonalizadas", JSON.stringify(clases));
   renderizarClases();
+  inyectarClasesCSS();
 }
+
+// ====================
+// 🧩 Inyectar clases como <style>
+// ====================
+
+function inyectarClasesCSS() {
+  let styleTag = document.getElementById("clasesPersonalizadasStyle");
+  if (!styleTag) {
+    styleTag = document.createElement("style");
+    styleTag.id = "clasesPersonalizadasStyle";
+    document.head.appendChild(styleTag);
+  }
+
+  const clases = obtenerClases();
+  const css = clases.map(c => `.${c.nombre} { ${c.valores} }`).join("\n");
+
+  styleTag.innerHTML = css;
+}
+
+//upd v1
