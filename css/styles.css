@@ -1001,3 +1001,45 @@ width: 80px;
     border-radius: 7px;
     margin: 0.5rem 0;
 }
+
+/* Modal de previsualización */
+#modal-preview {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+}
+
+#modal-preview .modal-contenido-wrapper {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90%;
+  overflow: auto;
+  width: 80%;
+  position: relative;
+}
+
+#btn-cerrar-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #333;
+}
+
+#modal-contenido {
+  margin-top: 2rem;
+}
