@@ -67,21 +67,16 @@
 
 <div class="container">
     <div class="tab-content-ios">
-<div id="constructor" class="tab-section">
-  <div class="container ios-card mb-5">
-    <h1>Constructor Visual</h1>
-
-    <label for="textarea-html">Escribe tu HTML aquí:</label>
-    <textarea id="textarea-html" rows="10" class="form-control mb-3" placeholder="Escribe o pega tu HTML…"></textarea>
-
-    <button id="btnRenderizar" class="btn btn-primary mb-4">Renderizar</button>
-
-    <h2>Previsualización:</h2>
-    <div id="contenedor-preview" class="p-3 border rounded" style="min-height:200px; background:#f9f9f9;">
-      <!-- Aquí se mostrará tu diseño -->
-    </div>
+<div class="tab-section" id="constructor">
+  <div class="container">
+    <h1>🖋️ Constructor Visual</h1>
+    <textarea id="inputHtml" rows="10" class="form-control" placeholder="Escribe tu código HTML aquí…"></textarea>
+    <button id="btnRenderizar" class="btn btn-primary mt-2">Renderizar</button>
+    <h2 class="mt-4">Vista previa:</h2>
+    <div id="previsualizacion" class="mt-3 border p-3" style="min-height: 200px;"></div>
   </div>
 </div>
+
 
 
 <div id="recursos" class="tab-section d-none">
