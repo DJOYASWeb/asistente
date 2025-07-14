@@ -162,5 +162,88 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const nombreClase = document.getElementById("nombreClase");
+  const valoresClase = document.getElementById("valoresClase");
+  const guardarClaseBtn = document.getElementById("guardarClaseBtn");
+  const listaClases = document.getElementById("listaClases");
 
-//upd v1.7
+  renderizarClases();
+  inyectarClasesCSS();
+
+  guardarClaseBtn.addEventListener("click", () => {
+    const nombre = nombreClase.value.trim();
+    const valores = valoresClase.value.trim();
+
+    if (!nombre || !valores) {
+      alert("Por favor completa ambos campos.");
+      return;
+    }
+
+    const clases = JSON.parse(localStorage.getItem("clases")) || [];
+    const indexExistente = clases.findIndex(c => c.nombre === nombre);
+
+    if (indexExistente >= 0) {
+      clases[indexExistente].valores = valores;
+    } else {
+      clases.push({ nombre, valores });
+    }
+
+    localStorage.setItem("clases", JSON.stringify(clases));
+    nombreClase.value = "";
+    valoresClase.value = "";
+    renderizarClases();
+    inyectarClasesCSS();
+  });
+
+  function renderizarClases() {
+    listaClases.innerHTML = "";
+    const clases = JSON.parse(localStorage.getItem("clases")) || [];
+
+    clases.forEach((clase, i) => {
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.innerHTML = `
+        <span>${clase.nombre}: ${clase.valores}</span>
+        <div>
+          <button class="btn btn-sm btn-warning" onclick="editarClase(${i})">✏️ Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarClase(${i})">🗑️ Eliminar</button>
+        </div>
+      `;
+      listaClases.appendChild(li);
+    });
+  }
+
+  window.editarClase = (index) => {
+    const clases = JSON.parse(localStorage.getItem("clases")) || [];
+    const clase = clases[index];
+    nombreClase.value = clase.nombre;
+    valoresClase.value = clase.valores;
+  };
+
+  window.eliminarClase = (index) => {
+    const clases = JSON.parse(localStorage.getItem("clases")) || [];
+    if (!confirm(`¿Eliminar la clase "${clases[index].nombre}"?`)) return;
+    clases.splice(index, 1);
+    localStorage.setItem("clases", JSON.stringify(clases));
+    renderizarClases();
+    inyectarClasesCSS();
+  };
+
+  function inyectarClasesCSS() {
+    let styleTag = document.getElementById("clasesPersonalizadasStyle");
+    if (!styleTag) {
+      styleTag = document.createElement("style");
+      styleTag.id = "clasesPersonalizadasStyle";
+      document.head.appendChild(styleTag);
+    }
+
+    const clases = JSON.parse(localStorage.getItem("clases")) || [];
+    const css = clases.map(c => `.${c.nombre} { ${c.valores} }`).join("\n");
+    styleTag.innerHTML = css;
+  }
+});
+
+
+
+//upd v1.8
