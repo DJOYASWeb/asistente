@@ -1,0 +1,65 @@
+📄 Prompt para continuar proyecto: Constructor web con clases personalizadas en español
+Estoy desarrollando una plataforma web interna para mi empresa, que nos permita optimizar el desarrollo de páginas web HTML.
+Actualmente hacemos todas las páginas desde cero y es muy tedioso escribir siempre las mismas clases CSS a mano.
+Por eso quiero crear un sistema similar a Elementor (un page builder visual para WordPress) pero mucho más sencillo y adaptado a nuestras necesidades: en español y con nuestras propias clases personalizadas.
+
+🎯 Objetivo
+Desarrollar un constructor visual básico dentro de mi plataforma web que me permita:
+
+Crear páginas web en HTML más rápido.
+
+Usar un sistema propio de clases CSS, en español, predefinidas y coherentes (inspirado en Bootstrap, pero personalizado).
+
+Previsualizar en tiempo real cómo quedará el diseño al aplicar las clases.
+
+🔷 Estado actual
+✅ La plataforma web ya está armada, con HTML, Bootstrap y Font Awesome.
+✅ Tiene una barra lateral (sidebar), barra superior (topbar) y contenido principal.
+✅ En el contenido principal tengo una pestaña llamada Constructor, donde quiero que funcione el editor visual.
+✅ Cuento con un archivo vacío llamado editor.js, que es donde quiero implementar la lógica del constructor.
+✅ Las clases CSS propias todavía no están definidas del todo, pero ya tengo Bootstrap cargado por ahora.
+✅ La idea es que el usuario pueda escribir o seleccionar bloques HTML y verlos renderizados inmediatamente dentro de la pestaña Constructor.
+
+🧰 Archivos clave
+creative.html: mi página principal con la pestaña Constructor ya definida.
+
+js/modules/editor.js: vacío actualmente; ahí quiero implementar el constructor.
+
+Carga de Bootstrap 5.3 y Font Awesome.
+
+miframework.css: archivo futuro donde definiré mis clases personalizadas en español.
+
+🗺️ Próximos pasos
+1️⃣ Crear en editor.js una versión mínima y funcional del constructor:
+
+Un textarea donde pueda escribir HTML y un botón para renderizarlo en la misma pestaña.
+
+Un contenedor donde se muestre la previsualización en vivo del HTML que escribo, aplicando las clases CSS ya cargadas.
+
+2️⃣ Luego mejorar paso a paso:
+
+Posibilidad de seleccionar componentes predefinidos.
+
+Aplicar clases desde un panel.
+
+Editar propiedades de los elementos seleccionados.
+
+Arrastrar y soltar.
+
+📝 Lenguaje y convenciones
+Todo en español: las clases CSS están en español (boton-principal, fondo-advertencia, etc.).
+
+Código comentado y estructurado.
+
+🔷 Instrucciones para el asistente:
+No asumas que todo está listo: guía paso a paso y valida cada parte conmigo.
+
+Primero implementa lo básico: textarea + botón + preview.
+
+Después proponemos mejoras una por una.
+
+Mantén las buenas prácticas y código claro.
+
+Cuando abras este prompt en un nuevo chat, puedes empezar diciéndome:
+👉 “Ya tengo el contexto. ¿Quieres que te dé el primer bloque de código para editor.js con el textarea y la previsualización en vivo?”
+

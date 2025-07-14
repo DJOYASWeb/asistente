@@ -67,42 +67,24 @@
 
 <div class="container">
     <div class="tab-content-ios">
-          <div id="constructor" class="tab-section ">     
-<div class="bloques-barra row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 my-5">
-  <!-- Aquí se insertan dinámicamente los bloques guardados -->
+<div id="constructor" class="tab-section">
+  <div class="container ios-card mb-5">
+    <h1>Constructor Visual</h1>
+
+    <label for="textarea-html">Escribe tu HTML aquí:</label>
+    <textarea id="textarea-html" rows="10" class="form-control mb-3" placeholder="Escribe o pega tu HTML…"></textarea>
+
+    <button id="boton-renderizar" class="btn btn-primary mb-4">Renderizar</button>
+
+    <h2>Previsualización:</h2>
+    <div id="contenedor-preview" class="p-3 border rounded" style="min-height:200px; background:#f9f9f9;">
+      <!-- Aquí se mostrará tu diseño -->
+    </div>
+  </div>
 </div>
 
-
-
-      <div id="canvas" class="canvas-construccion"
-           ondragover="permitirSoltar(event)"
-           ondrop="soltarBloque(event)">
-        <p class="contenedor-canva" style="color: #888;">Arrastra bloques aquí para construir tu diseño.</p>
-      </div>
-          
-          </div>
-            
 
           <div id="recursos" class="tab-section d-none">
-  <h2>Crear nuevo bloque</h2>
-  <form id="bloqueForm" onsubmit="guardarBloquePersonalizado(event)">
-    <div class="mb-3">
-      <label for="nombreBloque" class="form-label">Nombre del bloque</label>
-      <input type="text" id="nombreBloque" class="form-control" required />
-    </div>
-    <div class="mb-3">
-      <label for="contenidoBloque" class="form-label">Contenido HTML</label>
-      <textarea id="contenidoBloque" class="form-control" rows="4" required></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Guardar bloque</button>
-  </form>
-
-  <hr />
-
-  <h3>Mis bloques guardados</h3>
-<div id="bloquesGuardados" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 my-5">
-  <!-- Aquí se insertan las tarjetas -->
-</div>
 
           </div>
     </div>
@@ -119,32 +101,6 @@
 
 
 
-<!-- Modal de edición de bloque -->
-<div class="modal fade" id="modalEditarBloque" tabindex="-1" aria-labelledby="modalEditarBloqueLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form id="formEditarBloque" class="modal-content" onsubmit="guardarCambiosBloque(event)">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEditarBloqueLabel">Editar bloque</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="editarBloqueId">
-        <div class="mb-3">
-          <label for="editarNombreBloque" class="form-label">Nombre</label>
-          <input type="text" id="editarNombreBloque" class="form-control" required />
-        </div>
-        <div class="mb-3">
-          <label for="editarContenidoBloque" class="form-label">Contenido HTML</label>
-          <textarea id="editarContenidoBloque" class="form-control" rows="4" required></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-      </div>
-    </form>
-  </div>
-</div>
 
 
 
