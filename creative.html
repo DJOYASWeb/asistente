@@ -59,82 +59,76 @@
     </div>
 
 
- <div class="tab-header">
-    <button class="tab-btn active" id="btnConstructor" onclick="showTab('constructor')">Constructor</button>
-    <button class="tab-btn" id="btnRecursos" onclick="showTab('recursos')">Recursos</button>
-  </div>
-
+<div class="tab-header">
+  <button class="tab-btn active" id="btnConstructor" onclick="mostrarTab('constructor')">Constructor</button>
+  <button class="tab-btn" id="btnClases" onclick="mostrarTab('clases')">Clases</button>
+  <button class="tab-btn" id="btnSecciones" onclick="mostrarTab('secciones')">Secciones</button>
+</div>
 
 <div class="container">
-    <div class="tab-content-ios">
-<div class="tab-section" id="constructor">
-<div class="container ios-card mb-5">
-  <h1>Constructor Visual</h1>
+  <div class="tab-content-ios">
 
-  <label for="html-editor">📝 Escribe tu HTML:</label>
-  <textarea id="html-editor" rows="15" class="form-control" placeholder="Escribe aquí tu código HTML..."></textarea>
+    <!-- TAB CONSTRUCTOR -->
+    <div id="constructor" class="tab-section">
+      <div class="container ios-card mb-5">
+        <h1>🖋️ Constructor Visual</h1>
 
-  <button id="btnRenderizar" class="btn btn-primary mt-3">👀 Previsualizar</button>
-</div>
+        <textarea id="codigoHtml" class="form-control mb-3" rows="10" placeholder="Escribe o pega tu código HTML aquí"></textarea>
+        <button id="renderizarBtn" class="btn btn-primary w-100">🔍 Ver en modal</button>
 
-<!-- Modal de previsualización -->
-<div id="modal-preview">
-  <div class="modal-contenido-wrapper">
-    <button id="btn-cerrar-modal">&times;</button>
-    <div id="modal-contenido"></div>
-  </div>
-</div>
-
-</div>
-
-
-
-<div id="recursos" class="tab-section d-none">
-  <div class="container ios-card mb-5">
-    <h1>📚 Recursos: Clases y Bloques Predefinidos</h1>
-
-    <!-- Sección: Clases personalizadas -->
-    <div class="seccion-clases mt-4">
-      <h4>🎨 Crear/Editar Clase</h4>
-      <div class="row">
-        <div class="col-lg-6 col-12">
-          <input type="text" id="nombreClase" class="form-control mb-2" placeholder="Nombre de la clase (ej: fondo-principal)">
-        </div>
-        <div class="col-lg-6 col-12">
-          <input type="text" id="valoresClase" class="form-control mb-2" placeholder="Valores CSS (ej: background-color: #f8f9fa; color: #333;)">
+        <!-- Modal para previsualización -->
+        <div id="modalPreview" class="modal" style="display:none;">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="previewHtml"></div>
+          </div>
         </div>
       </div>
-      <button id="guardarClaseBtn" class="btn btn-primary w-100">💾 Guardar Clase</button>
     </div>
 
-    <div class="mt-4">
-      <h4>Clases guardadas</h4>
-      <ul id="listaClases" class="list-group mt-2">
-        <!-- JS llenará esto -->
-      </ul>
+    <!-- TAB CLASES -->
+    <div id="clases" class="tab-section d-none">
+      <div class="container ios-card mb-5">
+        <h1>🎨 Clases Personalizadas</h1>
+
+        <div class="row">
+          <div class="col-lg-6 col-12">
+            <input type="text" id="nombreClase" class="form-control mb-2" placeholder="Nombre de la clase (ej: fondo-principal)">
+          </div>
+          <div class="col-lg-6 col-12">
+            <input type="text" id="valoresClase" class="form-control mb-2" placeholder="Valores CSS (ej: background-color: #f8f9fa; color: #333;)">
+          </div>
+        </div>
+        <button id="guardarClaseBtn" class="btn btn-primary w-100">💾 Guardar Clase</button>
+
+        <div class="mt-4">
+          <h4>Clases guardadas</h4>
+          <ul id="listaClases" class="list-group mt-2">
+            <!-- JS llenará esto -->
+          </ul>
+        </div>
+      </div>
     </div>
 
-    <hr class="my-5">
+    <!-- TAB SECCIONES -->
+    <div id="secciones" class="tab-section d-none">
+      <div class="container ios-card mb-5">
+        <h1>📦 Secciones / Bloques Predefinidos</h1>
 
-    <!-- Sección: Bloques predefinidos -->
-    <div class="seccion-bloques mt-4">
-      <h4>📦 Crear/Editar Bloque HTML</h4>
-      <input type="text" id="nombreBloque" class="form-control mb-2" placeholder="Nombre del bloque">
-      <textarea id="contenidoBloque" class="form-control mb-2" rows="6" placeholder="Escribe el HTML del bloque"></textarea>
-      <button id="guardarBloqueBtn" class="btn btn-primary w-100">💾 Guardar Bloque</button>
+        <input type="text" id="nombreBloque" class="form-control mb-2" placeholder="Nombre del bloque">
+        <textarea id="contenidoBloque" class="form-control mb-2" rows="6" placeholder="Escribe el HTML del bloque"></textarea>
+        <button id="guardarBloqueBtn" class="btn btn-primary w-100">💾 Guardar Bloque</button>
+
+        <div class="mt-4">
+          <h4>Bloques guardados</h4>
+          <ul id="listaBloques" class="list-group mt-2">
+            <!-- JS llenará esto -->
+          </ul>
+        </div>
+      </div>
     </div>
 
-    <div class="mt-4">
-      <h4>Bloques guardados</h4>
-      <ul id="listaBloques" class="list-group mt-2">
-        <!-- JS llenará esto -->
-      </ul>
-    </div>
   </div>
-</div>
-
-
-    </div>
 </div>
 
 
