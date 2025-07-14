@@ -228,6 +228,43 @@ function eliminarBloque(index) {
 }
 
 
+document.addEventListener("DOMContentLoaded", () => {
+  const textarea = document.getElementById("htmlInput");
+  const vistaPrevia = document.getElementById("vistaPrevia");
+  const selectorBloques = document.getElementById("selectorBloques");
+
+  // Renderizar en vivo
+  textarea.addEventListener("input", () => {
+    vistaPrevia.innerHTML = textarea.value;
+  });
+
+  // Cargar bloques predefinidos
+  const bloquesGuardados = JSON.parse(localStorage.getItem("bloquesPredefinidos")) || [];
+
+  function poblarSelector() {
+    selectorBloques.innerHTML = `<option value="">-- Selecciona un bloque --</option>`;
+    bloquesGuardados.forEach((bloque, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = bloque.nombre;
+      selectorBloques.appendChild(opt);
+    });
+  }
+
+  poblarSelector();
+
+  // Insertar bloque en el textarea
+  selectorBloques.addEventListener("change", () => {
+    const index = selectorBloques.value;
+    if (index === "") return;
+    const bloque = bloquesGuardados[index];
+    if (bloque && bloque.html) {
+      textarea.value += "\n" + bloque.html;
+      vistaPrevia.innerHTML = textarea.value;
+    }
+  });
+});
 
 
-//upd v1.2
+
+//upd v1.3
