@@ -68,13 +68,23 @@
 <div class="container">
     <div class="tab-content-ios">
 <div class="tab-section" id="constructor">
-  <div class="container">
-    <h1>🖋️ Constructor Visual</h1>
-    <textarea id="inputHtml" rows="10" class="form-control" placeholder="Escribe tu código HTML aquí…"></textarea>
-    <button id="btnRenderizar" class="btn btn-primary mt-2">Renderizar</button>
-    <h2 class="mt-4">Vista previa:</h2>
-    <div id="previsualizacion" class="mt-3 border p-3" style="min-height: 200px;"></div>
+<div class="container ios-card mb-5">
+  <h1>Constructor Visual</h1>
+
+  <label for="html-editor">📝 Escribe tu HTML:</label>
+  <textarea id="html-editor" rows="15" class="form-control" placeholder="Escribe aquí tu código HTML..."></textarea>
+
+  <button id="btn-renderizar" class="btn btn-primary mt-3">👀 Previsualizar</button>
+</div>
+
+<!-- Modal de previsualización -->
+<div id="modal-preview">
+  <div class="modal-contenido-wrapper">
+    <button id="btn-cerrar-modal">&times;</button>
+    <div id="modal-contenido"></div>
   </div>
+</div>
+
 </div>
 
 
@@ -122,12 +132,7 @@
 </div>
 
 
-<div id="modal-preview">
-  <div class="modal-contenido-wrapper">
-    <button id="btn-cerrar-modal">&times;</button>
-    <div id="modal-contenido"></div>
-  </div>
-</div>
+
 
 
 
