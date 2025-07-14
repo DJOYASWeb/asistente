@@ -85,14 +85,42 @@
 
 
 <div id="recursos" class="tab-section d-none">
-  <div class="container ios-card mb-5">
-    <h1>Repositorio de Clases Personalizadas</h1>
-    <p>Aquí puedes consultar todas las clases de estilo disponibles en tu framework.</p>
+<div class="container ios-card mb-5">
+  <h1>🎨 Gestión de Clases Personalizadas</h1>
 
-    <div id="repositorio-clases">
-      <!-- JS agregará aquí las categorías y clases -->
+  <!-- Formulario para crear clase -->
+  <form id="formClase" class="row g-3 mt-4">
+    <div class="col-md-4">
+      <label for="nombreClase" class="form-label">Nombre de la clase</label>
+      <input type="text" class="form-control" id="nombreClase" placeholder="ej: fondo-azul">
     </div>
+    <div class="col-md-6">
+      <label for="valoresCSS" class="form-label">Valores CSS</label>
+      <textarea class="form-control" id="valoresCSS" rows="1" placeholder="ej: background-color: blue; color: white;"></textarea>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button type="button" class="btn btn-primary w-100" id="btnGuardarClase">Guardar</button>
+    </div>
+  </form>
+
+  <!-- Tabla con clases guardadas -->
+  <div class="mt-5">
+    <h2>📋 Clases Guardadas</h2>
+    <table class="table table-striped mt-3">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Valores CSS</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaClases">
+        <!-- JS agregará las filas -->
+      </tbody>
+    </table>
   </div>
+</div>
+
 </div>
 
     </div>

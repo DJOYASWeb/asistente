@@ -1,77 +1,76 @@
-// editor.js
-// Constructor visual básico: textarea + botón + previsualización
-// Autor: Tu Asistente
-// Fecha: 2025-07-01
-
+// 📄 Lógica para gestionar las clases personalizadas
 document.addEventListener("DOMContentLoaded", () => {
-  // Referencias a los elementos
-  const textareaHTML = document.getElementById("textarea-html");
-  const botonRenderizar = document.getElementById("boton-renderizar");
-  const contenedorPreview = document.getElementById("contenedor-preview");
+  cargarClases();
 
-  // Evento al hacer clic en el botón
-  botonRenderizar.addEventListener("click", () => {
-    const htmlIngresado = textareaHTML.value.trim();
-    contenedorPreview.innerHTML = htmlIngresado;
+  document.getElementById("btnGuardarClase").addEventListener("click", () => {
+    const nombre = document.getElementById("nombreClase").value.trim();
+    const valores = document.getElementById("valoresCSS").value.trim();
+
+    if (!nombre || !valores) {
+      alert("Completa ambos campos.");
+      return;
+    }
+
+    const clases = obtenerClases();
+    const existente = clases.find(c => c.nombre === nombre);
+
+    if (existente) {
+      existente.valores = valores;
+    } else {
+      clases.push({ nombre, valores });
+    }
+
+    localStorage.setItem("clasesPersonalizadas", JSON.stringify(clases));
+    limpiarFormulario();
+    renderizarClases();
   });
 });
 
+function obtenerClases() {
+  return JSON.parse(localStorage.getItem("clasesPersonalizadas") || "[]");
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  const contenedor = document.getElementById("repositorio-clases");
+function cargarClases() {
+  renderizarClases();
+}
 
-  const clases = {
-    "Botones": [
-      "boton-principal",
-      "boton-secundario",
-      "boton-peligro"
-    ],
-    "Fondos": [
-      "fondo-claro",
-      "fondo-oscuro",
-      "fondo-advertencia"
-    ],
-    "Textos": [
-      "texto-destacado",
-      "texto-pequeño",
-      "texto-grande"
-    ],
-    "Bordes": [
-      "borde-redondeado",
-      "borde-delgado",
-      "borde-grueso"
-    ]
-  };
+function renderizarClases() {
+  const tbody = document.getElementById("tablaClases");
+  tbody.innerHTML = "";
 
-  Object.keys(clases).forEach(categoria => {
-    const seccion = document.createElement("div");
-    seccion.className = "mb-4";
+  const clases = obtenerClases();
 
-    const titulo = document.createElement("h3");
-    titulo.textContent = categoria;
-    seccion.appendChild(titulo);
-
-    const lista = document.createElement("ul");
-    lista.className = "list-group";
-
-    clases[categoria].forEach(clase => {
-      const item = document.createElement("li");
-      item.className = "list-group-item d-flex justify-content-between align-items-center";
-      item.textContent = clase;
-
-      const btnCopiar = document.createElement("button");
-      btnCopiar.className = "btn btn-sm btn-outline-primary";
-      btnCopiar.textContent = "Copiar";
-      btnCopiar.onclick = () => {
-        navigator.clipboard.writeText(clase);
-        alert(`✅ Clase "${clase}" copiada`);
-      };
-
-      item.appendChild(btnCopiar);
-      lista.appendChild(item);
-    });
-
-    seccion.appendChild(lista);
-    contenedor.appendChild(seccion);
+  clases.forEach((clase, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${clase.nombre}</td>
+      <td>${clase.valores}</td>
+      <td>
+        <button class="btn btn-sm btn-warning me-1" onclick="editarClase(${index})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="eliminarClase(${index})">Eliminar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
   });
-});
+}
+
+function limpiarFormulario() {
+  document.getElementById("nombreClase").value = "";
+  document.getElementById("valoresCSS").value = "";
+}
+
+function editarClase(index) {
+  const clases = obtenerClases();
+  const clase = clases[index];
+  document.getElementById("nombreClase").value = clase.nombre;
+  document.getElementById("valoresCSS").value = clase.valores;
+}
+
+function eliminarClase(index) {
+  const clases = obtenerClases();
+  if (!confirm(`¿Eliminar la clase "${clases[index].nombre}"?`)) return;
+
+  clases.splice(index, 1);
+  localStorage.setItem("clasesPersonalizadas", JSON.stringify(clases));
+  renderizarClases();
+}
