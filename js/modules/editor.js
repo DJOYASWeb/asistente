@@ -287,5 +287,31 @@ vistaPrevia.addEventListener("click", (e) => {
 });
 
 
+function actualizarSelectClases() {
+  const selectorClases = document.getElementById("selectorClases");
+  selectorClases.innerHTML = `<option value="">-- Selecciona una clase --</option>`;
+  const clases = JSON.parse(localStorage.getItem("clases")) || [];
 
-//upd v2
+  clases.forEach(clase => {
+    const opt = document.createElement("option");
+    opt.value = clase.nombre;
+    opt.textContent = clase.nombre;
+    selectorClases.appendChild(opt);
+  });
+}
+
+document.getElementById("selectorClases").addEventListener("change", (e) => {
+  if (!elementoSeleccionado) {
+    alert("Primero selecciona un elemento en la vista previa.");
+    return;
+  }
+  const clase = e.target.value;
+  if (clase) {
+    elementoSeleccionado.classList.add(clase);
+  }
+});
+
+
+
+
+//upd v2.1
