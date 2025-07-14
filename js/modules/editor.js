@@ -1,56 +1,174 @@
 // ===============================================
-// 📄 editor.js: Constructor visual básico
+// 📄 editor.js: Constructor Visual Interactivo
 // ===============================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  inicializarConstructor();
+  inicializarClases();
+  inicializarSecciones();
+});
+
+// ====================
+// 🖋️ Constructor Visual
+// ====================
+let elementoSeleccionado = null;
+
+function inicializarConstructor() {
   const textarea = document.getElementById("htmlInput");
   const vistaPrevia = document.getElementById("vistaPrevia");
-  const selectorSecciones = document.getElementById("selectorBloques");
+  const selectorBloques = document.getElementById("selectorBloques");
+  const dragBloques = document.getElementById("dragBloques");
+  const selectorClases = document.getElementById("selectorClases");
 
-  // ====================
-  // 🔷 Renderizado en vivo
-  // ====================
+  const secciones = obtenerSecciones();
 
+  // Renderiza en vivo mientras escribes
   textarea.addEventListener("input", () => {
     vistaPrevia.innerHTML = textarea.value;
   });
 
-  // ====================
-  // 🔷 Secciones guardadas
-  // ====================
+  // Poblar selector de secciones
+  selectorBloques.innerHTML = `<option value="">-- Selecciona una sección --</option>`;
+  secciones.forEach((seccion, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = seccion.nombre;
+    selectorBloques.appendChild(opt);
+  });
 
-  function cargarSecciones() {
-    const secciones = JSON.parse(localStorage.getItem("seccionesPersonalizadas")) || [];
-    selectorSecciones.innerHTML = `<option value="">-- Selecciona una sección --</option>`;
+  selectorBloques.addEventListener("change", () => {
+    const index = selectorBloques.value;
+    if (index === "") return;
+    const seccion = secciones[index];
+    textarea.value += `\n${seccion.html}`;
+    vistaPrevia.innerHTML = textarea.value;
+  });
+
+  // Renderiza drag & drop
+  if (dragBloques) {
+    dragBloques.innerHTML = "";
     secciones.forEach((seccion, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = seccion.nombre;
-      selectorSecciones.appendChild(opt);
+      const div = document.createElement("div");
+      div.className = "badge bg-primary text-white p-2";
+      div.draggable = true;
+      div.textContent = seccion.nombre;
+      div.dataset.index = i;
+
+      div.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", i);
+      });
+
+      dragBloques.appendChild(div);
+    });
+
+    vistaPrevia.addEventListener("dragover", (e) => e.preventDefault());
+
+    vistaPrevia.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const index = e.dataTransfer.getData("text/plain");
+      const seccion = secciones[index];
+      vistaPrevia.innerHTML += seccion.html;
+      textarea.value = vistaPrevia.innerHTML;
     });
   }
 
-  selectorSecciones.addEventListener("change", () => {
-    const index = selectorSecciones.value;
-    if (index === "") return;
-    const secciones = JSON.parse(localStorage.getItem("seccionesPersonalizadas")) || [];
-    const seccion = secciones[index];
-    if (seccion && seccion.html) {
-      textarea.value += `\n${seccion.html}`;
-      vistaPrevia.innerHTML = textarea.value;
+  // Seleccionar elemento en vista previa
+  vistaPrevia.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (elementoSeleccionado) {
+      elementoSeleccionado.style.outline = "";
     }
+    elementoSeleccionado = e.target;
+    elementoSeleccionado.style.outline = "2px dashed red";
+
+    actualizarSelectorClases();
   });
 
-  cargarSecciones();
-  inyectarClasesCSS(); // para que las clases personalizadas ya funcionen
-});
+  // Aplicar clase al elemento seleccionado
+  selectorClases.addEventListener("change", (e) => {
+    if (!elementoSeleccionado) {
+      alert("Selecciona un elemento en la vista previa.");
+      return;
+    }
+    const clase = e.target.value;
+    if (clase) {
+      elementoSeleccionado.classList.add(clase);
+    }
+  });
+}
 
-// ===============================================
-// 🎨 Clases personalizadas
-// ===============================================
+// ====================
+// 🎨 Clases Personalizadas
+// ====================
+
+function inicializarClases() {
+  const btnGuardarClase = document.getElementById("guardarClaseBtn");
+  const listaClases = document.getElementById("listaClases");
+
+  renderizarClases();
+  inyectarClasesCSS();
+
+  btnGuardarClase?.addEventListener("click", () => {
+    const nombre = document.getElementById("nombreClase").value.trim();
+    const valores = document.getElementById("valoresClase").value.trim();
+    if (!nombre || !valores) {
+      alert("Completa ambos campos.");
+      return;
+    }
+
+    const clases = obtenerClases();
+    const existente = clases.find(c => c.nombre === nombre);
+    if (existente) {
+      existente.valores = valores;
+    } else {
+      clases.push({ nombre, valores });
+    }
+
+    localStorage.setItem("clases", JSON.stringify(clases));
+    limpiarClaseForm();
+    renderizarClases();
+    inyectarClasesCSS();
+  });
+
+  function renderizarClases() {
+    listaClases.innerHTML = "";
+    const clases = obtenerClases();
+
+    clases.forEach((clase, i) => {
+      const li = document.createElement("li");
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.innerHTML = `
+        <span>${clase.nombre}: ${clase.valores}</span>
+        <div>
+          <button class="btn btn-sm btn-warning" onclick="editarClase(${i})">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarClase(${i})">🗑️</button>
+        </div>
+      `;
+      listaClases.appendChild(li);
+    });
+  }
+}
 
 function obtenerClases() {
-  return JSON.parse(localStorage.getItem("clasesPersonalizadas") || "[]");
+  return JSON.parse(localStorage.getItem("clases") || "[]");
+}
+
+function limpiarClaseForm() {
+  document.getElementById("nombreClase").value = "";
+  document.getElementById("valoresClase").value = "";
+}
+
+function editarClase(index) {
+  const clases = obtenerClases();
+  document.getElementById("nombreClase").value = clases[index].nombre;
+  document.getElementById("valoresClase").value = clases[index].valores;
+}
+
+function eliminarClase(index) {
+  const clases = obtenerClases();
+  clases.splice(index, 1);
+  localStorage.setItem("clases", JSON.stringify(clases));
+  inicializarClases();
 }
 
 function inyectarClasesCSS() {
@@ -63,255 +181,93 @@ function inyectarClasesCSS() {
 
   const clases = obtenerClases();
   const css = clases.map(c => `.${c.nombre} { ${c.valores} }`).join("\n");
-
   styleTag.innerHTML = css;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const nombreBloque = document.getElementById("nombreBloque");
-  const contenidoBloque = document.getElementById("contenidoBloque");
-  const guardarBloqueBtn = document.getElementById("guardarBloqueBtn");
+function actualizarSelectorClases() {
+  const selectorClases = document.getElementById("selectorClases");
+  selectorClases.innerHTML = `<option value="">-- Selecciona una clase --</option>`;
+  obtenerClases().forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.nombre;
+    opt.textContent = c.nombre;
+    selectorClases.appendChild(opt);
+  });
+}
+
+// ====================
+// 📦 Secciones / Bloques
+// ====================
+
+function inicializarSecciones() {
+  const btnGuardarBloque = document.getElementById("guardarBloqueBtn");
   const listaBloques = document.getElementById("listaBloques");
-  const selectorBloques = document.getElementById("selectorBloques");
 
-  // Inicializar
-  renderizarBloques();
-  poblarSelectorConstructor();
+  renderizarSecciones();
 
-  guardarBloqueBtn.addEventListener("click", () => {
-    const nombre = nombreBloque.value.trim();
-    const html = contenidoBloque.value.trim();
-
+  btnGuardarBloque?.addEventListener("click", () => {
+    const nombre = document.getElementById("nombreBloque").value.trim();
+    const html = document.getElementById("contenidoBloque").value.trim();
     if (!nombre || !html) {
-      alert("Por favor completa ambos campos.");
+      alert("Completa ambos campos.");
       return;
     }
 
-    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
-    const existenteIndex = bloques.findIndex(b => b.nombre === nombre);
-
-    if (existenteIndex >= 0) {
-      bloques[existenteIndex].html = html;
+    const secciones = obtenerSecciones();
+    const existente = secciones.findIndex(s => s.nombre === nombre);
+    if (existente >= 0) {
+      secciones[existente].html = html;
     } else {
-      bloques.push({ nombre, html });
+      secciones.push({ nombre, html });
     }
 
-    localStorage.setItem("bloques", JSON.stringify(bloques));
-    nombreBloque.value = "";
-    contenidoBloque.value = "";
-    renderizarBloques();
-    poblarSelectorConstructor();
+    localStorage.setItem("secciones", JSON.stringify(secciones));
+    limpiarBloqueForm();
+    renderizarSecciones();
   });
 
-  function renderizarBloques() {
+  function renderizarSecciones() {
     listaBloques.innerHTML = "";
-    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
-    bloques.forEach((bloque, i) => {
+    const secciones = obtenerSecciones();
+
+    secciones.forEach((bloque, i) => {
       const li = document.createElement("li");
       li.className = "list-group-item d-flex justify-content-between align-items-center";
       li.innerHTML = `
         <span>${bloque.nombre}</span>
         <div>
-          <button class="btn btn-sm btn-warning" onclick="editarBloque(${i})">✏️ Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️ Eliminar</button>
+          <button class="btn btn-sm btn-warning" onclick="editarBloque(${i})">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️</button>
         </div>
       `;
       listaBloques.appendChild(li);
     });
   }
-
-  window.editarBloque = (index) => {
-    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
-    const bloque = bloques[index];
-    nombreBloque.value = bloque.nombre;
-    contenidoBloque.value = bloque.html;
-  };
-
-  window.eliminarBloque = (index) => {
-    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
-    if (!confirm(`¿Eliminar el bloque "${bloques[index].nombre}"?`)) return;
-    bloques.splice(index, 1);
-    localStorage.setItem("bloques", JSON.stringify(bloques));
-    renderizarBloques();
-    poblarSelectorConstructor();
-  };
-
-  function poblarSelectorConstructor() {
-    if (!selectorBloques) return;
-    selectorBloques.innerHTML = `<option value="">-- Selecciona un bloque --</option>`;
-    const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
-    bloques.forEach((bloque, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = bloque.nombre;
-      selectorBloques.appendChild(opt);
-    });
-  }
-
-  if (selectorBloques) {
-    selectorBloques.addEventListener("change", () => {
-      const index = selectorBloques.value;
-      if (index === "") return;
-      const bloques = JSON.parse(localStorage.getItem("bloques")) || [];
-      const bloque = bloques[index];
-      const textarea = document.getElementById("htmlInput");
-      const vistaPrevia = document.getElementById("vistaPrevia");
-      textarea.value += `\n${bloque.html}`;
-      vistaPrevia.innerHTML = textarea.value;
-    });
-  }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const nombreClase = document.getElementById("nombreClase");
-  const valoresClase = document.getElementById("valoresClase");
-  const guardarClaseBtn = document.getElementById("guardarClaseBtn");
-  const listaClases = document.getElementById("listaClases");
-
-  renderizarClases();
-  inyectarClasesCSS();
-
-  guardarClaseBtn.addEventListener("click", () => {
-    const nombre = nombreClase.value.trim();
-    const valores = valoresClase.value.trim();
-
-    if (!nombre || !valores) {
-      alert("Por favor completa ambos campos.");
-      return;
-    }
-
-    const clases = JSON.parse(localStorage.getItem("clases")) || [];
-    const indexExistente = clases.findIndex(c => c.nombre === nombre);
-
-    if (indexExistente >= 0) {
-      clases[indexExistente].valores = valores;
-    } else {
-      clases.push({ nombre, valores });
-    }
-
-    localStorage.setItem("clases", JSON.stringify(clases));
-    nombreClase.value = "";
-    valoresClase.value = "";
-    renderizarClases();
-    inyectarClasesCSS();
-  });
-
-  function renderizarClases() {
-    listaClases.innerHTML = "";
-    const clases = JSON.parse(localStorage.getItem("clases")) || [];
-
-    clases.forEach((clase, i) => {
-      const li = document.createElement("li");
-      li.className = "list-group-item d-flex justify-content-between align-items-center";
-      li.innerHTML = `
-        <span>${clase.nombre}: ${clase.valores}</span>
-        <div>
-          <button class="btn btn-sm btn-warning" onclick="editarClase(${i})">✏️ Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="eliminarClase(${i})">🗑️ Eliminar</button>
-        </div>
-      `;
-      listaClases.appendChild(li);
-    });
-  }
-
-  window.editarClase = (index) => {
-    const clases = JSON.parse(localStorage.getItem("clases")) || [];
-    const clase = clases[index];
-    nombreClase.value = clase.nombre;
-    valoresClase.value = clase.valores;
-  };
-
-  window.eliminarClase = (index) => {
-    const clases = JSON.parse(localStorage.getItem("clases")) || [];
-    if (!confirm(`¿Eliminar la clase "${clases[index].nombre}"?`)) return;
-    clases.splice(index, 1);
-    localStorage.setItem("clases", JSON.stringify(clases));
-    renderizarClases();
-    inyectarClasesCSS();
-  };
-
-  function inyectarClasesCSS() {
-    let styleTag = document.getElementById("clasesPersonalizadasStyle");
-    if (!styleTag) {
-      styleTag = document.createElement("style");
-      styleTag.id = "clasesPersonalizadasStyle";
-      document.head.appendChild(styleTag);
-    }
-
-    const clases = JSON.parse(localStorage.getItem("clases")) || [];
-    const css = clases.map(c => `.${c.nombre} { ${c.valores} }`).join("\n");
-    styleTag.innerHTML = css;
-  }
-});
-
-
-const dragBloques = document.getElementById("dragBloques");
-dragBloques.innerHTML = "";
-seccionesGuardadas.forEach((seccion, i) => {
-  const div = document.createElement("div");
-  div.className = "badge bg-primary text-white p-2";
-  div.draggable = true;
-  div.textContent = seccion.nombre;
-  div.dataset.index = i;
-
-  div.addEventListener("dragstart", (e) => {
-    e.dataTransfer.setData("text/plain", i);
-  });
-
-  dragBloques.appendChild(div);
-});
-
-vistaPrevia.addEventListener("dragover", (e) => {
-  e.preventDefault();
-});
-
-vistaPrevia.addEventListener("drop", (e) => {
-  e.preventDefault();
-  const index = e.dataTransfer.getData("text/plain");
-  const seccion = seccionesGuardadas[index];
-  vistaPrevia.innerHTML += seccion.html;
-});
-
-let elementoSeleccionado = null;
-
-vistaPrevia.addEventListener("click", (e) => {
-  e.preventDefault();
-  if (elementoSeleccionado) {
-    elementoSeleccionado.style.outline = ""; // limpia anterior
-  }
-  elementoSeleccionado = e.target;
-  elementoSeleccionado.style.outline = "2px dashed red";
-
-  // Actualiza select de clases
-  actualizarSelectClases();
-});
-
-
-function actualizarSelectClases() {
-  const selectorClases = document.getElementById("selectorClases");
-  selectorClases.innerHTML = `<option value="">-- Selecciona una clase --</option>`;
-  const clases = JSON.parse(localStorage.getItem("clases")) || [];
-
-  clases.forEach(clase => {
-    const opt = document.createElement("option");
-    opt.value = clase.nombre;
-    opt.textContent = clase.nombre;
-    selectorClases.appendChild(opt);
-  });
 }
 
-document.getElementById("selectorClases").addEventListener("change", (e) => {
-  if (!elementoSeleccionado) {
-    alert("Primero selecciona un elemento en la vista previa.");
-    return;
-  }
-  const clase = e.target.value;
-  if (clase) {
-    elementoSeleccionado.classList.add(clase);
-  }
-});
+function obtenerSecciones() {
+  return JSON.parse(localStorage.getItem("secciones") || "[]");
+}
+
+function limpiarBloqueForm() {
+  document.getElementById("nombreBloque").value = "";
+  document.getElementById("contenidoBloque").value = "";
+}
+
+function editarBloque(index) {
+  const secciones = obtenerSecciones();
+  document.getElementById("nombreBloque").value = secciones[index].nombre;
+  document.getElementById("contenidoBloque").value = secciones[index].html;
+}
+
+function eliminarBloque(index) {
+  const secciones = obtenerSecciones();
+  secciones.splice(index, 1);
+  localStorage.setItem("secciones", JSON.stringify(secciones));
+  inicializarSecciones();
+}
 
 
 
 
-//upd v2.1
+//upd v2.3
