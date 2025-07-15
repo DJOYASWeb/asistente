@@ -1,5 +1,5 @@
 // ===============================================
-// 📄 editor.js: Constructor Visual Mejorado
+// 📄 editor.js: Constructor Visual Interactivo con inserciones
 // ===============================================
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -7,104 +7,98 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarSecciones();
 });
 
-let elementoSeleccionado = null;
-
 function inicializarConstructor() {
-  const textarea = document.getElementById("htmlInput");
   const vistaPrevia = document.getElementById("vistaPrevia");
   const dragBloques = document.getElementById("dragBloques");
 
   const secciones = obtenerSecciones();
 
-  // Renderiza en vivo mientras escribes
-  textarea.addEventListener("input", () => {
-    vistaPrevia.innerHTML = textarea.value;
+  // Renderiza bloques arrastrables
+  dragBloques.innerHTML = "";
+  secciones.forEach((seccion, i) => {
+    const div = document.createElement("div");
+    div.className = "bg-primary text-white p-2 rounded mb-1";
+    div.draggable = true;
+    div.textContent = seccion.nombre;
+    div.dataset.index = i;
+
+    div.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/html", seccion.html);
+    });
+
+    dragBloques.appendChild(div);
   });
 
-  // Renderiza drag & drop
-  if (dragBloques) {
-    dragBloques.innerHTML = "";
-    secciones.forEach((seccion, i) => {
-      const div = document.createElement("div");
-      div.className = "bg-primary text-white p-2 mb-1 rounded";
-      div.draggable = true;
-      div.textContent = seccion.nombre;
-      div.dataset.index = i;
+  // Vista previa acepta drop
+  vistaPrevia.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    const target = getBlockTarget(e.target);
+    if (!target) return;
 
-      div.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", i);
-      });
+    const rect = target.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
 
-      dragBloques.appendChild(div);
-    });
+    target.classList.remove("insercion-arriba", "insercion-dentro", "insercion-abajo");
 
-    vistaPrevia.addEventListener("dragover", (e) => e.preventDefault());
+    if (offsetY < rect.height / 3) {
+      target.classList.add("insercion-arriba");
+    } else if (offsetY > (2 * rect.height) / 3) {
+      target.classList.add("insercion-abajo");
+    } else {
+      target.classList.add("insercion-dentro");
+    }
+  });
 
-    vistaPrevia.addEventListener("drop", (e) => {
-      e.preventDefault();
-      const index = e.dataTransfer.getData("text/plain");
-      const seccion = secciones[index];
-      const bloque = crearBloque(seccion.html);
+  vistaPrevia.addEventListener("dragleave", (e) => {
+    const target = getBlockTarget(e.target);
+    if (target) {
+      target.classList.remove("insercion-arriba", "insercion-dentro", "insercion-abajo");
+    }
+  });
 
-      if (elementoSeleccionado) {
-        elementoSeleccionado.innerHTML = "";
-        elementoSeleccionado.appendChild(bloque);
-      } else {
-        vistaPrevia.appendChild(bloque);
-      }
+  vistaPrevia.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const html = e.dataTransfer.getData("text/html");
+    const newElement = crearElementoDesdeHTML(html);
 
-      limpiarSeleccion();
-      actualizarTextarea();
-    });
-  }
+    const target = getBlockTarget(e.target);
+    if (!target) {
+      vistaPrevia.appendChild(newElement);
+      limpiarIndicadores();
+      return;
+    }
 
-  // Seleccionar elemento en vista previa
-  vistaPrevia.addEventListener("click", (e) => {
-    e.stopPropagation();
-    limpiarSeleccion();
-    elementoSeleccionado = e.target;
-    elementoSeleccionado.classList.add("activo");
+    if (target.classList.contains("insercion-arriba")) {
+      target.before(newElement);
+    } else if (target.classList.contains("insercion-abajo")) {
+      target.after(newElement);
+    } else {
+      target.appendChild(newElement);
+    }
+
+    limpiarIndicadores();
   });
 }
 
-function crearBloque(html) {
+function getBlockTarget(element) {
+  while (element && element !== document && element !== document.body) {
+    if (element.parentElement?.id === "vistaPrevia") return element;
+    element = element.parentElement;
+  }
+  return null;
+}
+
+function crearElementoDesdeHTML(html) {
   const temp = document.createElement("div");
   temp.innerHTML = html.trim();
+  return temp.firstElementChild;
+}
 
-  const elemento = temp.firstElementChild;
-
-  elemento.addEventListener("click", (e) => {
-    e.stopPropagation();
-    limpiarSeleccion();
-    elementoSeleccionado = elemento;
-    elementoSeleccionado.classList.add("activo");
+function limpiarIndicadores() {
+  document.querySelectorAll("#vistaPrevia > *").forEach(el => {
+    el.classList.remove("insercion-arriba", "insercion-dentro", "insercion-abajo");
   });
-
-  return elemento;
 }
-
-function limpiarSeleccion() {
-  const anteriores = document.querySelectorAll("#vistaPrevia .activo");
-  anteriores.forEach(el => el.classList.remove("activo"));
-  elementoSeleccionado = null;
-}
-
-function actualizarTextarea() {
-  const textarea = document.getElementById("htmlInput");
-  const vistaPrevia = document.getElementById("vistaPrevia").cloneNode(true);
-
-  // Quitamos clases y outlines temporales antes de exportar
-  vistaPrevia.querySelectorAll(".activo").forEach(el => {
-    el.classList.remove("activo");
-    el.style.outline = "";
-  });
-
-  textarea.value = vistaPrevia.innerHTML.trim();
-}
-
-// ====================
-// 📦 Secciones / Bloques
-// ====================
 
 function inicializarSecciones() {
   const btnGuardarBloque = document.getElementById("guardarBloqueBtn");
@@ -129,7 +123,8 @@ function inicializarSecciones() {
     }
 
     localStorage.setItem("secciones", JSON.stringify(secciones));
-    limpiarBloqueForm();
+    document.getElementById("nombreBloque").value = "";
+    document.getElementById("contenidoBloque").value = "";
     renderizarSecciones();
   });
 
@@ -140,6 +135,8 @@ function inicializarSecciones() {
     secciones.forEach((bloque, i) => {
       const li = document.createElement("li");
       li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.draggable = true;
+
       li.innerHTML = `
         <span>${bloque.nombre}</span>
         <div>
@@ -147,6 +144,11 @@ function inicializarSecciones() {
           <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️</button>
         </div>
       `;
+
+      li.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/html", bloque.html);
+      });
+
       listaBloques.appendChild(li);
     });
   }
@@ -154,11 +156,6 @@ function inicializarSecciones() {
 
 function obtenerSecciones() {
   return JSON.parse(localStorage.getItem("secciones") || "[]");
-}
-
-function limpiarBloqueForm() {
-  document.getElementById("nombreBloque").value = "";
-  document.getElementById("contenidoBloque").value = "";
 }
 
 function editarBloque(index) {
@@ -175,4 +172,4 @@ function eliminarBloque(index) {
 }
 
 
-//upd v3.4
+//upd v3.5
