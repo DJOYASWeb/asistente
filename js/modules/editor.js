@@ -69,6 +69,8 @@ vistaPrevia.addEventListener("drop", (e) => {
     return;
   }
 
+  const destino = elementoSeleccionado || vistaPrevia; // por defecto en vista previa si nada está seleccionado
+
   const destinoTag = destino.tagName.toLowerCase();
   const bloqueTag = bloqueNuevo.tagName.toLowerCase();
 
@@ -193,4 +195,55 @@ function eliminarBloque(index) {
 }
 
 
-//upd v3.6.1
+function crearCajaSeccion(nombre, html) {
+  const temp = document.createElement("div");
+  temp.innerHTML = html.trim();
+
+  const elemento = temp.firstElementChild;
+
+  if (!elemento) {
+    console.error("El HTML guardado para la sección está vacío o mal formado.");
+    return document.createTextNode(`❌ Error: ${nombre}`);
+  }
+
+  // detecta el tipo
+  const tipo = elemento.tagName.toUpperCase();
+  let label = tipo;
+
+  if (elemento.classList.contains("row")) label = "ROW";
+  if (elemento.classList.contains("col")) label = "COL";
+
+  // añade el estilo visual solo para la previsualización
+  elemento.style.border = "1px dashed #007bff";
+  elemento.style.position = "relative";
+  elemento.style.padding = "1rem";
+  elemento.style.minHeight = "50px";
+
+  // etiqueta flotante
+  const etiqueta = document.createElement("span");
+  etiqueta.textContent = label;
+  etiqueta.style.position = "absolute";
+  etiqueta.style.top = "0";
+  etiqueta.style.left = "50%";
+  etiqueta.style.transform = "translateX(-50%)";
+  etiqueta.style.background = "#fff";
+  etiqueta.style.fontSize = "12px";
+  etiqueta.style.padding = "0 4px";
+
+  elemento.appendChild(etiqueta);
+
+  // permite selección
+  elemento.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (elementoSeleccionado) {
+      elementoSeleccionado.style.outline = "";
+    }
+    elementoSeleccionado = elemento;
+    elementoSeleccionado.style.outline = "2px dashed red";
+  });
+
+  return elemento;
+}
+
+
+//upd v3.6.2
