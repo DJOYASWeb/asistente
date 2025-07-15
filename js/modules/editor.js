@@ -2,6 +2,8 @@
 // 📄 editor.js: Constructor Visual Interactivo con inserciones
 // ===============================================
 
+let elementoSeleccionado = null;
+
 document.addEventListener("DOMContentLoaded", () => {
   inicializarConstructor();
   inicializarSecciones();
@@ -248,4 +250,4 @@ function crearCajaSeccion(nombre, html) {
 
 
 
-//upd v3.6.3
+//upd v3.6.4
