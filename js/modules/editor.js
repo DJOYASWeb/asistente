@@ -326,4 +326,4 @@ function cargarBloques() {
 }
 
 
-//upd v2.5
+//upd v2.6
