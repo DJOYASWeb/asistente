@@ -276,4 +276,4 @@ function eliminarBloque(index) {
 }
 
 
-//upd v3.1
+//upd v3.2
