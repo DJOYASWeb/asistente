@@ -24,15 +24,6 @@ function inicializarConstructor() {
     vistaPrevia.innerHTML = textarea.value;
   });
 
-  // Selector desplegable
-  selectorBloques.innerHTML = `<option value="">-- Selecciona una sección --</option>`;
-  secciones.forEach((seccion, i) => {
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.textContent = seccion.nombre;
-    selectorBloques.appendChild(opt);
-  });
-
   selectorBloques.addEventListener("change", () => {
     const index = selectorBloques.value;
     if (index === "") return;
@@ -294,4 +285,4 @@ function eliminarBloque(index) {
 }
 
 
-//upd v3
+//upd v3.1
