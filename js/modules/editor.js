@@ -80,15 +80,6 @@ function inicializarConstructor() {
     actualizarSelectorClases();
   });
 
-  selectorClases.addEventListener("change", (e) => {
-    if (!contenedorActivo) {
-      alert("Selecciona un elemento en la vista previa.");
-      return;
-    }
-    const clase = e.target.value;
-    if (clase) contenedorActivo.classList.add(clase);
-    actualizarTextarea();
-  });
 }
 
 function crearElementoDesdeHTML(html) {
