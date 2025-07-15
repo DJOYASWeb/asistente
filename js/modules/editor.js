@@ -69,8 +69,6 @@ vistaPrevia.addEventListener("drop", (e) => {
     return;
   }
 
-  const destino = elementoSeleccionado || vistaPrevia; // por defecto en vista previa si nada está seleccionado
-
   const destinoTag = destino.tagName.toLowerCase();
   const bloqueTag = bloqueNuevo.tagName.toLowerCase();
 
@@ -195,4 +193,4 @@ function eliminarBloque(index) {
 }
 
 
-//upd v3.6
+//upd v3.6.1
