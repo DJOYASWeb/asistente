@@ -56,28 +56,51 @@ function inicializarConstructor() {
     }
   });
 
-  vistaPrevia.addEventListener("drop", (e) => {
-    e.preventDefault();
-    const html = e.dataTransfer.getData("text/html");
-    const newElement = crearElementoDesdeHTML(html);
+vistaPrevia.addEventListener("drop", (e) => {
+  e.preventDefault();
 
-    const target = getBlockTarget(e.target);
-    if (!target) {
-      vistaPrevia.appendChild(newElement);
-      limpiarIndicadores();
-      return;
-    }
+  const html = e.dataTransfer.getData("text/html").trim();
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+  const bloqueNuevo = temp.firstElementChild;
 
-    if (target.classList.contains("insercion-arriba")) {
-      target.before(newElement);
-    } else if (target.classList.contains("insercion-abajo")) {
-      target.after(newElement);
-    } else {
-      target.appendChild(newElement);
-    }
+  if (!bloqueNuevo) {
+    console.error("Bloque inválido.");
+    return;
+  }
 
-    limpiarIndicadores();
-  });
+  const destino = elementoSeleccionado || vistaPrevia; // por defecto en vista previa si nada está seleccionado
+
+  const destinoTag = destino.tagName.toLowerCase();
+  const bloqueTag = bloqueNuevo.tagName.toLowerCase();
+
+  // Reglas:
+  const contenedoresProhibenSection = ["div", "article", "figure", "figcaption"];
+  const noAceptanContenedores = [
+    "h1","h2","h3","h4","h5","h6","p","button","a","img","video","audio","blockquote","span","label","input","textarea","select","option"
+  ];
+
+  // Regla 1: Si destino es contenedor principal y bloque nuevo es section
+  if (contenedoresProhibenSection.includes(destinoTag) && bloqueTag === "section") {
+    alert(`🚫 No puedes insertar un <section> dentro de un <${destinoTag}>`);
+    return;
+  }
+
+  // Regla 2: Si destino no es ni <section> ni un contenedor y se intenta poner un contenedor
+  if (!["section", "div", "article", "figure", "figcaption"].includes(destinoTag) &&
+      ["section", "div", "article", "figure", "figcaption"].includes(bloqueTag)) {
+    alert(`🚫 No puedes insertar un <${bloqueTag}> dentro de un <${destinoTag}>`);
+    return;
+  }
+
+  // Inserta limpio
+  destino.innerHTML = ""; // limpia el contenido
+  destino.appendChild(bloqueNuevo);
+
+  // Actualiza el código fuente
+  document.getElementById("htmlInput").value = vistaPrevia.innerHTML;
+});
+
 }
 
 function getBlockTarget(element) {
@@ -172,4 +195,4 @@ function eliminarBloque(index) {
 }
 
 
-//upd v3.5
+//upd v3.6
