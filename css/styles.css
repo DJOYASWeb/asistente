@@ -1106,3 +1106,13 @@ width: 80px;
 #vistaPrevia .activo {
   outline: 2px dashed blue;
 }
+
+.insercion-arriba {
+  border-top: 3px solid blue !important;
+}
+.insercion-dentro {
+  outline: 3px solid green !important;
+}
+.insercion-abajo {
+  border-bottom: 3px solid blue !important;
+}
