@@ -270,36 +270,33 @@ function eliminarBloque(index) {
   inicializarSecciones();
 }
 
-
-
 function crearCajaSeccion(nombre, html) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "caja-seccion border p-2 mb-2 position-relative";
-  wrapper.setAttribute("data-seccion", nombre);
+  const temp = document.createElement("div");
+  temp.innerHTML = html.trim();
 
-  const etiqueta = document.createElement("span");
-  etiqueta.textContent = nombre;
-  etiqueta.className = "bg-secondary position-absolute top-0 start-0 m-1";
+  // tomamos el primer elemento del bloque
+  const elemento = temp.firstElementChild;
 
-  const contenido = document.createElement("div");
-  contenido.innerHTML = html;
+  if (!elemento) {
+    console.error("El HTML guardado para la sección está vacío o mal formado.");
+    return document.createTextNode(`❌ Error: ${nombre}`);
+  }
 
-  wrapper.appendChild(etiqueta);
-  wrapper.appendChild(contenido);
-
-  // permite seleccionar contenido interno
-  wrapper.addEventListener("click", (e) => {
-    e.stopPropagation(); 
+  // le añadimos la lógica para selección visual
+  elemento.addEventListener("click", (e) => {
+    e.stopPropagation();
     if (elementoSeleccionado) {
       elementoSeleccionado.style.outline = "";
     }
-    elementoSeleccionado = wrapper;
+    elementoSeleccionado = elemento;
     elementoSeleccionado.style.outline = "2px dashed red";
     actualizarSelectorClases();
   });
 
-  return wrapper;
+  return elemento;
 }
+
+
 
 function cargarBloques() {
   const lista = document.getElementById('listaBloques');
