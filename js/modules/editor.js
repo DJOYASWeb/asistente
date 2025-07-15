@@ -1,13 +1,17 @@
 // ===============================================
-// 📄 editor.js: Constructor Visual Interactivo con inserciones
+// 📄 editor.js: Constructor Visual Interactivo (con validación y canvas flexible)
 // ===============================================
-
-let elementoSeleccionado = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   inicializarConstructor();
   inicializarSecciones();
 });
+
+let elementoSeleccionado = null;
+
+// ====================
+// 🖋️ Constructor Visual
+// ====================
 
 function inicializarConstructor() {
   const vistaPrevia = document.getElementById("vistaPrevia");
@@ -15,115 +19,52 @@ function inicializarConstructor() {
 
   const secciones = obtenerSecciones();
 
-  // Renderiza bloques arrastrables
+  // Renderiza drag & drop
   dragBloques.innerHTML = "";
   secciones.forEach((seccion, i) => {
     const div = document.createElement("div");
-    div.className = "bg-primary text-white p-2 rounded mb-1";
+    div.className = "bg-primary text-white p-2 text-center";
     div.draggable = true;
     div.textContent = seccion.nombre;
     div.dataset.index = i;
 
     div.addEventListener("dragstart", (e) => {
-      e.dataTransfer.setData("text/html", seccion.html);
+      e.dataTransfer.setData("text/plain", i);
     });
 
     dragBloques.appendChild(div);
   });
 
-  // Vista previa acepta drop
-  vistaPrevia.addEventListener("dragover", (e) => {
+  vistaPrevia.addEventListener("dragover", (e) => e.preventDefault());
+
+  vistaPrevia.addEventListener("drop", (e) => {
     e.preventDefault();
-    const target = getBlockTarget(e.target);
-    if (!target) return;
+    const index = e.dataTransfer.getData("text/plain");
+    const seccion = secciones[index];
 
-    const rect = target.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top;
-
-    target.classList.remove("insercion-arriba", "insercion-dentro", "insercion-abajo");
-
-    if (offsetY < rect.height / 3) {
-      target.classList.add("insercion-arriba");
-    } else if (offsetY > (2 * rect.height) / 3) {
-      target.classList.add("insercion-abajo");
-    } else {
-      target.classList.add("insercion-dentro");
+    if (!puedeInsertarse(e.target, obtenerTagPrincipal(seccion.html))) {
+      mostrarMensaje("No puedes insertar este bloque aquí.");
+      return;
     }
+
+    const caja = crearCajaSeccion(seccion.html);
+    e.target.appendChild(caja);
   });
 
-  vistaPrevia.addEventListener("dragleave", (e) => {
-    const target = getBlockTarget(e.target);
-    if (target) {
-      target.classList.remove("insercion-arriba", "insercion-dentro", "insercion-abajo");
+  // Seleccionar elemento
+  vistaPrevia.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (elementoSeleccionado) {
+      elementoSeleccionado.classList.remove("seleccionado");
     }
-  });
-
-vistaPrevia.addEventListener("drop", (e) => {
-  e.preventDefault();
-
-  const html = e.dataTransfer.getData("text/html").trim();
-  const temp = document.createElement("div");
-  temp.innerHTML = html;
-  const bloqueNuevo = temp.firstElementChild;
-
-  if (!bloqueNuevo) {
-    console.error("Bloque inválido.");
-    return;
-  }
-
-  const destino = elementoSeleccionado || vistaPrevia; // por defecto en vista previa si nada está seleccionado
-
-  const destinoTag = destino.tagName.toLowerCase();
-  const bloqueTag = bloqueNuevo.tagName.toLowerCase();
-
-  // Reglas:
-  const contenedoresProhibenSection = ["div", "article", "figure", "figcaption"];
-  const noAceptanContenedores = [
-    "h1","h2","h3","h4","h5","h6","p","button","a","img","video","audio","blockquote","span","label","input","textarea","select","option"
-  ];
-
-  // Regla 1: Si destino es contenedor principal y bloque nuevo es section
-  if (contenedoresProhibenSection.includes(destinoTag) && bloqueTag === "section") {
-    alert(`🚫 No puedes insertar un <section> dentro de un <${destinoTag}>`);
-    return;
-  }
-
-  // Regla 2: Si destino no es ni <section> ni un contenedor y se intenta poner un contenedor
-  if (!["section", "div", "article", "figure", "figcaption"].includes(destinoTag) &&
-      ["section", "div", "article", "figure", "figcaption"].includes(bloqueTag)) {
-    alert(`🚫 No puedes insertar un <${bloqueTag}> dentro de un <${destinoTag}>`);
-    return;
-  }
-
-  // Inserta limpio
-  destino.innerHTML = ""; // limpia el contenido
-  destino.appendChild(bloqueNuevo);
-
-  // Actualiza el código fuente
-  document.getElementById("htmlInput").value = vistaPrevia.innerHTML;
-});
-
-}
-
-function getBlockTarget(element) {
-  while (element && element !== document && element !== document.body) {
-    if (element.parentElement?.id === "vistaPrevia") return element;
-    element = element.parentElement;
-  }
-  return null;
-}
-
-function crearElementoDesdeHTML(html) {
-  const temp = document.createElement("div");
-  temp.innerHTML = html.trim();
-  return temp.firstElementChild;
-}
-
-function limpiarIndicadores() {
-  document.querySelectorAll("#vistaPrevia > *").forEach(el => {
-    el.classList.remove("insercion-arriba", "insercion-dentro", "insercion-abajo");
+    elementoSeleccionado = e.target;
+    elementoSeleccionado.classList.add("seleccionado");
   });
 }
+
+// ====================
+// 📦 Secciones / Bloques
+// ====================
 
 function inicializarSecciones() {
   const btnGuardarBloque = document.getElementById("guardarBloqueBtn");
@@ -131,11 +72,11 @@ function inicializarSecciones() {
 
   renderizarSecciones();
 
-  btnGuardarBloque?.addEventListener("click", () => {
+  btnGuardarBloque.addEventListener("click", () => {
     const nombre = document.getElementById("nombreBloque").value.trim();
     const html = document.getElementById("contenidoBloque").value.trim();
     if (!nombre || !html) {
-      alert("Completa ambos campos.");
+      mostrarMensaje("Completa ambos campos.");
       return;
     }
 
@@ -148,8 +89,7 @@ function inicializarSecciones() {
     }
 
     localStorage.setItem("secciones", JSON.stringify(secciones));
-    document.getElementById("nombreBloque").value = "";
-    document.getElementById("contenidoBloque").value = "";
+    limpiarBloqueForm();
     renderizarSecciones();
   });
 
@@ -160,8 +100,6 @@ function inicializarSecciones() {
     secciones.forEach((bloque, i) => {
       const li = document.createElement("li");
       li.className = "list-group-item d-flex justify-content-between align-items-center";
-      li.draggable = true;
-
       li.innerHTML = `
         <span>${bloque.nombre}</span>
         <div>
@@ -169,11 +107,6 @@ function inicializarSecciones() {
           <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️</button>
         </div>
       `;
-
-      li.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/html", bloque.html);
-      });
-
       listaBloques.appendChild(li);
     });
   }
@@ -181,6 +114,11 @@ function inicializarSecciones() {
 
 function obtenerSecciones() {
   return JSON.parse(localStorage.getItem("secciones") || "[]");
+}
+
+function limpiarBloqueForm() {
+  document.getElementById("nombreBloque").value = "";
+  document.getElementById("contenidoBloque").value = "";
 }
 
 function editarBloque(index) {
@@ -196,58 +134,57 @@ function eliminarBloque(index) {
   inicializarSecciones();
 }
 
+// ====================
+// 🧩 Helpers
+// ====================
 
-function crearCajaSeccion(nombre, html) {
+// Devuelve el primer tag del bloque
+function obtenerTagPrincipal(html) {
   const temp = document.createElement("div");
   temp.innerHTML = html.trim();
+  const el = temp.firstElementChild;
+  return el ? el.tagName.toLowerCase() : "";
+}
 
+// Valida si el elemento puede insertarse en el destino
+function puedeInsertarse(parent, tag) {
+  if (parent.id === "vistaPrevia") return true; // el canvas permite todo
+
+  const prohibidosComoPadres = ["div", "article", "figure", "figcaption"];
+  const prohibidosComoHijos = ["section", "div", "article", "figure", "figcaption"];
+
+  if (tag === "section" && prohibidosComoPadres.includes(parent.tagName.toLowerCase())) {
+    return false;
+  }
+
+  if (prohibidosComoHijos.includes(tag) &&
+      !["section"].includes(parent.tagName.toLowerCase())) {
+    return false;
+  }
+
+  return true;
+}
+
+// Crea la caja visual con borde y etiqueta
+function crearCajaSeccion(html) {
+  const temp = document.createElement("div");
+  temp.innerHTML = html.trim();
   const elemento = temp.firstElementChild;
 
   if (!elemento) {
-    console.error("El HTML guardado para la sección está vacío o mal formado.");
-    return document.createTextNode(`❌ Error: ${nombre}`);
+    mostrarMensaje("Error: HTML inválido.");
+    return document.createTextNode("❌ Error");
   }
 
-  // detecta el tipo: SECTION / ROW / COL
-  const tipo = elemento.tagName.toUpperCase();
-  let label = tipo;
-
-  if (elemento.classList.contains("row")) label = "ROW";
-  if (elemento.classList.contains("col")) label = "COL";
-
-  // añade el estilo visual solo para la previsualización
-  elemento.style.border = "1px dashed #007bff";
-  elemento.style.position = "relative";
-  elemento.style.padding = "1rem";
-  elemento.style.minHeight = "50px";
-
-  // etiqueta flotante
-  const etiqueta = document.createElement("span");
-  etiqueta.textContent = label;
-  etiqueta.style.position = "absolute";
-  etiqueta.style.top = "0";
-  etiqueta.style.left = "50%";
-  etiqueta.style.transform = "translateX(-50%)";
-  etiqueta.style.background = "#fff";
-  etiqueta.style.fontSize = "12px";
-  etiqueta.style.padding = "0 4px";
-  etiqueta.style.zIndex = "10";
-
-  elemento.appendChild(etiqueta);
-
-  // permite selección visual
-  elemento.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (elementoSeleccionado) {
-      elementoSeleccionado.style.outline = "";
-    }
-    elementoSeleccionado = elemento;
-    elementoSeleccionado.style.outline = "2px dashed red";
-  });
+  elemento.classList.add("borde-visual");
 
   return elemento;
 }
 
+// Muestra un mensaje visual
+function mostrarMensaje(msg) {
+  alert(msg); // para ahora usamos alert. opcionalmente podemos hacer un toast.
+}
 
 
-//upd v3.6.4
+//upd v3.6.5
