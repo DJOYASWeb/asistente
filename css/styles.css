@@ -1116,3 +1116,27 @@ width: 80px;
 .insercion-abajo {
   border-bottom: 3px solid blue !important;
 }
+
+.borde-visual {
+  position: relative;
+  border: 1px dashed #0d6efd;
+  padding: 10px;
+  margin: 5px 0;
+  min-height: 40px;
+}
+
+.borde-visual::before {
+  content: attr(tag);
+  position: absolute;
+  top: -10px;
+  left: 5px;
+  background: #0d6efd;
+  color: #fff;
+  font-size: 12px;
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+.seleccionado {
+  outline: 2px dashed red;
+}
