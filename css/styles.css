@@ -1093,3 +1093,12 @@ width: 80px;
   display: flex;
   gap: 4px;
 }
+
+.zona-drop {
+  border: 1px dashed #007bff;
+  min-height: 50px;
+  position: relative;
+}
+.zona-drop:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}

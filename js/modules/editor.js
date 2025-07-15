@@ -229,23 +229,30 @@ function inicializarSecciones() {
     renderizarSecciones();
   });
 
-  function renderizarSecciones() {
-    listaBloques.innerHTML = "";
-    const secciones = obtenerSecciones();
+function renderizarSecciones() {
+  listaBloques.innerHTML = "";
+  const secciones = obtenerSecciones();
 
-    secciones.forEach((bloque, i) => {
-      const li = document.createElement("li");
-      li.className = "list-group-item d-flex justify-content-between align-items-center";
-      li.innerHTML = `
-        <span>${bloque.nombre}</span>
-        <div>
-          <button class="btn btn-sm btn-warning" onclick="editarBloque(${i})">✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️</button>
-        </div>
-      `;
-      listaBloques.appendChild(li);
+  secciones.forEach((bloque, i) => {
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex justify-content-between align-items-center";
+    li.draggable = true;
+
+    li.innerHTML = `
+      <span>${bloque.nombre}</span>
+      <div>
+        <button class="btn btn-sm btn-warning" onclick="editarBloque(${i})">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="eliminarBloque(${i})">🗑️</button>
+      </div>
+    `;
+
+    li.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("text/html", bloque.html);
     });
-  }
+
+    listaBloques.appendChild(li);
+  });
+}
 }
 
 function obtenerSecciones() {
@@ -325,5 +332,22 @@ function cargarBloques() {
   });
 }
 
+function habilitarZonasDrop() {
+  const columnas = document.querySelectorAll('#vistaPrevia .col');
+  columnas.forEach(col => {
+    col.classList.add('zona-drop');
+    col.style.border = '1px dashed #007bff';
+    col.style.minHeight = '50px';
+    col.addEventListener('dragover', e => e.preventDefault());
+    col.addEventListener('drop', e => {
+      e.preventDefault();
+      const html = e.dataTransfer.getData('text/html');
+      col.insertAdjacentHTML('beforeend', html);
+      habilitarZonasDrop(); // para que las nuevas columnas también se marquen
+    });
+  });
+}
 
-//upd v2.6
+
+
+//upd v2.7
