@@ -206,7 +206,7 @@ function crearCajaSeccion(nombre, html) {
     return document.createTextNode(`❌ Error: ${nombre}`);
   }
 
-  // detecta el tipo
+  // detecta el tipo: SECTION / ROW / COL
   const tipo = elemento.tagName.toUpperCase();
   let label = tipo;
 
@@ -229,10 +229,11 @@ function crearCajaSeccion(nombre, html) {
   etiqueta.style.background = "#fff";
   etiqueta.style.fontSize = "12px";
   etiqueta.style.padding = "0 4px";
+  etiqueta.style.zIndex = "10";
 
   elemento.appendChild(etiqueta);
 
-  // permite selección
+  // permite selección visual
   elemento.addEventListener("click", (e) => {
     e.stopPropagation();
     if (elementoSeleccionado) {
@@ -246,4 +247,5 @@ function crearCajaSeccion(nombre, html) {
 }
 
 
-//upd v3.6.2
+
+//upd v3.6.3
