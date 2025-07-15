@@ -1102,3 +1102,7 @@ width: 80px;
 .zona-drop:hover {
   background-color: rgba(0, 123, 255, 0.05);
 }
+
+#vistaPrevia .activo {
+  outline: 2px dashed blue;
+}
