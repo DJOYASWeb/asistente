@@ -50,7 +50,7 @@ selectorBloques.addEventListener("change", () => {
     dragBloques.innerHTML = "";
     secciones.forEach((seccion, i) => {
       const div = document.createElement("div");
-      div.className = "badge bg-primary text-white p-2";
+      div.className = "bg-primary text-white p-2";
       div.draggable = true;
       div.textContent = seccion.nombre;
       div.dataset.index = i;
@@ -279,7 +279,7 @@ function crearCajaSeccion(nombre, html) {
 
   const etiqueta = document.createElement("span");
   etiqueta.textContent = nombre;
-  etiqueta.className = "badge bg-secondary position-absolute top-0 start-0 m-1";
+  etiqueta.className = "bg-secondary position-absolute top-0 start-0 m-1";
 
   const contenido = document.createElement("div");
   contenido.innerHTML = html;
