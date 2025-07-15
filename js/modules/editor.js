@@ -13,8 +13,6 @@ let contenedorActivo = null;
 function inicializarConstructor() {
   const textarea = document.getElementById("htmlInput");
   const vistaPrevia = document.getElementById("vistaPrevia");
-  const selectorBloques = document.getElementById("selectorBloques");
-  const selectorClases = document.getElementById("selectorClases");
   const dragBloques = document.getElementById("dragBloques");
 
   const secciones = obtenerSecciones();
@@ -24,18 +22,9 @@ function inicializarConstructor() {
     vistaPrevia.innerHTML = textarea.value;
   });
 
-  selectorBloques.addEventListener("change", () => {
-    const index = selectorBloques.value;
-    if (index === "") return;
-    const seccion = secciones[index];
-    const elemento = crearElementoDesdeHTML(seccion.html);
-    vistaPrevia.appendChild(elemento);
-    actualizarTextarea();
-  });
-
   // Renderiza bloques en #dragBloques
   dragBloques.innerHTML = "";
-  secciones.forEach((seccion, i) => {
+  secciones.forEach((seccion) => {
     const div = document.createElement("div");
     div.className = "bg-primary text-white p-2 rounded mb-2";
     div.textContent = seccion.nombre;
@@ -76,16 +65,12 @@ function inicializarConstructor() {
     } else {
       contenedorActivo = null;
     }
-
-    actualizarSelectorClases();
   });
-
 }
 
 function crearElementoDesdeHTML(html) {
   const temp = document.createElement("div");
   temp.innerHTML = html.trim();
-
   const elemento = temp.firstElementChild;
 
   elemento?.addEventListener("click", (e) => {
@@ -93,7 +78,6 @@ function crearElementoDesdeHTML(html) {
     if (contenedorActivo) contenedorActivo.style.outline = "";
     contenedorActivo = elemento;
     contenedorActivo.style.outline = "2px dashed blue";
-    actualizarSelectorClases();
   });
 
   return elemento;
@@ -191,17 +175,6 @@ function inyectarClasesCSS() {
   styleTag.innerHTML = css;
 }
 
-function actualizarSelectorClases() {
-  const selectorClases = document.getElementById("selectorClases");
-  selectorClases.innerHTML = `<option value="">-- Selecciona una clase --</option>`;
-  obtenerClases().forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.nombre;
-    opt.textContent = c.nombre;
-    selectorClases.appendChild(opt);
-  });
-}
-
 // ====================
 // 📦 Secciones / Bloques
 // ====================
@@ -276,4 +249,4 @@ function eliminarBloque(index) {
 }
 
 
-//upd v3.2
+//upd v3.3
