@@ -123,22 +123,5 @@ function actualizarTextarea() {
 }
 
 
-function habilitarZonasDrop() {
-  const columnas = document.querySelectorAll('#vistaPrevia .col');
-  columnas.forEach(col => {
-    col.classList.add('zona-drop');
-    col.style.border = '1px dashed #007bff';
-    col.style.minHeight = '50px';
-    col.addEventListener('dragover', e => e.preventDefault());
-    col.addEventListener('drop', e => {
-      e.preventDefault();
-      const html = e.dataTransfer.getData('text/html');
-      col.insertAdjacentHTML('beforeend', html);
-      habilitarZonasDrop(); // para que las nuevas columnas también se marquen
-    });
-  });
-}
-
-
 
 //upd v2.8
