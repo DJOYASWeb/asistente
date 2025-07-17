@@ -114,9 +114,14 @@ document.getElementById('btnCargaMasiva').addEventListener('click', () => {
     document.getElementById('modalCargaMasiva').style.display = 'flex';
 });
 
-function cerrarModal() {
-    document.getElementById('modalCargaMasiva').style.display = 'none';
+function cerrarModalCargaMasiva() {
+    const modal = document.getElementById('modalCargaMasiva');
+    if (modal) {
+        modal.style.display = 'none';
+        document.getElementById('archivoMasivo').value = '';
+    }
 }
+
 
 document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
     const archivo = document.getElementById('archivoMasivo').files[0];
