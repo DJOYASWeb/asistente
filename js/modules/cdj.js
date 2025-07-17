@@ -170,27 +170,28 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
                 const docRef = window.db.collection("codigos-generados").doc(candidato);
                 const docSnap = await docRef.get();
 
-                if (!docSnap.exists) {
-                    await docRef.set({
-                        idPrestaShop: idPS,
-                        nombre: nombre,
-                        correo: correo,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+if (!docSnap.exists) {
+    await docRef.set({
+        idPrestaShop: idPS,
+        nombre: nombre,
+        correo: correo,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
 
-                    generados.add(candidato);
+    generados.add(candidato);
 
-                    const fila = document.createElement('tr');
-                    fila.innerHTML = `
-                        <td>${idPS}</td>
-                        <td>${nombre}</td>
-                        <td>${correo}</td>
-                        <td>${candidato}</td>
-                    `;
-                    tbody.appendChild(fila);
+    const fila = document.createElement('tr');
+    fila.innerHTML = `
+        <td>${idPS}</td>
+        <td>${nombre}</td>
+        <td>${correo}</td>
+        <td>${candidato}</td>
+    `;
+    tbody.appendChild(fila);
 
-                    break;
-                }
+    codigo = candidato;
+    break;
+}
             }
 
             if (!codigo) {
@@ -209,4 +210,4 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
 
 
-//upd v1.8
+//upd v1.9
