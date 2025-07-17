@@ -134,17 +134,19 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
         const tbody = document.getElementById('tabla').querySelector('tbody');
 
-        const tareas = clientes.map(async (cliente, index) => {
+        for (let index = 0; index < clientes.length; index++) {
+            const cliente = clientes[index];
+
             const idPS = (cliente['ID PrestaShop'] || cliente['id prestashop'] || '').trim();
             const nombre = (cliente['Nombre'] || cliente['nombre'] || '').trim();
             const correo = (cliente['Correo'] || cliente['correo'] || '').trim();
 
             if (!idPS || !nombre || !correo) {
                 console.warn(`Cliente en fila ${index + 2} tiene datos incompletos, se omite.`);
-                return;
+                continue;
             }
 
-            const codigo = pool.pop();
+            const codigo = pool.shift(); // toma el primer disponible
 
             try {
                 await window.db.collection("codigos-generados").doc(codigo).set({
@@ -165,12 +167,12 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
                 `;
                 tbody.appendChild(fila);
 
+                console.log(`Cliente ${nombre} registrado con código ${codigo}`);
+
             } catch (err) {
                 console.error(`Error guardando cliente ${nombre} en Firestore`, err);
             }
-        });
-
-        await Promise.allSettled(tareas);
+        }
 
         alert("Carga masiva completada.");
         cerrarModal();
