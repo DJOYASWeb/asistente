@@ -34,7 +34,7 @@ async function cargarCodigosExistentes() {
 
 function generarPoolDeCodigosDisponibles() {
     const pool = [];
-    for (let i = 0; i < maxCodigos; i++) {
+    for (let i = 100; i < maxCodigos; i++) {  // empieza desde 00100
         const codigo = i.toString().padStart(5, '0');
         if (!generados.has(codigo)) {
             pool.push(codigo);
@@ -53,13 +53,14 @@ async function generarCodigo() {
         return;
     }
 
-    if (generados.size >= maxCodigos) {
+    if (generados.size >= (maxCodigos - 100)) {
         document.getElementById('output').textContent = "Ya se generaron todos los códigos posibles.";
         return;
     }
 
     const pool = generarPoolDeCodigosDisponibles();
-    const codigo = pool[Math.floor(Math.random() * pool.length)];
+    const indiceAleatorio = Math.floor(Math.random() * pool.length);
+    const codigo = pool[indiceAleatorio];
 
     try {
         await window.db.collection("codigos-generados").doc(codigo).set({
@@ -137,16 +138,18 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
         for (let index = 0; index < clientes.length; index++) {
             const cliente = clientes[index];
 
-const idPS = String(cliente['ID PrestaShop'] || cliente['id prestashop'] || '').trim();
-const nombre = String(cliente['Nombre'] || cliente['nombre'] || '').trim();
-const correo = String(cliente['Correo'] || cliente['correo'] || '').trim();
+            const idPS = String(cliente['ID PrestaShop'] || cliente['id prestashop'] || '').trim();
+            const nombre = String(cliente['Nombre'] || cliente['nombre'] || '').trim();
+            const correo = String(cliente['Correo'] || cliente['correo'] || '').trim();
 
             if (!idPS || !nombre || !correo) {
                 console.warn(`Cliente en fila ${index + 2} tiene datos incompletos, se omite.`);
                 continue;
             }
 
-            const codigo = pool.shift(); // toma el primer disponible
+            const indiceAleatorio = Math.floor(Math.random() * pool.length);
+            const codigo = pool[indiceAleatorio];
+            pool.splice(indiceAleatorio, 1);
 
             try {
                 await window.db.collection("codigos-generados").doc(codigo).set({
@@ -167,7 +170,7 @@ const correo = String(cliente['Correo'] || cliente['correo'] || '').trim();
                 `;
                 tbody.appendChild(fila);
 
-                console.log(`Cliente ${nombre} registrado con código ${codigo}`);
+                console.log(`Cliente ${nombre} registrado con código aleatorio ${codigo}`);
 
             } catch (err) {
                 console.error(`Error guardando cliente ${nombre} en Firestore`, err);
@@ -181,5 +184,4 @@ const correo = String(cliente['Correo'] || cliente['correo'] || '').trim();
     reader.readAsArrayBuffer(archivo);
 });
 
-
-//upd v2.2
+//upd v2.4
