@@ -191,15 +191,19 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 });
 
 
-document.getElementById('btnAbrirModalNuevaClienta').addEventListener('click', () => {
-    document.getElementById('modalNuevaClienta').style.display = 'flex';
-});
+function abrirModalNuevaClienta() {
+    const modal = document.getElementById('modalNuevaClienta');
+    if (modal) modal.style.display = 'flex';
+}
 
 function cerrarModalNuevaClienta() {
-    document.getElementById('modalNuevaClienta').style.display = 'none';
-    document.getElementById('formulario').reset();
-    document.getElementById('output').textContent = "";
+    const modal = document.getElementById('modalNuevaClienta');
+    if (modal) {
+        modal.style.display = 'none';
+        document.getElementById('formularioNuevaClienta').reset();
+        document.getElementById('output').textContent = "";
+    }
 }
 
 
-//upd v3.2
+//upd v3.3
