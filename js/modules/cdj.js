@@ -185,45 +185,6 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 });
 
 
-document.getElementById('btnBuscarCorreo').addEventListener('click', () => {
-    const correoBuscado = document.getElementById('buscadorCorreo').value.trim().toLowerCase();
-
-    const tbody = document.querySelector('#tabla tbody');
-    const filas = Array.from(tbody.querySelectorAll('tr'));
-
-    if (!correoBuscado) {
-        document.getElementById('resultadoBusqueda').textContent = "Por favor ingresa un correo.";
-        return;
-    }
-
-    let encontrada = false;
-
-    filas.forEach(fila => {
-        const correoFila = fila.children[2].textContent.trim().toLowerCase();
-
-        if (correoFila === correoBuscado) {
-            fila.style.display = ""; // mostrar
-            encontrada = true;
-        } else {
-            fila.style.display = "none"; // ocultar
-        }
-    });
-
-    if (!encontrada) {
-        document.getElementById('resultadoBusqueda').textContent = "No se encontró ninguna clienta con ese correo.";
-    } else {
-        document.getElementById('resultadoBusqueda').textContent = "";
-    }
-});
-
-
-document.getElementById('btnLimpiarFiltro').addEventListener('click', () => {
-    const filas = document.querySelectorAll('#tabla tbody tr');
-    filas.forEach(fila => fila.style.display = "");
-    document.getElementById('buscadorCorreo').value = "";
-    document.getElementById('resultadoBusqueda').textContent = "";
-});
-
 
 $(document).ready(function () {
     $('#tabla').DataTable({
@@ -234,4 +195,4 @@ $(document).ready(function () {
 });
 
 
-//upd v2.9
+//upd v3
