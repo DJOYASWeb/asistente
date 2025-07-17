@@ -123,5 +123,80 @@ function exportarTablaAXLSX(nombreArchivo) {
     XLSX.writeFile(wb, nombreArchivo);
 }
 
+document.getElementById('btnCargaMasiva').addEventListener('click', () => {
+    document.getElementById('modalCargaMasiva').style.display = 'block';
+});
 
-//upd v1.6
+function cerrarModal() {
+    document.getElementById('modalCargaMasiva').style.display = 'none';
+}
+
+document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
+    const archivo = document.getElementById('archivoMasivo').files[0];
+    if (!archivo) {
+        alert("Por favor selecciona un archivo.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const clientes = XLSX.utils.sheet_to_json(sheet);
+
+        for (const cliente of clientes) {
+            const idPS = (cliente['ID PrestaShop'] || '').trim();
+            const nombre = (cliente['Nombre'] || '').trim();
+            const correo = (cliente['Correo'] || '').trim();
+
+            if (!idPS || !nombre || !correo) continue;
+
+            let intentos = 0;
+            let codigo = null;
+
+            while (intentos < 1000) {
+                intentos++;
+                const candidato = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+
+                if (generados.has(candidato)) continue;
+
+                const docRef = window.db.collection("codigos-generados").doc(candidato);
+                const docSnap = await docRef.get();
+
+                if (!docSnap.exists) {
+                    await docRef.set({
+                        idPrestaShop: idPS,
+                        nombre: nombre,
+                        correo: correo,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    generados.add(candidato);
+
+                    const tbody = document.getElementById('tabla').querySelector('tbody');
+                    const fila = document.createElement('tr');
+                    fila.innerHTML = `
+                        <td>${idPS}</td>
+                        <td>${nombre}</td>
+                        <td>${correo}</td>
+                        <td>${candidato}</td>
+                    `;
+                    tbody.appendChild(fila);
+
+                    break;
+                }
+            }
+        }
+
+        alert("Carga masiva completada.");
+        cerrarModal();
+    };
+
+    reader.readAsArrayBuffer(archivo);
+});
+
+
+
+//upd v1.7
