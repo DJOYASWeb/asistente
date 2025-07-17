@@ -89,7 +89,7 @@ async function generarCodigo() {
         tbody.appendChild(fila);
 
         document.getElementById('output').textContent = `Código generado: ${codigo}`;
-        document.getElementById('formulario').reset();
+        document.getElementById('formularioNuevaClienta').reset();
 
     } catch (err) {
         console.error("Error guardando en Firestore: ", err);
