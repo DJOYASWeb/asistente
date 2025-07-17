@@ -1147,3 +1147,13 @@ width: 80px;
     background-color: #323232;
     border-color: #323232;
 }
+
+.modal-ios{
+    background: white;
+    padding: 4rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 60%;
+    margin: auto;
+    position: relative;
+}
