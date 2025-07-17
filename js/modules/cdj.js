@@ -137,9 +137,9 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
         for (let index = 0; index < clientes.length; index++) {
             const cliente = clientes[index];
 
-            const idPS = (cliente['ID PrestaShop'] || cliente['id prestashop'] || '').trim();
-            const nombre = (cliente['Nombre'] || cliente['nombre'] || '').trim();
-            const correo = (cliente['Correo'] || cliente['correo'] || '').trim();
+const idPS = String(cliente['ID PrestaShop'] || cliente['id prestashop'] || '').trim();
+const nombre = String(cliente['Nombre'] || cliente['nombre'] || '').trim();
+const correo = String(cliente['Correo'] || cliente['correo'] || '').trim();
 
             if (!idPS || !nombre || !correo) {
                 console.warn(`Cliente en fila ${index + 2} tiene datos incompletos, se omite.`);
@@ -182,4 +182,4 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 });
 
 
-//upd v2.1
+//upd v2.2
