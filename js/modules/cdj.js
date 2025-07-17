@@ -56,4 +56,4 @@ function generarCodigo() {
     document.getElementById('formulario').reset();
 }
 
-//upd v1
+//upd v1.1
