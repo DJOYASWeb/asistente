@@ -66,9 +66,33 @@
 
 <button onclick="generarCodigo()">Generar código</button>
 
-<div id="output">Haz clic en el botón para generar un código.</div>
-<div id="list"></div>
+<form id="formulario">
+    <label>ID PrestaShop:
+        <input type="text" id="idPS" required>
+    </label>
+    <label>Nombre clienta:
+        <input type="text" id="nombre" required>
+    </label>
+    <label>Correo clienta:
+        <input type="email" id="correo" required>
+    </label>
+    <button type="button" onclick="generarCodigo()">Generar código</button>
+</form>
 
+<div id="output"></div>
+
+<table id="tabla">
+    <thead>
+        <tr>
+            <th>ID PrestaShop</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Código generado</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
 
 </div>
 

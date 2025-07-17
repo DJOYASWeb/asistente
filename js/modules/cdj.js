@@ -1,7 +1,17 @@
 const generados = new Set();
-const maxCodigos = 100000; // hay 100000 combinaciones posibles
+const maxCodigos = 100000;
 
 function generarCodigo() {
+    const idPS = document.getElementById('idPS').value.trim();
+    const nombre = document.getElementById('nombre').value.trim();
+    const correo = document.getElementById('correo').value.trim();
+
+    // Validar que todos los campos estén llenos
+    if (!idPS || !nombre || !correo) {
+        document.getElementById('output').textContent = "Por favor completa todos los campos antes de generar un código.";
+        return;
+    }
+
     if (generados.size >= maxCodigos) {
         document.getElementById('output').textContent = "Ya se generaron todos los códigos posibles.";
         return;
@@ -14,9 +24,19 @@ function generarCodigo() {
 
     generados.add(codigo);
 
-    document.getElementById('output').textContent = `Nuevo código generado: ${codigo}`;
+    document.getElementById('output').textContent = `Código generado: ${codigo}`;
 
-    // Opcional: muestra la lista acumulada
-    const lista = Array.from(generados).join(", ");
-    document.getElementById('list').textContent = `Códigos generados (${generados.size}): ${lista}`;
+    // Añadir a la tabla
+    const tbody = document.getElementById('tabla').querySelector('tbody');
+    const fila = document.createElement('tr');
+    fila.innerHTML = `
+        <td>${idPS}</td>
+        <td>${nombre}</td>
+        <td>${correo}</td>
+        <td>${codigo}</td>
+    `;
+    tbody.appendChild(fila);
+
+    // Limpiar los campos del formulario
+    document.getElementById('formulario').reset();
 }
