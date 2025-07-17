@@ -111,7 +111,7 @@ function exportarTablaAXLSX(nombreArchivo) {
 }
 
 document.getElementById('btnCargaMasiva').addEventListener('click', () => {
-    document.getElementById('modalCargaMasiva').style.display = 'block';
+    document.getElementById('modalCargaMasiva').style.display = 'flex';
 });
 
 function cerrarModal() {
