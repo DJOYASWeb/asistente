@@ -30,6 +30,12 @@ async function cargarCodigosExistentes() {
         console.error("Error cargando códigos existentes: ", error);
         document.getElementById('output').textContent = "Error al cargar códigos existentes. Intenta más tarde.";
     }
+
+    $('#tabla').DataTable({
+    language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+    }
+});
 }
 
 function generarPoolDeCodigosDisponibles() {
@@ -186,13 +192,5 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
 
 
-$(document).ready(function () {
-    $('#tabla').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-        }
-    });
-});
 
-
-//upd v3
+//upd v3.1
