@@ -182,4 +182,4 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 });
 
 
-//upd v2
+//upd v2.1
