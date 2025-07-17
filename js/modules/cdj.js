@@ -37,6 +37,23 @@ function generarCodigo() {
     `;
     tbody.appendChild(fila);
 
+    // Guardar en Firestore
+    window.db.collection("codigos-generados").add({
+        idPrestaShop: idPS,
+        nombre: nombre,
+        correo: correo,
+        codigo: codigo,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        console.log("Código guardado en Firestore");
+    })
+    .catch((error) => {
+        console.error("Error al guardar en Firestore: ", error);
+    });
+
     // Limpiar los campos del formulario
     document.getElementById('formulario').reset();
 }
+
+//upd v1
