@@ -1,7 +1,4 @@
-const generados = new Set();
-const maxCodigos = 100000;
-
-function generarCodigo() {
+async function generarCodigo() {
     const idPS = document.getElementById('idPS').value.trim();
     const nombre = document.getElementById('nombre').value.trim();
     const correo = document.getElementById('correo').value.trim();
@@ -17,10 +14,43 @@ function generarCodigo() {
         return;
     }
 
-    let codigo;
-    do {
-        codigo = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-    } while (generados.has(codigo));
+    let intentos = 0;
+    let codigo = null;
+
+    while (intentos < 1000) { // Evitar bucles infinitos
+        intentos++;
+        const candidato = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+
+        try {
+            const docRef = window.db.collection("codigos-generados").doc(candidato);
+            const docSnap = await docRef.get();
+
+            if (!docSnap.exists) {
+                // Código no está en uso
+                codigo = candidato;
+
+                await docRef.set({
+                    idPrestaShop: idPS,
+                    nombre: nombre,
+                    correo: correo,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                console.log(`Código ${codigo} guardado en Firestore`);
+                break;
+            }
+            // Si existe, sigue buscando
+        } catch (error) {
+            console.error("Error consultando Firestore: ", error);
+            document.getElementById('output').textContent = "Error al consultar Firestore. Intenta de nuevo.";
+            return;
+        }
+    }
+
+    if (!codigo) {
+        document.getElementById('output').textContent = "No se pudo generar un código único. Intenta más tarde.";
+        return;
+    }
 
     generados.add(codigo);
 
@@ -37,23 +67,8 @@ function generarCodigo() {
     `;
     tbody.appendChild(fila);
 
-    // Guardar en Firestore
-    window.db.collection("codigos-generados").add({
-        idPrestaShop: idPS,
-        nombre: nombre,
-        correo: correo,
-        codigo: codigo,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then(() => {
-        console.log("Código guardado en Firestore");
-    })
-    .catch((error) => {
-        console.error("Error al guardar en Firestore: ", error);
-    });
-
     // Limpiar los campos del formulario
     document.getElementById('formulario').reset();
 }
 
-//upd v1.1
+//upd v1.2
