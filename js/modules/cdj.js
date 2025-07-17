@@ -1,3 +1,41 @@
+const generados = new Set();
+const maxCodigos = 100000;
+
+cargarCodigosExistentes();
+
+
+async function cargarCodigosExistentes() {
+    try {
+        const snapshot = await window.db.collection("codigos-generados").get();
+
+        const tbody = document.getElementById('tabla').querySelector('tbody');
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const codigo = doc.id;
+
+            // Añadir a la tabla
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${data.idPrestaShop}</td>
+                <td>${data.nombre}</td>
+                <td>${data.correo}</td>
+                <td>${codigo}</td>
+            `;
+            tbody.appendChild(fila);
+
+            // Marcar código como ya usado
+            generados.add(codigo);
+        });
+
+        console.log(`Cargados ${snapshot.size} códigos existentes.`);
+    } catch (error) {
+        console.error("Error cargando códigos existentes: ", error);
+        document.getElementById('output').textContent = "Error al cargar códigos existentes. Intenta más tarde.";
+    }
+}
+
+
 async function generarCodigo() {
     const idPS = document.getElementById('idPS').value.trim();
     const nombre = document.getElementById('nombre').value.trim();
