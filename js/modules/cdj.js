@@ -3,7 +3,6 @@ const maxCodigos = 100000;
 
 cargarCodigosExistentes();
 
-
 async function cargarCodigosExistentes() {
     try {
         const snapshot = await window.db.collection("codigos-generados").get();
@@ -14,7 +13,6 @@ async function cargarCodigosExistentes() {
             const data = doc.data();
             const codigo = doc.id;
 
-            // Añadir a la tabla
             const fila = document.createElement('tr');
             fila.innerHTML = `
                 <td>${data.idPrestaShop}</td>
@@ -24,7 +22,6 @@ async function cargarCodigosExistentes() {
             `;
             tbody.appendChild(fila);
 
-            // Marcar código como ya usado
             generados.add(codigo);
         });
 
@@ -35,13 +32,22 @@ async function cargarCodigosExistentes() {
     }
 }
 
+function generarPoolDeCodigosDisponibles() {
+    const pool = [];
+    for (let i = 0; i < maxCodigos; i++) {
+        const codigo = i.toString().padStart(5, '0');
+        if (!generados.has(codigo)) {
+            pool.push(codigo);
+        }
+    }
+    return pool;
+}
 
 async function generarCodigo() {
     const idPS = document.getElementById('idPS').value.trim();
     const nombre = document.getElementById('nombre').value.trim();
     const correo = document.getElementById('correo').value.trim();
 
-    // Validar que todos los campos estén llenos
     if (!idPS || !nombre || !correo) {
         document.getElementById('output').textContent = "Por favor completa todos los campos antes de generar un código.";
         return;
@@ -52,61 +58,36 @@ async function generarCodigo() {
         return;
     }
 
-    let intentos = 0;
-    let codigo = null;
+    const pool = generarPoolDeCodigosDisponibles();
+    const codigo = pool[Math.floor(Math.random() * pool.length)];
 
-    while (intentos < 1000) { // Evitar bucles infinitos
-        intentos++;
-        const candidato = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+    try {
+        await window.db.collection("codigos-generados").doc(codigo).set({
+            idPrestaShop: idPS,
+            nombre: nombre,
+            correo: correo,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-        try {
-            const docRef = window.db.collection("codigos-generados").doc(candidato);
-            const docSnap = await docRef.get();
+        generados.add(codigo);
 
-            if (!docSnap.exists) {
-                // Código no está en uso
-                codigo = candidato;
+        const tbody = document.getElementById('tabla').querySelector('tbody');
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${idPS}</td>
+            <td>${nombre}</td>
+            <td>${correo}</td>
+            <td>${codigo}</td>
+        `;
+        tbody.appendChild(fila);
 
-                await docRef.set({
-                    idPrestaShop: idPS,
-                    nombre: nombre,
-                    correo: correo,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+        document.getElementById('output').textContent = `Código generado: ${codigo}`;
+        document.getElementById('formulario').reset();
 
-                console.log(`Código ${codigo} guardado en Firestore`);
-                break;
-            }
-            // Si existe, sigue buscando
-        } catch (error) {
-            console.error("Error consultando Firestore: ", error);
-            document.getElementById('output').textContent = "Error al consultar Firestore. Intenta de nuevo.";
-            return;
-        }
+    } catch (err) {
+        console.error("Error guardando en Firestore: ", err);
+        document.getElementById('output').textContent = "Error al guardar en Firestore.";
     }
-
-    if (!codigo) {
-        document.getElementById('output').textContent = "No se pudo generar un código único. Intenta más tarde.";
-        return;
-    }
-
-    generados.add(codigo);
-
-    document.getElementById('output').textContent = `Código generado: ${codigo}`;
-
-    // Añadir a la tabla
-    const tbody = document.getElementById('tabla').querySelector('tbody');
-    const fila = document.createElement('tr');
-    fila.innerHTML = `
-        <td>${idPS}</td>
-        <td>${nombre}</td>
-        <td>${correo}</td>
-        <td>${codigo}</td>
-    `;
-    tbody.appendChild(fila);
-
-    // Limpiar los campos del formulario
-    document.getElementById('formulario').reset();
 }
 
 document.getElementById('exportarCSV').addEventListener('click', () => {
@@ -119,7 +100,6 @@ function exportarTablaAXLSX(nombreArchivo) {
     const wb = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(wb, ws, "Códigos");
-
     XLSX.writeFile(wb, nombreArchivo);
 }
 
@@ -146,6 +126,12 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
         const sheet = workbook.Sheets[sheetName];
         const clientes = XLSX.utils.sheet_to_json(sheet);
 
+        const pool = generarPoolDeCodigosDisponibles();
+        if (pool.length < clientes.length) {
+            alert("No hay suficientes códigos disponibles para todos los clientes.");
+            return;
+        }
+
         const tbody = document.getElementById('tabla').querySelector('tbody');
 
         const tareas = clientes.map(async (cliente, index) => {
@@ -158,44 +144,29 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
                 return;
             }
 
-            let intentos = 0;
-            let codigo = null;
+            const codigo = pool.pop();
 
-            while (intentos < 1000) {
-                intentos++;
-                const candidato = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+            try {
+                await window.db.collection("codigos-generados").doc(codigo).set({
+                    idPrestaShop: idPS,
+                    nombre: nombre,
+                    correo: correo,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
 
-                if (generados.has(candidato)) continue;
+                generados.add(codigo);
 
-                const docRef = window.db.collection("codigos-generados").doc(candidato);
-                const docSnap = await docRef.get();
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${idPS}</td>
+                    <td>${nombre}</td>
+                    <td>${correo}</td>
+                    <td>${codigo}</td>
+                `;
+                tbody.appendChild(fila);
 
-if (!docSnap.exists) {
-    await docRef.set({
-        idPrestaShop: idPS,
-        nombre: nombre,
-        correo: correo,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    generados.add(candidato);
-
-    const fila = document.createElement('tr');
-    fila.innerHTML = `
-        <td>${idPS}</td>
-        <td>${nombre}</td>
-        <td>${correo}</td>
-        <td>${candidato}</td>
-    `;
-    tbody.appendChild(fila);
-
-    codigo = candidato;
-    break;
-}
-            }
-
-            if (!codigo) {
-                console.warn(`No se pudo generar un código único para cliente ${nombre}.`);
+            } catch (err) {
+                console.error(`Error guardando cliente ${nombre} en Firestore`, err);
             }
         });
 
@@ -209,5 +180,4 @@ if (!docSnap.exists) {
 });
 
 
-
-//upd v1.9
+//upd v2
