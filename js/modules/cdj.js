@@ -109,4 +109,32 @@ async function generarCodigo() {
     document.getElementById('formulario').reset();
 }
 
-//upd v1.2
+document.getElementById('exportarCSV').addEventListener('click', () => {
+    exportarTablaACSV('codigos_generados.csv');
+});
+
+function exportarTablaACSV(nombreArchivo) {
+    const filas = document.querySelectorAll('#tabla tr');
+    let csv = [];
+
+    filas.forEach(fila => {
+        let cols = Array.from(fila.querySelectorAll('td, th'))
+                         .map(col => `"${col.innerText.replace(/"/g, '""')}"`);
+        csv.push(cols.join(','));
+    });
+
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', nombreArchivo);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+//upd v1.3
