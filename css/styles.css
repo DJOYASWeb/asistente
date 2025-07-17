@@ -1140,3 +1140,10 @@ width: 80px;
 .seleccionado {
   outline: 2px dashed red;
 }
+
+.active>.page-link, .page-link.active {
+    z-index: 3;
+    color: var(--bs-pagination-active-color);
+    background-color: #323232;
+    border-color: #323232;
+}
