@@ -217,6 +217,11 @@ document.getElementById('btnBuscarCorreo').addEventListener('click', () => {
 });
 
 
+document.getElementById('btnLimpiarFiltro').addEventListener('click', () => {
+    const filas = document.querySelectorAll('#tabla tbody tr');
+    filas.forEach(fila => fila.style.display = "");
+    document.getElementById('buscadorCorreo').value = "";
+    document.getElementById('resultadoBusqueda').textContent = "";
+});
 
-
-//upd v2.7
+//upd v2.8
