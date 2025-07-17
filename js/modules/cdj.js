@@ -141,17 +141,22 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
     const reader = new FileReader();
     reader.onload = async (e) => {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
+        const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const clientes = XLSX.utils.sheet_to_json(sheet);
 
-        for (const cliente of clientes) {
-            const idPS = (cliente['ID PrestaShop'] || '').trim();
-            const nombre = (cliente['Nombre'] || '').trim();
-            const correo = (cliente['Correo'] || '').trim();
+        const tbody = document.getElementById('tabla').querySelector('tbody');
 
-            if (!idPS || !nombre || !correo) continue;
+        const tareas = clientes.map(async (cliente, index) => {
+            const idPS = (cliente['ID PrestaShop'] || cliente['id prestashop'] || '').trim();
+            const nombre = (cliente['Nombre'] || cliente['nombre'] || '').trim();
+            const correo = (cliente['Correo'] || cliente['correo'] || '').trim();
+
+            if (!idPS || !nombre || !correo) {
+                console.warn(`Cliente en fila ${index + 2} tiene datos incompletos, se omite.`);
+                return;
+            }
 
             let intentos = 0;
             let codigo = null;
@@ -175,7 +180,6 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
                     generados.add(candidato);
 
-                    const tbody = document.getElementById('tabla').querySelector('tbody');
                     const fila = document.createElement('tr');
                     fila.innerHTML = `
                         <td>${idPS}</td>
@@ -188,7 +192,13 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
                     break;
                 }
             }
-        }
+
+            if (!codigo) {
+                console.warn(`No se pudo generar un código único para cliente ${nombre}.`);
+            }
+        });
+
+        await Promise.allSettled(tareas);
 
         alert("Carga masiva completada.");
         cerrarModal();
@@ -199,4 +209,4 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
 
 
-//upd v1.7
+//upd v1.8
