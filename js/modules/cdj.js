@@ -192,7 +192,7 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
 
 document.getElementById('btnAbrirModalNuevaClienta').addEventListener('click', () => {
-    document.getElementById('modalNuevaClienta').style.display = 'block';
+    document.getElementById('modalNuevaClienta').style.display = 'flex';
 });
 
 function cerrarModalNuevaClienta() {
