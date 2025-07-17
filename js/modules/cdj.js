@@ -184,4 +184,50 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
     reader.readAsArrayBuffer(archivo);
 });
 
-//upd v2.4
+
+document.getElementById('btnBuscarCorreo').addEventListener('click', async () => {
+    const correo = document.getElementById('buscadorCorreo').value.trim().toLowerCase();
+
+    if (!correo) {
+        document.getElementById('resultadoBusqueda').textContent = "Por favor ingresa un correo.";
+        return;
+    }
+
+    document.getElementById('resultadoBusqueda').textContent = "Buscando…";
+
+    try {
+        const snapshot = await window.db.collection("codigos-generados")
+            .where("correo", "==", correo)
+            .get();
+
+        if (snapshot.empty) {
+            document.getElementById('resultadoBusqueda').textContent = "No se encontró ninguna clienta con ese correo.";
+            return;
+        }
+
+        // Solo debería haber uno, pero por si acaso mostramos todos
+        const resultados = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const codigo = doc.id;
+
+            resultados.push(`
+                <p><strong>ID PS:</strong> ${data.idPrestaShop}</p>
+                <p><strong>Nombre:</strong> ${data.nombre}</p>
+                <p><strong>Correo:</strong> ${data.correo}</p>
+                <p><strong>Código generado:</strong> ${codigo}</p>
+                <hr>
+            `);
+        });
+
+        document.getElementById('resultadoBusqueda').innerHTML = resultados.join('');
+
+    } catch (err) {
+        console.error("Error al buscar clienta: ", err);
+        document.getElementById('resultadoBusqueda').textContent = "Ocurrió un error al buscar. Intenta más tarde.";
+    }
+});
+
+
+
+//upd v2.5
