@@ -91,6 +91,9 @@ async function generarCodigo() {
         document.getElementById('output').textContent = `Código generado: ${codigo}`;
         document.getElementById('formularioNuevaClienta').reset();
 
+        
+cerrarModalNuevaClienta();  // <<--- CIERRA EL MODAL
+
     } catch (err) {
         console.error("Error guardando en Firestore: ", err);
         document.getElementById('output').textContent = "Error al guardar en Firestore.";
@@ -211,4 +214,4 @@ function cerrarModalNuevaClienta() {
 }
 
 
-//upd v3.4
+//upd v3.5
