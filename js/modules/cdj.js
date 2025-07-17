@@ -136,4 +136,4 @@ function exportarTablaAExcel(nombreArchivo) {
 }
 
 
-//upd v1.4
+//upd v1.5
