@@ -110,30 +110,18 @@ async function generarCodigo() {
 }
 
 document.getElementById('exportarCSV').addEventListener('click', () => {
-    exportarTablaAExcel('codigos_acceso_CDJ.xls');
+    exportarTablaAXLSX('codigos_generados.xlsx');
 });
 
-function exportarTablaAExcel(nombreArchivo) {
-    const filas = document.querySelectorAll('#tabla tr');
-    let contenido = [];
+function exportarTablaAXLSX(nombreArchivo) {
+    const tabla = document.getElementById('tabla');
+    const ws = XLSX.utils.table_to_sheet(tabla);
+    const wb = XLSX.utils.book_new();
 
-    filas.forEach(fila => {
-        let cols = Array.from(fila.querySelectorAll('td, th'))
-                         .map(col => col.innerText.replace(/\t/g, ' ')); // evita tabs en el contenido
-        contenido.push(cols.join('\t'));
-    });
+    XLSX.utils.book_append_sheet(wb, ws, "Códigos");
 
-    const blob = new Blob([contenido.join('\n')], { type: 'text/tab-separated-values;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', nombreArchivo);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    XLSX.writeFile(wb, nombreArchivo);
 }
 
 
-//upd v1.5
+//upd v1.6
