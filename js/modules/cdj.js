@@ -191,6 +191,15 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 });
 
 
+document.getElementById('btnAbrirModalNuevaClienta').addEventListener('click', () => {
+    document.getElementById('modalNuevaClienta').style.display = 'block';
+});
+
+function cerrarModalNuevaClienta() {
+    document.getElementById('modalNuevaClienta').style.display = 'none';
+    document.getElementById('formulario').reset();
+    document.getElementById('output').textContent = "";
+}
 
 
-//upd v3.1
+//upd v3.2
