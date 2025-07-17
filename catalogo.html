@@ -78,10 +78,19 @@
     </label>
     <button type="button" onclick="generarCodigo()">Generar código</button>
 </form>
+<div id="output"></div>
 </div>
 
-<div id="output"></div>
+
+<div class="ios-card mt-4">
+  <h2>Buscar clienta por correo</h2>
+  <input type="email" id="buscadorCorreo" placeholder="Correo de la clienta" />
+  <button id="btnBuscarCorreo">Buscar</button>
+  <div id="resultadoBusqueda"></div>
+</div>
+
 <div class="ios-card">
+  
   <button id="exportarCSV">Exportar a CSV</button>
 <table id="tabla">
     <thead>
