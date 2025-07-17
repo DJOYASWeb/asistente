@@ -185,49 +185,34 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 });
 
 
-document.getElementById('btnBuscarCorreo').addEventListener('click', async () => {
-    const correo = document.getElementById('buscadorCorreo').value.trim().toLowerCase();
+document.getElementById('btnBuscarCorreo').addEventListener('click', () => {
+    const correoBuscado = document.getElementById('buscadorCorreo').value.trim().toLowerCase();
 
-    if (!correo) {
+    if (!correoBuscado) {
         document.getElementById('resultadoBusqueda').textContent = "Por favor ingresa un correo.";
         return;
     }
 
-    document.getElementById('resultadoBusqueda').textContent = "Buscando…";
+    document.getElementById('resultadoBusqueda').textContent = "";
 
-    try {
-        const snapshot = await window.db.collection("codigos-generados")
-            .where("correo", "==", correo)
-            .get();
+    const filas = document.querySelectorAll('#tabla tbody tr');
+    let encontrada = false;
 
-        if (snapshot.empty) {
-            document.getElementById('resultadoBusqueda').textContent = "No se encontró ninguna clienta con ese correo.";
-            return;
+    filas.forEach(fila => {
+        fila.classList.remove('resaltada');  // limpia resaltados previos
+
+        const correoFila = fila.children[2].textContent.trim().toLowerCase();
+        if (correoFila === correoBuscado) {
+            fila.classList.add('resaltada');
+            encontrada = true;
         }
+    });
 
-        // Solo debería haber uno, pero por si acaso mostramos todos
-        const resultados = [];
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const codigo = doc.id;
-
-            resultados.push(`
-                <p><strong>ID PS:</strong> ${data.idPrestaShop}</p>
-                <p><strong>Nombre:</strong> ${data.nombre}</p>
-                <p><strong>Correo:</strong> ${data.correo}</p>
-                <p><strong>Código generado:</strong> ${codigo}</p>
-                <hr>
-            `);
-        });
-
-        document.getElementById('resultadoBusqueda').innerHTML = resultados.join('');
-
-    } catch (err) {
-        console.error("Error al buscar clienta: ", err);
-        document.getElementById('resultadoBusqueda').textContent = "Ocurrió un error al buscar. Intenta más tarde.";
+    if (!encontrada) {
+        document.getElementById('resultadoBusqueda').textContent = "No se encontró ninguna clienta con ese correo.";
     }
 });
 
 
 
-//upd v2.5
+//upd v2.6
