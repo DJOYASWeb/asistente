@@ -110,21 +110,20 @@ async function generarCodigo() {
 }
 
 document.getElementById('exportarCSV').addEventListener('click', () => {
-    exportarTablaACSV('codigos_generados.csv');
+    exportarTablaAExcel('codigos_generados.tsv');
 });
 
-function exportarTablaACSV(nombreArchivo) {
+function exportarTablaAExcel(nombreArchivo) {
     const filas = document.querySelectorAll('#tabla tr');
-    let csv = [];
+    let contenido = [];
 
     filas.forEach(fila => {
         let cols = Array.from(fila.querySelectorAll('td, th'))
-                         .map(col => `"${col.innerText.replace(/"/g, '""')}"`);
-        csv.push(cols.join(','));
+                         .map(col => col.innerText.replace(/\t/g, ' ')); // evita tabs en el contenido
+        contenido.push(cols.join('\t'));
     });
 
-    const csvContent = csv.join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([contenido.join('\n')], { type: 'text/tab-separated-values;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
 
     const link = document.createElement('a');
@@ -137,4 +136,4 @@ function exportarTablaACSV(nombreArchivo) {
 }
 
 
-//upd v1.3
+//upd v1.4
