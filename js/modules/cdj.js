@@ -110,7 +110,7 @@ async function generarCodigo() {
 }
 
 document.getElementById('exportarCSV').addEventListener('click', () => {
-    exportarTablaAExcel('codigos_generados.tsv');
+    exportarTablaAExcel('codigos_acceso_CDJ.tsv');
 });
 
 function exportarTablaAExcel(nombreArchivo) {
