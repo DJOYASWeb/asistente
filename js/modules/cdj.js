@@ -188,31 +188,35 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 document.getElementById('btnBuscarCorreo').addEventListener('click', () => {
     const correoBuscado = document.getElementById('buscadorCorreo').value.trim().toLowerCase();
 
+    const tbody = document.querySelector('#tabla tbody');
+    const filas = Array.from(tbody.querySelectorAll('tr'));
+
     if (!correoBuscado) {
         document.getElementById('resultadoBusqueda').textContent = "Por favor ingresa un correo.";
         return;
     }
 
-    document.getElementById('resultadoBusqueda').textContent = "";
-
-    const filas = document.querySelectorAll('#tabla tbody tr');
     let encontrada = false;
 
     filas.forEach(fila => {
-        fila.classList.remove('resaltada');  // limpia resaltados previos
-
         const correoFila = fila.children[2].textContent.trim().toLowerCase();
+
         if (correoFila === correoBuscado) {
-            fila.classList.add('resaltada');
+            fila.style.display = ""; // mostrar
             encontrada = true;
+        } else {
+            fila.style.display = "none"; // ocultar
         }
     });
 
     if (!encontrada) {
         document.getElementById('resultadoBusqueda').textContent = "No se encontró ninguna clienta con ese correo.";
+    } else {
+        document.getElementById('resultadoBusqueda').textContent = "";
     }
 });
 
 
 
-//upd v2.6
+
+//upd v2.7
