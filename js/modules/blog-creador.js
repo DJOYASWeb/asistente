@@ -304,6 +304,10 @@ console.log("blogsData keys:", Object.keys(blogsData));
 console.log("blogsData[blogId]:", blogsData[blogId]);
 
   const data = blogsData[blogId];
+  if (!data) {
+    if (blogId !== "") console.warn(`Blog con ID ${blogId} no encontrado`);
+    return;
+  }
 
   document.getElementById("titulo").value = data.nombre || "";
   document.getElementById("fecha").value = data.fecha || "";
@@ -328,4 +332,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//updd 18-07 v1.8
+//updd 18-07 v1.5
