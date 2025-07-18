@@ -93,7 +93,10 @@ async function generarBloqueContenido() {
   const id = select.value;
   const isInfluencer = document.getElementById("checkInfluencer").checked;
 
-  if (!id && !isInfluencer) return alert("Debes seleccionar un contenido o marcar Influencer");
+ if (!id && !isInfluencer) {
+  mostrarNotificacion("Debes seleccionar un contenido o marcar Influencer", "alerta");
+  return;
+}
 
   const etiquetas = {
     destacados: document.getElementById("checkDestacados").checked,
@@ -482,4 +485,4 @@ function cerrarModalAgregarRecurso() {
 
 
 
-//upd v.2.9
+//upd v.3
