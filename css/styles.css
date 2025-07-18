@@ -1171,7 +1171,7 @@ width: 80px;
 
 .toast-notif {
   background: #007bff;
-  color: white;
+  color: #323232;
   padding: 0.75rem 1rem;
   border-radius: 0.375rem;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
@@ -1190,7 +1190,7 @@ width: 80px;
 .toast-notif .toast-close {
   background: none;
   border: none;
-  color: white;
+  color: #323232;
   font-size: 1rem;
   cursor: pointer;
   margin-left: auto;
@@ -1206,9 +1206,9 @@ width: 80px;
 }
 
 .toast-exito {
-  background: #bfe7c8;
+  background: #def5e3;
 }
 
 .toast-error {
-  background: #e2b8bc;
+  background: #ffe1e4;
 }
