@@ -100,11 +100,15 @@ window.addEventListener('keydown', function (event) {
 
 // Cierre universal de modales haciendo clic fuera
 document.addEventListener('click', function (event) {
-  const modalesAbiertos = document.querySelectorAll('.alinear[style*="display: flex"]');
+  const modalesAbiertos = document.querySelectorAll('.alinear[style*="display"]');
   modalesAbiertos.forEach(modal => {
-    const contenido = modal.querySelector('div');
-    if (contenido && !contenido.contains(event.target)) {
-      modal.style.display = 'none';
+    if (getComputedStyle(modal).display === 'flex') {
+      const contenido = modal.querySelector('div');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
     }
   });
 });
+
+//v.1
