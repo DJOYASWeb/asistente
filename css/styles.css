@@ -1220,3 +1220,11 @@ width: 80px;
 .toast-progress-error {
   background: rgb(107, 5, 15); 
 }
+
+.toast-alerta {
+  background: #fff2c9;
+}
+
+.toast-progress-alerta {
+  background: rgb(156, 120, 9);
+}

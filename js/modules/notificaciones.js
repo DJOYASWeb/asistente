@@ -26,11 +26,16 @@ function mostrarNotificacion(mensaje, estado = "exito") {
     document.body.appendChild(container);
   }
 
+  // Determinar icono según estado
+  let icono = "✅";
+  if (estado === "error") icono = "❌";
+  if (estado === "alerta") icono = "⚠️";
+
   // Crea la notificación
   const notif = document.createElement("div");
   notif.className = `toast-notif toast-${estado}`;
   notif.innerHTML = `
-    <span class="toast-icon">${estado === "exito" ? "✅" : "❌"}</span>
+    <span class="toast-icon">${icono}</span>
     <span class="toast-msg">${mensaje}</span>
     <button class="toast-close">&times;</button>
     <div class="toast-progress toast-progress-${estado}"></div>
@@ -57,4 +62,4 @@ function mostrarNotificacion(mensaje, estado = "exito") {
   }, 2000);
 }
 
-//v.1.4
+//v.1.5
