@@ -75,13 +75,13 @@ async function guardarInspira(e) {
     timestamp: new Date().toISOString()
   };
 
-  try {
+   try {
     await db.collection("inspira").doc(nuevaEntrada.id).set(nuevaEntrada);
     document.getElementById('formInspira').reset();
-    showIosModal("✅ Éxito", "El contenido fue guardado correctamente.");
+    mostrarNotificacion("El contenido fue guardado correctamente", "exito");
   } catch (err) {
     console.error("❌ Error al guardar entrada:", err);
-    showIosModal("❌ Error", "No se pudo guardar. Intenta de nuevo.");
+    mostrarNotificacion("No se pudo guardar. Intenta de nuevo", "error");
   }
 }
 
