@@ -296,7 +296,10 @@ function cargarBlogsExistentes() {
 
 function autocompletarFormulario(blogId) {
   const data = blogsData[blogId];
-  if (!data) return;
+  if (!data) {
+    if (blogId !== "") console.warn(`Blog con ID ${blogId} no encontrado`);
+    return;
+  }
 
   document.getElementById("titulo").value = data.nombre || "";
   document.getElementById("fecha").value = data.fecha || "";
@@ -321,4 +324,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//updd 18-07 v1.3
+//updd 18-07 v1.4
