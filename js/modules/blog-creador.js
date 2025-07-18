@@ -258,9 +258,10 @@ document.getElementById('selectBlogExistente').addEventListener('change', e => {
     document.getElementById('titulo').value = data.nombre || "";
     document.getElementById('fecha').value = data.fecha || "";
     document.getElementById('categoria').value = data.categoria || "";
-    document.getElementById('cuerpo').value = data.blog || "";
+    document.getElementById('cuerpo').value = data.blogHtml || "";
     document.getElementById('altImagen').value = ""; // No lo tienes en firebase
-    document.getElementById('imagen').value = "";    // No lo tienes en firebase
+    document.getElementById("imagen").value = `/img/cms/paginas%20internas/blogs/blog-${blogId}.jpg`;
+
 
     // si quieres: también completa meta
     const metaInput = document.getElementById('meta');
