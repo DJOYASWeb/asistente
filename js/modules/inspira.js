@@ -38,7 +38,7 @@ function closeIosModal() {
 
 function refrescarContenidos() {
   cargarContenidos();
-  showIosModal("🔄 Refrescado", "Se actualizaron los contenidos desde la base de datos.");
+mostrarNotificacion("Contenidos actualizados");
 }
 
 async function cargarContenidos() {

@@ -1168,3 +1168,24 @@ width: 80px;
     z-index: 9999;
      align-items: center;
 }
+
+.toast-notif {
+  background: #007bff;
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast-info {
+  background: #007bff;
+}
+
+.toast-success {
+  background: #28a745;
+}
+
+.toast-error {
+  background: #dc3545;
+}
