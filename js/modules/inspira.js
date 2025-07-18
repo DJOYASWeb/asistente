@@ -482,4 +482,4 @@ function cerrarModalAgregarRecurso() {
 
 
 
-//upd v.2.7
+//upd v.2.8
