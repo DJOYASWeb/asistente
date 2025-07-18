@@ -80,10 +80,13 @@ function copiarAlPortapapeles() {
 window.addEventListener('keydown', function (event) {
   if (event.key === 'Escape') {
     const modales = [
-      'modalAgregarDato',
-      'modalConfirmarEliminar',
-      'modalEditarDato',
-      'iosModal'
+  'modalAgregarDato',
+  'modalConfirmarEliminar',
+  'modalEditarDato',
+  'iosModal',
+  'modalNuevaClienta',
+  'modalCargaMasiva',
+  'modalEstadisticas'
     ];
 
     modales.forEach(id => {
@@ -93,4 +96,15 @@ window.addEventListener('keydown', function (event) {
       }
     });
   }
+});
+
+// Cierre universal de modales haciendo clic fuera
+document.addEventListener('click', function (event) {
+  const modalesAbiertos = document.querySelectorAll('.alinear[style*="display: flex"]');
+  modalesAbiertos.forEach(modal => {
+    const contenido = modal.querySelector('div');
+    if (contenido && !contenido.contains(event.target)) {
+      modal.style.display = 'none';
+    }
+  });
 });
