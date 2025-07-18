@@ -217,8 +217,12 @@ function cerrarModalNuevaClienta() {
 function abrirModalEstadisticas() {
     const modal = document.getElementById('modalEstadisticas');
     if (modal) {
-        document.getElementById('totalGenerados').textContent = generados.size;
-        document.getElementById('totalRestantes').textContent = maxCodigos - generados.size;
+const totalPosibles = maxCodigos - 1000;  // solo a partir de 01000
+const usados = generados.size;
+const restantes = totalPosibles - usados;
+
+document.getElementById('totalGenerados').textContent = usados;
+document.getElementById('totalRestantes').textContent = restantes;
         modal.style.display = 'flex';
     }
 }
@@ -230,4 +234,4 @@ function cerrarModalEstadisticas() {
 
 
 
-//upd v3.6
+//upd v3.7
