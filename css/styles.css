@@ -1176,13 +1176,36 @@ width: 80px;
   border-radius: 0.375rem;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   transition: opacity 0.3s ease, transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.toast-info {
-  background: #007bff;
+.toast-notif .toast-icon {
+  font-size: 1.2rem;
 }
 
-.toast-success {
+.toast-notif .toast-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.7);
+  width: 0%;
+}
+
+.toast-exito {
   background: #28a745;
 }
 
