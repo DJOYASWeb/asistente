@@ -459,10 +459,10 @@ function eliminarInspiraConfirmado() {
   db.collection("inspira").doc(idActualInspira).delete().then(() => {
     cerrarModalEliminarInspira();
     cargarRecursos();
-    alert("Entrada eliminada correctamente");
+    mostrarNotificacion("Entrada eliminada correctamente", "exito");
   }).catch(err => {
     console.error(err);
-    alert("Error al eliminar la entrada");
+    mostrarNotificacion("Error al eliminar la entrada", "error");
   });
 }
 
@@ -482,4 +482,4 @@ function cerrarModalAgregarRecurso() {
 
 
 
-//upd v.2.8
+//upd v.2.9
