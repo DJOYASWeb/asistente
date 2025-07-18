@@ -322,4 +322,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//updd 18-07 v1
+//updd 18-07 v1.2
