@@ -276,23 +276,28 @@ const blogsData = {};
 
 function cargarBlogsExistentes() {
   const db = firebase.firestore();
-  db.collection("blogs").get().then((querySnapshot) => {
-    const select = document.getElementById("selectBlogExistente");
-    select.innerHTML = '<option value="">-- Selecciona un blog existente --</option>';
+  const select = document.getElementById("selectBlogExistente");
+  select.innerHTML = '<option value="">-- Selecciona un blog existente --</option>';
+  select.disabled = true;
 
+  db.collection("blogs").get().then((querySnapshot) => {
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      blogsData[doc.id] = data; // Guardamos los datos en memoria
+      blogsData[doc.id] = data;
 
       const option = document.createElement("option");
       option.value = doc.id;
       option.textContent = data.nombre || `Blog ${doc.id}`;
       select.appendChild(option);
     });
+
+    // Habilitar select solo cuando termina de cargar
+    select.disabled = false;
   }).catch((error) => {
     console.error("Error cargando blogs: ", error);
   });
 }
+
 
 
 
