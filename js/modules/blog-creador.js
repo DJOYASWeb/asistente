@@ -294,6 +294,11 @@ function cargarBlogsExistentes() {
   });
 }
 
+console.log("blogId recibido:", blogId);
+console.log("blogsData keys:", Object.keys(blogsData));
+console.log("blogsData[blogId]:", blogsData[blogId]);
+
+
 function autocompletarFormulario(blogId) {
   const data = blogsData[blogId];
   if (!data) {
@@ -324,4 +329,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//updd 18-07 v1.4
+//updd 18-07 v1.5
