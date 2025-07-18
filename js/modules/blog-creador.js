@@ -276,28 +276,23 @@ const blogsData = {};
 
 function cargarBlogsExistentes() {
   const db = firebase.firestore();
-  const select = document.getElementById("selectBlogExistente");
-  select.innerHTML = '<option value="">-- Selecciona un blog existente --</option>';
-  select.disabled = true;
-
   db.collection("blogs").get().then((querySnapshot) => {
+    const select = document.getElementById("selectBlogExistente");
+    select.innerHTML = '<option value="">-- Selecciona un blog existente --</option>';
+
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      blogsData[doc.id] = data;
+      blogsData[doc.id] = data; // Guardamos los datos en memoria
 
       const option = document.createElement("option");
       option.value = doc.id;
       option.textContent = data.nombre || `Blog ${doc.id}`;
       select.appendChild(option);
     });
-
-    // Habilitar select solo cuando termina de cargar
-    select.disabled = false;
   }).catch((error) => {
     console.error("Error cargando blogs: ", error);
   });
 }
-
 
 
 
@@ -309,7 +304,6 @@ console.log("blogsData keys:", Object.keys(blogsData));
 console.log("blogsData[blogId]:", blogsData[blogId]);
 
   const data = blogsData[blogId];
-if (!data) return;
 
   document.getElementById("titulo").value = data.nombre || "";
   document.getElementById("fecha").value = data.fecha || "";
@@ -334,4 +328,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//updd 18-07 v1.8
+//updd 18-07 v1.7
