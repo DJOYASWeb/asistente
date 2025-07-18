@@ -271,5 +271,54 @@ document.getElementById('selectBlogExistente').addEventListener('change', e => {
 
 window.addEventListener('load', cargarBlogsEnSelect);
 
+const blogsData = {};
 
-//updd 07-07 v1
+
+function cargarBlogsExistentes() {
+  const db = firebase.firestore();
+  db.collection("blogs").get().then((querySnapshot) => {
+    const select = document.getElementById("selectBlogExistente");
+    select.innerHTML = '<option value="">-- Selecciona un blog existente --</option>';
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      blogsData[doc.id] = data; // Guardamos los datos en memoria
+
+      const option = document.createElement("option");
+      option.value = doc.id;
+      option.textContent = data.nombre || `Blog ${doc.id}`;
+      select.appendChild(option);
+    });
+  }).catch((error) => {
+    console.error("Error cargando blogs: ", error);
+  });
+}
+
+function autocompletarFormulario(blogId) {
+  const data = blogsData[blogId];
+  if (!data) return;
+
+  document.getElementById("titulo").value = data.nombre || "";
+  document.getElementById("fecha").value = data.fecha || "";
+  document.getElementById("autor").value = data.autor || "";
+  document.getElementById("categoria").value = data.categoria || "";
+  document.getElementById("imagen").value = data.imagen || "";
+  document.getElementById("altImagen").value = data.altImagen || "";
+  document.getElementById("cuerpo").value = data.contenido || "";
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  cargarBlogsExistentes();
+
+  const select = document.getElementById("selectBlogExistente");
+  select.addEventListener("change", (e) => {
+    const blogId = e.target.value;
+    if (blogId) {
+      autocompletarFormulario(blogId);
+    }
+  });
+});
+
+
+//updd 18-07 v1
