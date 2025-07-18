@@ -478,4 +478,4 @@ function cerrarModalAgregarRecurso() {
 
 
 
-//upd v.2.5
+//upd v.2.6
