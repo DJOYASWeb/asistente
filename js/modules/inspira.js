@@ -61,6 +61,7 @@ async function cargarContenidos() {
 
 async function guardarInspira(e) {
   e.preventDefault();
+
   const nuevaEntrada = {
     id: document.getElementById('inspiraId').value,
     titulo: document.getElementById('inspiraTitulo').value,
@@ -75,15 +76,17 @@ async function guardarInspira(e) {
     timestamp: new Date().toISOString()
   };
 
-   try {
+  try {
     await db.collection("inspira").doc(nuevaEntrada.id).set(nuevaEntrada);
     document.getElementById('formInspira').reset();
+    cerrarModalAgregarRecurso(); // 👈 aquí cerramos el modal
     mostrarNotificacion("El contenido fue guardado correctamente", "exito");
   } catch (err) {
     console.error("❌ Error al guardar entrada:", err);
     mostrarNotificacion("No se pudo guardar. Intenta de nuevo", "error");
   }
 }
+
 
 async function generarBloqueContenido() {
   const select = document.getElementById("contenidoSelect");
@@ -478,4 +481,4 @@ function cerrarModalAgregarRecurso() {
 
 
 
-//upd v.2.6
+//upd v.2.7
