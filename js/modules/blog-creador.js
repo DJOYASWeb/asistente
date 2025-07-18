@@ -258,10 +258,9 @@ document.getElementById('selectBlogExistente').addEventListener('change', e => {
     document.getElementById('titulo').value = data.nombre || "";
     document.getElementById('fecha').value = data.fecha || "";
     document.getElementById('categoria').value = data.categoria || "";
-    document.getElementById('cuerpo').value = data.blogHtml || "";
+    document.getElementById('cuerpo').value = data.blog || "";
     document.getElementById('altImagen').value = ""; // No lo tienes en firebase
-    document.getElementById("imagen").value = `/img/cms/paginas%20internas/blogs/blog-${blogId}.jpg`;
-
+    document.getElementById('imagen').value = "";    // No lo tienes en firebase
 
     // si quieres: también completa meta
     const metaInput = document.getElementById('meta');
@@ -303,9 +302,9 @@ function autocompletarFormulario(blogId) {
   document.getElementById("fecha").value = data.fecha || "";
   document.getElementById("autor").value = data.autor || "";
   document.getElementById("categoria").value = data.categoria || "";
-  document.getElementById("imagen").value = data.imagen || "";
+  document.getElementById("imagen").value = `/img/cms/paginas%20internas/blogs/blog-${blogId}.jpg`;
   document.getElementById("altImagen").value = data.altImagen || "";
-  document.getElementById("cuerpo").value = data.contenido || "";
+  document.getElementById("cuerpo").value = data.blogHtml || "";
 }
 
 
@@ -322,4 +321,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//updd 18-07 v1.2
+//updd 18-07 v1.3
