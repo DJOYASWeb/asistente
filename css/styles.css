@@ -405,6 +405,10 @@ body.protegido {
     --bs-gradient: none;
 }
 
+.btn:focus-visible{
+ color:#323232;
+}
+
     .badge {
     --bs-badge-padding-x: 0;
     --bs-badge-padding-y: 0;
