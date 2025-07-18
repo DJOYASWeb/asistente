@@ -43,4 +43,4 @@ function mostrarNotificacion(mensaje, estado = "exito") {
   }, 50);
 }
 
-v.1.2
+//v.1.2
