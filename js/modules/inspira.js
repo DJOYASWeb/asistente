@@ -438,12 +438,13 @@ function guardarEdicionInspira() {
   }).then(() => {
     cerrarModalEditarInspira();
     cargarRecursos();
-    alert("Entrada actualizada correctamente");
+    mostrarNotificacion("Contenido editado correctamente", "exito");
   }).catch(err => {
     console.error(err);
-    alert("Error al guardar los cambios");
+    mostrarNotificacion("Error al guardar los cambios", "error");
   });
 }
+
 
 function eliminarRecurso(id) {
   idActualInspira = id;
