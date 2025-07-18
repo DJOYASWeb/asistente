@@ -70,6 +70,7 @@
   <button  class="mx-3" id="exportarCSV">Exportar a CSV</button>
   <button class="mx-3" id="btnCargaMasiva">Carga masiva</button>
 <button class="mx-3 btn btn-primary" onclick="abrirModalNuevaClienta()">Nueva clienta</button>
+<button class="mx-3 btn btn-info" onclick="abrirModalEstadisticas()">Estadísticas</button>
 </div>
 <table id="tabla">
     <thead>
@@ -124,6 +125,16 @@
   </div>
 </div>
 
+<!-- Modal Estadísticas -->
+<div id="modalEstadisticas" class="alinear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
+  <div style="background:white; max-width:400px; width:90%; padding:2rem; border-radius:16px; position:relative;">
+    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalEstadisticas()"></button>
+    <h3 class="mb-4">📊 Estadísticas</h3>
+
+    <p><strong>Códigos generados:</strong> <span id="totalGenerados">0</span></p>
+    <p><strong>Códigos restantes:</strong> <span id="totalRestantes">0</span></p>
+  </div>
+</div>
 
     
 

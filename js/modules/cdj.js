@@ -214,4 +214,20 @@ function cerrarModalNuevaClienta() {
 }
 
 
-//upd v3.5
+function abrirModalEstadisticas() {
+    const modal = document.getElementById('modalEstadisticas');
+    if (modal) {
+        document.getElementById('totalGenerados').textContent = generados.size;
+        document.getElementById('totalRestantes').textContent = maxCodigos - generados.size;
+        modal.style.display = 'flex';
+    }
+}
+
+function cerrarModalEstadisticas() {
+    const modal = document.getElementById('modalEstadisticas');
+    if (modal) modal.style.display = 'none';
+}
+
+
+
+//upd v3.6
