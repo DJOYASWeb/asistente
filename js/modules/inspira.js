@@ -337,8 +337,8 @@ function cargarRecursos() {
         <td>${data.tematica || "-"}</td>
         <td>${data.autor || "-"}</td>
         <td>
-          <button class="btn btn-sm btn-primary me-2" onclick="editarRecurso('${doc.id}')">Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="eliminarRecurso('${doc.id}')">Eliminar</button>
+          <button class="btn btn-sm btn-primary me-2" onclick="editarRecurso('${doc.id}')">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarRecurso('${doc.id}')">🗑️</button>
         </td>
       `;
 
