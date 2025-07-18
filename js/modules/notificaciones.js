@@ -36,11 +36,11 @@ function mostrarNotificacion(mensaje, estado = "exito") {
   notif.querySelector(".toast-close").onclick = () => notif.remove();
 
   // animación de la barra
+progress.style.width = "0%";
+progress.style.transition = "width 2s linear";
+setTimeout(() => {
   progress.style.width = "100%";
-  progress.style.transition = "width 2s linear";
-  setTimeout(() => {
-    progress.style.width = "0%";
-  }, 50);
+}, 50);
 }
 
-//v.1.2
+//v.1.3
