@@ -463,10 +463,19 @@ function eliminarInspiraConfirmado() {
 }
 
 
+function abrirModalAgregarRecurso() {
+  const modal = document.getElementById("modalAgregarRecurso");
+  if (modal) modal.style.display = "flex";
+}
+
+function cerrarModalAgregarRecurso() {
+  const modal = document.getElementById("modalAgregarRecurso");
+  if (modal) modal.style.display = "none";
+}
 
 
 
 
 
 
-//upd  04-07 v.2.4
+//upd v.2.5
