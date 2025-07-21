@@ -1,5 +1,5 @@
 const generados = new Set();
-const maxCodigos = 100000;
+const maxCodigos = 10000; // 0000–9999
 
 cargarCodigosExistentes();
 
@@ -32,16 +32,16 @@ async function cargarCodigosExistentes() {
     }
 
     $('#tabla').DataTable({
-    language: {
-        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-    }
-});
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+        }
+    });
 }
 
 function generarPoolDeCodigosDisponibles() {
     const pool = [];
-    for (let i = 100; i < maxCodigos; i++) {  // empieza desde 00100
-        const codigo = i.toString().padStart(5, '0');
+    for (let i = 1000; i < maxCodigos; i++) {
+        const codigo = i.toString(); // ya no padStart, porque es de 4 dígitos
         if (!generados.has(codigo)) {
             pool.push(codigo);
         }
@@ -59,7 +59,8 @@ async function generarCodigo() {
         return;
     }
 
-    if (generados.size >= (maxCodigos - 100)) {
+    const totalPosibles = maxCodigos - 1000; // 9000 códigos posibles
+    if (generados.size >= totalPosibles) {
         document.getElementById('output').textContent = "Ya se generaron todos los códigos posibles.";
         return;
     }
@@ -91,8 +92,7 @@ async function generarCodigo() {
         document.getElementById('output').textContent = `Código generado: ${codigo}`;
         document.getElementById('formularioNuevaClienta').reset();
 
-        
-cerrarModalNuevaClienta();  // <<--- CIERRA EL MODAL
+        cerrarModalNuevaClienta();
 
     } catch (err) {
         console.error("Error guardando en Firestore: ", err);
@@ -124,7 +124,6 @@ function cerrarModalCargaMasiva() {
         document.getElementById('archivoMasivo').value = '';
     }
 }
-
 
 document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
     const archivo = document.getElementById('archivoMasivo').files[0];
@@ -192,12 +191,11 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
         }
 
         alert("Carga masiva completada.");
-        cerrarModal();
+        cerrarModalCargaMasiva();
     };
 
     reader.readAsArrayBuffer(archivo);
 });
-
 
 function abrirModalNuevaClienta() {
     const modal = document.getElementById('modalNuevaClienta');
@@ -213,16 +211,15 @@ function cerrarModalNuevaClienta() {
     }
 }
 
-
 function abrirModalEstadisticas() {
     const modal = document.getElementById('modalEstadisticas');
     if (modal) {
-const totalPosibles = maxCodigos - 1000;  // solo a partir de 01000
-const usados = generados.size;
-const restantes = totalPosibles - usados;
+        const totalPosibles = maxCodigos - 1000; // 9000 códigos posibles
+        const usados = generados.size;
+        const restantes = totalPosibles - usados;
 
-document.getElementById('totalGenerados').textContent = usados;
-document.getElementById('totalRestantes').textContent = restantes;
+        document.getElementById('totalGenerados').textContent = usados;
+        document.getElementById('totalRestantes').textContent = restantes;
         modal.style.display = 'flex';
     }
 }
@@ -232,6 +229,4 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-
-
-//upd v3.7
+// upd v4.0 – códigos únicos de 4 dígitos >= 1000
