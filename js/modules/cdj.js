@@ -154,20 +154,29 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
         // Crear barra de progreso y contador
         const modalBody = document.getElementById('modalCargaMasiva').querySelector('div');
+
+        // Contenedor del contador y la barra
+        const progresoContainer = document.createElement('div');
+        progresoContainer.style.cssText = 'margin-top:20px; position:relative;';
+
+        const contador = document.createElement('div');
+        contador.style.cssText = 'position:absolute; top:-20px; right:0; font-size:0.9rem;';
+        contador.textContent = `0 / ${clientes.length}`;
+
         const progressBarContainer = document.createElement('div');
-        progressBarContainer.className = 'progress mt-3';
+        progressBarContainer.className = 'progress mt-2';
+        progressBarContainer.style.backgroundColor = '#e9ecef';
+        progressBarContainer.style.height = '20px';
         const progressBar = document.createElement('div');
         progressBar.className = 'progress-bar';
         progressBar.style.width = '0%';
+        progressBar.style.backgroundColor = '#28a745';
         progressBar.textContent = '0%';
         progressBarContainer.appendChild(progressBar);
 
-        const contador = document.createElement('div');
-        contador.style.cssText = 'position:absolute; top:10px; right:20px; font-size:0.9rem;';
-        contador.textContent = `0 / ${clientes.length}`;
-
-        modalBody.appendChild(progressBarContainer);
-        modalBody.appendChild(contador);
+        progresoContainer.appendChild(contador);
+        progresoContainer.appendChild(progressBarContainer);
+        modalBody.appendChild(progresoContainer);
 
         let completados = 0;
 
@@ -221,8 +230,7 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
         setTimeout(() => {
             alert("Carga masiva completada.");
             cerrarModalCargaMasiva();
-            progressBarContainer.remove();
-            contador.remove();
+            progresoContainer.remove();
             // restaurar input y botón
             document.getElementById('archivoMasivo').style.display = 'block';
             document.getElementById('procesarCargaMasiva').style.display = 'inline-block';
@@ -231,6 +239,7 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
     reader.readAsArrayBuffer(archivo);
 });
+
 
 
 
@@ -266,4 +275,4 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-// upd v4.2
+// upd v4.3
