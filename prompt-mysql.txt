@@ -1,0 +1,211 @@
+Prompt Detallado para el Desarrollo de una Herramienta de Generación de Consultas SQL para PrestaShop
+Objetivo:
+Desarrollar una herramienta web interactiva que permita a los usuarios generar consultas SQL de manera sencilla, sin necesidad de conocimientos previos en bases de datos, para exportar datos de PrestaShop. La interfaz debe ser intuitiva y amigable, utilizando nombres comprensibles como "Productos", "Categorías", "Pedidos" y "Clientes", y generando código SQL al final para copiar y pegar en la exportación de datos de PrestaShop.
+
+Estructura de la Herramienta (Flujo de Interacción del Usuario)
+1. Página Inicial: Selección de Categoría (Entidad)
+Objetivo: El primer paso es seleccionar la categoría de la base de datos en la que el usuario quiere trabajar, por ejemplo, Productos, Categorías, Pedidos o Clientes.
+
+Interfaz: Se mostrarán botones grandes para cada categoría de PrestaShop (productos, categorías, pedidos, clientes). Al hacer clic en uno de los botones, se confirma la selección y se muestra la siguiente etapa.
+
+Acción: Al seleccionar una categoría, se muestra un botón de confirmación que llevará al siguiente paso, eligiendo las columnas de la tabla.
+
+HTML:
+
+html
+Copiar
+<div id="category-selection">
+    <h2>Selecciona una Categoría</h2>
+    <button class="category-btn" onclick="selectCategory('productos')">Productos</button>
+    <button class="category-btn" onclick="selectCategory('categorías')">Categorías</button>
+    <button class="category-btn" onclick="selectCategory('pedidos')">Pedidos</button>
+    <button class="category-btn" onclick="selectCategory('clientes')">Clientes</button>
+</div>
+
+<div id="confirmation" style="display:none;">
+    <button onclick="confirmSelection()">Confirmar Selección</button>
+</div>
+JavaScript:
+
+javascript
+Copiar
+let selectedCategory = null;
+
+function selectCategory(category) {
+    selectedCategory = category;
+    document.getElementById("category-selection").style.display = "none";
+    document.getElementById("confirmation").style.display = "block";
+    loadColumns(category);
+}
+
+function confirmSelection() {
+    document.getElementById("confirmation").style.display = "none";
+    document.getElementById("columns-selection").style.display = "block";
+}
+2. Selección de Columnas (Segundo Paso)
+Objetivo: El usuario selecciona las columnas que desea incluir en su consulta SQL.
+
+Interfaz: Se presentarán botones o checkboxes con los nombres de las columnas disponibles para la tabla seleccionada (por ejemplo, id_product, name, price, etc. para la categoría "Productos"). Al seleccionar las columnas, estas se moverán a una sección que indica las columnas seleccionadas.
+
+Acción: El usuario puede seleccionar varias columnas. Estas columnas seleccionadas se mostrarán al lado de las columnas disponibles, y el usuario puede ver cómo se van acumulando.
+
+HTML:
+
+html
+Copiar
+<div id="columns-selection" style="display:none;">
+    <h2>Selecciona las Columnas</h2>
+    <div id="available-columns">
+        <!-- Cargar columnas según la categoría seleccionada -->
+        <button class="column-btn" onclick="addColumn('id_product')">ID Producto</button>
+        <button class="column-btn" onclick="addColumn('name')">Nombre</button>
+        <button class="column-btn" onclick="addColumn('price')">Precio</button>
+        <button class="column-btn" onclick="addColumn('quantity')">Cantidad</button>
+    </div>
+
+    <h3>Columnas Seleccionadas:</h3>
+    <div id="selected-columns"></div>
+    <button onclick="generateSQL()">Generar Consulta</button>
+</div>
+JavaScript:
+
+javascript
+Copiar
+let selectedColumns = [];
+
+function addColumn(column) {
+    if (!selectedColumns.includes(column)) {
+        selectedColumns.push(column);
+        updateSelectedColumns();
+    }
+}
+
+function updateSelectedColumns() {
+    const selectedDiv = document.getElementById("selected-columns");
+    selectedDiv.innerHTML = "";  // Limpiar área de columnas seleccionadas
+    selectedColumns.forEach(column => {
+        let columnElement = document.createElement("div");
+        columnElement.textContent = column;
+        selectedDiv.appendChild(columnElement);
+    });
+}
+
+function generateSQL() {
+    const categoryTableMap = {
+        "productos": "ps_product",
+        "categorías": "ps_category",
+        "pedidos": "ps_orders",
+        "clientes": "ps_customer"
+    };
+
+    let table = categoryTableMap[selectedCategory];
+    let query = `SELECT ${selectedColumns.join(", ")} FROM ${table};`;
+    
+    alert("Consulta SQL generada: " + query);
+}
+3. Generación de la Consulta SQL
+Objetivo: Mostrar la consulta SQL generada al usuario y permitirle copiarla al portapapeles para su uso en PrestaShop.
+
+Interfaz: Después de seleccionar las columnas, el usuario hace clic en el botón para generar la consulta. El código SQL se muestra en un campo de texto que el usuario puede copiar.
+
+Acción: El SQL generado debe ser claro y fácil de copiar.
+
+HTML:
+
+html
+Copiar
+<div id="sql-result" style="display:none;">
+    <h3>Consulta SQL Generada:</h3>
+    <textarea id="sql-query" rows="4" cols="50" readonly></textarea>
+    <button onclick="copySQL()">Copiar SQL</button>
+</div>
+JavaScript:
+
+javascript
+Copiar
+function copySQL() {
+    const queryTextArea = document.getElementById("sql-query");
+    queryTextArea.select();
+    document.execCommand('copy');
+    alert("SQL Copiado al Portapapeles");
+}
+
+function generateSQL() {
+    const categoryTableMap = {
+        "productos": "ps_product",
+        "categorías": "ps_category",
+        "pedidos": "ps_orders",
+        "clientes": "ps_customer"
+    };
+
+    let table = categoryTableMap[selectedCategory];
+    let query = `SELECT ${selectedColumns.join(", ")} FROM ${table};`;
+
+    const queryTextArea = document.getElementById("sql-query");
+    queryTextArea.value = query;
+    
+    document.getElementById("sql-result").style.display = "block";
+}
+4. Mapeo de Tablas y Columnas
+En el backend de la herramienta, se debe hacer el mapeo entre los nombres amigables de las categorías y las tablas correspondientes de la base de datos de PrestaShop. Esto se manejará a través de un diccionario en JavaScript.
+
+Ejemplo de Mapeo:
+
+javascript
+Copiar
+const tableMap = {
+    "productos": {
+        "table": "ps_product",
+        "columns": ["id_product", "name", "price", "quantity", "reference", "active"]
+    },
+    "categorías": {
+        "table": "ps_category",
+        "columns": ["id_category", "name", "description", "active"]
+    },
+    "pedidos": {
+        "table": "ps_orders",
+        "columns": ["id_order", "id_customer", "total_paid", "date_add", "status"]
+    },
+    "clientes": {
+        "table": "ps_customer",
+        "columns": ["id_customer", "firstname", "lastname", "email", "date_add"]
+    }
+};
+5. Generación Dinámica de SQL
+La generación de SQL debe tomar las columnas seleccionadas y construir dinámicamente la consulta SQL.
+
+Ejemplo de SQL Generado:
+Si el usuario selecciona:
+
+Categoría: Productos
+
+Columnas seleccionadas: ID Producto, Nombre, Precio
+
+La consulta SQL generada será:
+
+sql
+Copiar
+SELECT id_product, name, price
+FROM ps_product;
+Tecnologías y Herramientas
+Frontend:
+HTML: Para la estructura básica de la página.
+
+CSS: Para los estilos de la interfaz (botones, áreas de texto, etc.). Puedes usar Bootstrap o Tailwind CSS para facilitar el diseño.
+
+JavaScript: Para la lógica de interacción, como la selección de categorías y columnas, y la generación de consultas SQL.
+
+Librerías: Si deseas hacer la interfaz más dinámica, podrías considerar usar React o Vue.js.
+
+Backend (si se necesita):
+Node.js + Express: Para manejar la lógica del backend (aunque en este caso, el backend puede ser simple, ya que solo se está generando código SQL y no se conecta directamente a la base de datos).
+
+Mejoras Posibles:
+Filtrado Avanzado: Agregar la capacidad para que el usuario aplique filtros a las consultas SQL (como condiciones WHERE, AND, OR).
+
+Validación de Entradas: Verificar que el usuario no genere una consulta vacía o incorrecta.
+
+Interfaz más interactiva: Agregar más interactividad como arrastrar y soltar para seleccionar las columnas.
+
+Exportación de SQL: Permitir que los usuarios descarguen la consulta SQL como un archivo .sql.
+
