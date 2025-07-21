@@ -91,8 +91,8 @@ async function generarCodigo() {
             <td>${correo}</td>
             <td>${codigo}</td>
               <td>
-        <button class="btn btn-sm btn-primary" onclick="editarCliente('${codigo}')"><i class="fa-solid fa-pen-to-square"></i></button>
-        <button class="btn btn-sm btn-danger" onclick="confirmarEliminarCliente('${codigo}')"><i class="fa-solid fa-trash-can"></i></button>
+        <button class="btn" onclick="editarCliente('${codigo}')"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button class="btn" onclick="confirmarEliminarCliente('${codigo}')"><i class="fa-solid fa-trash-can"></i></button>
     </td>
         `;
         tbody.appendChild(fila);
