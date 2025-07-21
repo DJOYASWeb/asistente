@@ -35,7 +35,6 @@ async function cargarCampañasDesdeFirebase() {
     const [inicio, fin] = semanaStr.split("-").map(n => parseInt(n));
     if (mesCelda?.toUpperCase().includes(mesActual) && dia >= inicio && dia <= fin) {
       semanaActual = i;
-      console.log(`✅ Semana actual detectada en columna: ${semanaActual} Rango: ${semanaStr}`);
       break;
     }
   }
@@ -85,9 +84,6 @@ async function cargarBlogsSemanaActual() {
 
   const inicioStr = formato(lunes);
   const finStr = formato(domingo);
-
-  console.log(`🔍 Buscando blogs entre ${inicioStr} y ${finStr}`);
-
   const snapshot = await db.collection("blogs")
     .where("fecha", ">=", inicioStr)
     .where("fecha", "<=", finStr)
@@ -126,9 +122,6 @@ async function cargarInspiraDeLaSemana() {
 
   const fechaInicioStr = primerDiaSemana.toISOString().slice(0, 10);
   const fechaFinStr = ultimoDiaSemana.toISOString().slice(0, 10);
-
-  console.log(`Buscando contenido inspira entre ${fechaInicioStr} y ${fechaFinStr}`);
-
   const snapshot = await db.collection("inspira").get();
 
   let encontrado = false;
