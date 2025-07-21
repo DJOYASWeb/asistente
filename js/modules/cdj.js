@@ -19,6 +19,10 @@ async function cargarCodigosExistentes() {
                 <td>${data.nombre}</td>
                 <td>${data.correo}</td>
                 <td>${codigo}</td>
+    <td>
+        <button class="btn btn-sm btn-primary" onclick="editarCliente('${codigo}')">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmarEliminarCliente('${codigo}')">🗑️</button>
+    </td>
             `;
             tbody.appendChild(fila);
 
@@ -86,6 +90,10 @@ async function generarCodigo() {
             <td>${nombre}</td>
             <td>${correo}</td>
             <td>${codigo}</td>
+              <td>
+        <button class="btn btn-sm btn-primary" onclick="editarCliente('${codigo}')">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmarEliminarCliente('${codigo}')">🗑️</button>
+    </td>
         `;
         tbody.appendChild(fila);
 
@@ -243,4 +251,35 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-// upd v4.8
+function editarCliente(codigo) {
+    mostrarNotificacion(`Editar cliente con código ${codigo}`, "alerta");
+    // Aquí puedes abrir un modal para editar los datos
+}
+
+function confirmarEliminarCliente(codigo) {
+    if (confirm("¿Seguro que quieres eliminar este cliente?")) {
+        eliminarCliente(codigo);
+    }
+}
+
+async function eliminarCliente(codigo) {
+    try {
+        await window.db.collection("codigos-generados").doc(codigo).delete();
+        mostrarNotificacion(`Cliente con código ${codigo} eliminado`, "exito");
+
+        // Quitar la fila de la tabla
+        const filas = document.querySelectorAll('#tabla tbody tr');
+        filas.forEach(fila => {
+            if (fila.cells[3].textContent === codigo) {
+                fila.remove();
+            }
+        });
+
+    } catch (err) {
+        console.error("Error eliminando cliente: ", err);
+        mostrarNotificacion("Error al eliminar cliente", "error");
+    }
+}
+
+
+// upd v4.9
