@@ -282,4 +282,80 @@ async function eliminarCliente(codigo) {
 }
 
 
-// upd v4.9
+async function editarCliente(codigo) {
+    try {
+        const docRef = await window.db.collection("codigos-generados").doc(codigo).get();
+        if (!docRef.exists) {
+            mostrarNotificacion("No se encontró la clienta", "error");
+            return;
+        }
+
+        const data = docRef.data();
+
+        document.getElementById('editarCodigo').value = codigo;
+        document.getElementById('editarIdPS').value = data.idPrestaShop;
+        document.getElementById('editarNombre').value = data.nombre;
+        document.getElementById('editarCorreo').value = data.correo;
+
+        document.getElementById('modalEditarClienta').style.display = 'flex';
+    } catch (err) {
+        console.error("Error cargando datos para edición: ", err);
+        mostrarNotificacion("Error al cargar datos", "error");
+    }
+}
+
+function cerrarModalEditarClienta() {
+    document.getElementById('modalEditarClienta').style.display = 'none';
+    document.getElementById('formularioEditarClienta').reset();
+}
+
+async function guardarEdicionClienta() {
+    const codigo = document.getElementById('editarCodigo').value;
+    const idPS = document.getElementById('editarIdPS').value.trim();
+    const nombre = document.getElementById('editarNombre').value.trim();
+    const correo = document.getElementById('editarCorreo').value.trim();
+
+    if (!idPS || !nombre || !correo) {
+        mostrarNotificacion("Completa todos los campos", "alerta");
+        return;
+    }
+
+    try {
+        await window.db.collection("codigos-generados").doc(codigo).update({
+            idPrestaShop: idPS,
+            nombre: nombre,
+            correo: correo
+        });
+
+        mostrarNotificacion(`Clienta ${nombre} actualizada`, "exito");
+
+        // Actualiza la fila en la tabla
+        const filas = document.querySelectorAll('#tabla tbody tr');
+        filas.forEach(fila => {
+            if (fila.cells[3].textContent === codigo) {
+                fila.cells[0].textContent = idPS;
+                fila.cells[1].textContent = nombre;
+                fila.cells[2].textContent = correo;
+            }
+        });
+
+        cerrarModalEditarClienta();
+
+    } catch (err) {
+        console.error("Error al guardar cambios: ", err);
+        mostrarNotificacion("Error al guardar cambios", "error");
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// upd v5
