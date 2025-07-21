@@ -155,7 +155,6 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
         // Crear barra de progreso y contador
         const modalBody = document.getElementById('modalCargaMasiva').querySelector('div');
 
-        // Contenedor del contador y la barra
         const progresoContainer = document.createElement('div');
         progresoContainer.style.cssText = 'margin-top:20px; position:relative;';
 
@@ -227,18 +226,27 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
             }
         }
 
-        setTimeout(() => {
-            alert("Carga masiva completada.");
+        // Al finalizar
+        const mensajeFinal = document.createElement('div');
+        mensajeFinal.style.cssText = 'margin-top:10px; font-weight:bold; color:#28a745; text-align:center;';
+        mensajeFinal.textContent = '✅ Carga completa';
+        progresoContainer.appendChild(mensajeFinal);
+
+        const btnAceptar = document.createElement('button');
+        btnAceptar.className = 'btn btn-primary mt-3';
+        btnAceptar.textContent = 'Aceptar';
+        btnAceptar.onclick = () => {
             cerrarModalCargaMasiva();
             progresoContainer.remove();
-            // restaurar input y botón
             document.getElementById('archivoMasivo').style.display = 'block';
             document.getElementById('procesarCargaMasiva').style.display = 'inline-block';
-        }, 500);
+        };
+        progresoContainer.appendChild(btnAceptar);
     };
 
     reader.readAsArrayBuffer(archivo);
 });
+
 
 
 
@@ -275,4 +283,4 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-// upd v4.3
+// upd v4.4
