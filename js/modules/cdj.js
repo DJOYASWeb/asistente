@@ -148,8 +148,12 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
         const tbody = document.getElementById('tabla').querySelector('tbody');
 
-        // Crear barra de progreso
-        const modal = document.getElementById('modalCargaMasiva');
+        // Ocultar input y botón
+        document.getElementById('archivoMasivo').style.display = 'none';
+        document.getElementById('procesarCargaMasiva').style.display = 'none';
+
+        // Crear barra de progreso y contador
+        const modalBody = document.getElementById('modalCargaMasiva').querySelector('div');
         const progressBarContainer = document.createElement('div');
         progressBarContainer.className = 'progress mt-3';
         const progressBar = document.createElement('div');
@@ -158,7 +162,12 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
         progressBar.textContent = '0%';
         progressBarContainer.appendChild(progressBar);
 
-        modal.querySelector('div').appendChild(progressBarContainer);
+        const contador = document.createElement('div');
+        contador.style.cssText = 'position:absolute; top:10px; right:20px; font-size:0.9rem;';
+        contador.textContent = `0 / ${clientes.length}`;
+
+        modalBody.appendChild(progressBarContainer);
+        modalBody.appendChild(contador);
 
         let completados = 0;
 
@@ -202,6 +211,7 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
                 const porcentaje = Math.round((completados / clientes.length) * 100);
                 progressBar.style.width = `${porcentaje}%`;
                 progressBar.textContent = `${porcentaje}%`;
+                contador.textContent = `${completados} / ${clientes.length}`;
 
             } catch (err) {
                 console.error(`Error guardando cliente ${nombre} en Firestore`, err);
@@ -212,12 +222,16 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
             alert("Carga masiva completada.");
             cerrarModalCargaMasiva();
             progressBarContainer.remove();
+            contador.remove();
+            // restaurar input y botón
+            document.getElementById('archivoMasivo').style.display = 'block';
+            document.getElementById('procesarCargaMasiva').style.display = 'inline-block';
         }, 500);
-
     };
 
     reader.readAsArrayBuffer(archivo);
 });
+
 
 
 function abrirModalNuevaClienta() {
@@ -252,4 +266,4 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-// upd v4.1
+// upd v4.2
