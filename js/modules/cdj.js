@@ -196,10 +196,10 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
                     idPS, nombre, correo, codigo
                 ]).draw();
 
-                console.log(`Cliente ${nombre} registrado con código aleatorio ${codigo}`);
+                console.log(`Clienta registrado con código`);
 
             } catch (err) {
-                console.error(`Error guardando cliente ${nombre} en Firestore`, err);
+                console.error(`Error guardando clienta con código`, err);
             }
         }
 
