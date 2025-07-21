@@ -252,4 +252,4 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-// upd v4.0 – códigos únicos de 4 dígitos >= 1000
+// upd v4.1
