@@ -228,12 +228,12 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
         // Al finalizar
         const mensajeFinal = document.createElement('div');
-        mensajeFinal.style.cssText = 'margin-top:10px; font-weight:bold; color:#28a745; text-align:center;';
+        mensajeFinal.style.cssText = 'margin-top:10px; font-weight:bold; color:#28a745; text-align:center; background:#def5e3; border:1px solid #90b398ff; border-radius:15px;';
         mensajeFinal.textContent = '✅ Carga completa';
         progresoContainer.appendChild(mensajeFinal);
 
         const btnAceptar = document.createElement('button');
-        btnAceptar.className = 'btn btn-primary mt-3';
+        btnAceptar.className = 'btn w-100 btn-primary mt-3';
         btnAceptar.textContent = 'Aceptar';
         btnAceptar.onclick = () => {
             cerrarModalCargaMasiva();
@@ -283,4 +283,4 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-// upd v4.4
+// upd v4.5
