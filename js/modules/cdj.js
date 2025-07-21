@@ -56,12 +56,12 @@ async function generarCodigo() {
     const correo = document.getElementById('correo').value.trim();
 
     if (!idPS || !nombre || !correo) {
-        document.getElementById('output').textContent = "Por favor completa todos los campos antes de generar un código.";
+        mostrarNotificacion("Por favor completa todos los campos antes de generar un código.", "alerta");
         return;
     }
 
     if (generados.size >= (maxCodigos - 1000)) {
-        document.getElementById('output').textContent = "Ya se generaron todos los códigos posibles.";
+        mostrarNotificacion("Ya se generaron todos los códigos posibles.", "alerta");
         return;
     }
 
@@ -79,21 +79,28 @@ async function generarCodigo() {
 
         generados.add(codigo);
 
-        const dataTable = $('#tabla').DataTable();
-        dataTable.row.add([
-            idPS, nombre, correo, codigo
-        ]).draw();
+        const tbody = document.getElementById('tabla').querySelector('tbody');
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${idPS}</td>
+            <td>${nombre}</td>
+            <td>${correo}</td>
+            <td>${codigo}</td>
+        `;
+        tbody.appendChild(fila);
 
-        document.getElementById('output').textContent = `Código generado: ${codigo}`;
         document.getElementById('formularioNuevaClienta').reset();
-
         cerrarModalNuevaClienta();
+
+        // Notificación de éxito
+        mostrarNotificacion(`Clienta ${nombre} registrada con código ${codigo}`, "exito");
 
     } catch (err) {
         console.error("Error guardando en Firestore: ", err);
-        document.getElementById('output').textContent = "Error al guardar en Firestore.";
+        mostrarNotificacion("Error al guardar en Firestore.", "error");
     }
 }
+
 
 // ✅ Nueva función de exportación usando DataTables
 document.getElementById('exportarCSV').addEventListener('click', () => {
@@ -236,4 +243,4 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-// upd v4.7
+// upd v4.8
