@@ -1,5 +1,5 @@
 const generados = new Set();
-const maxCodigos = 10000; // 0000–9999
+const maxCodigos = 10000;
 
 cargarCodigosExistentes();
 
@@ -26,22 +26,23 @@ async function cargarCodigosExistentes() {
         });
 
         console.log(`Cargados ${snapshot.size} códigos existentes.`);
+
+        // Inicializar DataTable
+        $('#tabla').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+            }
+        });
     } catch (error) {
         console.error("Error cargando códigos existentes: ", error);
         document.getElementById('output').textContent = "Error al cargar códigos existentes. Intenta más tarde.";
     }
-
-    $('#tabla').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-        }
-    });
 }
 
 function generarPoolDeCodigosDisponibles() {
     const pool = [];
     for (let i = 1000; i < maxCodigos; i++) {
-        const codigo = i.toString(); // ya no padStart, porque es de 4 dígitos
+        const codigo = i.toString();
         if (!generados.has(codigo)) {
             pool.push(codigo);
         }
@@ -59,8 +60,7 @@ async function generarCodigo() {
         return;
     }
 
-    const totalPosibles = maxCodigos - 1000; // 9000 códigos posibles
-    if (generados.size >= totalPosibles) {
+    if (generados.size >= (maxCodigos - 1000)) {
         document.getElementById('output').textContent = "Ya se generaron todos los códigos posibles.";
         return;
     }
@@ -79,15 +79,10 @@ async function generarCodigo() {
 
         generados.add(codigo);
 
-        const tbody = document.getElementById('tabla').querySelector('tbody');
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-            <td>${idPS}</td>
-            <td>${nombre}</td>
-            <td>${correo}</td>
-            <td>${codigo}</td>
-        `;
-        tbody.appendChild(fila);
+        const dataTable = $('#tabla').DataTable();
+        dataTable.row.add([
+            idPS, nombre, correo, codigo
+        ]).draw();
 
         document.getElementById('output').textContent = `Código generado: ${codigo}`;
         document.getElementById('formularioNuevaClienta').reset();
@@ -100,13 +95,29 @@ async function generarCodigo() {
     }
 }
 
+// ✅ Nueva función de exportación usando DataTables
 document.getElementById('exportarCSV').addEventListener('click', () => {
     exportarTablaAXLSX('codigos_generados.xlsx');
 });
 
 function exportarTablaAXLSX(nombreArchivo) {
-    const tabla = document.getElementById('tabla');
-    const ws = XLSX.utils.table_to_sheet(tabla);
+    const dataTable = $('#tabla').DataTable();
+    const datos = dataTable.rows().data(); // incluye todas las filas
+
+    const hoja = [
+        ['ID PrestaShop', 'Nombre', 'Correo', 'Código generado']
+    ];
+
+    for (let i = 0; i < datos.length; i++) {
+        hoja.push([
+            datos[i][0],
+            datos[i][1],
+            datos[i][2],
+            datos[i][3]
+        ]);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(hoja);
     const wb = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(wb, ws, "Códigos");
@@ -146,38 +157,7 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
             return;
         }
 
-        const tbody = document.getElementById('tabla').querySelector('tbody');
-
-        // Ocultar input y botón
-        document.getElementById('archivoMasivo').style.display = 'none';
-        document.getElementById('procesarCargaMasiva').style.display = 'none';
-
-        // Crear barra de progreso y contador
-        const modalBody = document.getElementById('modalCargaMasiva').querySelector('div');
-
-        const progresoContainer = document.createElement('div');
-        progresoContainer.style.cssText = 'margin-top:20px; position:relative;';
-
-        const contador = document.createElement('div');
-        contador.style.cssText = 'position:absolute; top:-20px; right:0; font-size:0.9rem;';
-        contador.textContent = `0 / ${clientes.length}`;
-
-        const progressBarContainer = document.createElement('div');
-        progressBarContainer.className = 'progress mt-2';
-        progressBarContainer.style.backgroundColor = '#e9ecef';
-        progressBarContainer.style.height = '20px';
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress-bar';
-        progressBar.style.width = '0%';
-        progressBar.style.backgroundColor = '#28a745';
-        progressBar.textContent = '0%';
-        progressBarContainer.appendChild(progressBar);
-
-        progresoContainer.appendChild(contador);
-        progresoContainer.appendChild(progressBarContainer);
-        modalBody.appendChild(progresoContainer);
-
-        let completados = 0;
+        const dataTable = $('#tabla').DataTable();
 
         for (let index = 0; index < clientes.length; index++) {
             const cliente = clientes[index];
@@ -205,51 +185,23 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
                 generados.add(codigo);
 
-                const fila = document.createElement('tr');
-                fila.innerHTML = `
-                    <td>${idPS}</td>
-                    <td>${nombre}</td>
-                    <td>${correo}</td>
-                    <td>${codigo}</td>
-                `;
-                tbody.appendChild(fila);
+                dataTable.row.add([
+                    idPS, nombre, correo, codigo
+                ]).draw();
 
-                completados++;
-
-                const porcentaje = Math.round((completados / clientes.length) * 100);
-                progressBar.style.width = `${porcentaje}%`;
-                progressBar.textContent = `${porcentaje}%`;
-                contador.textContent = `${completados} / ${clientes.length}`;
+                console.log(`Cliente ${nombre} registrado con código aleatorio ${codigo}`);
 
             } catch (err) {
                 console.error(`Error guardando cliente ${nombre} en Firestore`, err);
             }
         }
 
-        // Al finalizar
-        const mensajeFinal = document.createElement('div');
-        mensajeFinal.style.cssText = 'margin-top:1rem; color:#28a745; background:#def5e3; border:1px solid #90b398ff; border-radius:6px; padding:1rem;';
-        mensajeFinal.textContent = '✅ Carga completa';
-        progresoContainer.appendChild(mensajeFinal);
-
-        const btnAceptar = document.createElement('button');
-        btnAceptar.className = 'btn w-100 btn-primary mt-3';
-        btnAceptar.textContent = 'Aceptar';
-        btnAceptar.onclick = () => {
-            cerrarModalCargaMasiva();
-            progresoContainer.remove();
-            document.getElementById('archivoMasivo').style.display = 'block';
-            document.getElementById('procesarCargaMasiva').style.display = 'inline-block';
-        };
-        progresoContainer.appendChild(btnAceptar);
+        alert("Carga masiva completada.");
+        cerrarModalCargaMasiva();
     };
 
     reader.readAsArrayBuffer(archivo);
 });
-
-
-
-
 
 function abrirModalNuevaClienta() {
     const modal = document.getElementById('modalNuevaClienta');
@@ -268,12 +220,13 @@ function cerrarModalNuevaClienta() {
 function abrirModalEstadisticas() {
     const modal = document.getElementById('modalEstadisticas');
     if (modal) {
-        const totalPosibles = maxCodigos - 1000; // 9000 códigos posibles
+        const totalPosibles = maxCodigos - 1000;
         const usados = generados.size;
         const restantes = totalPosibles - usados;
 
         document.getElementById('totalGenerados').textContent = usados;
         document.getElementById('totalRestantes').textContent = restantes;
+
         modal.style.display = 'flex';
     }
 }
@@ -283,4 +236,4 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
-// upd v4.6
+// upd v4.7
