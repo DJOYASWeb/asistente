@@ -228,7 +228,7 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
         // Al finalizar
         const mensajeFinal = document.createElement('div');
-        mensajeFinal.style.cssText = 'margin-top:10px; font-weight:bold; color:#28a745; text-align:center; background:#def5e3; border:1px solid #90b398ff; border-radius:15px;';
+        mensajeFinal.style.cssText = 'margin-top:1rem; color:#28a745; background:#def5e3; border:1px solid #90b398ff; border-radius:6px; padding:1rem;';
         mensajeFinal.textContent = '✅ Carga completa';
         progresoContainer.appendChild(mensajeFinal);
 
