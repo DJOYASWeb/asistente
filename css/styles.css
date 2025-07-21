@@ -1232,3 +1232,19 @@ width: 80px;
 .toast-progress-alerta {
   background: rgb(156, 120, 9);
 }
+
+.progress {
+    width: 100%;
+    background-color: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.progress-bar {
+    width: 0%;
+    height: 20px;
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+    font-size: 0.8rem;
+    line-height: 20px;
+}

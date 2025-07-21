@@ -148,6 +148,20 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
 
         const tbody = document.getElementById('tabla').querySelector('tbody');
 
+        // Crear barra de progreso
+        const modal = document.getElementById('modalCargaMasiva');
+        const progressBarContainer = document.createElement('div');
+        progressBarContainer.className = 'progress mt-3';
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        progressBarContainer.appendChild(progressBar);
+
+        modal.querySelector('div').appendChild(progressBarContainer);
+
+        let completados = 0;
+
         for (let index = 0; index < clientes.length; index++) {
             const cliente = clientes[index];
 
@@ -183,19 +197,28 @@ document.getElementById('procesarCargaMasiva').addEventListener('click', () => {
                 `;
                 tbody.appendChild(fila);
 
-                console.log(`Cliente ${nombre} registrado con código aleatorio ${codigo}`);
+                completados++;
+
+                const porcentaje = Math.round((completados / clientes.length) * 100);
+                progressBar.style.width = `${porcentaje}%`;
+                progressBar.textContent = `${porcentaje}%`;
 
             } catch (err) {
                 console.error(`Error guardando cliente ${nombre} en Firestore`, err);
             }
         }
 
-        alert("Carga masiva completada.");
-        cerrarModalCargaMasiva();
+        setTimeout(() => {
+            alert("Carga masiva completada.");
+            cerrarModalCargaMasiva();
+            progressBarContainer.remove();
+        }, 500);
+
     };
 
     reader.readAsArrayBuffer(archivo);
 });
+
 
 function abrirModalNuevaClienta() {
     const modal = document.getElementById('modalNuevaClienta');
