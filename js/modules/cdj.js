@@ -413,8 +413,8 @@ document.getElementById('exportarClientas').addEventListener('click', () => {
 
     seleccionadas.forEach(chk => {
         const fila = chk.closest('tr');
-        const idPS = fila.cells[1].textContent.trim();   // columna 1 es ID PrestaShop
-        const codigo = fila.cells[4].textContent.trim(); // columna 4 es Código generado
+        const idPS = fila.cells[1].textContent.trim();   // columna 1: ID PrestaShop
+        const codigo = fila.cells[4].textContent.trim(); // columna 4: Código generado
 
         csv.push(`${idPS};${codigo}`);
     });
@@ -444,4 +444,4 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v6.7
+// upd v6.8
