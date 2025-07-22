@@ -69,9 +69,26 @@
 
 <div class="container">
     <div class="tab-content-ios">
-          <div id="general" class="tab-section ">
-            <h2>General</h2>
-          </div>
+<div id="general" class="tab-section">
+  <h2>Configuración de Perfil</h2>
+  <form id="perfilForm" class="mt-4">
+    <div class="mb-3">
+      <label for="fotoPerfil" class="form-label">Foto de perfil (URL)</label>
+      <input type="url" class="form-control" id="fotoPerfil" placeholder="https://..." />
+      <img id="previewFoto" src="" alt="Vista previa" class="mt-2" style="max-width: 150px; display:none;" />
+    </div>
+    <div class="mb-3">
+      <label for="nombreUsuario" class="form-label">Nombre</label>
+      <input type="text" class="form-control" id="nombreUsuario" placeholder="Tu nombre" />
+    </div>
+    <div class="mb-3">
+      <label for="correoUsuario" class="form-label">Correo</label>
+      <input type="email" class="form-control" id="correoUsuario" placeholder="tu@correo.com" />
+    </div>
+    <button type="button" class="btn btn-primary" id="guardarPerfilBtn">Guardar cambios</button>
+  </form>
+</div>
+
 
          
             
