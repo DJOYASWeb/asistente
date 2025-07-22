@@ -1249,3 +1249,6 @@ width: 80px;
     line-height: 20px;
 }
 
+.fila-seleccionada {
+    background-color: #dbdbdb !important; /* celeste claro */
+}

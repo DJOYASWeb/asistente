@@ -432,4 +432,16 @@ document.getElementById('exportarCSV').addEventListener('click', () => {
 });
 
 
-// upd v6.5
+document.addEventListener('change', (e) => {
+    if (e.target.classList.contains('selector-clienta')) {
+        const fila = e.target.closest('tr');
+        if (e.target.checked) {
+            fila.classList.add('fila-seleccionada');
+        } else {
+            fila.classList.remove('fila-seleccionada');
+        }
+    }
+});
+
+
+// upd v6.6
