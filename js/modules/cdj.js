@@ -401,7 +401,7 @@ function refrescarContenidos() {
 }
 
 
-document.getElementById('exportarCSV').addEventListener('click', () => {
+document.getElementById('exportarClientas').addEventListener('click', () => {
     const seleccionadas = Array.from(document.querySelectorAll('.selector-clienta:checked'));
     if (seleccionadas.length === 0) {
         mostrarNotificacion("No hay clientas seleccionadas para exportar", "alerta");
@@ -444,4 +444,4 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v6.6
+// upd v6.7
