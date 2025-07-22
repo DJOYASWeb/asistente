@@ -260,6 +260,15 @@ function confirmarEliminarCliente(codigo) {
     if (confirm("¿Seguro que quieres eliminar este cliente?")) {
         eliminarCliente(codigo);
     }
+
+function cerrarModalEliminarClienta() {
+    const modal = document.getElementById('modalConfirmarEliminarClienta');
+    if (modal) {
+        modal.style.display = 'none';
+        codigoParaEliminar = null;
+    }
+}
+
 }
 
 async function eliminarCliente(codigo) {
