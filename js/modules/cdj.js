@@ -348,6 +348,38 @@ async function guardarEdicionClienta() {
 }
 
 
+let codigoParaEliminar = null;
+
+function confirmarEliminarCliente(codigo) {
+    codigoParaEliminar = codigo;
+    const modal = document.getElementById('modalConfirmarEliminarClienta');
+    if (modal) modal.style.display = 'flex';
+}
+
+
+async function eliminarClienteConfirmado() {
+    if (!codigoParaEliminar) return;
+
+    try {
+        await window.db.collection("codigos-generados").doc(codigoParaEliminar).delete();
+
+        mostrarNotificacion(`Clienta con código ${codigoParaEliminar} eliminada`, "exito");
+
+        // Quitar la fila de la tabla
+        const filas = document.querySelectorAll('#tabla tbody tr');
+        filas.forEach(fila => {
+            if (fila.cells[3].textContent === codigoParaEliminar) {
+                fila.remove();
+            }
+        });
+
+    } catch (err) {
+        console.error("Error eliminando clienta: ", err);
+        mostrarNotificacion("Error al eliminar clienta", "error");
+    }
+
+    cerrarModalEliminarClienta();
+}
 
 
 
@@ -355,7 +387,4 @@ async function guardarEdicionClienta() {
 
 
 
-
-
-
-// upd v5.1
+// upd v5.2
