@@ -354,9 +354,12 @@ function cerrarModalEliminarClienta() {
 }
 
 async function eliminarClienteConfirmado() {
-    if (!codigoParaEliminar) return;
+    if (!codigoParaEliminar) {
+        mostrarNotificacion("No se ha seleccionado una clienta para eliminar", "alerta");
+        return;
+    }
 
-    cerrarModalEliminarClienta(); // Cierra el modal inmediatamente
+    cerrarModalEliminarClienta();
 
     try {
         await window.db.collection("codigos-generados").doc(codigoParaEliminar).delete();
@@ -376,11 +379,12 @@ async function eliminarClienteConfirmado() {
         mostrarNotificacion("Error al eliminar clienta", "error");
     }
 
-    codigoParaEliminar = null; // por si acaso
+    codigoParaEliminar = null;
 }
 
 
 
 
 
-// upd v5.7
+
+// upd v5.8
