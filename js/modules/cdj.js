@@ -14,16 +14,17 @@ async function cargarCodigosExistentes() {
             const codigo = doc.id;
 
             const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td>${data.idPrestaShop}</td>
-                <td>${data.nombre}</td>
-                <td>${data.correo}</td>
-                <td>${codigo}</td>
+       fila.innerHTML = `
+    <td><input type="checkbox" class="selector-clienta" data-codigo="${codigo}"></td>
+    <td>${data.idPrestaShop}</td>
+    <td>${data.nombre}</td>
+    <td>${data.correo}</td>
+    <td>${codigo}</td>
     <td>
         <button class="btn" onclick="editarCliente('${codigo}')"><i class="fa-solid fa-pen-to-square"></i></button>
         <button class="btn" onclick="confirmarEliminarClienta('${codigo}')"><i class="fa-solid fa-trash-can"></i></button>
     </td>
-            `;
+`;
             tbody.appendChild(fila);
 
             generados.add(codigo);
@@ -400,4 +401,4 @@ function refrescarContenidos() {
 }
 
 
-// upd v6.3
+// upd v6.4
