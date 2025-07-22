@@ -392,6 +392,12 @@ async function eliminarClienteConfirmado() {
     cerrarModalEliminarClienta();
 }
 
+function refrescarContenidos() {
+    const tbody = document.getElementById('tabla').querySelector('tbody');
+    tbody.innerHTML = ""; // limpia las filas actuales
+    $('#tabla').DataTable().clear().destroy(); // destruye el DataTable actual
+    cargarCodigosExistentes(); // vuelve a cargar
+}
 
 
-// upd v6.2
+// upd v6.3
