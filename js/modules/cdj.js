@@ -126,10 +126,10 @@ function exportarTablaAXLSX(nombreArchivo) {
 
     for (let i = 0; i < datos.length; i++) {
         hoja.push([
-            datos[i][0],
             datos[i][1],
             datos[i][2],
-            datos[i][3]
+            datos[i][3],
+            datos[i][4]
         ]);
     }
 
@@ -444,4 +444,4 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v6.8
+// upd v6.9
