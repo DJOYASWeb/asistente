@@ -401,4 +401,35 @@ function refrescarContenidos() {
 }
 
 
-// upd v6.4
+document.getElementById('exportarCSV').addEventListener('click', () => {
+    const seleccionadas = Array.from(document.querySelectorAll('.selector-clienta:checked'));
+    if (seleccionadas.length === 0) {
+        mostrarNotificacion("No hay clientas seleccionadas para exportar", "alerta");
+        return;
+    }
+
+    const csv = [];
+    csv.push("id_customer;ape_customer");
+
+    seleccionadas.forEach(chk => {
+        const fila = chk.closest('tr');
+        const idPS = fila.cells[1].textContent.trim();   // columna 1 es ID PrestaShop
+        const codigo = fila.cells[4].textContent.trim(); // columna 4 es Código generado
+
+        csv.push(`${idPS};${codigo}`);
+    });
+
+    const csvContent = csv.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "clientas_seleccionadas.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    mostrarNotificacion("Archivo CSV generado correctamente", "exito");
+});
+
+
+// upd v6.5
