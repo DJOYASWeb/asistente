@@ -339,52 +339,59 @@ async function guardarEdicionClienta() {
 
 let codigoParaEliminar = null;
 
-function confirmarEliminarCliente(codigo) {
+function confirmarEliminarClienta(codigo) {
+    console.log("confirmarEliminarClienta llamado con:", codigo);
+    if (!codigo) {
+        mostrarNotificacion("Código no válido para eliminar", "alerta");
+        return;
+    }
+
     codigoParaEliminar = codigo;
+
     const modal = document.getElementById('modalConfirmarEliminarClienta');
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+        modal.style.display = 'flex';
+    }
 }
 
 function cerrarModalEliminarClienta() {
     const modal = document.getElementById('modalConfirmarEliminarClienta');
     if (modal) {
         modal.style.display = 'none';
-        codigoParaEliminar = null;
     }
+    codigoParaEliminar = null;
 }
 
 async function eliminarClienteConfirmado() {
-    console.log("Intentando eliminar:", codigoParaEliminar);
+    console.log("eliminarClienteConfirmado con:", codigoParaEliminar);
 
-    if (!codigoParaEliminar || typeof codigoParaEliminar !== 'string') {
-        mostrarNotificacion("No se seleccionó una clienta para eliminar", "alerta");
+    if (!codigoParaEliminar) {
+        mostrarNotificacion("No se seleccionó ninguna clienta", "alerta");
+        cerrarModalEliminarClienta();
         return;
     }
-
-    cerrarModalEliminarClienta();
 
     try {
         await window.db.collection("codigos-generados").doc(codigoParaEliminar).delete();
 
-        mostrarNotificacion(`Clienta con código ${codigoParaEliminar} eliminada`, "exito");
+        mostrarNotificacion(`Clienta ${codigoParaEliminar} eliminada`, "exito");
 
         // Quitar la fila de la tabla
         const filas = document.querySelectorAll('#tabla tbody tr');
         filas.forEach(fila => {
-            if (fila.cells[3].textContent === codigoParaEliminar) {
+            if (fila.cells[3].textContent.trim() === codigoParaEliminar) {
                 fila.remove();
             }
         });
 
     } catch (err) {
-        console.error("Error eliminando clienta: ", err);
+        console.error("Error eliminando clienta:", err);
         mostrarNotificacion("Error al eliminar clienta", "error");
     }
 
-    codigoParaEliminar = null; // asegura limpieza
+    cerrarModalEliminarClienta();
 }
 
 
 
-
-// upd v5.9
+// upd v6
