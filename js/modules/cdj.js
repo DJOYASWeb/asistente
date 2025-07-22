@@ -360,6 +360,8 @@ function confirmarEliminarCliente(codigo) {
 async function eliminarClienteConfirmado() {
     if (!codigoParaEliminar) return;
 
+    cerrarModalEliminarClienta(); // 👈 Cierra el modal inmediatamente al confirmar
+
     try {
         await window.db.collection("codigos-generados").doc(codigoParaEliminar).delete();
 
@@ -378,7 +380,7 @@ async function eliminarClienteConfirmado() {
         mostrarNotificacion("Error al eliminar clienta", "error");
     }
 
-    cerrarModalEliminarClienta();
+    codigoParaEliminar = null; // limpia la variable global
 }
 
 
@@ -386,5 +388,4 @@ async function eliminarClienteConfirmado() {
 
 
 
-
-// upd v5.2
+// upd v5.3
