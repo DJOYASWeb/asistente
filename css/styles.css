@@ -1252,3 +1252,9 @@ width: 80px;
 .fila-seleccionada {
     background-color: #efefef !important; /* celeste claro */
 }
+
+button:focus:not(:focus-visible) {
+    outline: 0;
+    background: #323232;
+    color: #fff;
+}
