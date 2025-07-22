@@ -250,7 +250,6 @@ function cerrarModalEstadisticas() {
     const modal = document.getElementById('modalEstadisticas');
     if (modal) modal.style.display = 'none';
 }
-}
 
 async function eliminarCliente(codigo) {
     try {
@@ -378,4 +377,4 @@ async function eliminarClienteConfirmado() {
 
 
 
-// upd v5.5
+// upd v5.6
