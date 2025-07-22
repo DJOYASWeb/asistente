@@ -345,11 +345,18 @@ function confirmarEliminarCliente(codigo) {
     if (modal) modal.style.display = 'flex';
 }
 
+function cerrarModalEliminarClienta() {
+    const modal = document.getElementById('modalConfirmarEliminarClienta');
+    if (modal) {
+        modal.style.display = 'none';
+        codigoParaEliminar = null;
+    }
+}
 
 async function eliminarClienteConfirmado() {
     if (!codigoParaEliminar) return;
 
-    cerrarModalEliminarClienta(); // 👈 Cierra el modal inmediatamente al confirmar
+    cerrarModalEliminarClienta(); // Cierra el modal inmediatamente
 
     try {
         await window.db.collection("codigos-generados").doc(codigoParaEliminar).delete();
@@ -369,12 +376,11 @@ async function eliminarClienteConfirmado() {
         mostrarNotificacion("Error al eliminar clienta", "error");
     }
 
-    codigoParaEliminar = null; // limpia la variable global
+    codigoParaEliminar = null; // por si acaso
 }
 
 
 
 
 
-
-// upd v5.6
+// upd v5.7
