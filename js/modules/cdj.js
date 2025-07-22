@@ -354,8 +354,10 @@ function cerrarModalEliminarClienta() {
 }
 
 async function eliminarClienteConfirmado() {
-    if (!codigoParaEliminar) {
-        mostrarNotificacion("No se ha seleccionado una clienta para eliminar", "alerta");
+    console.log("Intentando eliminar:", codigoParaEliminar);
+
+    if (!codigoParaEliminar || typeof codigoParaEliminar !== 'string') {
+        mostrarNotificacion("No se seleccionó una clienta para eliminar", "alerta");
         return;
     }
 
@@ -379,12 +381,10 @@ async function eliminarClienteConfirmado() {
         mostrarNotificacion("Error al eliminar clienta", "error");
     }
 
-    codigoParaEliminar = null;
+    codigoParaEliminar = null; // asegura limpieza
 }
 
 
 
 
-
-
-// upd v5.8
+// upd v5.9
