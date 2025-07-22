@@ -67,12 +67,17 @@
 
 
 <div class="ios-card">
-  <div class="my-3">
+  <div class="my-3 row">
+    <div class="col-auto">
 <button class="m-1 btn btn-primary" id="btnCargaMasiva">Carga masiva</button>
 <button class="m-1 btn btn-primary" onclick="abrirModalNuevaClienta()">Nueva clienta</button>
 <button class="m-1 btn btn-primary" onclick="abrirModalEstadisticas()">Estadísticas</button>
 <button  class="m-1 btn btn-primary" id="exportarCSV">Exportar a CSV</button>
+    </div>
+<div class="col-auto justify-content-end">
 <button class="btn btn-sm btn-outline-primary" onclick="refrescarContenidos()">🔄 Refrescar</button>
+</div>
+
 </div>
 <table id="tabla">
     <thead>
