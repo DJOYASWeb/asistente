@@ -250,25 +250,6 @@ function cerrarModalEstadisticas() {
     const modal = document.getElementById('modalEstadisticas');
     if (modal) modal.style.display = 'none';
 }
-
-function editarCliente(codigo) {
-    mostrarNotificacion(`Editar cliente con código ${codigo}`, "alerta");
-    // Aquí puedes abrir un modal para editar los datos
-}
-
-function confirmarEliminarCliente(codigo) {
-    if (confirm("¿Seguro que quieres eliminar este cliente?")) {
-        eliminarCliente(codigo);
-    }
-
-function cerrarModalEliminarClienta() {
-    const modal = document.getElementById('modalConfirmarEliminarClienta');
-    if (modal) {
-        modal.style.display = 'none';
-        codigoParaEliminar = null;
-    }
-}
-
 }
 
 async function eliminarCliente(codigo) {
@@ -397,4 +378,4 @@ async function eliminarClienteConfirmado() {
 
 
 
-// upd v5.4
+// upd v5.5
