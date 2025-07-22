@@ -154,4 +154,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-//upd 11-07 v3.1
+function initDashboard() {
+    const avatar = document.getElementById("avatar");
+    const userName = document.getElementById("userName");
+    const userEmail = document.getElementById("userEmail");
+
+    const correo = prompt("Ingresa tu correo para cargar tu perfil:");
+    if (!correo) return;
+
+    db.collection("usuarios").doc(correo).get().then(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.fotoPerfil) avatar.src = data.fotoPerfil;
+            if (data.nombreUsuario) userName.innerText = data.nombreUsuario;
+            if (data.correoUsuario) userEmail.innerText = data.correoUsuario;
+        }
+    }).catch(error => {
+        console.error("Error al cargar perfil: ", error);
+    });
+}
+
+
+
+
+
+//upd 22-07 v1
