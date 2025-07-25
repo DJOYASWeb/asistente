@@ -1263,3 +1263,8 @@ button:focus:not(:focus-visible) {
     background: #323232;
     color: #fff;
 }
+
+.content-presta button a{
+    color: #fff;
+    text-decoration: none;
+}
