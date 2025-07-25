@@ -252,6 +252,28 @@ function cerrarModalEstadisticas() {
     if (modal) modal.style.display = 'none';
 }
 
+
+//modalpresta
+
+function abrirModalPresta() {
+    const modal = document.getElementById('modalPresta');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function cerrarModalPresta() {
+    const modal = document.getElementById('modalPresta');
+    if (modal) modal.style.display = 'none';
+}
+
+//modalpresta
+
+
+
+
+
+
 async function eliminarCliente(codigo) {
     try {
         await window.db.collection("codigos-generados").doc(codigo).delete();
@@ -444,4 +466,4 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v6.9
+// upd v7
