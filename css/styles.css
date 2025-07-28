@@ -1268,3 +1268,7 @@ button:focus:not(:focus-visible) {
     color: #fff;
     text-decoration: none;
 }
+
+.sidebar.oculta-permisos {
+  display: none;
+}
