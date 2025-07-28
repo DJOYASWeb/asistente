@@ -1,4 +1,3 @@
-
 async function aplicarPermisosDeTabs(uid) {
   try {
     const docRef = window.db.collection("usuarios").doc(uid);
@@ -18,6 +17,10 @@ async function aplicarPermisosDeTabs(uid) {
         tabEl.classList.add("d-none");
       }
     });
+
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.classList.remove("oculta-permisos");
+
   } catch (e) {
     console.error("Error aplicando permisos:", e);
   }
