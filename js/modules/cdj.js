@@ -33,11 +33,13 @@ async function cargarCodigosExistentes() {
         console.log(`Cargados ${snapshot.size} códigos existentes.`);
 
         // Inicializar DataTable
-        $('#tabla').DataTable({
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-            }
-        });
+       $('#tabla').DataTable({
+    language: {
+        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+    },
+    order: [[2, 'desc']] // orden descendente por la columna Código generado
+});
+
     } catch (error) {
         console.error("Error cargando códigos existentes: ", error);
         document.getElementById('output').textContent = "Error al cargar códigos existentes. Intenta más tarde.";
@@ -493,4 +495,4 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v1
+// upd v1.2
