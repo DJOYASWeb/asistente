@@ -111,10 +111,37 @@ async function generarCodigo() {
 }
 
 
-// ✅ Nueva función de exportación usando DataTables
 document.getElementById('exportarCSV').addEventListener('click', () => {
-    exportarTablaAXLSX('codigos_generados.xlsx');
+    const seleccionadas = Array.from(document.querySelectorAll('.selector-clienta:checked'));
+
+    if (seleccionadas.length === 0) {
+        mostrarNotificacion("No hay clientas seleccionadas para exportar", "alerta");
+        return;
+    }
+
+    const csv = [];
+    csv.push("Nombre,Correo,Código");
+
+    seleccionadas.forEach(chk => {
+        const fila = chk.closest('tr');
+        const nombre = fila.cells[2].textContent.trim();
+        const correo = fila.cells[3].textContent.trim();
+        const codigo = fila.cells[4].textContent.trim();
+        csv.push(`"${nombre}","${correo}","${codigo}"`);
+    });
+
+    const csvContent = csv.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "contactos_seleccionados.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    mostrarNotificacion("Archivo CSV generado correctamente", "exito");
 });
+
 
 function exportarTablaAXLSX(nombreArchivo) {
     const dataTable = $('#tabla').DataTable();
@@ -466,4 +493,4 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v7
+// upd v1
