@@ -37,7 +37,7 @@ async function cargarCodigosExistentes() {
     language: {
         url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
     },
-    order: [[2, 'desc']] // orden descendente por la columna Código generado
+    order: [[1, 'desc']] // orden descendente por la columna Código generado
 });
 
     } catch (error) {
@@ -495,4 +495,4 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v1.2
+// upd v1.3
