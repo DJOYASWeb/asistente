@@ -55,67 +55,77 @@ function leerExcelDesdeFila3(file) {
       return obj;
     });
 
+    // Asignar categoría principal según material
     datos.forEach(row => {
       const material = (row["Material"] || "").toString().trim();
       const categoria = categoriasPorMaterial[material] || "";
       row["Categoría principal"] = categoria;
     });
 
+    // Limpieza inicial de arrays
     datosCombinaciones = [];
     datosReposicion = [];
     datosOriginales = [];
 
+    const errores = [];
+
     datos.forEach(row => {
       const salida = (row["Salida"] || "").toString().trim();
       const combinacion = (row["Combinaciones"] || "").toString().trim();
+      const sku = (row["Código"] || "SKU no definido").toString().trim();
+
+      // Si el campo existe pero está vacío
+      if ("Combinaciones" in row && combinacion === "") {
+        errores.push(`${sku} - combinaciones vacías`);
+        return;
+      }
+
       const tieneCombinacion = combinacion !== "";
 
       if (tieneCombinacion) {
-       if (tieneCombinacion) {
-  const combinaciones = combinacion.split(",");
-  let errorDetectado = false;
+        const combinaciones = combinacion.split(",");
+        let errorDetectado = false;
 
-  combinaciones.forEach(c => {
-    const valor = c.trim();
-    const regex = /^#\d+-\d+$/;
+        combinaciones.forEach(c => {
+          const valor = c.trim();
+          const regex = /^#\d+-\d+$/;
 
-    if (!regex.test(valor)) {
-      const sku = (row["Código"] || "SKU no definido").toString().trim();
-      mostrarAlerta(`${sku} - ${valor}`, "warning");
-      errorDetectado = true;
-    }
-  });
+          if (!regex.test(valor)) {
+            errores.push(`${sku} - ${valor}`);
+            errorDetectado = true;
+          }
+        });
 
-  if (errorDetectado) return;
-
-  row["Cantidad"] = 0;
-  datosCombinaciones.push(row);
-
-} else if ((row["Salida"] || "").toString().trim().toLowerCase() === "reposicion") {
-  datosReposicion.push(row);
-
-} else if ((row["Combinaciones"] || "").toString().trim() === "") {
-  const sku = (row["Código"] || "SKU no definido").toString().trim();
-  mostrarAlerta(`${sku} - combinaciones vacías`, "warning");
-
-} else {
-  datosOriginales.push(row);
-}
+        if (errorDetectado) return;
 
         row["Cantidad"] = 0;
         datosCombinaciones.push(row);
+
       } else if (salida === "Reposición") {
         datosReposicion.push(row);
+
       } else {
         datosOriginales.push(row);
       }
     });
+
+    // Mostrar errores acumulados si hay
+    if (errores.length > 0) {
+      const mensajes = errores.map(e => `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+        ${e}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+      </div>`).join("");
+      document.getElementById("alertas").innerHTML = mensajes;
+    } else {
+      document.getElementById("alertas").innerHTML = "";
+    }
 
     document.getElementById("botonesTipo").classList.remove("d-none");
     mostrarTabla("nuevo");
   };
   reader.readAsArrayBuffer(file);
 }
+
 
 function construirCaracteristicas(row) {
   const campos = [
@@ -488,4 +498,4 @@ function mostrarProductosReposicion() {
 
 
 
-// upd v3
+// upd v3.1
