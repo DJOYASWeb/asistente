@@ -71,11 +71,37 @@ function leerExcelDesdeFila3(file) {
       const tieneCombinacion = combinacion !== "";
 
       if (tieneCombinacion) {
-        const esValida = combinacion.split(",").every(c => /^#\d+-\d+$/.test(c.trim()));
-        if (!esValida) {
-          mostrarAlerta(`Formato inválido en Combinaciones: "${combinacion}"`, "warning");
-          return;
-        }
+       if (tieneCombinacion) {
+  const combinaciones = combinacion.split(",");
+  let errorDetectado = false;
+
+  combinaciones.forEach(c => {
+    const valor = c.trim();
+    const regex = /^#\d+-\d+$/;
+
+    if (!regex.test(valor)) {
+      const sku = (row["Código"] || "SKU no definido").toString().trim();
+      mostrarAlerta(`${sku} - ${valor}`, "warning");
+      errorDetectado = true;
+    }
+  });
+
+  if (errorDetectado) return;
+
+  row["Cantidad"] = 0;
+  datosCombinaciones.push(row);
+
+} else if ((row["Salida"] || "").toString().trim().toLowerCase() === "reposicion") {
+  datosReposicion.push(row);
+
+} else if ((row["Combinaciones"] || "").toString().trim() === "") {
+  const sku = (row["Código"] || "SKU no definido").toString().trim();
+  mostrarAlerta(`${sku} - combinaciones vacías`, "warning");
+
+} else {
+  datosOriginales.push(row);
+}
+
         row["Cantidad"] = 0;
         datosCombinaciones.push(row);
       } else if (salida === "Reposición") {
@@ -462,4 +488,4 @@ function mostrarProductosReposicion() {
 
 
 
-// upd v2 04-07
+// upd v3
