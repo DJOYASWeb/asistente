@@ -73,10 +73,13 @@ function leerExcelDesdeFila3(file) {
       const salida = (row["Salida"] || "").toString().trim();
       const combinacion = (row["Combinaciones"] || "").toString().trim();
       const sku = (row["Código"] || "SKU no definido").toString().trim();
+      const categoria = (row["Categoría principal"] || "").toString().trim();
 
-      // Si el campo existe pero está vacío
-      if ("Combinaciones" in row && combinacion === "") {
-        errores.push(`${sku} - combinaciones vacías`);
+      // Validar combinaciones vacías solo en ciertos tipos de anillos
+      const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
+
+      if (esAnilloConValidacion && "Combinaciones" in row && combinacion === "") {
+        errores.push(`${sku} - combinaciones vacías (${categoria})`);
         return;
       }
 
@@ -498,4 +501,4 @@ function mostrarProductosReposicion() {
 
 
 
-// upd v3.1
+// upd v3.2
