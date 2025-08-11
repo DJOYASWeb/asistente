@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HTML</title>
+  <title>Planilla | Asistente</title>
     <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,7 +13,7 @@
 
 <body class="protegido" data-theme="light">
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
-
+ 
   <!-- Sidebar -->
 <div class="sidebar oculta-permisos" id="sidebar">
     <div>
@@ -28,7 +27,7 @@
         <a href="creative.html" data-tab="creative" data-tooltip="Uso"><span class="icon"><i class="fa-solid fa-globe"></i></span><span class="label">HMTL</span></a>
         <a href="inspira.html" data-tab="inspira" data-tooltip="Inspira"><span class="icon"><i class="fa-solid fa-photo-film"></i></span><span class="label">DJOYAS Inspira</span></a>
         <a href="planilla.html" data-tab="planilla" data-tooltip="Planilla"><span class="icon"><i class="fa-solid fa-file-excel"></i></span><span class="label">Planilla</span></a>
-          <a href="Planilla 2.0.html" data-tab="planilla" data-tooltip="Planilla"><span class="icon"><i class="fa-solid fa-file-excel"></i></span><span class="label">2.0</span></a>    
+          <a href="Planilla 2.0.html" data-tab="planilla" data-tooltip="Planilla"><span class="icon"><i class="fa-solid fa-file-excel"></i></span><span class="label">2.0</span></a>
          <a href="catalogo.html" data-tab="catalogo" data-tooltip="Catálogo"><span class="icon"><i class="fa-regular fa-address-card"></i></span><span class="label">Catálogo</span></a>
       </nav>
     </div>
@@ -39,9 +38,8 @@
     </div>
   </div>
 
-  <!-- Contenido principal -->
   <div class="main-content">
-        <div class="topbar">
+    <div class="topbar">
       <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
       <div class="profile-section">
         <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" id="avatar" onclick="toggleDropdown()" />
@@ -60,84 +58,62 @@
       </div>
     </div>
 
+    <div class="tab-header">
+      <button class="tab-btn active" id="btnCarga" onclick="showTab('carga')">Carga</button>
+      <button class="tab-btn" id="btnHistorial" onclick="showTab('historial')">Historial</button>
+    </div>
 
-<div class="tab-header">
-  <button class="tab-btn active" id="btnConstructor" onclick="showTab('constructor')">Constructor</button>
-  <button class="tab-btn" id="btnClases" onclick="showTab('clases')">Clases</button>
-  <button class="tab-btn" id="btnSecciones" onclick="showTab('secciones')">Secciones</button>
+    <div class="container">
+      <div class="tab-content-ios">
+        <div id="carga" class="tab-section ios-card">
+          <!-- Carga de planilla -->
+          <div class="formulario my-4">
+            <label for="excelFile" class="form-label">Selecciona tu archivo Excel (.xlsx):</label>
+            <input type="file" id="excelFile" accept=".xlsx" class="form-control">
+          </div>
+
+          <div id="alertas" class="alertas mb-3"></div>
+
+<div id="botonesTipo" class="d-none mb-3">
+<button class="btn btn-outline-dark me-2" onclick="mostrarProductosNuevos()">Productos nuevos</button>
+<button class="btn btn-outline-dark me-2" onclick="mostrarProductosReposicion()">Reposición</button>
+<button class="btn btn-outline-dark me-2" onclick="mostrarTablaCombinacionesCantidad()">Combinación cantidades</button>
+
+
 </div>
 
-<div class="container">
-  <div class="tab-content-ios">
+<div id="tablaPreview" class="table-responsive mb-3"></div>
 
-    <!-- TAB CONSTRUCTOR -->
-    <div id="constructor" class="tab-section">
-      <div class="container ios-card mb-5">
-        <h1>🖋️ Constructor Visual</h1>
+<button id="botonProcesar" class="btn btn-primary mt-2 d-none" data-bs-toggle="modal" data-bs-target="#modalColumnas">
+  Procesar
+</button>
+        </div>
 
-
-<div class="mt-3">
-  <label>Arrastra un bloque predefinido a la vista previa:</label>
-  <div id="dragBloques" class="d-flex flex-wrap gap-2"></div>
-</div>
-
-  <div class="preview">
-    <label>Vista previa:</label>
-    <div id="vistaPrevia" class="border p-3 bg-light" style="min-height: 300px;"></div>
+        <div id="historial" class="tab-section d-none">
+          <!-- Historial de cargas -->
+        </div>
+      </div>
+    </div>
   </div>
 
-        <!-- Modal para previsualización -->
-        <div id="modalPreview" class="modal" style="display:none;">
-          <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="previewHtml"></div>
-          </div>
-        </div>
+
+<!-- Modal de Confirmación y Columnas -->
+<div class="modal fade" id="modalColumnas" tabindex="-1" aria-labelledby="modalColumnasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalColumnasLabel">Confirmar exportación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>Estas son las columnas que se incluirán en el archivo:</p>
+        <ul id="columnasFinales" class="list-group list-group-numbered small"></ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="confirmarExportar" data-bs-dismiss="modal">Exportar</button>
       </div>
     </div>
-
-    <!-- TAB CLASES -->
-    <div id="clases" class="tab-section d-none">
-      <div class="container ios-card mb-5">
-        <h1>🎨 Clases Personalizadas</h1>
-
-        <div class="row">
-          <div class="col-lg-6 col-12">
-            <input type="text" id="nombreClase" class="form-control mb-2" placeholder="Nombre de la clase (ej: fondo-principal)">
-          </div>
-          <div class="col-lg-6 col-12">
-            <input type="text" id="valoresClase" class="form-control mb-2" placeholder="Valores CSS (ej: background-color: #f8f9fa; color: #333;)">
-          </div>
-        </div>
-        <button id="guardarClaseBtn" class="btn btn-primary w-100">💾 Guardar Clase</button>
-
-        <div class="mt-4">
-          <h4>Clases guardadas</h4>
-          <ul id="listaClases" class="list-group mt-2">
-            <!-- JS llenará esto -->
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB SECCIONES -->
-    <div id="secciones" class="tab-section d-none">
-      <div class="container ios-card mb-5">
-        <h1>📦 Secciones / Bloques Predefinidos</h1>
-
-        <input type="text" id="nombreBloque" class="form-control mb-2" placeholder="Nombre del bloque">
-        <textarea id="contenidoBloque" class="form-control mb-2" rows="6" placeholder="Escribe el HTML del bloque"></textarea>
-        <button id="guardarBloqueBtn" class="btn btn-primary w-100">💾 Guardar Bloque</button>
-
-        <div class="mt-4">
-          <h4>Bloques guardados</h4>
-          <ul id="listaBloques" class="list-group mt-2">
-            <!-- JS llenará esto -->
-          </ul>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
@@ -146,36 +122,20 @@
 
 
 
-    
-
-  </div>
-
-
-
-
-
-
-
-
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>   
-
-<!-- DataTables Bootstrap 5 JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-<!-- Firebase Core -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-
-<!-- Tu script -->
-<script src="js/modules/firebase-init.js"></script>
-<script src="js/modules/modales.js"></script>
-<script src="js/modules/tabs.js"></script>
-<script src="js/modules/editor.js"></script>
-<script type="module" src="js/modules/checkAuth.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="js/modules/firebase-init.js"></script>
+  <script src="js/modules/modales.js"></script>
+  <script src="js/modules/tabs.js"></script>
+  <script src="js/modules/planilla.js"></script>
+  <script type="module" src="js/modules/checkAuth.js"></script>
 <script src="js/modules/permisos-tabs.js"></script>
 <script src="js/modules/verificar-tabs.js"></script>
 </body>
