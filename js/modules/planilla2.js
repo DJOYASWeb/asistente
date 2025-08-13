@@ -24,6 +24,18 @@ function esAnillo(row) {
   return tipo.includes("anillo"); // matchea "Anillo" o "Anillos"
 }
 
+function ultimosDosDigitosDeCodigo(codigo) {
+  const s = String(codigo ?? "");
+  // Tomar el bloque numérico del final, luego quedarnos con sus últimos 2 dígitos
+  const m = s.match(/(\d+)\s*$/);
+  if (!m) return ""; // no hay dígitos al final
+  const bloque = m[1];           // ej. "020"
+  const d2 = bloque.slice(-2);   // -> "20"
+  // Asegura que sean 1–2 dígitos (si solo hay 1, se usa tal cual)
+  return d2;
+}
+
+
 function asNumericId(value) {
   const s = String(value ?? "").trim();
   if (!s) return "";
@@ -552,7 +564,7 @@ function mostrarTablaCombinacionesCantidad() {
   const tablaDiv = document.getElementById("tablaPreview");
   const procesarBtn = document.getElementById("botonProcesar");
 
-  // 1) Tomar TODOS los productos (originales + con combinaciones) que sean Anillos
+  // 1) Tomar TODOS los productos (originales + con combinaciones) que sean Anillos/Anillo
   const todos = [...datosOriginales, ...datosCombinaciones];
   const anillos = todos.filter(esAnillo);
 
@@ -563,40 +575,36 @@ function mostrarTablaCombinacionesCantidad() {
     return;
   }
 
-  // 2) Mostrar en la vista previa esos productos (aunque no tengan "Combinaciones")
+  // 2) Mostrar en la vista previa esos productos (independiente de que tengan "Combinaciones")
   datosFiltrados = anillos;
   renderTablaConOrden(datosFiltrados);
   procesarBtn.classList.remove("d-none");
 
-  // 3) Preparar el DESGLOSE solo para los que sí tienen "Combinaciones"
+  // 3) Preparar el dataset de EXPORTACIÓN según tu mapeo (NO desde "Combinaciones")
   const resultado = [];
   anillos.forEach(row => {
-    const combinaciones = (row["Combinaciones"] || "").toString().trim();
-    if (!combinaciones) return; // si no trae combinaciones, solo se muestra en la tabla, no se desgrana
+    const codigo = row["codigo_producto"] || row["Código"] || "";
+    const valueNum = ultimosDosDigitosDeCodigo(codigo); // ej. "20"
+    if (!valueNum) return; // si no hay 1–2 dígitos al final, omitimos
 
-    const codigoBase = (row["codigo_producto"] || row["Código"] || "").substring(0, 12);
     const idProducto = asNumericId(row["prestashop_id"]);
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
+    const cantidad = row["cantidad"] ?? 0;
 
-    combinaciones.split(",").forEach(comb => {
-      const [num, cant] = comb.replace("#", "").split("-").map(s => s.trim());
-      if (!num || !cant) return;
-
-      resultado.push({
-        "ID": idProducto,
-        "Attribute (Name:Type:Position)*": "Número:radio:0",
-        "Value (Value:Position)*": `${num}:0`,
-        "Referencia": `${codigoBase}${num}`,
-        "Cantidad": cant,
-        "Precio S/ IVA": precioSinIVA
-      });
+    resultado.push({
+      "ID": idProducto,
+      "Attribute (Name:Type:Position)*": "Número:radio:0",
+      "Value (Value:Position)*": `${valueNum}:0`,
+      "Referencia": codigo,
+      "Cantidad": cantidad,
+      "Precio S/ IVA": precioSinIVA
     });
   });
 
-  // Esto es lo que el modal y la exportación usarán cuando estés en esta vista
-  datosCombinacionCantidades = resultado;
+  datosCombinacionCantidades = resultado; // <- el modal y la exportación usarán esto en esta vista
 }
 
 
-//V 4.3
+
+//V 4.4
