@@ -1,0 +1,169 @@
+Nueva funcionalidad a implementar
+Objetivo
+Agregar un botón en el modal de “Procesar” para descargar todas las fotos asociadas a las filas mostradas (lo que esté activo al abrir el modal) en un único archivo ZIP, renombrando cada imagen con el código del producto y conservando su extensión real.
+
+Requisitos funcionales
+Ubicación del botón
+
+El botón debe aparecer dentro del modal de “Procesar”, junto al botón actual de “Exportar”.
+
+Texto del botón: “Descargar fotos (.zip)”.
+
+Ámbito de las fotos a incluir
+
+Debe empaquetar las imágenes de todas las filas a procesar en ese momento.
+
+Fuente de datos:
+
+Si tipoSeleccionado !== "combinacion_cantidades": usar datosFiltrados (si vacío, usar [...datosOriginales, ...datosCombinaciones]).
+
+Si tipoSeleccionado === "combinacion_cantidades": NO uses el desglose datosCombinacionCantidades; usa el conjunto de productos (también datosFiltrados de esa vista).
+
+De dónde sacar la URL
+
+Columna: foto_link_individual (nota: hay un espacio al final del nombre del encabezado).
+
+Debes considerar estas variantes al leer la celda:
+
+row["foto_link_individual "] (exacto, con espacio final),
+
+row["foto_link_individual"] (por si viene sin espacio),
+
+y como fallback, buscar una columna cuyo nombre incluya "foto_link_individual" (insensible a mayúsculas/acentos) con una función tipo detectarColumnaQueIncluye(row, "foto_link_individual").
+
+Renombrar cada archivo con el código
+
+Base del nombre: row["codigo_producto"] (o row["Código"] como fallback).
+
+La extensión no es fija: se debe mantener la extensión del archivo (p. ej. .jpg, .png, .webp).
+
+Cómo detectar la extensión:
+
+Primero intenta con la cabecera Content-Disposition → parsea el filename y extrae su extensión.
+
+Si no hay Content-Disposition, usa Content-Type (image/jpeg→.jpg, image/png→.png, image/webp→.webp, etc.).
+
+Si ninguna está disponible, como último recurso intenta deducirla de la URL (pathname / query).
+
+Si no se consigue extensión, usa .jpg por defecto.
+
+Compatibilidad con Google Drive (enlaces públicos)
+
+Los enlaces pueden venir en formatos de “Compartir” y deben convertirse a descarga directa.
+
+Detecta el fileId y construye: https://drive.google.com/uc?export=download&id=<FILE_ID>.
+
+Patrones comunes de Drive a soportar:
+
+https://drive.google.com/file/d/<ID>/view?usp=sharing
+
+https://drive.google.com/open?id=<ID>
+
+https://drive.google.com/uc?id=<ID>&export=download
+
+https://drive.google.com/uc?export=download&id=<ID>
+
+Si la URL ya es directa, úsala tal cual.
+
+Empaquetado ZIP
+
+Usar JSZip (CDN oficial) para construir el archivo ZIP en el cliente.
+
+Nombre del ZIP: fotos_<DD-MM-YY>.zip.
+
+Descargar automáticamente el ZIP al finalizar (crear blob → saveAs o <a download>).
+
+Paralelismo y robustez
+
+Descarga en paralelo con límite de concurrencia (p. ej. 3–5) para no saturar conexiones ni bloquear el UI.
+
+Si una URL falla o está vacía, sáltala y registra un conteo de omitidas; al final, muestra un mensaje (alerta en el modal o console.warn) con cuántas imágenes se incluyeron y cuántas fallaron o faltaron.
+
+Duplicados de codigo_producto: si aparecen, añade sufijo numérico incremental: CODIGO.jpg, CODIGO_2.jpg, etc.
+
+Integración visual mínima
+
+No rompas el estilo del modal. El botón puede ser btn btn-outline-secondary o similar.
+
+Si puedes, incluye una barra de progreso simple (opcional) o un texto tipo “Descargando 5/123…” mientras se descarga y empaqueta.
+
+Sin romper lo existente
+
+No alteres el flujo de Procesar ni el XLSX; esto es adicional.
+
+Mantén todas las funciones actuales (agrupación de anillos, exportación especial, etc.).
+
+Aceptación (criterios)
+El botón “Descargar fotos (.zip)” aparece en el modal y, al hacer clic, descarga un único ZIP con todas las imágenes de las filas activas.
+
+Cada archivo en el ZIP se llama <codigo_producto>.<ext>, conservando la extensión real.
+
+Soporta los formatos de Drive indicados y convierte a descarga directa correctamente.
+
+Maneja errores por URL faltante o no válidas, mostrando un resumen.
+
+Límite de concurrencia implementado; no bloquea el navegador.
+
+Si hay códigos duplicados, agrega sufijos _2, _3, etc.
+
+Pistas técnicas (no código final, solo guía)
+JSZip:
+
+CDN: https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js
+
+Creas const zip = new JSZip(); luego zip.file(nombre, blob); al final zip.generateAsync({type:"blob"}).
+
+FileSaver (ya lo tienes):
+
+Usa saveAs(blob, nombreZip) para descargar.
+
+Detección de fileId de Drive:
+
+Si URL contiene /file/d/<ID>/, extrae <ID>.
+
+Si query tiene ?id=<ID>, úsalo.
+
+Arma https://drive.google.com/uc?export=download&id=<ID>.
+
+Detección de extensión:
+
+Content-Disposition: parsea filename="algo.ext"
+
+Content-Type: mapea image/jpeg→.jpg, image/png→.png, image/webp→.webp
+
+Fallback al pathname de la URL.
+
+Concurrencia:
+
+Implementa una queue simple: procesa N promesas a la vez; cuando una termina, inicia la siguiente.
+
+Selección de filas a incluir:
+
+Si tipoSeleccionado === "combinacion_cantidades", usa datosFiltrados (los productos de la vista), no datosCombinacionCantidades.
+
+En otras vistas, usa datosFiltrados (o [...datosOriginales, ...datosCombinaciones] si vacío).
+
+Lectura robusta del campo URL:
+
+Intenta row["foto_link_individual "] (¡con espacio!), luego row["foto_link_individual"], y si nada, busca por nombre que incluya "foto_link_individual".
+
+Nombre del ZIP:
+
+Usa fecha DD-MM-YY como en tus exportaciones actuales.
+
+Entregables
+HTML: botón en el modal (al lado de “Exportar”).
+
+JS:
+
+Función para crear lista de { codigo, url } desde el dataset activo.
+
+Normalización de URLs de Drive → direct download.
+
+Descarga concurrente fetch → blob, detección de extensión, armado del ZIP con renombrado por código y sufijos si hace falta.
+
+Resumen final (descargadas / omitidas).
+
+No modificar funciones existentes, solo extender.
+
+Listo. Con este prompt, implementa la función. Antes de darme el código, confirma que entendiste (según la política arriba) y verifica si usas datosFiltrados o [...datosOriginales, ...datosCombinaciones] cuando esté vacío, y que tomas foto_link_individual (con espacio) como clave principal del link.
