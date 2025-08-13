@@ -35,6 +35,50 @@ function ultimosDosDigitosDeCodigo(codigo) {
   return d2;
 }
 
+function prefijoPadre(codigo) {
+  const s = String(codigo ?? "");
+  if (s.length < 4) return s;        // borde: códigos muy cortos
+  return s.slice(0, -3);             // todo menos los últimos 3
+}
+
+function crearCodigoPadre(codigo) {
+  const pref = prefijoPadre(codigo);
+  return `${pref}000`;
+}
+
+/**
+ * Recibe un array de productos (anillos) y devuelve un array de "padres" únicos.
+ * - Toma el primer miembro del grupo como base para copiar datos.
+ * - Ajusta: codigo_producto -> ...000
+ * - Fuerza cantidad = 0
+ * - Limpia prestashop_id (para que ID salga vacío al exportar)
+ */
+function agruparAnillosComoPadres(anillos) {
+  const grupos = new Map(); // key = prefijo (sin los últimos 3)
+  anillos.forEach(row => {
+    const codigo = row["codigo_producto"] || row["Código"] || "";
+    const key = prefijoPadre(codigo);
+    if (!key) return;
+    if (!grupos.has(key)) grupos.set(key, []);
+    grupos.get(key).push(row);
+  });
+
+  const padres = [];
+  grupos.forEach((miembros, key) => {
+    const base = { ...miembros[0] };
+    const codigoPadre = `${key}000`;
+    base["codigo_producto"] = codigoPadre;
+    base["Cantidad"] = 0;              // para la vista previa
+    base["cantidad"] = 0;              // para el export
+    base["prestashop_id"] = "";        // ID vacío (nuevo padre)
+    // opcional: quitar combinaciones en el padre
+    // base["Combinaciones"] = "";
+    padres.push(base);
+  });
+
+  return padres;
+}
+
 
 function asNumericId(value) {
   const s = String(value ?? "").trim();
@@ -302,7 +346,7 @@ function transformarDatosParaExportar(datos) {
    const idProducto = asNumericId(row["prestashop_id"]);
     const codigo = row["codigo_producto"] || row["Código"] || "";
     const nombre = row["nombre_producto"] || row["Nombre Producto"] || "";
-    const cantidad = row["Combinaciones"] ? 0 : (row["cantidad"] ?? row["WEB"] ?? 0);
+const cantidad = esAnillo(row) ? 0 : (row["Combinaciones"] ? 0 : (row["cantidad"] ?? row["WEB"] ?? 0));
     const resumen = row["descripcion_resumen"] ?? row["Resumen"] ?? "";
     const descripcion = row["descripcion_extensa"] ?? row["Descripción"] ?? "";
 
@@ -515,24 +559,21 @@ function filtrarCombinaciones(tipo) {
 
 function mostrarProductosNuevos() {
   tipoSeleccionado = "nuevo";
-  datosFiltrados = [];
 
-  // Todos los productos nuevos sin combinaciones
-  datosOriginales.forEach(row => {
-    datosFiltrados.push({ ...row });
-  });
+  // Base: todos los productos cargados (originales + con combinaciones)
+  const todos = [...datosOriginales, ...datosCombinaciones];
 
-  // Todos los productos nuevos con combinaciones (cantidad = 0 si no reposición)
-  datosCombinaciones.forEach(row => {
-    const salida = (row["Salida"] || "").trim();
-    if (salida !== "Reposición") {
-      const nuevo = { ...row };
-      nuevo["Cantidad"] = 0;
-      datosFiltrados.push(nuevo);
-    }
-  });
+  // Separar anillos y no anillos
+  const anillos = todos.filter(esAnillo);
+  const noAnillos = todos.filter(row => !esAnillo(row));
 
-  mostrarTablaFiltrada(datosFiltrados);
+  // Agrupar anillos en "padres" con ...000 y stock 0
+  const anillosPadres = agruparAnillosComoPadres(anillos);
+
+  // Para la vista: no-anillos tal cual + padres agrupados de anillos
+  datosFiltrados = [...noAnillos, ...anillosPadres];
+
+  renderTablaConOrden(datosFiltrados);
 }
 
 function mostrarProductosReposicion() {
@@ -607,4 +648,4 @@ function mostrarTablaCombinacionesCantidad() {
 
 
 
-//V 4.4
+//V 4.5
