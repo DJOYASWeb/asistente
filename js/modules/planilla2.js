@@ -21,7 +21,7 @@ function normalizarTexto(valor) {
 
 function esAnillo(row) {
   const tipo = (row["procucto_tipo"] || row["producto_tipo"] || "").toString().toLowerCase();
-  return tipo.includes("anillo"); // matchea "Anillos" o "Anillo"
+  return tipo.includes("anillo"); // matchea "Anillo" o "Anillos"
 }
 
 function asNumericId(value) {
@@ -552,28 +552,28 @@ function mostrarTablaCombinacionesCantidad() {
   const tablaDiv = document.getElementById("tablaPreview");
   const procesarBtn = document.getElementById("botonProcesar");
 
-  // 1) Fuente: solo filas que son ANILLOS y tengan "Combinaciones" no vacías
-  const anillosConComb = datosCombinaciones.filter(row => {
-    const comb = (row["Combinaciones"] || "").toString().trim();
-    return esAnillo(row) && comb !== "";
-  });
+  // 1) Tomar TODOS los productos (originales + con combinaciones) que sean Anillos
+  const todos = [...datosOriginales, ...datosCombinaciones];
+  const anillos = todos.filter(esAnillo);
 
-  // 2) Mostrar en la vista previa los PRODUCTOS filtrados (no el desglose aún)
-  if (!anillosConComb.length) {
-    tablaDiv.innerHTML = `<p class='text-muted'>No hay anillos con combinaciones.</p>`;
+  if (!anillos.length) {
+    tablaDiv.innerHTML = `<p class='text-muted'>No hay productos de tipo Anillo/Anillos.</p>`;
     procesarBtn.classList.add("d-none");
     datosCombinacionCantidades = [];
     return;
   }
 
-  datosFiltrados = anillosConComb;           // <- para render y para el modal "normal"
+  // 2) Mostrar en la vista previa esos productos (aunque no tengan "Combinaciones")
+  datosFiltrados = anillos;
   renderTablaConOrden(datosFiltrados);
   procesarBtn.classList.remove("d-none");
 
-  // 3) Preparar el DESGLOSE (atributos por talla/cantidad) para el modal especial y export
+  // 3) Preparar el DESGLOSE solo para los que sí tienen "Combinaciones"
   const resultado = [];
-  anillosConComb.forEach(row => {
+  anillos.forEach(row => {
     const combinaciones = (row["Combinaciones"] || "").toString().trim();
+    if (!combinaciones) return; // si no trae combinaciones, solo se muestra en la tabla, no se desgrana
+
     const codigoBase = (row["codigo_producto"] || row["Código"] || "").substring(0, 12);
     const idProducto = asNumericId(row["prestashop_id"]);
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
@@ -594,8 +594,9 @@ function mostrarTablaCombinacionesCantidad() {
     });
   });
 
-  datosCombinacionCantidades = resultado; // <- el modal usa esto si tipoSeleccionado === "combinacion_cantidades"
+  // Esto es lo que el modal y la exportación usarán cuando estés en esta vista
+  datosCombinacionCantidades = resultado;
 }
 
 
-//V 4.2
+//V 4.3
