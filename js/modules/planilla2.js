@@ -202,7 +202,6 @@ renderTablaConOrden(datosFiltrados);
 
 // --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
 function construirCaracteristicas(row) {
-  // Busca primero por claves exactas; si no, detecta por encabezado que "incluya" el texto
   const getField = (preferKeys, includeText) => {
     const valExact = firstNonEmpty(row, preferKeys);
     if (valExact) return valExact;
@@ -210,9 +209,9 @@ function construirCaracteristicas(row) {
     return k ? (row[k] ?? "").toString().trim() : "";
   };
 
-  const modelo   = getField(["modelo", "Modelo"], "modelo");
-  const material = getField(["material", "Material"], "material");
-  const estilo   = getField(["estilo", "Estilo"], "estilo");
+  const modelo    = getField(["modelo", "Modelo"], "modelo");
+  const material  = getField(["procucto_material"], "material"); // nombre exacto de tu planilla
+  const estilo    = getField(["procucto_estilo", "producto_estilo"], "estilo"); // ambas variantes
   const dimension = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"], "dimension");
   const peso      = getField(["peso", "Peso"], "peso");
 
@@ -587,4 +586,4 @@ const idProducto = asNumericId(row["prestashop_id"]);
   datosCombinacionCantidades = resultado;
 }
 
-//V3.7
+//V3.8
