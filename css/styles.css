@@ -1273,6 +1273,8 @@ button:focus:not(:focus-visible) {
   display: none;
 }
 
-.sidebar nav a:active{
-  background: #000;
+nav a.activo,
+.bottom-links a.activo {
+  background-color: #000; 
+  color: #fff;           
 }

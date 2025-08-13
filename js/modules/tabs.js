@@ -15,3 +15,17 @@ window.showTab = function(tab) {
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const enlaces = document.querySelectorAll("#sidebar a");
+  const paginaActual = window.location.pathname.split("/").pop();
+
+  enlaces.forEach(enlace => {
+    const href = enlace.getAttribute("href");
+
+    // Coincidencia exacta con el archivo
+    if (paginaActual === href) {
+      enlace.classList.add("activo");
+    }
+  });
+});
