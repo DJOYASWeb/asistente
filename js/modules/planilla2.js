@@ -87,7 +87,7 @@ function leerExcelDesdeFila3(file) {
       const sku = (row["codigo_producto"] || row["Código"] || "SKU no definido").toString().trim();
       const categoria = (row["Categoría principal"] || "").toString().trim();
 
-      // Validar combinaciones vacías solo en ciertos tipos de anillos (se mantiene la lógica existente)
+      // Validar combinaciones vacías solo en ciertos tipos de anillos (misma lógica)
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
       if (esAnilloConValidacion && "Combinaciones" in row && combinacion === "") {
@@ -103,7 +103,7 @@ function leerExcelDesdeFila3(file) {
 
         combinaciones.forEach(c => {
           const valor = c.trim();
-          const regex = /^#\d+-\d$/; // se mantiene el regex original estricto
+          const regex = /^#\d+-\d+$/; // formato #NUM-CANT (1+ dígitos)
           if (!regex.test(valor)) {
             errores.push(`${sku} - ${valor}`);
             errorDetectado = true;
@@ -140,28 +140,37 @@ function leerExcelDesdeFila3(file) {
   reader.readAsArrayBuffer(file);
 }
 
+// --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
+function firstNonEmpty(row, keys) {
+  for (const k of keys) {
+    const v = (row[k] ?? "").toString().trim();
+    if (v) return v;
+  }
+  return "";
+}
+
 function construirCaracteristicas(row) {
   const campos = [
-    { key: "Modelo", label: "Modelo" },
-    { key: "Dimensión", label: "Dimensión" },
-    { key: "Peso", label: "Peso" },
-    { key: "Material", label: "Material" },
-    { key: "Estilo", label: "Estilo" }
+    { keys: ["modelo", "Modelo"], label: "Modelo" },
+    { keys: ["dimension", "dimensiones", "Dimensión", "Dimensiones"], label: "Dimensión" },
+    { keys: ["peso", "Peso"], label: "Peso" },
+    { keys: ["material", "Material"], label: "Material" },
+    { keys: ["estilo", "Estilo"], label: "Estilo" }
   ];
 
   let caracteristicas = campos
     .map(c => {
-      const valor = (row[c.key] || "").toString().trim();
+      const valor = firstNonEmpty(row, c.keys);
       return valor ? `${c.label}: ${valor}` : null;
     })
     .filter(Boolean);
 
-  const ocasionRaw = (row["Ocasión"] || "").toString().trim();
+  const ocasionRaw =
+    firstNonEmpty(row, ["ocasion", "Ocasión"]) || "";
+
   if (ocasionRaw) {
     const valores = ocasionRaw.split(",").map(o => o.trim()).filter(o => o);
-    valores.forEach(valor => {
-      caracteristicas.push(`Ocasión: ${valor}`);
-    });
+    valores.forEach(valor => caracteristicas.push(`Ocasión: ${valor}`));
   }
 
   return caracteristicas.join(", ");
@@ -176,9 +185,20 @@ function construirCategorias(row) {
     .join(", ");
 }
 
+function parsePrecioConIVA(valor) {
+  const limpio = (valor ?? "")
+    .toString()
+    .replace(/\s/g, "")
+    .replace(/\$/g, "")
+    .replace(/\./g, "")
+    .replace(/,/g, "."); // coma decimal -> punto
+  const n = parseFloat(limpio);
+  return isNaN(n) ? null : n;
+}
+
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
-    // Nuevas columnas confirmadas (con fallback a nombres antiguos)
+    // Nuevos nombres confirmados (con fallback a antiguos si aplica)
     const idProducto = row["id_producto_tipo"] || row["ID Producto"] || "";
     const codigo = row["codigo_producto"] || row["Código"] || "";
     const nombre = row["nombre_producto"] || row["Nombre Producto"] || "";
@@ -186,10 +206,9 @@ function transformarDatosParaExportar(datos) {
     const resumen = row["descripcion_resumen"] ?? row["Resumen"] ?? "";
     const descripcion = row["descripcion_extensa"] ?? row["Descripción"] ?? "";
 
-    // Precio S/IVA (se mantiene el origen anterior hasta nueva confirmación)
-    let precioRaw = (row["Precio WEB Con IVA"] || "").toString().replace(/\$/g, "").replace(/\./g, "").replace(",", ".");
-    const precioConIVA = parseFloat(precioRaw);
-    const precioSinIVA = isNaN(precioConIVA) ? 0 : +(precioConIVA / 1.19).toFixed(2);
+    // Precio: tomar desde 'precio_prestashop' (con IVA) y calcular sin IVA
+    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
+    const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
     return {
       "ID": idProducto || "",
@@ -407,11 +426,8 @@ function mostrarTablaCombinacionesCantidad() {
     const combinaciones = (row["Combinaciones"] || "").toString().trim();
     const codigoBase = (row["codigo_producto"] || row["Código"] || "").substring(0, 12);
     const idProducto = row["id_producto_tipo"] || row["ID Producto"] || "";
-    const precioConIVARaw = row["Precio WEB Con IVA"] || 0;
-    const precioConIVA = parseFloat(
-      (precioConIVARaw ?? "").toString().replace(/\$/g, "").replace(/\./g, "").replace(",", ".")
-    );
-    const precioSinIVA = isNaN(precioConIVA) ? 0 : +(precioConIVA / 1.19).toFixed(2);
+    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
+    const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
     combinaciones.split(",").forEach(comb => {
       const [num, cant] = comb.replace("#", "").split("-").map(s => s.trim());
@@ -509,4 +525,4 @@ function mostrarProductosReposicion() {
   mostrarTablaFiltrada(datosFiltrados);
 }
 
-// upd v2 (ajustes confirmados)
+// upd v3 (precio_prestashop + características confirmadas)
