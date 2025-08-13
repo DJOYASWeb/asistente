@@ -19,6 +19,13 @@ function normalizarTexto(valor) {
     .toLowerCase();
 }
 
+function asNumericId(value) {
+  const s = String(value ?? "").trim();
+  if (!s) return "";
+  const n = Number(s);
+  return Number.isFinite(n) ? s : "";
+}
+
 function firstNonEmpty(row, keys) {
   for (const k of keys) {
     const v = (row[k] ?? "").toString().trim();
@@ -256,7 +263,7 @@ function parsePrecioConIVA(valor) {
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     // Nuevos nombres confirmados (con fallback a antiguos si aplica)
-    const idProducto = row["id_producto_tipo"] || row["ID Producto"] || "";
+   const idProducto = asNumericId(row["prestashop_id"]);
     const codigo = row["codigo_producto"] || row["Código"] || "";
     const nombre = row["nombre_producto"] || row["Nombre Producto"] || "";
     const cantidad = row["Combinaciones"] ? 0 : (row["cantidad"] ?? row["WEB"] ?? 0);
@@ -532,7 +539,7 @@ function mostrarTablaCombinacionesCantidad() {
   datosCombinaciones.forEach(row => {
     const combinaciones = (row["Combinaciones"] || "").toString().trim();
     const codigoBase = (row["codigo_producto"] || row["Código"] || "").substring(0, 12);
-    const idProducto = row["id_producto_tipo"] || row["ID Producto"] || "";
+const idProducto = asNumericId(row["prestashop_id"]);
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
@@ -580,4 +587,4 @@ function mostrarTablaCombinacionesCantidad() {
   datosCombinacionCantidades = resultado;
 }
 
-//V3.5
+//V3.7
