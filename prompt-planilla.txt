@@ -1,0 +1,154 @@
+PROMPT COMPLETO PARA RECONSTRUIR EL SCRIPT "planilla.js"
+
+Quiero un script en JavaScript que funcione como módulo planilla.js para mi página web.
+El script debe:
+
+1. Carga de archivo Excel
+Leer un archivo Excel al seleccionarlo desde un <input type="file">.
+
+Tomar como encabezados la primera fila (Fila A) del Excel, respetando el orden exacto en que vienen.
+
+Convertir las filas siguientes en objetos usando esos encabezados como claves.
+
+Guardar ese orden de columnas en un array ordenColumnasVista y, al final, agregar una columna extra llamada "Categoría principal".
+
+Todos los renders de tabla deben respetar ordenColumnasVista.
+
+2. Generación de "Categoría principal"
+Basarse exclusivamente en el valor de la columna procucto_material (puede venir en minúsculas o mayúsculas).
+
+Convertir el texto a minúsculas, sin tildes ni espacios innecesarios, y aplicar la siguiente lógica:
+
+Si contiene "enchape" → "ENCHAPADO".
+
+Si contiene "accesorios" → "ACCESORIOS".
+
+Si contiene "plata" → "Joyas de plata por mayor".
+
+Si no cumple ninguna, dejar vacío.
+
+Esa columna "Categoría principal" se agrega al final de la tabla y también se usa al exportar.
+
+3. Helpers y normalización
+Incluir helpers como:
+
+normalizarTexto(valor) → limpia tildes, pasa a minúsculas y recorta espacios.
+
+asNumericId(valor) → retorna el valor solo si es numérico y no está vacío, en caso contrario, retorna "".
+
+firstNonEmpty(row, keys) → retorna el primer valor no vacío de una lista de claves.
+
+detectarColumnaQueIncluye(row, texto) → busca una columna cuyo nombre contenga el texto especificado.
+
+4. Características
+Crear una función construirCaracteristicas(row) que devuelva un string concatenado con:
+
+Modelo → tomado de columna "modelo" o "Modelo".
+
+Material → tomado de "procucto_material".
+
+Estilo → tomado de "procucto_estilo" o "producto_estilo".
+
+Dimensión → tomado de "dimension", "dimensiones", "Dimensión", "Dimensiones".
+
+Peso → tomado de "peso" o "Peso".
+
+Ocasión → tomado de "ocasion" o "Ocasión", puede tener varios valores separados por coma, cada uno se agrega como "Ocasión: X".
+
+El formato de salida debe ser tipo:
+
+yaml
+Copiar
+Editar
+Modelo: X, Dimensión: Y, Peso: Z, Material: W, Estilo: V, Ocasión: Navidad, Ocasión: Boda
+5. Construcción de Categorías
+Función construirCategorias(row) que concatene:
+
+"Categoría principal",
+
+"procucto_tipo",
+
+"procucto_subtipo".
+
+Ignorar valores vacíos o "sin valor" (case-insensitive).
+
+Mantener el orden indicado.
+
+6. Precios
+Columna original en Excel: "precio_prestashop" (precio con IVA).
+
+Función parsePrecioConIVA(valor):
+
+Limpia espacios, símbolos $, puntos y comas (comas → punto decimal).
+
+Convierte a número.
+
+Retorna null si no es válido.
+
+Precio sin IVA = precioConIVA / 1.19 con 2 decimales, si precioConIVA es válido, sino 0.
+
+7. Transformación para exportar
+Función transformarDatosParaExportar(datos) debe devolver un array de objetos con las siguientes columnas, respetando exactamente este orden:
+
+"ID" → desde "prestashop_id" usando asNumericId.
+
+"Activo (0/1)" → siempre 0.
+
+"Nombre" → desde "nombre_producto".
+
+"Categorias" → usando construirCategorias(row).
+
+"Precio S/IVA" → calculado según punto 6.
+
+"Regla de Impuesto" → siempre 2.
+
+"Código Referencia SKU" → desde "codigo_producto".
+
+"Marca" → siempre "DJOYAS".
+
+"Cantidad" → si tiene "Combinaciones" entonces 0, si no, desde "cantidad".
+
+"Resumen" → desde "descripcion_resumen".
+
+"Descripción" → desde "descripcion_extensa".
+
+"Image URLs (x,y,z...)" → si hay código, https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg.
+
+"Caracteristicas" → usando construirCaracteristicas(row).
+
+8. Render de tabla
+Todas las tablas de vista previa deben respetar ordenColumnasVista.
+
+El contenido de cada celda:
+
+Mostrar un title con el valor completo.
+
+Mostrar en la celda un texto truncado a 60 caracteres con ... si es más largo.
+
+Estilo con max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;.
+
+9. Botón Procesar / Modal
+Al hacer clic en Procesar, debe:
+
+Usar datosFiltrados (o [...datosOriginales, ...datosCombinaciones] si está vacío).
+
+Transformar con transformarDatosParaExportar.
+
+Mostrar en una tabla dentro del modal con todas las columnas exportables (no las originales).
+
+10. Exportación
+Exportar el dataset transformado a un Excel con:
+
+Nombre base "productos_nuevos" + _DD-MM-YY.xlsx si es tipo "todo".
+
+Usar la librería XLSX (xlsx.full.min.js).
+
+11. Otras condiciones
+Ya no habrá lógica de “Reposición” → eliminar arrays y filtros de reposición si no se necesitan.
+
+Mantener la lógica de combinaciones (Combinaciones) y permitir exportar tabla especial de combinaciones con cantidad.
+
+El script debe ser totalmente funcional pegándolo en /js/modules/planilla.js y debe ser independiente (no depender de otros módulos propios).
+
+Objetivo final
+Con este prompt, otra IA debe reconstruir el archivo planilla.js exactamente como lo tenemos ahora, con todas las funciones, helpers y lógica que hemos acordado, respetando nombres de columnas, orden, cálculos y formato de salida.
