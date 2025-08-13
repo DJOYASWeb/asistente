@@ -1272,3 +1272,7 @@ button:focus:not(:focus-visible) {
 .sidebar.oculta-permisos {
   display: none;
 }
+
+.sidebar nav a:active{
+  background: #000;
+}
