@@ -205,23 +205,33 @@ function construirCaracteristicas(row) {
   };
 
   const modelo     = getField(["modelo", "Modelo"], "modelo");
-  const material   = getField(["procucto_material"], "material"); // nombre exacto de tu planilla
-  const estilo     = getField(["procucto_estilo", "producto_estilo"], "estilo"); // ambas variantes
+  const material   = getField(["procucto_material"], "material");
+  const estilo     = getField(["procucto_estilo", "producto_estilo"], "estilo");
   const dimension  = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"], "dimension");
   const peso       = getField(["peso", "Peso"], "peso");
 
   const partes = [];
   if (modelo)    partes.push(`Modelo: ${modelo}`);
 
-  // Dimensión: si viene "Tamaño Total: 16 cm, Alargue: 3 cm" => 
-  // "Dimensión: Tamaño Total = 16 cm, Dimensión: Alargue = 3 cm"
   if (dimension) {
     String(dimension)
       .split(",")
       .map(p => p.trim())
       .filter(Boolean)
       .forEach(part => {
-        const ajustado = part.replace(/:\s*(.+)/, ' = $1').trim();
+        let ajustado = part;
+
+        if (ajustado.includes(":")) {
+          // Cambiamos ":" por " = "
+          ajustado = ajustado.replace(/:\s*/, " = ");
+        } else {
+          // Si no tiene ":", intentamos separar en 2 partes por el último espacio
+          const match = ajustado.match(/^(.+?)\s+([\d\w\+\s]+)$/);
+          if (match && isNaN(match[1])) {
+            ajustado = `${match[1]} = ${match[2]}`;
+          }
+        }
+
         partes.push(`Dimensión: ${ajustado}`);
       });
   }
@@ -244,6 +254,7 @@ function construirCaracteristicas(row) {
 
   return partes.join(", ");
 }
+
 
 
 
@@ -595,4 +606,4 @@ const idProducto = asNumericId(row["prestashop_id"]);
   datosCombinacionCantidades = resultado;
 }
 
-//V 4
+//V 4.1
