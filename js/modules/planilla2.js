@@ -6,6 +6,9 @@ let datosReposicion = [];
 let datosFiltrados = [];
 let datosCombinacionCantidades = [];
 
+// Orden de columnas para la vista (encabezados de Fila A + "Categoría principal" al final)
+let ordenColumnasVista = [];
+
 // --- Mapeo de categoría principal desde material (insensible a acentos/mayúsculas) ---
 const categoriasPorMaterialNormalizado = {
   "plata": "Joyas de plata por mayor",
@@ -36,12 +39,16 @@ document.addEventListener("DOMContentLoaded", function () {
   if (inputArchivo) {
     inputArchivo.addEventListener("change", (e) => {
       const archivo = e.target.files[0];
-      if (archivo) leerExcelDesdeFila3(archivo);
+      if (archivo) leerExcelDesdeFilaA(archivo); // <-- ahora se lee desde Fila A (primera fila)
     });
   }
 });
 
-function leerExcelDesdeFila3(file) {
+/**
+ * Lee el Excel usando la primera fila (Fila A) como encabezados,
+ * mantiene su orden exacto y agrega "Categoría principal" al final.
+ */
+function leerExcelDesdeFilaA(file) {
   const reader = new FileReader();
   reader.onload = function (e) {
     const data = new Uint8Array(e.target.result);
@@ -51,17 +58,24 @@ function leerExcelDesdeFila3(file) {
     const opciones = { header: 1 };
     const todasLasFilas = XLSX.utils.sheet_to_json(worksheet, opciones);
 
-    if (todasLasFilas.length < 3) {
+    if (todasLasFilas.length < 2) {
       mostrarAlerta("El archivo no tiene suficientes filas.", "danger");
       return;
     }
 
-    const headers = todasLasFilas[2];
-    const filas = todasLasFilas.slice(3);
+    // Encabezados = primera fila (Fila A)
+    const headers = (todasLasFilas[0] || []).map(h =>
+      (h ?? "").toString().trim()
+    );
+
+    // Filas de datos desde la 2ª fila en adelante
+    const filas = todasLasFilas.slice(1);
+
+    // Construir objetos respetando los encabezados tal cual vienen
     const datos = filas.map(fila => {
       const obj = {};
       headers.forEach((col, i) => {
-        obj[col?.toString().trim() || `Columna${i}`] = fila[i] ?? "";
+        obj[col || `Columna${i}`] = fila[i] ?? "";
       });
       return obj;
     });
@@ -74,6 +88,13 @@ function leerExcelDesdeFila3(file) {
       row["Categoría principal"] = categoria; // nombre de columna final confirmado
     });
 
+    // Construimos el orden de columnas a mostrar en la vista:
+    // (1) Todas las que venían en el Excel, (2) + "Categoría principal" al final
+    ordenColumnasVista = [...headers];
+    if (!ordenColumnasVista.includes("Categoría principal")) {
+      ordenColumnasVista.push("Categoría principal");
+    }
+
     // Limpieza inicial de arrays
     datosCombinaciones = [];
     datosReposicion = [];
@@ -81,6 +102,7 @@ function leerExcelDesdeFila3(file) {
 
     const errores = [];
 
+    // Clasificación en nuevos, reposición y con combinaciones
     datos.forEach(row => {
       const salida = (row["Salida"] || "").toString().trim();
       const combinacion = (row["Combinaciones"] || "").toString().trim();
@@ -176,7 +198,7 @@ function construirCaracteristicas(row) {
   return caracteristicas.join(", ");
 }
 
-// --- AJUSTE CONFIRMADO: columnas a considerar para "Categorias" ---
+// --- Categorías a exportar (con los nuevos nombres confirmados) ---
 function construirCategorias(row) {
   const campos = ["Categoría principal", "procucto_tipo", "procucto_subtipo"];
   return campos
@@ -228,9 +250,46 @@ function transformarDatosParaExportar(datos) {
   });
 }
 
-function mostrarTabla(tipo) {
+/** ---------- RENDER DE TABLAS (respeta ordenColumnasVista) ---------- **/
+
+function renderTablaConOrden(datos) {
   const tablaDiv = document.getElementById("tablaPreview");
   const procesarBtn = document.getElementById("botonProcesar");
+
+  if (!datos.length) {
+    tablaDiv.innerHTML = `<p class='text-muted'>No hay productos en esta categoría.</p>`;
+    procesarBtn.classList.add("d-none");
+    return;
+  }
+
+  // Si no hay orden definido (edge case), usar keys del primer registro
+  const columnas = ordenColumnasVista.length
+    ? ordenColumnasVista
+    : Object.keys(datos[0]);
+
+  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
+  columnas.forEach(col => {
+    html += `<th class="small">${col}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  datos.forEach(fila => {
+    html += `<tr style="height: 36px;">`;
+    columnas.forEach(col => {
+      const contenido = (fila[col] ?? "").toString();
+      const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
+      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${previsual}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  tablaDiv.innerHTML = html;
+
+  procesarBtn.classList.remove("d-none");
+}
+
+function mostrarTabla(tipo) {
   tipoSeleccionado = tipo;
   let datos = [];
 
@@ -238,32 +297,14 @@ function mostrarTabla(tipo) {
   else if (tipo === "combinacion") datos = datosCombinaciones;
   else if (tipo === "reposicion") datos = datosReposicion;
 
-  if (datos.length === 0) {
-    tablaDiv.innerHTML = `<p class='text-muted'>No hay productos en esta categoría.</p>`;
-    procesarBtn.classList.add("d-none");
-    return;
-  }
-
-  const columnas = Object.keys(datos[0]);
-  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
-  columnas.forEach(col => {
-    html += `<th class="small">${col}</th>`;
-  });
-  html += `</tr></thead><tbody>`;
-  datos.forEach(fila => {
-    html += `<tr style="height: 36px;">`;
-    columnas.forEach(col => {
-      const contenido = fila[col]?.toString() || "";
-      const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
-      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${previsual}</td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</tbody></table>`;
-  tablaDiv.innerHTML = html;
-
-  procesarBtn.classList.remove("d-none");
+  renderTablaConOrden(datos);
 }
+
+function mostrarTablaFiltrada(datos) {
+  renderTablaConOrden(datos);
+}
+
+/** ---------- EXPORTACIONES ---------- **/
 
 function exportarXLSX(tipo, datos) {
   const transformados = transformarDatosParaExportar(datos);
@@ -296,11 +337,6 @@ function exportarXLSX(tipo, datos) {
   XLSX.writeFile(wb, nombre);
 }
 
-function mostrarAlerta(mensaje, tipo = "info") {
-  const alertasDiv = document.getElementById("alertas");
-  alertasDiv.innerHTML = `<div class="alert alert-${tipo}" role="alert">${mensaje}</div>`;
-}
-
 function prepararModal() {
   const modalBody = document.getElementById("columnasFinales");
   let transformados = [];
@@ -320,7 +356,7 @@ function prepararModal() {
   transformados.forEach(fila => {
     html += `<tr style="height: 36px;">`;
     columnas.forEach(col => {
-      const contenido = fila[col]?.toString() || "";
+      const contenido = (fila[col] ?? "").toString();
       const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
       html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${previsual}</td>`;
     });
@@ -347,6 +383,15 @@ function procesarExportacion() {
 
   exportarXLSX(tipoSeleccionado, datos);
 }
+
+function exportarXLSXPersonalizado(nombre, datos) {
+  const ws = XLSX.utils.json_to_sheet(datos);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
+  XLSX.writeFile(wb, `${nombre}.xlsx`);
+}
+
+/** ---------- FILTROS Y VISTAS ---------- **/
 
 function filtrarProductos(tipo) {
   tipoSeleccionado = tipo;
@@ -378,36 +423,51 @@ function filtrarCombinaciones(tipo) {
   mostrarTablaFiltrada(datosFiltrados);
 }
 
-function mostrarTablaFiltrada(datos) {
-  const tablaDiv = document.getElementById("tablaPreview");
-  const procesarBtn = document.getElementById("botonProcesar");
+function mostrarProductosNuevos() {
+  tipoSeleccionado = "nuevo";
+  datosFiltrados = [];
 
-  if (!datos.length) {
-    tablaDiv.innerHTML = `<p class='text-muted'>No hay productos en esta categoría.</p>`;
-    procesarBtn.classList.add("d-none");
-    return;
-  }
-
-  const columnas = Object.keys(datos[0]);
-  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
-  columnas.forEach(col => {
-    html += `<th class="small">${col}</th>`;
+  // Todos los productos nuevos sin combinaciones
+  datosOriginales.forEach(row => {
+    datosFiltrados.push({ ...row });
   });
-  html += `</tr></thead><tbody>`;
-  datos.forEach(fila => {
-    html += `<tr style="height: 36px;">`;
-    columnas.forEach(col => {
-      const contenido = fila[col]?.toString() || "";
-      const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
-      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${previsual}</td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</tbody></table>`;
-  tablaDiv.innerHTML = html;
 
-  procesarBtn.classList.remove("d-none");
+  // Todos los productos nuevos con combinaciones (cantidad = 0 si no reposición)
+  datosCombinaciones.forEach(row => {
+    const salida = (row["Salida"] || "").trim();
+    if (salida !== "Reposición") {
+      const nuevo = { ...row };
+      nuevo["Cantidad"] = 0;
+      datosFiltrados.push(nuevo);
+    }
+  });
+
+  mostrarTablaFiltrada(datosFiltrados);
 }
+
+function mostrarProductosReposicion() {
+  tipoSeleccionado = "reposicion";
+  datosFiltrados = [];
+
+  // Productos reposición sin combinaciones
+  datosReposicion.forEach(row => {
+    datosFiltrados.push({ ...row });
+  });
+
+  // Productos reposición con combinaciones (cantidad = 0)
+  datosCombinaciones.forEach(row => {
+    const salida = (row["Salida"] || "").trim();
+    if (salida === "Reposición") {
+      const nuevo = { ...row };
+      nuevo["Cantidad"] = 0;
+      datosFiltrados.push(nuevo);
+    }
+  });
+
+  mostrarTablaFiltrada(datosFiltrados);
+}
+
+/** ---------- COMBINACIONES (tabla especial) ---------- **/
 
 function mostrarTablaCombinacionesCantidad() {
   tipoSeleccionado = "combinacion_cantidades";
@@ -459,7 +519,7 @@ function mostrarTablaCombinacionesCantidad() {
   resultado.forEach(fila => {
     html += `<tr>`;
     columnas.forEach(col => {
-      const contenido = fila[col]?.toString() || "";
+      const contenido = (fila[col] ?? "").toString();
       html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px;">${contenido}</td>`;
     });
     html += `</tr>`;
@@ -473,56 +533,4 @@ function mostrarTablaCombinacionesCantidad() {
   datosCombinacionCantidades = resultado;
 }
 
-function exportarXLSXPersonalizado(nombre, datos) {
-  const ws = XLSX.utils.json_to_sheet(datos);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
-  XLSX.writeFile(wb, `${nombre}.xlsx`);
-}
-
-// Botones principales (se mantienen)
-function mostrarProductosNuevos() {
-  tipoSeleccionado = "nuevo";
-  datosFiltrados = [];
-
-  // Todos los productos nuevos sin combinaciones
-  datosOriginales.forEach(row => {
-    datosFiltrados.push({ ...row });
-  });
-
-  // Todos los productos nuevos con combinaciones (cantidad = 0 si no reposición)
-  datosCombinaciones.forEach(row => {
-    const salida = (row["Salida"] || "").trim();
-    if (salida !== "Reposición") {
-      const nuevo = { ...row };
-      nuevo["Cantidad"] = 0;
-      datosFiltrados.push(nuevo);
-    }
-  });
-
-  mostrarTablaFiltrada(datosFiltrados);
-}
-
-function mostrarProductosReposicion() {
-  tipoSeleccionado = "reposicion";
-  datosFiltrados = [];
-
-  // Productos reposición sin combinaciones
-  datosReposicion.forEach(row => {
-    datosFiltrados.push({ ...row });
-  });
-
-  // Productos reposición con combinaciones (cantidad = 0)
-  datosCombinaciones.forEach(row => {
-    const salida = (row["Salida"] || "").trim();
-    if (salida === "Reposición") {
-      const nuevo = { ...row };
-      nuevo["Cantidad"] = 0;
-      datosFiltrados.push(nuevo);
-    }
-  });
-
-  mostrarTablaFiltrada(datosFiltrados);
-}
-
-// upd v3 (precio_prestashop + características confirmadas)
+//v.3.1
