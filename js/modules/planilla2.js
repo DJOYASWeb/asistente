@@ -19,6 +19,11 @@ function normalizarTexto(valor) {
     .toLowerCase();
 }
 
+function esAnillo(row) {
+  const tipo = (row["procucto_tipo"] || row["producto_tipo"] || "").toString().toLowerCase();
+  return tipo.includes("anillo"); // matchea "Anillos" o "Anillo"
+}
+
 function asNumericId(value) {
   const s = String(value ?? "").trim();
   if (!s) return "";
@@ -547,18 +552,30 @@ function mostrarTablaCombinacionesCantidad() {
   const tablaDiv = document.getElementById("tablaPreview");
   const procesarBtn = document.getElementById("botonProcesar");
 
-  if (!datosCombinaciones.length) {
-    tablaDiv.innerHTML = `<p class='text-muted'>No hay productos con combinaciones.</p>`;
+  // 1) Fuente: solo filas que son ANILLOS y tengan "Combinaciones" no vacías
+  const anillosConComb = datosCombinaciones.filter(row => {
+    const comb = (row["Combinaciones"] || "").toString().trim();
+    return esAnillo(row) && comb !== "";
+  });
+
+  // 2) Mostrar en la vista previa los PRODUCTOS filtrados (no el desglose aún)
+  if (!anillosConComb.length) {
+    tablaDiv.innerHTML = `<p class='text-muted'>No hay anillos con combinaciones.</p>`;
     procesarBtn.classList.add("d-none");
+    datosCombinacionCantidades = [];
     return;
   }
 
-  const resultado = [];
+  datosFiltrados = anillosConComb;           // <- para render y para el modal "normal"
+  renderTablaConOrden(datosFiltrados);
+  procesarBtn.classList.remove("d-none");
 
-  datosCombinaciones.forEach(row => {
+  // 3) Preparar el DESGLOSE (atributos por talla/cantidad) para el modal especial y export
+  const resultado = [];
+  anillosConComb.forEach(row => {
     const combinaciones = (row["Combinaciones"] || "").toString().trim();
     const codigoBase = (row["codigo_producto"] || row["Código"] || "").substring(0, 12);
-const idProducto = asNumericId(row["prestashop_id"]);
+    const idProducto = asNumericId(row["prestashop_id"]);
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
@@ -577,33 +594,8 @@ const idProducto = asNumericId(row["prestashop_id"]);
     });
   });
 
-  if (!resultado.length) {
-    tablaDiv.innerHTML = `<p class='text-muted'>No hay combinaciones válidas.</p>`;
-    procesarBtn.classList.add("d-none");
-    return;
-  }
-
-  const columnas = Object.keys(resultado[0]);
-  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
-  columnas.forEach(col => {
-    html += `<th class="small">${col}</th>`;
-  });
-  html += `</tr></thead><tbody>`;
-  resultado.forEach(fila => {
-    html += `<tr>`;
-    columnas.forEach(col => {
-      const contenido = (fila[col] ?? "").toString();
-      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px;">${contenido}</td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</tbody></table>`;
-  tablaDiv.innerHTML = html;
-
-  procesarBtn.classList.remove("d-none");
-
-  // Guardar resultado para exportación
-  datosCombinacionCantidades = resultado;
+  datosCombinacionCantidades = resultado; // <- el modal usa esto si tipoSeleccionado === "combinacion_cantidades"
 }
 
-//V 4.1
+
+//V 4.2
