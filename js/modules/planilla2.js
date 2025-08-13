@@ -204,15 +204,28 @@ function construirCaracteristicas(row) {
     return k ? (row[k] ?? "").toString().trim() : "";
   };
 
-  const modelo    = getField(["modelo", "Modelo"], "modelo");
-  const material  = getField(["procucto_material"], "material"); // nombre exacto de tu planilla
-  const estilo    = getField(["procucto_estilo", "producto_estilo"], "estilo"); // ambas variantes
-  const dimension = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"], "dimension");
-  const peso      = getField(["peso", "Peso"], "peso");
+  const modelo     = getField(["modelo", "Modelo"], "modelo");
+  const material   = getField(["procucto_material"], "material"); // nombre exacto de tu planilla
+  const estilo     = getField(["procucto_estilo", "producto_estilo"], "estilo"); // ambas variantes
+  const dimension  = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"], "dimension");
+  const peso       = getField(["peso", "Peso"], "peso");
 
   const partes = [];
   if (modelo)    partes.push(`Modelo: ${modelo}`);
-  if (dimension) partes.push(`Dimensión: ${dimension}`);
+
+  // Dimensión: si viene "Tamaño Total: 16 cm, Alargue: 3 cm" => 
+  // "Dimensión: Tamaño Total = 16 cm, Dimensión: Alargue = 3 cm"
+  if (dimension) {
+    String(dimension)
+      .split(",")
+      .map(p => p.trim())
+      .filter(Boolean)
+      .forEach(part => {
+        const ajustado = part.replace(/:\s*(.+)/, ' = $1').trim();
+        partes.push(`Dimensión: ${ajustado}`);
+      });
+  }
+
   if (peso)      partes.push(`Peso: ${peso}`);
   if (material)  partes.push(`Material: ${material}`);
   if (estilo)    partes.push(`Estilo: ${estilo}`);
@@ -231,6 +244,7 @@ function construirCaracteristicas(row) {
 
   return partes.join(", ");
 }
+
 
 
 // --- Categorías a exportar (con los nuevos nombres confirmados) ---
@@ -581,4 +595,4 @@ const idProducto = asNumericId(row["prestashop_id"]);
   datosCombinacionCantidades = resultado;
 }
 
-//V3.9
+//V 4
