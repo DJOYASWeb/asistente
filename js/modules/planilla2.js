@@ -195,30 +195,42 @@ renderTablaConOrden(datosFiltrados);
 
 // --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
 function construirCaracteristicas(row) {
-  const campos = [
-    { keys: ["modelo", "Modelo"], label: "Modelo" },
-    { keys: ["dimension", "dimensiones", "Dimensión", "Dimensiones"], label: "Dimensión" },
-    { keys: ["peso", "Peso"], label: "Peso" },
-    { keys: ["material", "Material"], label: "Material" },
-    { keys: ["estilo", "Estilo"], label: "Estilo" }
-  ];
+  // Busca primero por claves exactas; si no, detecta por encabezado que "incluya" el texto
+  const getField = (preferKeys, includeText) => {
+    const valExact = firstNonEmpty(row, preferKeys);
+    if (valExact) return valExact;
+    const k = detectarColumnaQueIncluye(row, includeText);
+    return k ? (row[k] ?? "").toString().trim() : "";
+  };
 
-  let caracteristicas = campos
-    .map(c => {
-      const valor = firstNonEmpty(row, c.keys);
-      return valor ? `${c.label}: ${valor}` : null;
-    })
-    .filter(Boolean);
+  const modelo   = getField(["modelo", "Modelo"], "modelo");
+  const material = getField(["material", "Material"], "material");
+  const estilo   = getField(["estilo", "Estilo"], "estilo");
+  const dimension = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"], "dimension");
+  const peso      = getField(["peso", "Peso"], "peso");
 
-  const ocasionRaw = firstNonEmpty(row, ["ocasion", "Ocasión"]) || "";
+  const partes = [];
+  if (modelo)    partes.push(`Modelo: ${modelo}`);
+  if (dimension) partes.push(`Dimensión: ${dimension}`);
+  if (peso)      partes.push(`Peso: ${peso}`);
+  if (material)  partes.push(`Material: ${material}`);
+  if (estilo)    partes.push(`Estilo: ${estilo}`);
+
+  const ocasionRaw =
+    firstNonEmpty(row, ["ocasion", "Ocasión"]) ||
+    (detectarColumnaQueIncluye(row, "ocasion") ? row[detectarColumnaQueIncluye(row, "ocasion")] : "");
 
   if (ocasionRaw) {
-    const valores = ocasionRaw.split(",").map(o => o.trim()).filter(o => o);
-    valores.forEach(valor => caracteristicas.push(`Ocasión: ${valor}`));
+    String(ocasionRaw)
+      .split(",")
+      .map(o => o.trim())
+      .filter(Boolean)
+      .forEach(o => partes.push(`Ocasión: ${o}`));
   }
 
-  return caracteristicas.join(", ");
+  return partes.join(", ");
 }
+
 
 // --- Categorías a exportar (con los nuevos nombres confirmados) ---
 function construirCategorias(row) {
@@ -568,4 +580,4 @@ function mostrarTablaCombinacionesCantidad() {
   datosCombinacionCantidades = resultado;
 }
 
-//V3.4
+//V3.5
