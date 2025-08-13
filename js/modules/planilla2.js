@@ -9,15 +9,7 @@ let datosCombinacionCantidades = [];
 // Orden de columnas para la vista (encabezados de Fila A + "Categoría principal" al final)
 let ordenColumnasVista = [];
 
-// --- Mapeo de categoría principal desde material (insensible a acentos/mayúsculas) ---
-const categoriasPorMaterialNormalizado = {
-  "plata": "Joyas de plata por mayor",
-  "enchape": "ENCHAPADO",
-  "enchapado": "ENCHAPADO",
-  "accesorios": "ACCESORIOS",
-  "insumos": "Joyas de plata por mayor"
-};
-
+// --- Utilidades de texto ---
 function normalizarTexto(valor) {
   return (valor ?? "")
     .toString()
@@ -25,6 +17,28 @@ function normalizarTexto(valor) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // sin acentos
     .toLowerCase();
+}
+
+function firstNonEmpty(row, keys) {
+  for (const k of keys) {
+    const v = (row[k] ?? "").toString().trim();
+    if (v) return v;
+  }
+  return "";
+}
+
+/**
+ * Busca en las claves de la fila la primera que "incluya" el texto buscado
+ * (insensible a mayúsculas/acentos).
+ */
+function detectarColumnaQueIncluye(row, textoBuscado) {
+  const clave = normalizarTexto(textoBuscado);
+  const keys = Object.keys(row);
+  for (const k of keys) {
+    const kn = normalizarTexto(k);
+    if (kn.includes(clave)) return k; // devuelve la primera coincidencia
+  }
+  return null;
 }
 
 let tipoSeleccionado = "nuevo";
@@ -39,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (inputArchivo) {
     inputArchivo.addEventListener("change", (e) => {
       const archivo = e.target.files[0];
-      if (archivo) leerExcelDesdeFilaA(archivo); // <-- ahora se lee desde Fila A (primera fila)
+      if (archivo) leerExcelDesdeFilaA(archivo); // lee desde 1ª fila (encabezados)
     });
   }
 });
@@ -80,22 +94,27 @@ function leerExcelDesdeFilaA(file) {
       return obj;
     });
 
-// --- Generar "Categoría principal" usando lógica por "incluye" ---
-datos.forEach(row => {
-  const materialRaw = (row["material"] ?? row["Material"] ?? "").toString();
-  const normalizado = normalizarTexto(materialRaw);
+    // --- Generar "Categoría principal" usando lógica por "incluye" + detección de columna material ---
+    datos.forEach(row => {
+      // intenta detectar cualquier encabezado que contenga "material"
+      const keyMaterial =
+        detectarColumnaQueIncluye(row, "material") ||
+        "material"; // fallback si existe exacto
 
-  let categoria = "";
-  if (normalizado.includes("enchape")) {
-    categoria = "ENCHAPADO";
-  } else if (normalizado.includes("accesorios")) {
-    categoria = "ACCESORIOS";
-  } else if (normalizado.includes("plata")) {
-    categoria = "Joyas de plata por mayor";
-  }
+      const materialRaw = (row[keyMaterial] ?? "").toString();
+      const normalizado = normalizarTexto(materialRaw);
 
-  row["Categoría principal"] = categoria;
-});
+      let categoria = "";
+      if (normalizado.includes("enchape")) {
+        categoria = "ENCHAPADO";
+      } else if (normalizado.includes("accesorios")) {
+        categoria = "ACCESORIOS";
+      } else if (normalizado.includes("plata")) {
+        categoria = "Joyas de plata por mayor";
+      }
+
+      row["Categoría principal"] = categoria;
+    });
 
     // Construimos el orden de columnas a mostrar en la vista:
     // (1) Todas las que venían en el Excel, (2) + "Categoría principal" al final
@@ -118,7 +137,7 @@ datos.forEach(row => {
       const sku = (row["codigo_producto"] || row["Código"] || "SKU no definido").toString().trim();
       const categoria = (row["Categoría principal"] || "").toString().trim();
 
-      // Validar combinaciones vacías solo en ciertos tipos de anillos (misma lógica)
+      // Validar combinaciones vacías solo en ciertos tipos de anillos (misma lógica existente)
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
       if (esAnilloConValidacion && "Combinaciones" in row && combinacion === "") {
@@ -172,14 +191,6 @@ datos.forEach(row => {
 }
 
 // --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
-function firstNonEmpty(row, keys) {
-  for (const k of keys) {
-    const v = (row[k] ?? "").toString().trim();
-    if (v) return v;
-  }
-  return "";
-}
-
 function construirCaracteristicas(row) {
   const campos = [
     { keys: ["modelo", "Modelo"], label: "Modelo" },
@@ -196,8 +207,7 @@ function construirCaracteristicas(row) {
     })
     .filter(Boolean);
 
-  const ocasionRaw =
-    firstNonEmpty(row, ["ocasion", "Ocasión"]) || "";
+  const ocasionRaw = firstNonEmpty(row, ["ocasion", "Ocasión"]) || "";
 
   if (ocasionRaw) {
     const valores = ocasionRaw.split(",").map(o => o.trim()).filter(o => o);
@@ -216,6 +226,7 @@ function construirCategorias(row) {
     .join(", ");
 }
 
+// --- Precio ---
 function parsePrecioConIVA(valor) {
   const limpio = (valor ?? "")
     .toString()
@@ -237,7 +248,7 @@ function transformarDatosParaExportar(datos) {
     const resumen = row["descripcion_resumen"] ?? row["Resumen"] ?? "";
     const descripcion = row["descripcion_extensa"] ?? row["Descripción"] ?? "";
 
-    // Precio: tomar desde 'precio_prestashop' (con IVA) y calcular sin IVA
+    // Precio: tomar desde 'precio_prestashop' (con IVA) y calcular sin IVA (19%)
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
@@ -542,4 +553,4 @@ function mostrarTablaCombinacionesCantidad() {
   datosCombinacionCantidades = resultado;
 }
 
-//v.3.2
+//V3.3
