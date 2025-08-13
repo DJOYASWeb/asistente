@@ -102,26 +102,21 @@ function leerExcelDesdeFilaA(file) {
     });
 
     // --- Generar "Categoría principal" usando lógica por "incluye" + detección de columna material ---
-    datos.forEach(row => {
-      // intenta detectar cualquier encabezado que contenga "material"
-      const keyMaterial =
-        detectarColumnaQueIncluye(row, "material") ||
-        "material"; // fallback si existe exacto
+// --- Generar "Categoría principal" desde 'procucto_material' ---
+datos.forEach(row => {
+  const materialRaw = (row["procucto_material"] ?? "").toString().trim().toLowerCase();
 
-      const materialRaw = (row[keyMaterial] ?? "").toString();
-      const normalizado = normalizarTexto(materialRaw);
+  let categoria = "";
+  if (materialRaw.includes("enchape")) {
+    categoria = "ENCHAPADO";
+  } else if (materialRaw.includes("accesorios")) {
+    categoria = "ACCESORIOS";
+  } else if (materialRaw.includes("plata")) {
+    categoria = "Joyas de plata por mayor";
+  }
 
-      let categoria = "";
-      if (normalizado.includes("enchape")) {
-        categoria = "ENCHAPADO";
-      } else if (normalizado.includes("accesorios")) {
-        categoria = "ACCESORIOS";
-      } else if (normalizado.includes("plata")) {
-        categoria = "Joyas de plata por mayor";
-      }
-
-      row["Categoría principal"] = categoria;
-    });
+  row["Categoría principal"] = categoria;
+});
 
     // Construimos el orden de columnas a mostrar en la vista:
     // (1) Todas las que venían en el Excel, (2) + "Categoría principal" al final
@@ -586,4 +581,4 @@ const idProducto = asNumericId(row["prestashop_id"]);
   datosCombinacionCantidades = resultado;
 }
 
-//V3.8
+//V3.9
