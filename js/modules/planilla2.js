@@ -80,13 +80,22 @@ function leerExcelDesdeFilaA(file) {
       return obj;
     });
 
-    // --- Generar "Categoría principal" desde 'material' (o 'Material' como fallback) ---
-    datos.forEach(row => {
-      const materialRaw = row["material"] ?? row["Material"] ?? "";
-      const clave = normalizarTexto(materialRaw);
-      const categoria = categoriasPorMaterialNormalizado[clave] ?? "";
-      row["Categoría principal"] = categoria; // nombre de columna final confirmado
-    });
+// --- Generar "Categoría principal" usando lógica por "incluye" ---
+datos.forEach(row => {
+  const materialRaw = (row["material"] ?? row["Material"] ?? "").toString();
+  const normalizado = normalizarTexto(materialRaw);
+
+  let categoria = "";
+  if (normalizado.includes("enchape")) {
+    categoria = "ENCHAPADO";
+  } else if (normalizado.includes("accesorios")) {
+    categoria = "ACCESORIOS";
+  } else if (normalizado.includes("plata")) {
+    categoria = "Joyas de plata por mayor";
+  }
+
+  row["Categoría principal"] = categoria;
+});
 
     // Construimos el orden de columnas a mostrar en la vista:
     // (1) Todas las que venían en el Excel, (2) + "Categoría principal" al final
@@ -533,4 +542,4 @@ function mostrarTablaCombinacionesCantidad() {
   datosCombinacionCantidades = resultado;
 }
 
-//v.3.1
+//v.3.2
