@@ -184,8 +184,11 @@ function leerExcelDesdeFilaA(file) {
       document.getElementById("alertas").innerHTML = "";
     }
 
-    document.getElementById("botonesTipo").classList.remove("d-none");
-    mostrarTabla("nuevo");
+// Mostrar TODO (nuevos + con combinaciones) por defecto
+tipoSeleccionado = "todo";
+datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+document.getElementById("botonesTipo").classList.remove("d-none");
+renderTablaConOrden(datosFiltrados);
   };
   reader.readAsArrayBuffer(file);
 }
@@ -309,15 +312,13 @@ function renderTablaConOrden(datos) {
   procesarBtn.classList.remove("d-none");
 }
 
-function mostrarTabla(tipo) {
-  tipoSeleccionado = tipo;
-  let datos = [];
-
-  if (tipo === "nuevo") datos = datosOriginales;
-  else if (tipo === "combinacion") datos = datosCombinaciones;
-  else if (tipo === "reposicion") datos = datosReposicion;
-
-  renderTablaConOrden(datos);
+function mostrarTabla() {
+  // siempre mostramos lo filtrado actual; por defecto es TODO
+  if (!Array.isArray(datosFiltrados) || datosFiltrados.length === 0) {
+    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+  }
+  tipoSeleccionado = "todo";
+  renderTablaConOrden(datosFiltrados);
 }
 
 function mostrarTablaFiltrada(datos) {
@@ -342,7 +343,7 @@ function exportarXLSX(tipo, datos) {
 
   let baseNombre;
   switch (tipo) {
-    case "nuevo":
+    case "todo":
       baseNombre = "productos_nuevos";
       break;
     case "combinacion":
@@ -359,50 +360,64 @@ function exportarXLSX(tipo, datos) {
 
 function prepararModal() {
   const modalBody = document.getElementById("columnasFinales");
-  let transformados = [];
 
-  if (tipoSeleccionado === "combinacion_cantidades") {
-    transformados = datosCombinacionCantidades;
-  } else {
-    transformados = transformarDatosParaExportar(datosFiltrados);
+  // si es la tabla especial de combinaciones con cantidad, usa ese dataset
+  if (tipoSeleccionado === "combinacion_cantidades" && datosCombinacionCantidades.length) {
+    const columnas = Object.keys(datosCombinacionCantidades[0] || {});
+    let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm align-middle"><thead><tr>`;
+    columnas.forEach(col => html += `<th class="small">${col}</th>`);
+    html += `</tr></thead><tbody>`;
+    datosCombinacionCantidades.forEach(fila => {
+      html += `<tr style="height: 36px;">`;
+      columnas.forEach(col => {
+        const contenido = (fila[col] ?? "").toString();
+        const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
+        html += `<td class="small text-truncate" title="${contenido}" style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${previsual}</td>`;
+      });
+      html += `</tr>`;
+    });
+    html += `</tbody></table></div>`;
+    modalBody.innerHTML = html;
+    return;
   }
 
-  let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm align-middle"><thead><tr>`;
+  // caso normal: transformar y previsualizar TODO lo cargado
+  if (!Array.isArray(datosFiltrados) || datosFiltrados.length === 0) {
+    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+  }
+  const transformados = transformarDatosParaExportar(datosFiltrados);
+
   const columnas = Object.keys(transformados[0] || {});
-  columnas.forEach(col => {
-    html += `<th class="small">${col}</th>`;
-  });
+  let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm align-middle"><thead><tr>`;
+  columnas.forEach(col => html += `<th class="small">${col}</th>`);
   html += `</tr></thead><tbody>`;
   transformados.forEach(fila => {
     html += `<tr style="height: 36px;">`;
     columnas.forEach(col => {
       const contenido = (fila[col] ?? "").toString();
       const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
-      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${previsual}</td>`;
+      html += `<td class="small text-truncate" title="${contenido}" style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${previsual}</td>`;
     });
     html += `</tr>`;
   });
   html += `</tbody></table></div>`;
-
   modalBody.innerHTML = html;
 }
 
-function procesarExportacion() {
-  let datos = [];
 
-  if (tipoSeleccionado === "nuevo") {
-    datos = datosFiltrados;
-  } else if (tipoSeleccionado === "combinacion") {
-    datos = datosCombinaciones;
-  } else if (tipoSeleccionado === "reposicion") {
-    datos = datosReposicion;
-  } else if (tipoSeleccionado === "combinacion_cantidades") {
+function procesarExportacion() {
+  if (tipoSeleccionado === "combinacion_cantidades") {
     exportarXLSXPersonalizado("combinacion_cantidades", datosCombinacionCantidades);
     return;
   }
 
-  exportarXLSX(tipoSeleccionado, datos);
+  // exportar TODO
+  if (!Array.isArray(datosFiltrados) || datosFiltrados.length === 0) {
+    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+  }
+  exportarXLSX("todo", datosFiltrados);
 }
+
 
 function exportarXLSXPersonalizado(nombre, datos) {
   const ws = XLSX.utils.json_to_sheet(datos);
@@ -553,4 +568,4 @@ function mostrarTablaCombinacionesCantidad() {
   datosCombinacionCantidades = resultado;
 }
 
-//V3.3
+//V3.4
