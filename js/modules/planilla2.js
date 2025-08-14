@@ -726,6 +726,9 @@ function prepararModal() {
     });
     html += `</tbody></table></div>`;
     modalBody.innerHTML = html;
+
+    // 👇 NUEVO: evaluar visibilidad del botón al abrir el modal
+    onAbrirModalProcesar();
     return;
   }
 
@@ -750,7 +753,11 @@ function prepararModal() {
   });
   html += `</tbody></table></div>`;
   modalBody.innerHTML = html;
+
+  // 👇 NUEVO: evaluar visibilidad del botón al abrir el modal
+  onAbrirModalProcesar();
 }
+
 
 
 function procesarExportacion() {
@@ -925,4 +932,4 @@ document.addEventListener('click', (e) => {
 
 
 
-//V 4.7
+//V 4.8
