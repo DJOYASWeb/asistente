@@ -1323,3 +1323,11 @@ nav a.activo,
   z-index: 2;                  /* sobre celdas normales */
   box-shadow: 0 2px 2px rgba(0,0,0,0.05); /* sutil sombra separadora */
 }
+
+.modal .modal-body table thead th {
+  position: sticky;
+  top: 0;                      /* pegada arriba del área scrolleable */
+  background: #fff;            /* fondo sólido para que no se mezclen textos */
+  z-index: 2;                  /* sobre celdas del body */
+  box-shadow: 0 2px 2px rgba(0,0,0,0.05); /* sombra sutil separadora */
+}
