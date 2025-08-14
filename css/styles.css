@@ -1278,3 +1278,38 @@ nav a.activo,
   background-color: #000; 
   color: #fff;           
 }
+
+
+/* === Vista previa: área scrolleable con alto fijo === */
+#tablaPreview {
+  max-height: 65vh;
+  overflow: auto;                 /* vertical + horizontal */
+  -webkit-overflow-scrolling: touch; /* scrolling fluido en iOS */
+  border: 1px solid rgba(0,0,0,.08); /* opcional: delimitar área */
+  border-radius: .25rem;
+}
+
+/* Asegurar scroll horizontal si la tabla es ancha */
+#tablaPreview .table {
+  margin-bottom: 0;               /* evita empujar el botón "Procesar" */
+  white-space: nowrap;            /* evita cortes y permite scroll horizontal */
+}
+
+/* === Modal: solo el cuerpo scrollea, header/footer siempre visibles === */
+.modal .modal-body {
+  max-height: 65vh;
+  overflow: auto;                 /* vertical + horizontal */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Asegurar scroll horizontal dentro del modal si la tabla es ancha */
+.modal .modal-body .table {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+/* (Opcional) Evita que el contenido del modal quede muy pegado al borde */
+.modal .modal-body > div {
+  /* tu HTML ya usa un wrapper <div style="overflow-x:auto">, esto ayuda igual */
+  min-width: max-content;         /* fuerza barra horizontal si hay muchas columnas */
+}
