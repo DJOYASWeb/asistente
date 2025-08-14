@@ -304,29 +304,39 @@ async function procesaConConcurrencia(items, handler, concurrency = 4, onProgres
   });
 }
 
-
 async function descargarFotosComoZip(ctx, concurrencia = 4) {
-  // --- UI refs ---
-  const progressEl = document.getElementById('zipProgress'); // texto pequeño (opcional)
+  const progressEl = document.getElementById('zipProgress');
   const overlay = document.getElementById('overlayDescarga');
   const textoProgreso = document.getElementById('textoProgreso');
   const barraProgreso = document.getElementById('barraProgreso');
   const btnAceptarDescarga = document.getElementById('btnAceptarDescarga');
 
-  // Botones del footer del modal
   const btnZip = document.getElementById('btnDescargarFotosZip');
   const btnCancelar = document.querySelector('#modalColumnas .modal-footer .btn.btn-secondary');
   const btnExportar = document.getElementById('confirmarExportar');
+  const modalEl = document.getElementById('modalColumnas');
+  let modalInstance = bootstrap.Modal.getInstance(modalEl);
 
-  // Estado inicial UI
+  // --- Bloquear cierre del modal ---
+  if (modalEl) {
+    modalEl.setAttribute('data-bs-backdrop', 'static');
+    modalEl.setAttribute('data-bs-keyboard', 'false');
+  }
+
+  // --- Estado inicial UI ---
   if (progressEl) { progressEl.style.display = 'inline'; progressEl.textContent = 'Preparando…'; }
   if (overlay) {
     overlay.style.display = 'flex';
-    if (textoProgreso) textoProgreso.textContent = 'Descargando imágenes…';
-    if (barraProgreso) { barraProgreso.style.width = '0%'; barraProgreso.textContent = '0%'; }
-    if (btnAceptarDescarga) btnAceptarDescarga.disabled = true;
+    textoProgreso.textContent = 'Descargando imágenes…';
+    barraProgreso.style.width = '0%';
+    barraProgreso.textContent = '0%';
+    btnAceptarDescarga.disabled = true;
   }
-  if (btnZip) btnZip.disabled = true;
+
+  if (btnZip) {
+    btnZip.disabled = true;
+    btnZip.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Descargando...`;
+  }
   if (btnCancelar) btnCancelar.disabled = true;
   if (btnExportar) btnExportar.disabled = true;
 
@@ -347,17 +357,14 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
 
     if (!lista.length) {
       if (progressEl) progressEl.style.display = 'none';
-      // Ocultamos overlay y reactivamos botones
       if (overlay) overlay.style.display = 'none';
-      if (btnZip) btnZip.disabled = false;
-      if (btnCancelar) btnCancelar.disabled = false;
-      if (btnExportar) btnExportar.disabled = false;
+      resetBotones();
       alert('No se encontraron fotos para descargar en las filas activas.');
       return;
     }
 
-    // 2) Descargas concurrentes + progreso
-    const usados = new Map(); // control de duplicados
+    // 2) Descargas concurrentes
+    const usados = new Map();
     const zip = new JSZip();
     let exitosas = 0;
 
@@ -380,23 +387,23 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
       },
       concurrencia,
       (done, total) => {
-        // Progreso detallado
         if (progressEl) progressEl.textContent = `Descargando ${done}/${total}…`;
         if (barraProgreso) {
           const porc = Math.round((done / total) * 100);
           barraProgreso.style.width = porc + '%';
           barraProgreso.textContent = porc + '%';
         }
-        if (textoProgreso) textoProgreso.textContent = `Descargando imágenes… ${done}/${total}`;
+        textoProgreso.textContent = `Descargando imágenes… ${done}/${total}`;
       }
     );
 
     const fallidas = resultados.filter(r => !r || !r.ok).length;
 
-    // 3) Empaquetar ZIP
+    // 3) Empaquetar
     if (progressEl) progressEl.textContent = 'Empaquetando…';
-    if (textoProgreso) textoProgreso.textContent = 'Empaquetando…';
-    if (barraProgreso) { barraProgreso.style.width = '100%'; barraProgreso.textContent = '100%'; }
+    textoProgreso.textContent = 'Empaquetando…';
+    barraProgreso.style.width = '100%';
+    barraProgreso.textContent = '100%';
 
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const nombreZip = `fotos_${fechaDDMMYY()}.zip`;
@@ -412,40 +419,42 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
     }
 
-    // 4) Terminado → mostrar "Listo" y habilitar Aceptar
+    // 4) Terminar
     if (progressEl) progressEl.style.display = 'none';
-    if (textoProgreso) textoProgreso.textContent = 'Listo';
-    if (btnAceptarDescarga) btnAceptarDescarga.disabled = false;
+    textoProgreso.textContent = 'Listo';
+    btnAceptarDescarga.disabled = false;
 
-    // Resumen por consola (sin alert, según tu flujo de Aceptar)
-    const totalIntentadas = lista.length;
-    const total = totalIntentadas + faltantesSinUrl;
-    console.warn(`Descarga finalizada. Incluidas: ${exitosas}/${total}. Fallidas: ${fallidas}. Sin URL: ${faltantesSinUrl}.`);
+    // Al aceptar
+    btnAceptarDescarga.onclick = () => {
+      if (overlay) overlay.style.display = 'none';
+      resetBotones();
+      if (modalInstance) modalInstance.hide();
+    };
 
-    // 5) Al aceptar → cerrar overlay y modal
-    if (btnAceptarDescarga) {
-      btnAceptarDescarga.onclick = () => {
-        if (overlay) overlay.style.display = 'none';
-        const modalEl = document.getElementById('modalColumnas');
-        if (modalEl) {
-          const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-          modal.hide();
-        }
-      };
-    }
+    console.warn(`Descarga finalizada. Incluidas: ${exitosas}/${lista.length + faltantesSinUrl}. Fallidas: ${fallidas}. Sin URL: ${faltantesSinUrl}.`);
 
   } catch (err) {
-    console.error('No se pudo iniciar/completar la descarga ZIP:', err);
-    alert('No se pudo iniciar/completar la descarga. Revisa la consola para más detalles.');
-    // Asegura ocultar overlay si hubo error
+    console.error('Error en descarga ZIP:', err);
+    alert('No se pudo completar la descarga. Revisa la consola.');
     if (overlay) overlay.style.display = 'none';
-  } finally {
-    // Reactivar botones siempre
-    if (btnZip) btnZip.disabled = false;
+    resetBotones();
+  }
+
+  // --- Función auxiliar para restaurar botones y permitir cerrar modal ---
+  function resetBotones() {
+    if (btnZip) {
+      btnZip.disabled = false;
+      btnZip.innerHTML = 'Descargar fotos (.zip)';
+    }
     if (btnCancelar) btnCancelar.disabled = false;
     if (btnExportar) btnExportar.disabled = false;
+    if (modalEl) {
+      modalEl.removeAttribute('data-bs-backdrop');
+      modalEl.removeAttribute('data-bs-keyboard');
+    }
   }
 }
+
 
 
 
@@ -1153,4 +1162,4 @@ document.addEventListener('click', async (e) => {
 
 
 
-//V 2.1
+//V 2.2
