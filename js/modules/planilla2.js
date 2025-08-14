@@ -558,7 +558,7 @@ function construirCaracteristicas(row) {
 
         if (ajustado.includes(":")) {
           // Cambiamos ":" por " = "
-          ajustado = ajustado.replace(/:\s*/, " = ");
+          ajustado = ajustado.replace(/:\s*/, "   ");
         } else {
           // Si no tiene ":", intentamos separar en 2 partes por el último espacio
           const match = ajustado.match(/^(.+?)\s+([\d\w\+\s]+)$/);
