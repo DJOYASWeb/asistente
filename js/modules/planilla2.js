@@ -305,81 +305,147 @@ async function procesaConConcurrencia(items, handler, concurrency = 4, onProgres
 }
 
 
-// === ZIP FOTOS: acción principal ===
 async function descargarFotosComoZip(ctx, concurrencia = 4) {
-  const progressEl = document.getElementById('zipProgress');
+  // --- UI refs ---
+  const progressEl = document.getElementById('zipProgress'); // texto pequeño (opcional)
+  const overlay = document.getElementById('overlayDescarga');
+  const textoProgreso = document.getElementById('textoProgreso');
+  const barraProgreso = document.getElementById('barraProgreso');
+  const btnAceptarDescarga = document.getElementById('btnAceptarDescarga');
+
+  // Botones del footer del modal
+  const btnZip = document.getElementById('btnDescargarFotosZip');
+  const btnCancelar = document.querySelector('#modalColumnas .modal-footer .btn.btn-secondary');
+  const btnExportar = document.getElementById('confirmarExportar');
+
+  // Estado inicial UI
   if (progressEl) { progressEl.style.display = 'inline'; progressEl.textContent = 'Preparando…'; }
-
-  const filas = obtenerFilasActivas(ctx);
-  const lista = [];
-  let faltantesSinUrl = 0;
-
-  for (const row of filas) {
-    const codigo = extraerCodigo(row);
-    const rawUrl = extraerUrlFoto(row);
-    if (!codigo) continue;
-    if (!rawUrl) { faltantesSinUrl++; continue; }
-    const url = normalizarUrlDrive(rawUrl);
-    lista.push({ codigo, url });
+  if (overlay) {
+    overlay.style.display = 'flex';
+    if (textoProgreso) textoProgreso.textContent = 'Descargando imágenes…';
+    if (barraProgreso) { barraProgreso.style.width = '0%'; barraProgreso.textContent = '0%'; }
+    if (btnAceptarDescarga) btnAceptarDescarga.disabled = true;
   }
+  if (btnZip) btnZip.disabled = true;
+  if (btnCancelar) btnCancelar.disabled = true;
+  if (btnExportar) btnExportar.disabled = true;
 
-  if (!lista.length) {
+  try {
+    // 1) Preparar lista
+    const filas = obtenerFilasActivas(ctx);
+    const lista = [];
+    let faltantesSinUrl = 0;
+
+    for (const row of filas) {
+      const codigo = extraerCodigo(row);
+      const rawUrl = extraerUrlFoto(row);
+      if (!codigo) continue;
+      if (!rawUrl) { faltantesSinUrl++; continue; }
+      const url = normalizarUrlDrive(rawUrl);
+      lista.push({ codigo, url });
+    }
+
+    if (!lista.length) {
+      if (progressEl) progressEl.style.display = 'none';
+      // Ocultamos overlay y reactivamos botones
+      if (overlay) overlay.style.display = 'none';
+      if (btnZip) btnZip.disabled = false;
+      if (btnCancelar) btnCancelar.disabled = false;
+      if (btnExportar) btnExportar.disabled = false;
+      alert('No se encontraron fotos para descargar en las filas activas.');
+      return;
+    }
+
+    // 2) Descargas concurrentes + progreso
+    const usados = new Map(); // control de duplicados
+    const zip = new JSZip();
+    let exitosas = 0;
+
+    const resultados = await procesaConConcurrencia(
+      lista,
+      async (item) => {
+        const finalUrl = item.url;
+        const resp = await fetch(finalUrl, { credentials: 'omit' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const blob = await resp.blob();
+
+        const ext = deducirExtension({ response: resp, finalUrl });
+        const base = safeName(item.codigo);
+        const n = (usados.get(base) || 0) + 1;
+        usados.set(base, n);
+
+        const filename = n === 1 ? `${base}${ext}` : `${base}_${n}${ext}`;
+        zip.file(filename, blob);
+        exitosas++;
+      },
+      concurrencia,
+      (done, total) => {
+        // Progreso detallado
+        if (progressEl) progressEl.textContent = `Descargando ${done}/${total}…`;
+        if (barraProgreso) {
+          const porc = Math.round((done / total) * 100);
+          barraProgreso.style.width = porc + '%';
+          barraProgreso.textContent = porc + '%';
+        }
+        if (textoProgreso) textoProgreso.textContent = `Descargando imágenes… ${done}/${total}`;
+      }
+    );
+
+    const fallidas = resultados.filter(r => !r || !r.ok).length;
+
+    // 3) Empaquetar ZIP
+    if (progressEl) progressEl.textContent = 'Empaquetando…';
+    if (textoProgreso) textoProgreso.textContent = 'Empaquetando…';
+    if (barraProgreso) { barraProgreso.style.width = '100%'; barraProgreso.textContent = '100%'; }
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const nombreZip = `fotos_${fechaDDMMYY()}.zip`;
+
+    if (typeof saveAs === 'function') {
+      saveAs(zipBlob, nombreZip);
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(zipBlob);
+      a.download = nombreZip;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    }
+
+    // 4) Terminado → mostrar "Listo" y habilitar Aceptar
     if (progressEl) progressEl.style.display = 'none';
-    alert('No se encontraron fotos para descargar en las filas activas.');
-    return;
+    if (textoProgreso) textoProgreso.textContent = 'Listo';
+    if (btnAceptarDescarga) btnAceptarDescarga.disabled = false;
+
+    // Resumen por consola (sin alert, según tu flujo de Aceptar)
+    const totalIntentadas = lista.length;
+    const total = totalIntentadas + faltantesSinUrl;
+    console.warn(`Descarga finalizada. Incluidas: ${exitosas}/${total}. Fallidas: ${fallidas}. Sin URL: ${faltantesSinUrl}.`);
+
+    // 5) Al aceptar → cerrar overlay y modal
+    if (btnAceptarDescarga) {
+      btnAceptarDescarga.onclick = () => {
+        if (overlay) overlay.style.display = 'none';
+        const modalEl = document.getElementById('modalColumnas');
+        if (modalEl) {
+          const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+          modal.hide();
+        }
+      };
+    }
+
+  } catch (err) {
+    console.error('No se pudo iniciar/completar la descarga ZIP:', err);
+    alert('No se pudo iniciar/completar la descarga. Revisa la consola para más detalles.');
+    // Asegura ocultar overlay si hubo error
+    if (overlay) overlay.style.display = 'none';
+  } finally {
+    // Reactivar botones siempre
+    if (btnZip) btnZip.disabled = false;
+    if (btnCancelar) btnCancelar.disabled = false;
+    if (btnExportar) btnExportar.disabled = false;
   }
-
-  const usados = new Map(); // control de duplicados
-  const zip = new JSZip();
-  let exitosas = 0;
-
-  const resultados = await procesaConConcurrencia(
-    lista,
-    async (item) => {
-      const finalUrl = item.url;
-      const resp = await fetch(finalUrl, { credentials: 'omit' });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-
-      const ext = deducirExtension({ response: resp, finalUrl });
-      const base = safeName(item.codigo);
-      const n = (usados.get(base) || 0) + 1;
-      usados.set(base, n);
-
-      const filename = n === 1 ? `${base}${ext}` : `${base}_${n}${ext}`;
-      zip.file(filename, blob);
-      exitosas++;
-    },
-    concurrencia,
-    (done, total) => { if (progressEl) progressEl.textContent = `Descargando ${done}/${total}…`; }
-  );
-
-  const fallidas = resultados.filter(r => !r || !r.ok).length;
-
-  if (progressEl) progressEl.textContent = 'Empaquetando…';
-  const zipBlob = await zip.generateAsync({ type: 'blob' });
-  const nombreZip = `fotos_${fechaDDMMYY()}.zip`;
-
-  if (typeof saveAs === 'function') {
-    saveAs(zipBlob, nombreZip);
-  } else {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(zipBlob);
-    a.download = nombreZip;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
-  }
-
-  if (progressEl) progressEl.style.display = 'none';
-
-  const totalIntentadas = lista.length;
-  const total = totalIntentadas + faltantesSinUrl;
-  const msg = `Descarga finalizada. Incluidas: ${exitosas}/${total}. Fallidas: ${fallidas}. Sin URL: ${faltantesSinUrl}.`;
-  console.warn(msg);
-  alert(msg);
 }
-
 
 
 
@@ -1087,4 +1153,4 @@ document.addEventListener('click', async (e) => {
 
 
 
-//V 2
+//V 2.1
