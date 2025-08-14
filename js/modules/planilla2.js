@@ -931,5 +931,132 @@ document.addEventListener('click', (e) => {
 });
 
 
+//corte
 
-//V 4.8
+
+// ========= DEBUG / AUTO-INTEGRACIÓN BOTÓN ZIP =========
+(function () {
+  const MODAL_ID = 'modalColumnas';
+  const BTN_ID = 'btnDescargarFotosZip';
+  const PROG_ID = 'zipProgress';
+
+  // 0) Asegura que exista el botón (si no está en el HTML, lo inserta)
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById(MODAL_ID);
+    if (!modal) {
+      console.warn('[zip] No se encontró #' + MODAL_ID + ' en el DOM.');
+      return;
+    }
+    const footer = modal.querySelector('.modal-footer');
+    if (!footer) {
+      console.warn('[zip] No se encontró .modal-footer dentro del modal.');
+      return;
+    }
+    let btn = document.getElementById(BTN_ID);
+    let prog = document.getElementById(PROG_ID);
+
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = BTN_ID;
+      btn.type = 'button';
+      btn.className = 'btn btn-outline-secondary';
+      btn.style.display = 'none';
+      btn.textContent = 'Descargar fotos (.zip)';
+      // Inserta ANTES del botón Exportar, si existe:
+      const exportBtn = footer.querySelector('#confirmarExportar');
+      if (exportBtn) footer.insertBefore(btn, exportBtn);
+      else footer.appendChild(btn);
+      console.log('[zip] Botón ZIP inyectado en el modal.');
+    }
+    if (!prog) {
+      prog = document.createElement('small');
+      prog.id = PROG_ID;
+      prog.className = 'text-muted ms-2';
+      prog.style.display = 'none';
+      prog.textContent = 'Descargando 0/0…';
+      btn.after(prog);
+      console.log('[zip] Indicador de progreso inyectado.');
+    }
+  });
+
+  // 1) Envoltorio de diagnóstico para onAbrirModalProcesar
+  const _orig_onAbrir = (typeof onAbrirModalProcesar === 'function') ? onAbrirModalProcesar : null;
+
+  window.onAbrirModalProcesar = function () {
+    const btnZip = document.getElementById(BTN_ID);
+    const filas = obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones });
+    const nuevas = Array.isArray(filas) ? filas.filter(esProductoNuevo) : [];
+    const show = Array.isArray(filas) && filas.length === 1 && nuevas.length === 1; // condición actual
+
+    console.log('[zip] evaluar botón →', {
+      btnZip: !!btnZip,
+      tipoSeleccionado,
+      filas: Array.isArray(filas) ? filas.length : 0,
+      nuevas: nuevas.length,
+      show
+    });
+
+    if (btnZip) btnZip.style.display = show ? 'inline-block' : 'none';
+    if (_orig_onAbrir) try { _orig_onAbrir(); } catch (e) {}
+  };
+
+  // 2) Forzar evaluación al preparar el modal (por si el evento de Bootstrap no corre)
+  const _orig_preparar = (typeof prepararModal === 'function') ? prepararModal : null;
+  window.prepararModal = function () {
+    if (_orig_preparar) _orig_preparar.apply(this, arguments);
+    // tras armar la tabla:
+    try { window.onAbrirModalProcesar(); } catch (e) {
+      console.error('[zip] onAbrirModalProcesar() falló al final de prepararModal:', e);
+    }
+  };
+
+  // 3) Engancha ambos eventos de Bootstrap para cubrir todos los casos
+  document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById(MODAL_ID);
+    if (!modal) return;
+
+    // show: antes de que sea visible
+    modal.addEventListener('show.bs.modal', () => {
+      console.log('[zip] show.bs.modal');
+      try { window.onAbrirModalProcesar(); } catch (e) {
+        console.error('[zip] error en show.bs.modal:', e);
+      }
+    });
+
+    // shown: ya visible en pantalla
+    modal.addEventListener('shown.bs.modal', () => {
+      console.log('[zip] shown.bs.modal');
+      try { window.onAbrirModalProcesar(); } catch (e) {
+        console.error('[zip] error en shown.bs.modal:', e);
+      }
+    });
+  });
+
+  // 4) Click del botón (por si no lo tenías)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('#' + BTN_ID);
+    if (!btn) return;
+    console.log('[zip] click botón ZIP');
+    try {
+      if (typeof JSZip === 'undefined') {
+        alert('Falta JSZip. Verifica que el CDN esté cargado.');
+        return;
+      }
+      descargarFotosComoZip({
+        tipoSeleccionado,
+        datosFiltrados,
+        datosOriginales,
+        datosCombinaciones
+      }, 4);
+    } catch (err) {
+      console.error('[zip] No se pudo iniciar la descarga ZIP:', err);
+      alert('No se pudo iniciar la descarga. Revisa la consola para más detalles.');
+    }
+  });
+})();
+
+
+
+
+
+//V 1.2
