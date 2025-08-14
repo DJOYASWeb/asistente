@@ -162,12 +162,23 @@ function onAbrirModalProcesar() {
   const btnZip = document.getElementById('btnDescargarFotosZip');
   if (!btnZip) return;
 
-  const filas = obtenerFilasActivas({ 
-    tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones 
+  const filas = obtenerFilasActivas({
+    tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones
   });
-  const show = Array.isArray(filas) && filas.length === 1 && esProductoNuevo(filas[0]);
+
+  // Mostrar el botón si hay al menos 1 fila activa
+  const show = Array.isArray(filas) && filas.length > 0;
+
+  console.log('[zip] evaluar botón →', {
+    btnZip: !!btnZip,
+    tipoSeleccionado,
+    filas: Array.isArray(filas) ? filas.length : 0,
+    show
+  });
+
   btnZip.style.display = show ? 'inline-block' : 'none';
 }
+
 
 // Normaliza URL de Google Drive a descarga directa
 function normalizarUrlDrive(url) {
@@ -985,8 +996,7 @@ document.addEventListener('click', (e) => {
   window.onAbrirModalProcesar = function () {
     const btnZip = document.getElementById(BTN_ID);
     const filas = obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones });
-    const nuevas = Array.isArray(filas) ? filas.filter(esProductoNuevo) : [];
-    const show = Array.isArray(filas) && filas.length === 1 && nuevas.length === 1; // condición actual
+const show = Array.isArray(filas) && filas.length > 0;
 
     console.log('[zip] evaluar botón →', {
       btnZip: !!btnZip,
@@ -1059,4 +1069,4 @@ document.addEventListener('click', (e) => {
 
 
 
-//V 1.2
+//V 1.3
