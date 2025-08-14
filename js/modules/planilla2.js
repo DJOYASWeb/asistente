@@ -109,6 +109,255 @@ function detectarColumnaQueIncluye(row, textoBuscado) {
   return null;
 }
 
+
+// === ZIP FOTOS: utilidades ===
+
+// Toma dataset activo según reglas acordadas
+function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones }) {
+  if (tipoSeleccionado === 'combinacion_cantidades') {
+    return Array.isArray(datosFiltrados) && datosFiltrados.length ? datosFiltrados : [];
+  }
+  if (Array.isArray(datosFiltrados) && datosFiltrados.length) return datosFiltrados;
+  const base = [];
+  if (Array.isArray(datosOriginales)) base.push(...datosOriginales);
+  if (Array.isArray(datosCombinaciones)) base.push(...datosCombinaciones);
+  return base;
+}
+
+// Extrae URL de foto contemplando variantes del header (¡incluye el espacio!)
+function extraerUrlFoto(row) {
+  let url = row?.['foto_link_individual '];         // exacto con espacio final
+  if (!url) url = row?.['foto_link_individual'];    // sin espacio
+  if (!url) {
+    const k = detectarColumnaQueIncluye(row, 'foto_link_individual');
+    if (k) url = row[k];
+  }
+  return (typeof url === 'string' ? url.trim() : '') || '';
+}
+
+// Código de producto con fallback
+function extraerCodigo(row) {
+  let codigo = row?.['codigo_producto'];
+  if (!codigo) codigo = row?.['Código'];
+  return (typeof codigo === 'string' ? codigo.trim() : `${codigo ?? ''}`) || '';
+}
+
+// ¿Es “producto nuevo”? (heurística segura)
+function esProductoNuevo(row) {
+  if (!row || typeof row !== 'object') return false;
+  const cand = ['es_nuevo','nuevo','producto_nuevo','esProductoNuevo','estado','Estado','tipo','Tipo'];
+  for (const k of cand) {
+    if (Object.prototype.hasOwnProperty.call(row, k)) {
+      const raw = row[k];
+      const v = String(raw).toLowerCase().trim();
+      if (raw === true) return true;
+      if (v === '1' || v === 'true' || v.includes('nuevo')) return true;
+    }
+  }
+  return false;
+}
+
+// Mostrar/ocultar botón según condición “1 fila activa y nueva”
+function onAbrirModalProcesar() {
+  const btnZip = document.getElementById('btnDescargarFotosZip');
+  if (!btnZip) return;
+
+  const filas = obtenerFilasActivas({ 
+    tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones 
+  });
+  const show = Array.isArray(filas) && filas.length === 1 && esProductoNuevo(filas[0]);
+  btnZip.style.display = show ? 'inline-block' : 'none';
+}
+
+// Normaliza URL de Google Drive a descarga directa
+function normalizarUrlDrive(url) {
+  if (!url) return '';
+  try {
+    const u = new URL(url);
+    const host = u.host.toLowerCase();
+    if (!host.includes('drive.google.com')) return url;
+
+    const m1 = u.pathname.match(/\/file\/d\/([^/]+)\/view/i);
+    if (m1?.[1]) return `https://drive.google.com/uc?export=download&id=${m1[1]}`;
+
+    const id = u.searchParams.get('id');
+    if (id) return `https://drive.google.com/uc?export=download&id=${id}`;
+
+    if (u.pathname.includes('/uc')) {
+      const id2 = u.searchParams.get('id');
+      if (id2) return `https://drive.google.com/uc?export=download&id=${id2}`;
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
+
+// Extensión por Content-Type
+function extPorContentType(ct) {
+  if (!ct) return '';
+  const t = ct.split(';')[0].trim().toLowerCase();
+  if (t === 'image/jpeg' || t === 'image/jpg') return '.jpg';
+  if (t === 'image/png') return '.png';
+  if (t === 'image/webp') return '.webp';
+  if (t === 'image/gif') return '.gif';
+  if (t === 'image/bmp') return '.bmp';
+  if (t === 'image/tiff') return '.tiff';
+  if (t === 'image/heic') return '.heic';
+  if (t === 'image/svg+xml') return '.svg';
+  return '';
+}
+
+// filename desde Content-Disposition
+function filenameDeContentDisposition(cd) {
+  if (!cd) return '';
+  const q = cd.match(/filename\*?=(?:UTF-8''|")(.*?)(?:"|$)/i);
+  if (q?.[1]) {
+    try { return q[0].includes('filename*=') ? decodeURIComponent(q[1]).trim() : q[1].trim(); }
+    catch { return q[1].trim(); }
+  }
+  const u = cd.match(/filename=([^;]+)/i);
+  return u?.[1]?.trim() || '';
+}
+
+// Deducción de extensión con prioridad: Content-Disposition > Content-Type > URL > .jpg
+function deducirExtension({ response, finalUrl }) {
+  const cd = response.headers.get('Content-Disposition') || response.headers.get('content-disposition');
+  const fromCD = filenameDeContentDisposition(cd);
+  if (fromCD && /\.[a-z0-9]{2,5}$/i.test(fromCD)) return '.' + fromCD.split('.').pop().toLowerCase();
+
+  const ct = response.headers.get('Content-Type') || response.headers.get('content-type');
+  const extCT = extPorContentType(ct);
+  if (extCT) return extCT;
+
+  try {
+    const u = new URL(finalUrl);
+    const path = u.pathname || '';
+    const m1 = path.match(/\.(jpg|jpeg|png|webp|gif|bmp|tiff|heic|svg)(?:\?|$)/i);
+    if (m1?.[1]) return (m1[1].toLowerCase() === 'jpeg') ? '.jpg' : `.${m1[1].toLowerCase()}`;
+    const q = u.searchParams.toString();
+    const m2 = q.match(/(?:type|format)=?(jpg|jpeg|png|webp|gif|bmp|tiff|heic|svg)/i);
+    if (m2?.[1]) return (m2[1].toLowerCase() === 'jpeg') ? '.jpg' : `.${m2[1].toLowerCase()}`;
+  } catch {}
+  return '.jpg';
+}
+
+function safeName(name) {
+  return String(name || '')
+    .replace(/[\\/:*?"<>|#%&{}$!'@+`|=]/g, '_')
+    .replace(/\s+/g, '_')
+    .slice(0, 150);
+}
+
+function fechaDDMMYY(date = new Date()) {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yy = String(date.getFullYear()).slice(-2);
+  return `${dd}-${mm}-${yy}`;
+}
+
+async function procesaConConcurrencia(items, handler, concurrency = 4, onProgress) {
+  let index = 0, running = 0, done = 0;
+  const results = new Array(items.length);
+  return new Promise((resolve) => {
+    const launch = () => {
+      while (running < concurrency && index < items.length) {
+        const i = index++;
+        running++;
+        handler(items[i], i)
+          .then(v => { results[i] = { ok: true, value: v }; })
+          .catch(e => { results[i] = { ok: false, error: e }; })
+          .finally(() => {
+            running--; done++;
+            if (typeof onProgress === 'function') onProgress(done, items.length);
+            if (done === items.length) resolve(results); else launch();
+          });
+      }
+    };
+    launch();
+  });
+}
+
+
+// === ZIP FOTOS: acción principal ===
+async function descargarFotosComoZip(ctx, concurrencia = 4) {
+  const progressEl = document.getElementById('zipProgress');
+  if (progressEl) { progressEl.style.display = 'inline'; progressEl.textContent = 'Preparando…'; }
+
+  const filas = obtenerFilasActivas(ctx);
+  const lista = [];
+  let faltantesSinUrl = 0;
+
+  for (const row of filas) {
+    const codigo = extraerCodigo(row);
+    const rawUrl = extraerUrlFoto(row);
+    if (!codigo) continue;
+    if (!rawUrl) { faltantesSinUrl++; continue; }
+    const url = normalizarUrlDrive(rawUrl);
+    lista.push({ codigo, url });
+  }
+
+  if (!lista.length) {
+    if (progressEl) progressEl.style.display = 'none';
+    alert('No se encontraron fotos para descargar en las filas activas.');
+    return;
+  }
+
+  const usados = new Map(); // control de duplicados
+  const zip = new JSZip();
+  let exitosas = 0;
+
+  const resultados = await procesaConConcurrencia(
+    lista,
+    async (item) => {
+      const finalUrl = item.url;
+      const resp = await fetch(finalUrl, { credentials: 'omit' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+
+      const ext = deducirExtension({ response: resp, finalUrl });
+      const base = safeName(item.codigo);
+      const n = (usados.get(base) || 0) + 1;
+      usados.set(base, n);
+
+      const filename = n === 1 ? `${base}${ext}` : `${base}_${n}${ext}`;
+      zip.file(filename, blob);
+      exitosas++;
+    },
+    concurrencia,
+    (done, total) => { if (progressEl) progressEl.textContent = `Descargando ${done}/${total}…`; }
+  );
+
+  const fallidas = resultados.filter(r => !r || !r.ok).length;
+
+  if (progressEl) progressEl.textContent = 'Empaquetando…';
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  const nombreZip = `fotos_${fechaDDMMYY()}.zip`;
+
+  if (typeof saveAs === 'function') {
+    saveAs(zipBlob, nombreZip);
+  } else {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(zipBlob);
+    a.download = nombreZip;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+
+  if (progressEl) progressEl.style.display = 'none';
+
+  const totalIntentadas = lista.length;
+  const total = totalIntentadas + faltantesSinUrl;
+  const msg = `Descarga finalizada. Incluidas: ${exitosas}/${total}. Fallidas: ${fallidas}. Sin URL: ${faltantesSinUrl}.`;
+  console.warn(msg);
+  alert(msg);
+}
+
+
+
+
+
 let tipoSeleccionado = "nuevo";
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -647,5 +896,33 @@ function mostrarTablaCombinacionesCantidad() {
 }
 
 
+// === ZIP FOTOS: eventos ===
 
-//V 4.6
+// Mostrar/ocultar botón al abrir el modal
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.querySelector('#modalColumnas');
+  if (modal) {
+    modal.addEventListener('show.bs.modal', onAbrirModalProcesar);
+  }
+});
+
+// Click en el botón para descargar
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#btnDescargarFotosZip');
+  if (!btn) return;
+  try {
+    descargarFotosComoZip({
+      tipoSeleccionado,
+      datosFiltrados,
+      datosOriginales,
+      datosCombinaciones
+    }, 4);
+  } catch (err) {
+    console.error('No se pudo iniciar la descarga ZIP:', err);
+    alert('No se pudo iniciar la descarga. Revisa la consola para más detalles.');
+  }
+});
+
+
+
+//V 4.7
