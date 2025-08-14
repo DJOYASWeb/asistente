@@ -1282,7 +1282,7 @@ nav a.activo,
 
 /* === Vista previa: área scrolleable con alto fijo === */
 #tablaPreview {
-  max-height: 65vh;
+  max-height: 55vh;
   overflow: auto;                 /* vertical + horizontal */
   -webkit-overflow-scrolling: touch; /* scrolling fluido en iOS */
   border: 1px solid rgba(0,0,0,.08); /* opcional: delimitar área */
