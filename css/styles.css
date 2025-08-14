@@ -1313,3 +1313,13 @@ nav a.activo,
   /* tu HTML ya usa un wrapper <div style="overflow-x:auto">, esto ayuda igual */
   min-width: max-content;         /* fuerza barra horizontal si hay muchas columnas */
 }
+
+/* === Cabecera fija en tablas de preview y modal === */
+#tablaPreview table thead th,
+.modal .modal-body table thead th {
+  position: sticky;
+  top: 0;                      /* se pega arriba del contenedor scrolleable */
+  background: #fff;            /* fondo para tapar contenido al pasar */
+  z-index: 2;                  /* sobre celdas normales */
+  box-shadow: 0 2px 2px rgba(0,0,0,0.05); /* sutil sombra separadora */
+}
