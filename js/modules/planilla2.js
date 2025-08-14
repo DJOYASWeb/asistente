@@ -96,6 +96,49 @@ function firstNonEmpty(row, keys) {
   return "";
 }
 
+
+function ensureOverlayEnModal() {
+  const modalBody = document.querySelector('#modalColumnas .modal-body');
+  if (!modalBody) return {};
+
+  let overlay = document.getElementById('overlayDescarga');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'overlayDescarga';
+    overlay.className = 'overlay-progreso';
+    overlay.style.display = 'none';
+    overlay.innerHTML = `
+      <div class="panel-progreso">
+        <h5 id="textoProgreso">Descargando imágenes…</h5>
+        <div class="progress">
+          <div id="barraProgreso" class="progress-bar" role="progressbar" style="width:0%;" aria-valuemin="0" aria-valuemax="100">0%</div>
+        </div>
+        <button id="btnAceptarDescarga" type="button" class="btn btn-primary mt-2" disabled>Aceptar</button>
+      </div>`;
+    modalBody.appendChild(overlay);
+  }
+
+  return {
+    overlay,
+    textoProgreso: overlay.querySelector('#textoProgreso'),
+    barraProgreso: overlay.querySelector('#barraProgreso'),
+    btnAceptarDescarga: overlay.querySelector('#btnAceptarDescarga')
+  };
+}
+
+async function fetchConTimeout(url, opciones = {}, timeoutMs = 20000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(url, { ...opciones, signal: ctrl.signal });
+    return resp;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+
+
 /**
  * Busca en las claves de la fila la primera que "incluya" el texto buscado
  * (insensible a mayúsculas/acentos).
@@ -306,37 +349,31 @@ async function procesaConConcurrencia(items, handler, concurrency = 4, onProgres
 
 async function descargarFotosComoZip(ctx, concurrencia = 4) {
   const progressEl = document.getElementById('zipProgress');
-  const overlay = document.getElementById('overlayDescarga');
-  const textoProgreso = document.getElementById('textoProgreso');
-  const barraProgreso = document.getElementById('barraProgreso');
-  const btnAceptarDescarga = document.getElementById('btnAceptarDescarga');
 
+  // Asegura overlay y obtiene referencias
+  const { overlay, textoProgreso, barraProgreso, btnAceptarDescarga } = ensureOverlayEnModal();
+
+  // Botones del footer del modal
   const btnZip = document.getElementById('btnDescargarFotosZip');
   const btnCancelar = document.querySelector('#modalColumnas .modal-footer .btn.btn-secondary');
   const btnExportar = document.getElementById('confirmarExportar');
+
+  // Bloquear cierre del modal correctamente
   const modalEl = document.getElementById('modalColumnas');
-  let modalInstance = bootstrap.Modal.getInstance(modalEl);
+  const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+    backdrop: 'static',
+    keyboard: false
+  });
 
-  // --- Bloquear cierre del modal ---
-  if (modalEl) {
-    modalEl.setAttribute('data-bs-backdrop', 'static');
-    modalEl.setAttribute('data-bs-keyboard', 'false');
-  }
-
-  // --- Estado inicial UI ---
+  // Estado inicial UI
   if (progressEl) { progressEl.style.display = 'inline'; progressEl.textContent = 'Preparando…'; }
-  if (overlay) {
-    overlay.style.display = 'flex';
-    textoProgreso.textContent = 'Descargando imágenes…';
-    barraProgreso.style.width = '0%';
-    barraProgreso.textContent = '0%';
-    btnAceptarDescarga.disabled = true;
-  }
 
-  if (btnZip) {
-    btnZip.disabled = true;
-    btnZip.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Descargando...`;
-  }
+  if (overlay) overlay.style.display = 'flex';
+  if (textoProgreso) textoProgreso.textContent = 'Descargando imágenes…';
+  if (barraProgreso) { barraProgreso.style.width = '0%'; barraProgreso.textContent = '0%'; }
+  if (btnAceptarDescarga) btnAceptarDescarga.disabled = true;
+
+  if (btnZip) { btnZip.disabled = true; btnZip.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Descargando...`; }
   if (btnCancelar) btnCancelar.disabled = true;
   if (btnExportar) btnExportar.disabled = true;
 
@@ -363,7 +400,7 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
       return;
     }
 
-    // 2) Descargas concurrentes
+    // 2) Descargas concurrentes con timeout en cada fetch
     const usados = new Map();
     const zip = new JSZip();
     let exitosas = 0;
@@ -371,19 +408,25 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
     const resultados = await procesaConConcurrencia(
       lista,
       async (item) => {
-        const finalUrl = item.url;
-        const resp = await fetch(finalUrl, { credentials: 'omit' });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const blob = await resp.blob();
+        try {
+          const finalUrl = item.url;
+          const resp = await fetchConTimeout(finalUrl, { credentials: 'omit' }, 25000); // 25s por imagen
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const blob = await resp.blob();
 
-        const ext = deducirExtension({ response: resp, finalUrl });
-        const base = safeName(item.codigo);
-        const n = (usados.get(base) || 0) + 1;
-        usados.set(base, n);
+          const ext = deducirExtension({ response: resp, finalUrl });
+          const base = safeName(item.codigo);
+          const n = (usados.get(base) || 0) + 1;
+          usados.set(base, n);
 
-        const filename = n === 1 ? `${base}${ext}` : `${base}_${n}${ext}`;
-        zip.file(filename, blob);
-        exitosas++;
+          const filename = n === 1 ? `${base}${ext}` : `${base}_${n}${ext}`;
+          zip.file(filename, blob);
+          exitosas++;
+        } catch (e) {
+          // Cuenta como fallida pero no detiene el proceso
+          console.warn('[zip] Falló descarga de', item.url, e);
+          throw e; // mantiene el registro en resultados como "no ok"
+        }
       },
       concurrencia,
       (done, total) => {
@@ -393,17 +436,16 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
           barraProgreso.style.width = porc + '%';
           barraProgreso.textContent = porc + '%';
         }
-        textoProgreso.textContent = `Descargando imágenes… ${done}/${total}`;
+        if (textoProgreso) textoProgreso.textContent = `Descargando imágenes… ${done}/${total}`;
       }
     );
 
     const fallidas = resultados.filter(r => !r || !r.ok).length;
 
-    // 3) Empaquetar
+    // 3) Empaquetar ZIP
     if (progressEl) progressEl.textContent = 'Empaquetando…';
-    textoProgreso.textContent = 'Empaquetando…';
-    barraProgreso.style.width = '100%';
-    barraProgreso.textContent = '100%';
+    if (textoProgreso) textoProgreso.textContent = 'Empaquetando…';
+    if (barraProgreso) { barraProgreso.style.width = '100%'; barraProgreso.textContent = '100%'; }
 
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     const nombreZip = `fotos_${fechaDDMMYY()}.zip`;
@@ -419,19 +461,23 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
     }
 
-    // 4) Terminar
+    // 4) Terminado
     if (progressEl) progressEl.style.display = 'none';
-    textoProgreso.textContent = 'Listo';
-    btnAceptarDescarga.disabled = false;
+    if (textoProgreso) textoProgreso.textContent = 'Listo';
+    if (btnAceptarDescarga) btnAceptarDescarga.disabled = false;
 
-    // Al aceptar
-    btnAceptarDescarga.onclick = () => {
-      if (overlay) overlay.style.display = 'none';
-      resetBotones();
-      if (modalInstance) modalInstance.hide();
-    };
+    const totalIntentadas = lista.length;
+    const total = totalIntentadas + faltantesSinUrl;
+    console.warn(`Descarga finalizada. Incluidas: ${exitosas}/${total}. Fallidas: ${fallidas}. Sin URL: ${faltantesSinUrl}.`);
 
-    console.warn(`Descarga finalizada. Incluidas: ${exitosas}/${lista.length + faltantesSinUrl}. Fallidas: ${fallidas}. Sin URL: ${faltantesSinUrl}.`);
+    // 5) Aceptar → cerrar overlay y modal
+    if (btnAceptarDescarga) {
+      btnAceptarDescarga.onclick = () => {
+        if (overlay) overlay.style.display = 'none';
+        resetBotones();
+        modalInstance.hide();
+      };
+    }
 
   } catch (err) {
     console.error('Error en descarga ZIP:', err);
@@ -440,20 +486,17 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
     resetBotones();
   }
 
-  // --- Función auxiliar para restaurar botones y permitir cerrar modal ---
+  // Restaurar botones y permitir cerrar modal normalmente
   function resetBotones() {
-    if (btnZip) {
-      btnZip.disabled = false;
-      btnZip.innerHTML = 'Descargar fotos (.zip)';
-    }
+    if (btnZip) { btnZip.disabled = false; btnZip.innerHTML = 'Descargar fotos (.zip)'; }
     if (btnCancelar) btnCancelar.disabled = false;
     if (btnExportar) btnExportar.disabled = false;
-    if (modalEl) {
-      modalEl.removeAttribute('data-bs-backdrop');
-      modalEl.removeAttribute('data-bs-keyboard');
-    }
+
+    // Volver a comportamiento normal del modal
+    bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: true, keyboard: true });
   }
 }
+
 
 
 
