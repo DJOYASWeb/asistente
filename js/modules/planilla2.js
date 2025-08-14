@@ -993,22 +993,25 @@ document.addEventListener('click', (e) => {
   // 1) Envoltorio de diagnóstico para onAbrirModalProcesar
   const _orig_onAbrir = (typeof onAbrirModalProcesar === 'function') ? onAbrirModalProcesar : null;
 
-  window.onAbrirModalProcesar = function () {
-    const btnZip = document.getElementById(BTN_ID);
-    const filas = obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones });
-const show = Array.isArray(filas) && filas.length > 0;
+window.onAbrirModalProcesar = function () {
+  const btnZip = document.getElementById(BTN_ID);
+  const filas = obtenerFilasActivas({ 
+    tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones 
+  });
 
-    console.log('[zip] evaluar botón →', {
-      btnZip: !!btnZip,
-      tipoSeleccionado,
-      filas: Array.isArray(filas) ? filas.length : 0,
-      nuevas: nuevas.length,
-      show
-    });
+  const show = Array.isArray(filas) && filas.length > 0;
 
-    if (btnZip) btnZip.style.display = show ? 'inline-block' : 'none';
-    if (_orig_onAbrir) try { _orig_onAbrir(); } catch (e) {}
-  };
+  console.log('[zip] evaluar botón →', {
+    btnZip: !!btnZip,
+    tipoSeleccionado,
+    filas: Array.isArray(filas) ? filas.length : 0,
+    show
+  });
+
+  if (btnZip) btnZip.style.display = show ? 'inline-block' : 'none';
+  if (_orig_onAbrir) try { _orig_onAbrir(); } catch (e) {}
+};
+
 
   // 2) Forzar evaluación al preparar el modal (por si el evento de Bootstrap no corre)
   const _orig_preparar = (typeof prepararModal === 'function') ? prepararModal : null;
@@ -1069,4 +1072,4 @@ const show = Array.isArray(filas) && filas.length > 0;
 
 
 
-//V 1.3
+//V 1.4
