@@ -108,17 +108,19 @@
         <ul id="columnasFinales" class="list-group list-group-numbered small"></ul>
       </div>
 <div class="modal-footer">
-  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
 
-  <!-- Botón NUEVO: parte oculto; lo mostraremos al abrir el modal si corresponde -->
+<div class="exportarimg">
+    <!-- Botón NUEVO: parte oculto; lo mostraremos al abrir el modal si corresponde -->
   <button id="btnDescargarFotosZip" type="button" class="btn btn-outline-secondary" style="display:none;">
     Descargar fotos (.zip)
   </button>
-
   <!-- Indicador simple de progreso (opcional) -->
   <small id="zipProgress" class="text-muted ms-2" style="display:none;">Descargando 0/0…</small>
-
+</div>
+<div class="procesar">
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
   <button type="button" class="btn btn-primary" id="confirmarExportar" data-bs-dismiss="modal">Exportar</button>
+</div>
 </div>
 
     </div>
