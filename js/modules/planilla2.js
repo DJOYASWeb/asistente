@@ -626,7 +626,9 @@ const cantidad = esAnillo(row) ? 0 : (row["Combinaciones"] ? 0 : (row["cantidad"
 
     // Precio: tomar desde 'precio_prestashop' (con IVA) y calcular sin IVA (19%)
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
-    const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
+const precioSinIVA = precioConIVA === null 
+  ? "0.00" 
+  : (precioConIVA / 1.19).toFixed(2).replace(',', '.');
 
     return {
       "ID": idProducto || "",
@@ -1086,4 +1088,4 @@ window.onAbrirModalProcesar = function () {
 
 
 
-//V 1.6
+//V 1.7
