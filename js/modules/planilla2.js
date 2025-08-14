@@ -181,27 +181,41 @@ function onAbrirModalProcesar() {
 
 
 // Normaliza URL de Google Drive a descarga directa
-function normalizarUrlDrive(url) {
-  if (!url) return '';
+// Extrae fileId desde las variantes comunes de Drive
+function driveIdFromUrl(url) {
   try {
     const u = new URL(url);
-    const host = u.host.toLowerCase();
-    if (!host.includes('drive.google.com')) return url;
-
+    if (!u.host.includes('drive.google.com')) return null;
+    // /file/d/<ID>/view
     const m1 = u.pathname.match(/\/file\/d\/([^/]+)\/view/i);
-    if (m1?.[1]) return `https://drive.google.com/uc?export=download&id=${m1[1]}`;
-
+    if (m1?.[1]) return m1[1];
+    // ?id=<ID>
     const id = u.searchParams.get('id');
-    if (id) return `https://drive.google.com/uc?export=download&id=${id}`;
-
+    if (id) return id;
+    // /uc?id=<ID>&export=download
     if (u.pathname.includes('/uc')) {
       const id2 = u.searchParams.get('id');
-      if (id2) return `https://drive.google.com/uc?export=download&id=${id2}`;
+      if (id2) return id2;
     }
-    return url;
+    return null;
   } catch {
-    return url;
+    return null;
   }
+}
+
+// Usa Google Drive API (CORS OK) cuando haya API key
+function normalizarUrlDrive(url) {
+  if (!url) return '';
+  const id = driveIdFromUrl(url);
+  if (!id) return url; // No es Drive: se usa tal cual
+
+  if (window.DRIVE_API_KEY) {
+    // Endpoint oficial con CORS para contenido público
+    return `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${encodeURIComponent(window.DRIVE_API_KEY)}`;
+  }
+
+  // Fallback (puede fallar por CORS/403)
+  return `https://drive.google.com/uc?export=download&id=${id}`;
 }
 
 // Extensión por Content-Type
@@ -1072,4 +1086,4 @@ window.onAbrirModalProcesar = function () {
 
 
 
-//V 1.4
+//V 1.6
