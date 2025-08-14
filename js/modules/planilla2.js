@@ -1,5 +1,6 @@
 // js/modules/planilla.js
-
+// Evita descargas simultáneas del ZIP
+let zipDescargando = false;
 let datosOriginales = [];
 let datosCombinaciones = [];
 let datosReposicion = [];
@@ -940,22 +941,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Click en el botón para descargar
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('#btnDescargarFotosZip');
-  if (!btn) return;
-  try {
-    descargarFotosComoZip({
-      tipoSeleccionado,
-      datosFiltrados,
-      datosOriginales,
-      datosCombinaciones
-    }, 4);
-  } catch (err) {
-    console.error('No se pudo iniciar la descarga ZIP:', err);
-    alert('No se pudo iniciar la descarga. Revisa la consola para más detalles.');
-  }
-});
 
 
 //corte
@@ -1061,31 +1046,45 @@ window.onAbrirModalProcesar = function () {
     });
   });
 
-  // 4) Click del botón (por si no lo tenías)
-  document.addEventListener('click', (e) => {
-    const btn = e.target.closest('#' + BTN_ID);
-    if (!btn) return;
-    console.log('[zip] click botón ZIP');
-    try {
-      if (typeof JSZip === 'undefined') {
-        alert('Falta JSZip. Verifica que el CDN esté cargado.');
-        return;
-      }
-      descargarFotosComoZip({
-        tipoSeleccionado,
-        datosFiltrados,
-        datosOriginales,
-        datosCombinaciones
-      }, 4);
-    } catch (err) {
-      console.error('[zip] No se pudo iniciar la descarga ZIP:', err);
-      alert('No se pudo iniciar la descarga. Revisa la consola para más detalles.');
+// 4) Click del botón (con guard para evitar descargas duplicadas)
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('#' + BTN_ID);
+  if (!btn) return;
+
+  if (zipDescargando) {
+    console.warn('[zip] Descarga en curso; se ignora click adicional.');
+    return;
+  }
+
+  console.log('[zip] click botón ZIP');
+  try {
+    if (typeof JSZip === 'undefined') {
+      alert('Falta JSZip. Verifica que el CDN esté cargado.');
+      return;
     }
-  });
+
+    zipDescargando = true;
+    btn.disabled = true;
+
+    await descargarFotosComoZip({
+      tipoSeleccionado,
+      datosFiltrados,
+      datosOriginales,
+      datosCombinaciones
+    }, 4);
+  } catch (err) {
+    console.error('[zip] No se pudo iniciar/completar la descarga ZIP:', err);
+    alert('No se pudo iniciar/completar la descarga. Revisa la consola para más detalles.');
+  } finally {
+    zipDescargando = false;
+    btn.disabled = false;
+  }
+});
+
 })();
 
 
 
 
 
-//V 1.8
+//V 2
