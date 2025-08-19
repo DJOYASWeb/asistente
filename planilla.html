@@ -76,6 +76,9 @@
 <div id="botonesTipo" class="d-none mb-3">
 <button class="btn btn-outline-dark me-2" onclick="mostrarProductosNuevos()">Productos nuevos</button>
 <button class="btn btn-outline-dark me-2" onclick="mostrarTablaCombinacionesCantidad()">Combinación cantidades</button>
+  <button id="btnIngresarID" class="btn btn-outline-dark me-2 d-none" data-bs-toggle="modal" data-bs-target="#modalIngresarID">
+    Ingresar ID
+  </button>
 
 
 </div>
@@ -93,6 +96,35 @@
       </div>
     </div>
   </div>
+
+
+<!-- Modal Ingresar ID -->
+<div class="modal fade" id="modalIngresarID" tabindex="-1" aria-labelledby="modalIngresarIDLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalIngresarIDLabel">Asignar IDs a Padres</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p>Ingresa el ID de PrestaShop para cada producto padre:</p>
+        <table class="table table-bordered table-sm align-middle">
+          <thead>
+            <tr>
+              <th>SKU Padre</th>
+              <th>ID PrestaShop</th>
+            </tr>
+          </thead>
+          <tbody id="tablaIngresarID"></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="guardarIDs" data-bs-dismiss="modal">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>  
 
 
 <!-- Modal de Confirmación y Columnas -->
