@@ -1110,26 +1110,36 @@ function abrirModalIngresarID() {
 // === INGRESAR ID PADRES ===
 
 // Detecta los códigos padres (terminados en ...000) según combinaciones
-function obtenerPadresConCombinaciones() {
+function obtenerPadresDesdeSKUs() {
   const padres = new Map();
-  [...datosCombinaciones].forEach(row => {
+
+  // Unimos todos los registros cargados
+  const todos = [...datosOriginales, ...datosCombinaciones];
+
+  todos.forEach(row => {
     const codigo = extraerCodigo(row);
+    if (!codigo) return;
+
+    // prefijo = todo menos los últimos 3
     const prefijo = prefijoPadre(codigo);
     if (!prefijo) return;
+
     const codigoPadre = `${prefijo}000`;
     padres.set(codigoPadre, codigoPadre);
   });
+
   return Array.from(padres.values());
 }
 
+
 // Construye la tabla del modal al abrir
 function abrirModalIngresarID() {
-  const padres = obtenerPadresConCombinaciones();
+  const padres = obtenerPadresDesdeSKUs();
   const tbody = document.getElementById("tablaIngresarID");
   tbody.innerHTML = "";
 
   if (padres.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No se encontraron padres de combinaciones.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No se encontraron padres en los SKUs cargados.</td></tr>`;
     return;
   }
 
@@ -1142,6 +1152,7 @@ function abrirModalIngresarID() {
     tbody.appendChild(tr);
   });
 }
+
 
 // Guarda IDs y los propaga a hijos
 function guardarIDsAsignados() {
@@ -1176,4 +1187,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.7
+//V 1.8
