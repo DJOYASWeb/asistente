@@ -1134,19 +1134,45 @@ function abrirModalIngresarID() {
       }
     });
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${codigoPadre}</td>
-      <td>
-        <input type="text" class="form-control form-control-sm"
-               data-codigo="${codigoPadre}" 
-               value="${idExistente}" 
-               placeholder="Ej: 1234">
-      </td>
-    `;
-    tbody.appendChild(tr);
+const tr = document.createElement("tr");
+tr.innerHTML = `
+  <td class="codigo-padre text-primary" 
+      style="cursor:pointer;" 
+      data-codigo="${codigoPadre}" 
+      title="Haz clic para copiar">${codigoPadre}</td>
+  <td>
+    <input type="text" class="form-control form-control-sm"
+           data-codigo="${codigoPadre}" 
+           value="${idExistente}" 
+           placeholder="Ej: 1234">
+  </td>
+`;
+tbody.appendChild(tr);
   });
 }
+
+// Copiar código padre al hacer clic
+document.addEventListener("click", e => {
+  const td = e.target.closest(".codigo-padre");
+  if (!td) return;
+
+  const codigo = td.dataset.codigo;
+  if (!codigo) return;
+
+  navigator.clipboard.writeText(codigo).then(() => {
+    // Feedback visual rápido
+    td.classList.add("bg-success", "text-white");
+    td.innerText = codigo + " ✅";
+    setTimeout(() => {
+      td.classList.remove("bg-success", "text-white");
+      td.innerText = codigo;
+    }, 1500);
+  }).catch(err => {
+    console.error("No se pudo copiar al portapapeles", err);
+    alert("No se pudo copiar al portapapeles");
+  });
+});
+
 
 // Guarda IDs y los propaga a todos los hijos + padre
 function guardarIDsAsignados() {
@@ -1186,4 +1212,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 2
+//V 2.1
