@@ -527,7 +527,6 @@ tipoSeleccionado = "todo";
 datosFiltrados = [...datosOriginales, ...datosCombinaciones];
 document.getElementById("botonesTipo").classList.remove("d-none");
 renderTablaConOrden(datosFiltrados);
-evaluarBotonIngresarID();
   };
   reader.readAsArrayBuffer(file);
 }
@@ -1110,4 +1109,4 @@ function abrirModalIngresarID() {
 
 
 
-//V 1.5
+//V 1.6
