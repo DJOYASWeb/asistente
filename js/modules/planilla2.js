@@ -1107,6 +1107,73 @@ function abrirModalIngresarID() {
   });
 }
 
+// === INGRESAR ID PADRES ===
 
+// Detecta los códigos padres (terminados en ...000) según combinaciones
+function obtenerPadresConCombinaciones() {
+  const padres = new Map();
+  [...datosCombinaciones].forEach(row => {
+    const codigo = extraerCodigo(row);
+    const prefijo = prefijoPadre(codigo);
+    if (!prefijo) return;
+    const codigoPadre = `${prefijo}000`;
+    padres.set(codigoPadre, codigoPadre);
+  });
+  return Array.from(padres.values());
+}
 
-//V 1.6
+// Construye la tabla del modal al abrir
+function abrirModalIngresarID() {
+  const padres = obtenerPadresConCombinaciones();
+  const tbody = document.getElementById("tablaIngresarID");
+  tbody.innerHTML = "";
+
+  if (padres.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No se encontraron padres de combinaciones.</td></tr>`;
+    return;
+  }
+
+  padres.forEach(codigo => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${codigo}</td>
+      <td><input type="text" class="form-control form-control-sm" data-codigo="${codigo}" placeholder="Ej: 1234"></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Guarda IDs y los propaga a hijos
+function guardarIDsAsignados() {
+  const inputs = document.querySelectorAll("#tablaIngresarID input");
+  inputs.forEach(input => {
+    const id = input.value.trim();
+    const codigoPadre = input.dataset.codigo;
+    if (!id) return;
+
+    // Padre e hijos que compartan el prefijo reciben el mismo prestashop_id
+    [...datosOriginales, ...datosCombinaciones].forEach(row => {
+      const codigo = extraerCodigo(row);
+      if (!codigo) return;
+
+      const prefijo = prefijoPadre(codigo);
+      const padreEsperado = `${prefijo}000`;
+
+      if (padreEsperado === codigoPadre || codigo === codigoPadre) {
+        row["prestashop_id"] = id; // sobrescribe padre e hijos
+      }
+    });
+  });
+
+  alert("IDs asignados a padres e hijos correctamente.");
+}
+
+// Eventos
+document.addEventListener("DOMContentLoaded", () => {
+  const guardarBtn = document.getElementById("guardarIDs");
+  if (guardarBtn) {
+    guardarBtn.addEventListener("click", guardarIDsAsignados);
+  }
+});
+
+//V 1.7
