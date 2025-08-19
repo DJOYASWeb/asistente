@@ -1088,24 +1088,15 @@ document.addEventListener('click', async (e) => {
 
 // === BOTÓN INGRESAR ID ===
 
-// Detectar padres con combinaciones
-function obtenerPadresConCombinaciones() {
-  const padres = new Map();
-  [...datosCombinaciones].forEach(row => {
-    const codigo = extraerCodigo(row);
-    const prefijo = prefijoPadre(codigo);
-    if (!prefijo) return;
-    const codigoPadre = `${prefijo}000`;
-    padres.set(codigoPadre, codigoPadre);
-  });
-  return Array.from(padres.values());
-}
-
-// Mostrar tabla en modal
-function prepararModalIngresarID() {
+function abrirModalIngresarID() {
   const padres = obtenerPadresConCombinaciones();
   const tbody = document.getElementById("tablaIngresarID");
   tbody.innerHTML = "";
+
+  if (padres.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No hay combinaciones cargadas.</td></tr>`;
+    return;
+  }
 
   padres.forEach(codigo => {
     const tr = document.createElement("tr");
@@ -1117,57 +1108,6 @@ function prepararModalIngresarID() {
   });
 }
 
-// Guardar IDs y propagar a hijos
-function guardarIDsAsignados() {
-  const inputs = document.querySelectorAll("#tablaIngresarID input");
-  inputs.forEach(input => {
-    const id = input.value.trim();
-    const codigoPadre = input.dataset.codigo;
-    if (!id) return;
-
-    // Padre
-    [...datosOriginales, ...datosCombinaciones].forEach(row => {
-      const codigo = extraerCodigo(row);
-      if (!codigo) return;
-
-      const prefijo = prefijoPadre(codigo);
-      const padreEsperado = `${prefijo}000`;
-
-      if (padreEsperado === codigoPadre || codigo === codigoPadre) {
-        row["prestashop_id"] = id; // sobrescribe padre e hijos
-      }
-    });
-  });
-
-  alert("IDs asignados a padres e hijos correctamente.");
-}
-
-// Eventos
-document.addEventListener("DOMContentLoaded", () => {
-  const btnIngresarID = document.getElementById("btnIngresarID");
-  const modal = document.getElementById("modalIngresarID");
-  const guardarBtn = document.getElementById("guardarIDs");
-
-  if (btnIngresarID && modal) {
-    modal.addEventListener("show.bs.modal", prepararModalIngresarID);
-  }
-  if (guardarBtn) {
-    guardarBtn.addEventListener("click", guardarIDsAsignados);
-  }
-});
-
-// Mostrar botón solo si hay combinaciones
-function evaluarBotonIngresarID() {
-  const btn = document.getElementById("btnIngresarID");
-  if (!btn) return;
-  if (datosCombinaciones.length > 0) {
-    btn.classList.remove("d-none");
-  } else {
-    btn.classList.add("d-none");
-  }
-}
 
 
-
-
-//V 1.4
+//V 1.5
