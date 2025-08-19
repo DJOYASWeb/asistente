@@ -527,6 +527,7 @@ tipoSeleccionado = "todo";
 datosFiltrados = [...datosOriginales, ...datosCombinaciones];
 document.getElementById("botonesTipo").classList.remove("d-none");
 renderTablaConOrden(datosFiltrados);
+evaluarBotonIngresarID();
   };
   reader.readAsArrayBuffer(file);
 }
