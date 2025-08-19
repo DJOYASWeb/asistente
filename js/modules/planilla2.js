@@ -1088,24 +1088,45 @@ document.addEventListener('click', async (e) => {
 // === BOTÓN INGRESAR ID ===
 
 function abrirModalIngresarID() {
-  const padres = obtenerPadresConCombinaciones();
+  const padres = obtenerPadresDesdeSKUs();
   const tbody = document.getElementById("tablaIngresarID");
   tbody.innerHTML = "";
 
   if (padres.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No hay combinaciones cargadas.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No se encontraron padres en los SKUs cargados.</td></tr>`;
     return;
   }
 
   padres.forEach(codigo => {
+    // Buscar un hijo o padre que ya tenga prestashop_id
+    let idExistente = "";
+    [...datosOriginales, ...datosCombinaciones].forEach(row => {
+      const codigoRow = extraerCodigo(row);
+      if (!codigoRow) return;
+      const prefijo = prefijoPadre(codigoRow);
+      const padreEsperado = `${prefijo}000`;
+
+      if (padreEsperado === codigo) {
+        if (row["prestashop_id"]) {
+          idExistente = row["prestashop_id"];
+        }
+      }
+    });
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${codigo}</td>
-      <td><input type="text" class="form-control form-control-sm" data-codigo="${codigo}" placeholder="Ej: 1234"></td>
+      <td>
+        <input type="text" class="form-control form-control-sm"
+               data-codigo="${codigo}" 
+               value="${idExistente}" 
+               placeholder="Ej: 1234">
+      </td>
     `;
     tbody.appendChild(tr);
   });
 }
+
 
 // === INGRESAR ID PADRES ===
 
@@ -1187,4 +1208,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.8
+//V 1.9
