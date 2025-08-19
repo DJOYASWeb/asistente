@@ -136,7 +136,7 @@ document.getElementById('exportarCSV').addEventListener('click', () => {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "contactos_seleccionados.csv";
+    link.download = "CargaBrevo_Clientas.csv";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -474,7 +474,7 @@ document.getElementById('exportarClientas').addEventListener('click', () => {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "clientas_seleccionadas.csv";
+    link.download = "CargaWeb_Clientas.csv";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -495,4 +495,4 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v1.3
+// upd v1.4
