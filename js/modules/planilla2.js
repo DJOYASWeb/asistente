@@ -1084,64 +1084,18 @@ document.addEventListener('click', async (e) => {
 })();
 
 
-
-// === BOTÓN INGRESAR ID ===
-
-function abrirModalIngresarID() {
-  const padres = obtenerPadresDesdeSKUs();
-  const tbody = document.getElementById("tablaIngresarID");
-  tbody.innerHTML = "";
-
-  if (padres.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No se encontraron padres en los SKUs cargados.</td></tr>`;
-    return;
-  }
-
-  padres.forEach(codigo => {
-    // Buscar un hijo o padre que ya tenga prestashop_id
-    let idExistente = "";
-    [...datosOriginales, ...datosCombinaciones].forEach(row => {
-      const codigoRow = extraerCodigo(row);
-      if (!codigoRow) return;
-      const prefijo = prefijoPadre(codigoRow);
-      const padreEsperado = `${prefijo}000`;
-
-      if (padreEsperado === codigo) {
-        if (row["prestashop_id"]) {
-          idExistente = row["prestashop_id"];
-        }
-      }
-    });
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${codigo}</td>
-      <td>
-        <input type="text" class="form-control form-control-sm"
-               data-codigo="${codigo}" 
-               value="${idExistente}" 
-               placeholder="Ej: 1234">
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-
 // === INGRESAR ID PADRES ===
 
-// Detecta los códigos padres (terminados en ...000) según combinaciones
+// Detecta los códigos padres (terminados en ...000) a partir de TODOS los SKUs cargados
 function obtenerPadresDesdeSKUs() {
   const padres = new Map();
 
-  // Unimos todos los registros cargados
   const todos = [...datosOriginales, ...datosCombinaciones];
 
   todos.forEach(row => {
     const codigo = extraerCodigo(row);
     if (!codigo) return;
 
-    // prefijo = todo menos los últimos 3
     const prefijo = prefijoPadre(codigo);
     if (!prefijo) return;
 
@@ -1152,8 +1106,7 @@ function obtenerPadresDesdeSKUs() {
   return Array.from(padres.values());
 }
 
-
-// Construye la tabla del modal al abrir
+// Construye la tabla del modal (precargando IDs si ya existen)
 function abrirModalIngresarID() {
   const padres = obtenerPadresDesdeSKUs();
   const tbody = document.getElementById("tablaIngresarID");
@@ -1164,18 +1117,38 @@ function abrirModalIngresarID() {
     return;
   }
 
-  padres.forEach(codigo => {
+  padres.forEach(codigoPadre => {
+    let idExistente = "";
+
+    // Buscar en padre e hijos si ya existe un prestashop_id
+    [...datosOriginales, ...datosCombinaciones].forEach(row => {
+      const codigoRow = extraerCodigo(row);
+      if (!codigoRow) return;
+      const prefijo = prefijoPadre(codigoRow);
+      const padreEsperado = `${prefijo}000`;
+
+      if (padreEsperado === codigoPadre || codigoRow === codigoPadre) {
+        if (row["prestashop_id"]) {
+          idExistente = row["prestashop_id"]; // siempre se queda con el último encontrado
+        }
+      }
+    });
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${codigo}</td>
-      <td><input type="text" class="form-control form-control-sm" data-codigo="${codigo}" placeholder="Ej: 1234"></td>
+      <td>${codigoPadre}</td>
+      <td>
+        <input type="text" class="form-control form-control-sm"
+               data-codigo="${codigoPadre}" 
+               value="${idExistente}" 
+               placeholder="Ej: 1234">
+      </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-
-// Guarda IDs y los propaga a hijos
+// Guarda IDs y los propaga a todos los hijos + padre
 function guardarIDsAsignados() {
   const inputs = document.querySelectorAll("#tablaIngresarID input");
   inputs.forEach(input => {
@@ -1183,7 +1156,7 @@ function guardarIDsAsignados() {
     const codigoPadre = input.dataset.codigo;
     if (!id) return;
 
-    // Padre e hijos que compartan el prefijo reciben el mismo prestashop_id
+    // Asignamos en padre e hijos que compartan el prefijo
     [...datosOriginales, ...datosCombinaciones].forEach(row => {
       const codigo = extraerCodigo(row);
       if (!codigo) return;
@@ -1192,12 +1165,17 @@ function guardarIDsAsignados() {
       const padreEsperado = `${prefijo}000`;
 
       if (padreEsperado === codigoPadre || codigo === codigoPadre) {
-        row["prestashop_id"] = id; // sobrescribe padre e hijos
+        row["prestashop_id"] = id; // siempre sobrescribe
       }
     });
   });
 
-  alert("IDs asignados a padres e hijos correctamente.");
+  alert("IDs asignados/actualizados correctamente.");
+
+  // 🔄 Refrescar la tabla de preview para ver cambios
+  if (Array.isArray(datosFiltrados) && datosFiltrados.length > 0) {
+    renderTablaConOrden(datosFiltrados);
+  }
 }
 
 // Eventos
@@ -1208,4 +1186,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.9
+//V 2
