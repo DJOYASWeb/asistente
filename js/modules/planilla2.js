@@ -1170,18 +1170,31 @@ document.addEventListener("click", e => {
   const codigo = td.dataset.codigo;
   if (!codigo) return;
 
+  // Copiar al portapapeles
   navigator.clipboard.writeText(codigo).then(() => {
-    // Feedback visual rápido
+    // Primero, limpiar estilos de otros
+    document.querySelectorAll(".codigo-padre").forEach(el => {
+      el.classList.remove("bg-success", "text-white");
+    });
+
+    // Marcar el actual
     td.classList.add("bg-success", "text-white");
-    td.innerText = codigo + " ✅";
-    setTimeout(() => {
-      td.classList.remove("bg-success", "text-white");
-      td.innerText = codigo;
-    }, 1500);
+
+    console.log(`Código ${codigo} copiado al portapapeles ✅`);
   }).catch(err => {
     console.error("No se pudo copiar al portapapeles", err);
     alert("No se pudo copiar al portapapeles");
   });
+});
+
+// Quitar el verde si haces clic fuera
+document.addEventListener("click", e => {
+  const inside = e.target.closest(".codigo-padre");
+  if (!inside) {
+    document.querySelectorAll(".codigo-padre").forEach(el => {
+      el.classList.remove("bg-success", "text-white");
+    });
+  }
 });
 
 
@@ -1223,4 +1236,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 2.2
+//V 2.3
