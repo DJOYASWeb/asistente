@@ -1100,11 +1100,22 @@ function obtenerPadresDesdeSKUs() {
     if (!prefijo) return;
 
     const codigoPadre = `${prefijo}000`;
-    padres.set(codigoPadre, codigoPadre);
+
+    // ⚡ Verificamos si realmente hay hijos con este prefijo
+    const tieneHijos = todos.some(r => {
+      const codHijo = extraerCodigo(r);
+      if (!codHijo) return false;
+      return prefijoPadre(codHijo) === prefijo && !codHijo.endsWith("000");
+    });
+
+    if (tieneHijos) {
+      padres.set(codigoPadre, codigoPadre);
+    }
   });
 
   return Array.from(padres.values());
 }
+
 
 // Construye la tabla del modal (precargando IDs si ya existen)
 function abrirModalIngresarID() {
@@ -1212,4 +1223,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 2.1
+//V 2.2
