@@ -258,7 +258,10 @@ document.addEventListener('click', function(e) {
 function mostrarModalHTML(contenidoHTML) {
   const body = `
     <h5 class="mb-3">📋 Código HTML generado</h5>
-    <pre id="modalContenido" style="white-space:pre-wrap; background:#f9f9f9; padding:1rem; border-radius:10px;">${contenidoHTML}</pre>
+    <pre id="modalContenido" 
+         style="white-space:pre-wrap; background:#f9f9f9; padding:1rem; border-radius:10px;">
+${contenidoHTML}
+    </pre>
     <button class="btn btn-primary mt-3" onclick="copiarAlPortapapeles()">📎 Copiar HTML</button>
   `;
   abrirModalBase(body);
@@ -451,6 +454,19 @@ function cerrarModalBase() {
   document.getElementById("modalBaseBody").innerHTML = "";
 }
 
+// Permite cerrar al hacer clic fuera
+document.getElementById("modalBase").addEventListener("click", (e) => {
+  if (e.target.id === "modalBase") {
+    cerrarModalBase();
+  }
+});
+
+
+function cerrarModalBase() {
+  document.getElementById("modalBase").style.display = "none";
+  document.getElementById("modalBaseBody").innerHTML = "";
+}
+
 // Cerrar modal al hacer clic fuera
 document.getElementById("modalBase").addEventListener("click", (e) => {
   if (e.target.id === "modalBase") {
@@ -460,4 +476,4 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 
 
 
-//upd v.1
+//upd v.1.2
