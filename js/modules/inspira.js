@@ -209,19 +209,8 @@ async function generarBloqueContenido() {
 }
 
 function mostrarModalFormularioInfluencer() {
-  const modal = document.createElement("div");
-  modal.id = "modalCodigoHTML";
-  modal.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center;";
-
-  modal.innerHTML = `
-  <div style="background:white; max-width:600px; padding:2rem; border-radius:16px; position:relative; width:90%; max-height:90vh; overflow:auto;">
-    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="document.getElementById('modalCodigoHTML').remove()"></button>
+  const body = `
     <h5 class="mb-3">💫 Crear tarjeta de Influencer</h5>
-    <div id="formularioInfluencer"></div>
-  </div>`;
-
-  document.body.appendChild(modal);
-  document.getElementById("formularioInfluencer").innerHTML = `
     <div class="mb-3">
       <label>Nombre de usuario</label>
       <input type="text" class="form-control" id="influencerNombre" placeholder="@ejemplo">
@@ -234,8 +223,11 @@ function mostrarModalFormularioInfluencer() {
       <label>Categoría</label>
       <input type="text" class="form-control" id="influencerCategoria" placeholder="Ej: Marketing">
     </div>
-    <button class="btn btn-primary mt-2" onclick="generarHTMLInfluencer()">✨ Generar HTML</button>`;
+    <button class="btn btn-primary mt-2" onclick="generarHTMLInfluencer()">✨ Generar HTML</button>
+  `;
+  abrirModalBase(body);
 }
+
 
 function generarHTMLInfluencer() {
   const nombre = document.getElementById("influencerNombre").value.trim();
@@ -245,14 +237,14 @@ function generarHTMLInfluencer() {
   const link = `https://www.instagram.com/${username}/`;
 
   const html = `<li class="card persona no-modal">
-  <a href="${link}" target="_blank">
-    <img class="avatar" src="${img}" alt="Influencer ${nombre}" />
-  </a>
-  <h3><a href="${link}" target="_blank">${nombre}</a></h3>
-  <span>${categoria}</span>
-</li>`;
+    <a href="${link}" target="_blank">
+      <img class="avatar" src="${img}" alt="Influencer ${nombre}" />
+    </a>
+    <h3><a href="${link}" target="_blank">${nombre}</a></h3>
+    <span>${categoria}</span>
+  </li>`;
 
-  document.getElementById("modalCodigoHTML").remove();
+  cerrarModalBase();
   mostrarModalHTML(html);
 }
 
@@ -264,56 +256,23 @@ document.addEventListener('click', function(e) {
 });
 
 function mostrarModalHTML(contenidoHTML) {
-  const modal = document.createElement("div");
-  modal.id = "modalCodigoHTML";
-  modal.style.cssText = `
-    position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.6); z-index:9999;
-    display:flex; align-items:center; justify-content:center;`;
-
-  const inner = document.createElement("div");
-  inner.style.cssText = `
-    background:white; max-width:800px; padding:2rem;
-    border-radius:16px; position:relative;
-    width:90%; max-height:90vh; overflow:auto;`;
-
-  const btn = document.createElement("button");
-  btn.className = "btn-close position-absolute end-0 top-0 m-3";
-  btn.onclick = () => modal.remove();
-
-  const titulo = document.createElement("h5");
-  titulo.className = "mb-3";
-  titulo.textContent = "📋 Código HTML generado";
-
-  const pre = document.createElement("pre");
-  pre.id = "modalContenido";
-  pre.style = "white-space:pre-wrap; background:#f9f9f9; padding:1rem; border-radius:10px;";
-  pre.textContent = contenidoHTML;
-
-  const copiar = document.createElement("button");
-  copiar.className = "btn btn-primary mt-3";
-  copiar.textContent = "📎 Copiar HTML";
-  copiar.onclick = copiarAlPortapapeles;
-
-  inner.appendChild(btn);
-  inner.appendChild(titulo);
-  inner.appendChild(pre);
-  inner.appendChild(copiar);
-  modal.appendChild(inner);
-  document.body.appendChild(modal);
+  const body = `
+    <h5 class="mb-3">📋 Código HTML generado</h5>
+    <pre id="modalContenido" style="white-space:pre-wrap; background:#f9f9f9; padding:1rem; border-radius:10px;">${contenidoHTML}</pre>
+    <button class="btn btn-primary mt-3" onclick="copiarAlPortapapeles()">📎 Copiar HTML</button>
+  `;
+  abrirModalBase(body);
 }
+
 
 function copiarAlPortapapeles() {
   const texto = document.getElementById("modalContenido").textContent;
   navigator.clipboard.writeText(texto).then(() => {
-    alert("¡Código HTML copiado al portapapeles!");
+    mostrarNotificacion("Código HTML copiado al portapapeles", "exito");
+  }).catch(() => {
+    mostrarNotificacion("No se pudo copiar el código", "error");
   });
 }
-
-
-
-
-
 
 
 
@@ -482,7 +441,23 @@ function cerrarModalAgregarRecurso() {
 
 
 
+function abrirModalBase(contenidoHTML) {
+  document.getElementById("modalBaseBody").innerHTML = contenidoHTML;
+  document.getElementById("modalBase").style.display = "flex";
+}
+
+function cerrarModalBase() {
+  document.getElementById("modalBase").style.display = "none";
+  document.getElementById("modalBaseBody").innerHTML = "";
+}
+
+// Cerrar modal al hacer clic fuera
+document.getElementById("modalBase").addEventListener("click", (e) => {
+  if (e.target.id === "modalBase") {
+    cerrarModalBase();
+  }
+});
 
 
 
-//upd v.3
+//upd v.1
