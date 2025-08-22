@@ -12,6 +12,8 @@ window.addEventListener('load', () => {
   });
 });
 
+
+
 function showTab(tab) {
   const tabs = ['contenidos', 'recursos', 'ingreso'];
   tabs.forEach(t => {
@@ -25,6 +27,13 @@ function showTab(tab) {
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
+
+function killLegacyModal() {
+  const legacy = document.getElementById("modalCodigoHTML");
+  if (legacy) legacy.remove();
+}
+
+
 
 function showIosModal(title, message) {
   document.getElementById('iosModalTitle').textContent = title;
@@ -476,4 +485,4 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 
 
 
-//upd v.1.2
+//upd v.1.3
