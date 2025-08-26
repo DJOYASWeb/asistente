@@ -549,28 +549,43 @@ function construirCaracteristicas(row) {
   const partes = [];
   if (modelo)    partes.push(`Modelo: ${modelo}`);
 
-  if (dimension) {
-    String(dimension)
-      .split(",")
-      .map(p => p.trim())
-      .filter(Boolean)
-      .forEach(part => {
-        let ajustado = part;
+if (dimension) {
+  String(dimension)
+    .split(",")
+    .map(p => p.trim())
+    .filter(Boolean)
+    .forEach(part => {
+      // 👇 Si contiene un "+", lo separamos
+      if (part.includes("+")) {
+        const trozos = part.split("+").map(x => x.trim());
 
-        if (ajustado.includes(":")) {
-          // Cambiamos ":" por " = "
-          ajustado = ajustado.replace(/:\s*/, " - ");
-        } else {
-          // Si no tiene ":", intentamos separar en 2 partes por el último espacio
-          const match = ajustado.match(/^(.+?)\s+([\d\w\+\s]+)$/);
-          if (match && isNaN(match[1])) {
-            ajustado = `${match[1]} = ${match[2]}`;
-          }
+        // Primer trozo → lo tratamos como Largo
+        if (trozos[0]) {
+          partes.push(`Dimensión: Largo ${trozos[0]}`);
         }
 
+        // Segundo trozo → lo tratamos como Alargue
+        if (trozos[1]) {
+          // aseguramos que la palabra "Alargue" quede adelante
+          const alargue = trozos[1].replace(/^(\d+\s*cm)/i, "Alargue $1");
+          partes.push(`Dimensión: ${alargue}`);
+        }
+      } else {
+        // Resto de la lógica normal (espacio simple, sin "=")
+        let ajustado = part;
+        if (ajustado.includes(":")) {
+          ajustado = ajustado.replace(/:\s*/, " ");
+        } else {
+          const match = ajustado.match(/^(.+?)\s+([\d\w\+\s]+)$/);
+          if (match && isNaN(match[1])) {
+            ajustado = `${match[1]} ${match[2]}`;
+          }
+        }
         partes.push(`Dimensión: ${ajustado}`);
-      });
-  }
+      }
+    });
+}
+
 
   if (peso)      partes.push(`Peso: ${peso}`);
   if (material)  partes.push(`Material: ${material}`);
@@ -1236,4 +1251,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 2.3
+//V 1.2
