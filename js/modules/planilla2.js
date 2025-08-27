@@ -532,6 +532,7 @@ renderTablaConOrden(datosFiltrados);
 }
 
 // --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
+// --- Características (con manejo especial de Dimensión) ---
 function construirCaracteristicas(row) {
   const getField = (preferKeys, includeText) => {
     const valExact = firstNonEmpty(row, preferKeys);
@@ -539,6 +540,34 @@ function construirCaracteristicas(row) {
     const k = detectarColumnaQueIncluye(row, includeText);
     return k ? (row[k] ?? "").toString().trim() : "";
   };
+
+  // Helpers para DIMENSIÓN
+  const limpiarSeparadores = (s) => s.replace(/\s*:\s*/g, " ").replace(/\s+/g, " ").trim();
+
+  const normalizarEtiquetaYValor = (texto, etiquetaPorDefecto = "") => {
+    let t = limpiarSeparadores(texto);
+
+    // Quitar "de Alargue" si aparece
+    t = t.replace(/\s*de\s*alargue\b/i, "").trim();
+
+    // Si ya viene con etiqueta conocida, la respetamos
+    const mEtiquetaPrimero = t.match(/^(largo|ancho|alto|di[aá]metro|circunferencia|alargue)\b\s*(.*)$/i);
+    if (mEtiquetaPrimero) {
+      const etiqueta = mEtiquetaPrimero[1];
+      const valor = mEtiquetaPrimero[2].trim();
+      return `${capitalizar(etiqueta)} ${valor}`;
+    }
+
+    // Si viene solo el valor, aplicamos etiqueta por defecto (si existe)
+    if (etiquetaPorDefecto) {
+      return `${etiquetaPorDefecto} ${t}`;
+    }
+
+    // Sin etiqueta conocida ni por defecto → devolver como está, solo normalizado
+    return t;
+  };
+
+  const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
   const modelo     = getField(["modelo", "Modelo"], "modelo");
   const material   = getField(["procucto_material"], "material");
@@ -549,43 +578,33 @@ function construirCaracteristicas(row) {
   const partes = [];
   if (modelo)    partes.push(`Modelo: ${modelo}`);
 
-if (dimension) {
-  String(dimension)
-    .split(",")
-    .map(p => p.trim())
-    .filter(Boolean)
-    .forEach(part => {
-      // 👇 Si contiene un "+", lo separamos
-      if (part.includes("+")) {
-        const trozos = part.split("+").map(x => x.trim());
+  // ⬇️ DIMENSIÓN (sin "=" y con soporte para "X cm + Y cm de Alargue")
+  if (dimension) {
+    String(dimension)
+      .split(",")
+      .map(p => p.trim())
+      .filter(Boolean)
+      .forEach(part => {
+        // Caso especial con "+"
+        if (part.includes("+")) {
+          const trozos = part.split("+").map(x => x.trim());
 
-        // Primer trozo → lo tratamos como Largo
-        if (trozos[0]) {
-          partes.push(`Dimensión: Largo ${trozos[0]}`);
-        }
-
-        // Segundo trozo → lo tratamos como Alargue
-        if (trozos[1]) {
-          // aseguramos que la palabra "Alargue" quede adelante
-          const alargue = trozos[1].replace(/^(\d+\s*cm)/i, "Alargue $1");
-          partes.push(`Dimensión: ${alargue}`);
-        }
-      } else {
-        // Resto de la lógica normal (espacio simple, sin "=")
-        let ajustado = part;
-        if (ajustado.includes(":")) {
-          ajustado = ajustado.replace(/:\s*/, " ");
-        } else {
-          const match = ajustado.match(/^(.+?)\s+([\d\w\+\s]+)$/);
-          if (match && isNaN(match[1])) {
-            ajustado = `${match[1]} ${match[2]}`;
+          if (trozos[0]) {
+            const largoFmt = normalizarEtiquetaYValor(trozos[0], "Largo");
+            partes.push(`Dimensión: ${largoFmt}`);
           }
+          if (trozos[1]) {
+            const alargueFmt = normalizarEtiquetaYValor(trozos[1], "Alargue");
+            partes.push(`Dimensión: ${alargueFmt}`);
+          }
+          return;
         }
-        partes.push(`Dimensión: ${ajustado}`);
-      }
-    });
-}
 
+        // Caso normal: reemplazar ":" por espacio y nunca usar "="
+        const ajustado = normalizarEtiquetaYValor(part);
+        partes.push(`Dimensión: ${ajustado}`);
+      });
+  }
 
   if (peso)      partes.push(`Peso: ${peso}`);
   if (material)  partes.push(`Material: ${material}`);
@@ -1251,4 +1270,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.2
+//V 1.3
