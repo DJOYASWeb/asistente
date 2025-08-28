@@ -127,6 +127,18 @@ function attachNav(){
 }
 $$("input[name='ent']").forEach(r=> r.onchange = updateSteps);
 
+/* ===================== Acordeones ===================== */
+function initAccordions(scope=document){
+  scope.querySelectorAll(".accordion .acc-head").forEach(h=>{
+    h.onclick = ()=>{
+      const acc = h.parentElement;
+      acc.classList.toggle("open");
+      const icon = h.querySelector(".acc-icon");
+      if(icon) icon.textContent = acc.classList.contains("open") ? "−" : "+";
+    };
+  });
+}
+
 /* ===================== Summary live (barra) ===================== */
 function addChip(container, txt){
   const s = document.createElement("span");
@@ -195,15 +207,13 @@ function buildSummaryBar(){
     const lim = $("#car_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
 }
-// escuchar cambios para refrescar barra
-document.addEventListener("input", (e)=>{ buildSummaryBar(); });
-document.addEventListener("change",(e)=>{ buildSummaryBar(); });
+// refrescar barra al cambiar cualquier cosa
+document.addEventListener("input", buildSummaryBar);
+document.addEventListener("change", buildSummaryBar);
 
 /* ===================== Resumen final (paso 4) ===================== */
 function buildResumenFinal(){
-  const cont = $("#resumenFinal");
-  cont.innerHTML = "";
-  cont.innerHTML = $("#summaryBar").innerHTML;
+  $("#resumenFinal").innerHTML = $("#summaryBar").innerHTML;
 }
 
 /* ===================== SQL GENERATORS ===================== */
@@ -478,16 +488,13 @@ function sql_carros(){
   sql += "LEFT JOIN ps_address AS addr ON addr.id_address = carrito.id_address_delivery\n";
   sql += "LEFT JOIN ps_cart_product AS cpd ON cpd.id_cart = carrito.id_cart\n";
   sql += "LEFT JOIN ps_product AS productos ON productos.id_product = cpd.id_product\n";
-
-  // Abandonados = carritos sin pedido asociado
   sql += "LEFT JOIN ps_orders AS pedidos ON pedidos.id_cart = carrito.id_cart\n";
 
-  const where = ["pedidos.id_order IS NULL"]; // no concretaron pedido
+  const where = ["pedidos.id_order IS NULL"]; // sin pedido asociado (abandonados)
   if($("#car_desde").value) where.push(`carrito.date_add >= '${$("#car_desde").value}'`);
   if($("#car_hasta").value) where.push(`carrito.date_add <= '${$("#car_hasta").value}'`);
   if(where.length) sql += "WHERE\n  " + where.join("\n  AND ") + "\n";
 
-  // agregados si se seleccionaron totales
   if(has("total_productos") || has("valor_total_carrito")){
     sql += "GROUP BY carrito.id_cart, clientes.firstname, clientes.lastname, clientes.email, addr.phone, addr.city, carrito.date_add, carrito.date_upd\n";
   }
@@ -518,6 +525,8 @@ function generarSQL(){
 function attachMain(){
   // navegación
   attachNav();
+  // acordeones (toda la página)
+  initAccordions(document);
   // generar/copiar
   $("#generar").onclick = ()=>{ $("#salida").textContent = generarSQL(); buildResumenFinal(); };
   $("#copiar").onclick = async ()=>{ try{ await navigator.clipboard.writeText($("#salida").textContent); alert("Consulta copiada ✅"); }catch(e){ alert("No se pudo copiar automáticamente"); } };

@@ -67,7 +67,7 @@
 <div class="container">
 
 <div class="wrap">
-  <h1>Generador de Consultas · Wizard (Maestros)</h1>
+  <h1>Generador de Consultas · Wizard (Maestros + Filtros con acordeón)</h1>
 
   <!-- Pasos -->
   <div class="steps" id="stepPills">
@@ -153,150 +153,314 @@
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
-  <!-- PASO 3: FILTROS (bloques por entidad) -->
+  <!-- PASO 3: FILTROS (bloques por entidad, con acordeones) -->
+  <!-- CLIENTES -->
   <div class="card step hidden" data-step="3" id="stepFiltros_clientes">
     <p class="title">3) Filtros · Clientes</p>
-    <div class="row">
-      <label class="big"><input type="checkbox" id="cli_activos"> Solo activos</label>
-      <label class="big"><input type="checkbox" id="cli_tiene_compras"> Solo con compras</label>
-    </div>
-    <div class="row">
-      <div><label class="muted">Fecha de registro</label><br><div class="row"><input type="date" id="cli_reg_desde"> <input type="date" id="cli_reg_hasta"></div></div>
-      <div><label class="muted">Rango de cantidad de pedidos</label><br><div class="row"><input type="number" id="cli_pedidos_min" placeholder="Mín" style="max-width:120px"><input type="number" id="cli_pedidos_max" placeholder="Máx" style="max-width:120px"></div></div>
-    </div>
-    <div class="row">
-      <div style="flex:1"><label class="muted">Correos (uno por línea)</label><br><textarea id="cli_correos" placeholder="cliente@dominio.cl"></textarea></div>
-      <div style="flex:1"><label class="muted">RUTs (uno por línea)</label><br><textarea id="cli_ruts" placeholder="11.111.111-1"></textarea></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div><label class="muted">Orden</label><br>
-        <select id="cli_orden_campo">
-          <option value="clientes.date_add">Más recientes</option>
-          <option value="ultima_compra">Última compra</option>
-          <option value="cant_pedidos">Cantidad de pedidos</option>
-          <option value="monto_total">Monto total</option>
-        </select>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Estado</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <label class="big"><input type="checkbox" id="cli_activos"> Solo activos</label>
+        <label class="big"><input type="checkbox" id="cli_tiene_compras"> Solo con compras</label>
       </div>
-      <div><label class="muted">Dirección</label><br><select id="cli_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
-      <div><label class="muted">Límite (opcional)</label><br><input type="number" id="cli_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
     </div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Fecha de registro</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row"><input type="date" id="cli_reg_desde"> <input type="date" id="cli_reg_hasta"></div>
+        <div class="hint">Opcional: filtra clientes registrados entre dos fechas.</div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Cantidad de pedidos</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <input type="number" id="cli_pedidos_min" placeholder="Mín" style="max-width:140px">
+          <input type="number" id="cli_pedidos_max" placeholder="Máx" style="max-width:140px">
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Listas específicas</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div style="flex:1">
+            <label class="muted">Correos (uno por línea)</label>
+            <textarea id="cli_correos" placeholder="cliente1@dominio.cl&#10;cliente2@dominio.cl"></textarea>
+          </div>
+          <div style="flex:1">
+            <label class="muted">RUTs (uno por línea)</label>
+            <textarea id="cli_ruts" placeholder="11.111.111-1&#10;22.222.222-2"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion open">
+      <div class="acc-head"><span class="acc-title">Orden y límite</span><span class="acc-icon">−</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div><label class="muted">Orden</label><br>
+            <select id="cli_orden_campo">
+              <option value="clientes.date_add">Más recientes</option>
+              <option value="ultima_compra">Última compra</option>
+              <option value="cant_pedidos">Cantidad de pedidos</option>
+              <option value="monto_total">Monto total</option>
+            </select>
+          </div>
+          <div><label class="muted">Dirección</label><br>
+            <select id="cli_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select>
+          </div>
+          <div><label class="muted">Límite (opcional)</label><br>
+            <input type="number" id="cli_limite" placeholder="ej. 50" min="1" style="max-width:140px">
+            <div class="muted">Vacío = sin límite</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
+  <!-- PRODUCTOS -->
   <div class="card step hidden" data-step="3" id="stepFiltros_productos">
     <p class="title">3) Filtros · Productos</p>
-    <div class="row">
-      <label class="big"><input type="checkbox" id="pro_activos"> Solo activos</label>
-      <label class="big"><input type="checkbox" id="pro_stock_pos"> Con stock &gt; 0</label>
-    </div>
-    <div class="row">
-      <div><label class="muted">Fecha de creación</label><br><div class="row"><input type="date" id="pro_fecha_desde"> <input type="date" id="pro_fecha_hasta"></div></div>
-      <div><label class="muted">Unidades vendidas (rango opcional)</label><br><div class="row"><input type="date" id="pro_ventas_desde"> <input type="date" id="pro_ventas_hasta"></div><label class="big" style="margin-top:6px"><input type="checkbox" id="pro_incluir_ventas"> Incluir columna “unidades_vendidas”</label></div>
-    </div>
-    <div class="row">
-      <div style="flex:1"><label class="muted">IDs (uno por línea)</label><br><textarea id="pro_ids" placeholder="123&#10;456"></textarea></div>
-      <div style="flex:1"><label class="muted">SKUs / reference (uno por línea)</label><br><textarea id="pro_skus" placeholder="SKU-001"></textarea></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div><label class="muted">Orden</label><br>
-        <select id="pro_orden_campo">
-          <option value="productos.date_add">Más recientes</option>
-          <option value="stock.quantity">Stock</option>
-          <option value="precio">Precio</option>
-          <option value="unidades_vendidas">Unidades vendidas</option>
-        </select>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Estado / Stock</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <label class="big"><input type="checkbox" id="pro_activos"> Solo activos</label>
+        <label class="big"><input type="checkbox" id="pro_stock_pos"> Con stock &gt; 0</label>
       </div>
-      <div><label class="muted">Dirección</label><br><select id="pro_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
-      <div><label class="muted">Límite (opcional)</label><br><input type="number" id="pro_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
     </div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Fechas</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <label class="muted">Fecha de creación:</label>
+        <div class="row"><input type="date" id="pro_fecha_desde"> <input type="date" id="pro_fecha_hasta"></div>
+        <div class="row" style="margin-top:10px">
+          <div>
+            <label class="muted">Rango para unidades vendidas (opcional)</label>
+            <div class="row"><input type="date" id="pro_ventas_desde"> <input type="date" id="pro_ventas_hasta"></div>
+            <label class="big" style="margin-top:6px"><input type="checkbox" id="pro_incluir_ventas"> Incluir columna “unidades_vendidas”</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Listas específicas</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div style="flex:1"><label class="muted">IDs (uno por línea)</label><textarea id="pro_ids" placeholder="123&#10;456"></textarea></div>
+          <div style="flex:1"><label class="muted">SKUs / reference (uno por línea)</label><textarea id="pro_skus" placeholder="SKU-001"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion open">
+      <div class="acc-head"><span class="acc-title">Orden y límite</span><span class="acc-icon">−</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div><label class="muted">Orden</label><br>
+            <select id="pro_orden_campo">
+              <option value="productos.date_add">Más recientes</option>
+              <option value="stock.quantity">Stock</option>
+              <option value="precio">Precio</option>
+              <option value="unidades_vendidas">Unidades vendidas</option>
+            </select>
+          </div>
+          <div><label class="muted">Dirección</label><br><select id="pro_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
+          <div><label class="muted">Límite (opcional)</label><br><input type="number" id="pro_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+        </div>
+      </div>
+    </div>
+
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
+  <!-- PEDIDOS -->
   <div class="card step hidden" data-step="3" id="stepFiltros_pedidos">
     <p class="title">3) Filtros · Pedidos</p>
-    <div class="row">
-      <div><label class="muted">Fecha del pedido</label><br><div class="row"><input type="date" id="ped_fecha_desde"> <input type="date" id="ped_fecha_hasta"></div></div>
-      <div><label class="muted">Buscar pedidos que incluyan el producto</label><br><input type="text" id="ped_producto" placeholder="ID de producto o SKU"></div>
-    </div>
-    <div class="row" style="margin-top:10px">
-      <div><label class="muted">Orden</label><br>
-        <select id="ped_orden_campo">
-          <option value="pedidos.date_add">Fecha</option>
-          <option value="total_pagado">Total pagado</option>
-        </select>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Fechas</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row"><input type="date" id="ped_fecha_desde"> <input type="date" id="ped_fecha_hasta"></div>
       </div>
-      <div><label class="muted">Dirección</label><br><select id="ped_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
-      <div><label class="muted">Límite (opcional)</label><br><input type="number" id="ped_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
     </div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Producto incluido</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <input type="text" id="ped_producto" placeholder="ID de producto o SKU">
+        <div class="hint">Puedes ingresar un ID numérico (ej. 123) o un SKU (ej. SKU-001).</div>
+      </div>
+    </div>
+
+    <div class="accordion open">
+      <div class="acc-head"><span class="acc-title">Orden y límite</span><span class="acc-icon">−</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div><label class="muted">Orden</label><br>
+            <select id="ped_orden_campo">
+              <option value="pedidos.date_add">Fecha</option>
+              <option value="total_pagado">Total pagado</option>
+            </select>
+          </div>
+          <div><label class="muted">Dirección</label><br><select id="ped_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
+          <div><label class="muted">Límite (opcional)</label><br><input type="number" id="ped_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+        </div>
+      </div>
+    </div>
+
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
+  <!-- CATEGORÍAS -->
   <div class="card step hidden" data-step="3" id="stepFiltros_categorias">
     <p class="title">3) Filtros · Categorías</p>
-    <div class="row">
-      <div style="flex:1"><label class="muted">ID de categoría</label><br><input type="number" id="cat_id" placeholder="Ej. 12"></div>
-      <div style="flex:1"><label class="muted">Idioma (id_lang)</label><br><input type="number" id="cat_lang" value="1" min="1"></div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Parámetros</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div style="flex:1"><label class="muted">ID de categoría</label><input type="number" id="cat_id" placeholder="Ej. 12"></div>
+          <div style="flex:1"><label class="muted">Idioma (id_lang)</label><input type="number" id="cat_lang" value="1" min="1"></div>
+        </div>
+      </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div><label class="muted">Orden</label><br><select id="cat_orden_campo"><option value="productos.id_product">ID producto</option><option value="pl.name">Nombre</option><option value="precio">Precio</option><option value="stock.quantity">Stock</option></select></div>
-      <div><label class="muted">Dirección</label><br><select id="cat_orden_dir"><option value="ASC">Asc</option><option value="DESC">Desc</option></select></div>
-      <div><label class="muted">Límite (opcional)</label><br><input type="number" id="cat_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+
+    <div class="accordion open">
+      <div class="acc-head"><span class="acc-title">Orden y límite</span><span class="acc-icon">−</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div><label class="muted">Orden</label><br><select id="cat_orden_campo"><option value="productos.id_product">ID producto</option><option value="pl.name">Nombre</option><option value="precio">Precio</option><option value="stock.quantity">Stock</option></select></div>
+          <div><label class="muted">Dirección</label><br><select id="cat_orden_dir"><option value="ASC">Asc</option><option value="DESC">Desc</option></select></div>
+          <div><label class="muted">Límite (opcional)</label><br><input type="number" id="cat_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+        </div>
+      </div>
     </div>
+
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
+  <!-- MARCAS -->
   <div class="card step hidden" data-step="3" id="stepFiltros_marcas">
     <p class="title">3) Filtros · Marcas</p>
-    <div class="row">
-      <div style="flex:1"><label class="muted">ID de marca (manufacturer)</label><br><input type="number" id="mar_id" placeholder="Ej. 3"></div>
-      <div style="flex:1"><label class="muted">Idioma (id_lang)</label><br><input type="number" id="mar_lang" value="1" min="1"></div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Parámetros</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div style="flex:1"><label class="muted">ID de marca (manufacturer)</label><input type="number" id="mar_id" placeholder="Ej. 3"></div>
+          <div style="flex:1"><label class="muted">Idioma (id_lang)</label><input type="number" id="mar_lang" value="1" min="1"></div>
+        </div>
+      </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div><label class="muted">Orden</label><br><select id="mar_orden_campo"><option value="productos.id_product">ID producto</option><option value="pl.name">Nombre</option><option value="precio">Precio</option><option value="stock.quantity">Stock</option></select></div>
-      <div><label class="muted">Dirección</label><br><select id="mar_orden_dir"><option value="ASC">Asc</option><option value="DESC">Desc</option></select></div>
-      <div><label class="muted">Límite (opcional)</label><br><input type="number" id="mar_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+
+    <div class="accordion open">
+      <div class="acc-head"><span class="acc-title">Orden y límite</span><span class="acc-icon">−</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div><label class="muted">Orden</label><br><select id="mar_orden_campo"><option value="productos.id_product">ID producto</option><option value="pl.name">Nombre</option><option value="precio">Precio</option><option value="stock.quantity">Stock</option></select></div>
+          <div><label class="muted">Dirección</label><br><select id="mar_orden_dir"><option value="ASC">Asc</option><option value="DESC">Desc</option></select></div>
+          <div><label class="muted">Límite (opcional)</label><br><input type="number" id="mar_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+        </div>
+      </div>
     </div>
+
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
+  <!-- TRANSPORTE -->
   <div class="card step hidden" data-step="3" id="stepFiltros_transporte">
     <p class="title">3) Filtros · Transporte</p>
-    <div class="row">
-      <div style="flex:1"><label class="muted">ID Carrier (opcional)</label><br><input type="number" id="tra_carrier" placeholder="Ej. 1"></div>
-      <div style="flex:1"><label class="muted">ID Zona (opcional)</label><br><input type="number" id="tra_zone" placeholder="Ej. 2"></div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Parámetros</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div style="flex:1"><label class="muted">ID Carrier (opcional)</label><input type="number" id="tra_carrier" placeholder="Ej. 1"></div>
+          <div style="flex:1"><label class="muted">ID Zona (opcional)</label><input type="number" id="tra_zone" placeholder="Ej. 2"></div>
+        </div>
+      </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div><label class="muted">Orden</label><br><select id="tra_orden_campo"><option value="carrier.name">Carrier</option><option value="zone.name">Zona</option><option value="shipping_cost">Costo envío</option></select></div>
-      <div><label class="muted">Dirección</label><br><select id="tra_orden_dir"><option value="ASC">Asc</option><option value="DESC">Desc</option></select></div>
-      <div><label class="muted">Límite (opcional)</label><br><input type="number" id="tra_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+
+    <div class="accordion open">
+      <div class="acc-head"><span class="acc-title">Orden y límite</span><span class="acc-icon">−</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div><label class="muted">Orden</label><br><select id="tra_orden_campo"><option value="carrier.name">Carrier</option><option value="zone.name">Zona</option><option value="shipping_cost">Costo envío</option></select></div>
+          <div><label class="muted">Dirección</label><br><select id="tra_orden_dir"><option value="ASC">Asc</option><option value="DESC">Desc</option></select></div>
+          <div><label class="muted">Límite (opcional)</label><br><input type="number" id="tra_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+        </div>
+      </div>
     </div>
+
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
+  <!-- VENTAS -->
   <div class="card step hidden" data-step="3" id="stepFiltros_ventas">
     <p class="title">3) Filtros · Ventas</p>
-    <div class="row">
-      <div><label class="muted">Rango de fechas</label><br><div class="row"><input type="date" id="ven_desde"> <input type="date" id="ven_hasta"></div></div>
-      <div><label class="big"><input type="checkbox" id="ven_por_envio"> Incluir método de envío</label></div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Rango de fechas</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row"><input type="date" id="ven_desde"> <input type="date" id="ven_hasta"></div>
+      </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div><label class="muted">Orden</label><br><select id="ven_orden_campo"><option value="monto_compras">Monto compras</option><option value="cantidad_pedidos">Cantidad pedidos</option></select></div>
-      <div><label class="muted">Dirección</label><br><select id="ven_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
-      <div><label class="muted">Límite (opcional)</label><br><input type="number" id="ven_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Agrupar por método de envío</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <label class="big"><input type="checkbox" id="ven_por_envio"> Incluir método de envío</label>
+      </div>
     </div>
+
+    <div class="accordion open">
+      <div class="acc-head"><span class="acc-title">Orden y límite</span><span class="acc-icon">−</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div><label class="muted">Orden</label><br><select id="ven_orden_campo"><option value="monto_compras">Monto compras</option><option value="cantidad_pedidos">Cantidad pedidos</option></select></div>
+          <div><label class="muted">Dirección</label><br><select id="ven_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
+          <div><label class="muted">Límite (opcional)</label><br><input type="number" id="ven_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+        </div>
+      </div>
+    </div>
+
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
+  <!-- CARROS ABANDONADOS -->
   <div class="card step hidden" data-step="3" id="stepFiltros_carros">
     <p class="title">3) Filtros · Carros abandonados</p>
-    <div class="row">
-      <div><label class="muted">Rango de fechas (creación del carrito)</label><br><div class="row"><input type="date" id="car_desde"> <input type="date" id="car_hasta"></div></div>
+
+    <div class="accordion">
+      <div class="acc-head"><span class="acc-title">Fechas</span><span class="acc-icon">+</span></div>
+      <div class="acc-content">
+        <div class="row"><input type="date" id="car_desde"> <input type="date" id="car_hasta"></div>
+        <div class="hint">Filtra por fecha de creación del carrito.</div>
+      </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div><label class="muted">Orden</label><br><select id="car_orden_campo"><option value="carrito.date_add">Fecha creación</option><option value="valor_total_carrito">Valor total</option><option value="total_productos">Total productos</option></select></div>
-      <div><label class="muted">Dirección</label><br><select id="car_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
-      <div><label class="muted">Límite (opcional)</label><br><input type="number" id="car_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+
+    <div class="accordion open">
+      <div class="acc-head"><span class="acc-title">Orden y límite</span><span class="acc-icon">−</span></div>
+      <div class="acc-content">
+        <div class="row">
+          <div><label class="muted">Orden</label><br><select id="car_orden_campo"><option value="carrito.date_add">Fecha creación</option><option value="valor_total_carrito">Valor total</option><option value="total_productos">Total productos</option></select></div>
+          <div><label class="muted">Dirección</label><br><select id="car_orden_dir"><option value="DESC">Desc</option><option value="ASC">Asc</option></select></div>
+          <div><label class="muted">Límite (opcional)</label><br><input type="number" id="car_limite" placeholder="ej. 50" min="1" style="max-width:140px"><div class="muted">Vacío = sin límite</div></div>
+        </div>
+      </div>
     </div>
+
     <div class="wizard-nav"><button class="btn secondary prev">Atrás</button><button class="btn next">Siguiente</button></div>
   </div>
 
@@ -323,6 +487,7 @@
     </div>
   </div>
 </div>
+
   </div>
 
 
