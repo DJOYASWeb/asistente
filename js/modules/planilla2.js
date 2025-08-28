@@ -570,7 +570,7 @@ function construirCaracteristicas(row) {
   const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
   const modelo     = getField(["modelo", "Modelo"], "modelo");
-  const material   = getField(["procucto_material"], "material");
+  const material   = getField(["producto_material"], "material");
   const estilo     = getField(["procucto_estilo", "producto_estilo"], "estilo");
   const dimension  = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"], "dimension");
   const peso       = getField(["peso", "Peso"], "peso");
@@ -1270,4 +1270,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.3
+//V 1.4

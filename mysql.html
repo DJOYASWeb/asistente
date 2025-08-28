@@ -61,62 +61,13 @@
 
 
 
-  <div class="tab-header">
-    <button class="tab-btn  active" id="btnReportes" onclick="showTab('reportes')">Generador de Reportes</button>
-    <button class="tab-btn" id="btnArchivos" onclick="showTab('archivos')">Archivos</button>
-  </div>
+
 
 <div class="container">
 
-    <div id="reportes" class="tab-section">
+<h1>Generador de MYSQL </h1>
 
-        <!-- Selección de Categoría -->
-        <div id="category-selection">
-          <h3>Selecciona una Categoría</h3>
-          <button class="category-btn" onclick="selectCategory('productos')">Productos</button>
-          <button class="category-btn" onclick="selectCategory('categorías')">Categorías</button>
-          <button class="category-btn" onclick="selectCategory('pedidos')">Pedidos</button>
-          <button class="category-btn" onclick="selectCategory('clientes')">Clientes</button>
-        </div>
-
-        <!-- Confirmación de Selección -->
-        <div id="confirmation" style="display:none;">
-          <button onclick="confirmSelection()">Confirmar Selección</button>
-        </div>
-
-        <!-- Selección de Columnas -->
-        <div id="columns-selection" style="display:none;">
-          <h3>Selecciona las Columnas</h3>
-          <div id="available-columns">
-            <!-- Aquí se cargarán las columnas según la categoría seleccionada -->
-            <!-- Ejemplo de botón de columna -->
-            <button class="column-btn" onclick="addColumn('id_product')">ID Producto</button>
-            <button class="column-btn" onclick="addColumn('name')">Nombre</button>
-            <button class="column-btn" onclick="addColumn('price')">Precio</button>
-          </div>
-
-          <h3>Columnas Seleccionadas:</h3>
-          <div id="selected-columns"></div>
-          <button onclick="generateSQL()">Generar Consulta</button>
-        </div>
-
-        <!-- Generación de SQL -->
-        <div id="sql-result" style="display:none;">
-          <h3>Consulta SQL Generada:</h3>
-          <textarea id="sql-query" rows="4" cols="50" readonly></textarea>
-          <button onclick="copySQL()">Copiar SQL</button>
-        </div>
-      </div>
-
-     <div id="archivos" class="tab-section d-none">
-        <h2>Contenidos</h2>
-     </div>
-
-</div>
-
-
-
-
+  </div>
 
 
     
