@@ -1372,3 +1372,20 @@ nav a.activo,
 }
 
 .modal .modal-body { position: relative; }
+
+
+
+
+
+
+
+
+  .out{white-space:pre-wrap;border:1px dashed var(--b);border-radius:12px;padding:14px;min-height:140px}
+  .wizard-nav{display:flex;justify-content:space-between;gap:10px;margin-top:10px}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+  .step-pill{padding:6px 10px;border-radius:999px;border:1px solid var(--b)}
+  .step-pill.active{background:linear-gradient(90deg,var(--brand),var(--accent));color:#0b1220;border:0}
+  .hidden{display:none}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--b);padding:6px 10px;border-radius:999px}
+  .summary-bar{position:sticky;top:0;z-index:5;border:1px solid #1c2d46;border-radius:12px;padding:10px;margin:10px 0}
