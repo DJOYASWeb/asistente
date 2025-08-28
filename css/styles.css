@@ -1380,12 +1380,183 @@ nav a.activo,
 
 
 
-  .out{white-space:pre-wrap;border:1px dashed var(--b);border-radius:12px;padding:14px;min-height:140px}
-  .wizard-nav{display:flex;justify-content:space-between;gap:10px;margin-top:10px}
-  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-  .step-pill{padding:6px 10px;border-radius:999px;border:1px solid var(--b)}
-  .step-pill.active{background:linear-gradient(90deg,var(--brand),var(--accent));color:#0b1220;border:0}
-  .hidden{display:none}
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{border:1px solid var(--b);padding:6px 10px;border-radius:999px}
-  .summary-bar{position:sticky;top:0;z-index:5;border:1px solid #1c2d46;border-radius:12px;padding:10px;margin:10px 0}
+
+
+/* Contenedor principal del wizard */
+.wrap{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Títulos y textos */
+h1{ 
+  font-size: 22px;
+  margin: 0 0 14px;
+  color: var(--text);
+}
+.title{
+  font-size: 18px;
+  margin: 0 0 8px;
+  color: var(--text);
+}
+.muted{
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Tarjetas (cards) del wizard -> usa tu look iOS */
+.card{
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0,0,0,.08);
+  padding: 16px;
+  margin: 12px 0;
+  color: var(--text);
+}
+
+/* Fila/columnas internas */
+.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.col2{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px }
+
+/* Etiquetas “grandes” tipo chip-selección de campo */
+label.big{
+  display:flex; align-items:center; gap:10px;
+  background: var(--card-bg);
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+/* Controles */
+input[type="checkbox"], input[type="radio"]{ transform: scale(1.15) }
+
+select, input[type="date"], input[type="number"], input[type="text"], textarea{
+  width:100%; max-width:100%;
+  background: var(--card-bg);
+  border: 1px solid #ccc;
+  color: var(--text);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 16px;
+  box-shadow: var(--shadow);
+}
+textarea{ min-height: 90px }
+
+
+.btn{
+  display:inline-block;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: var(--shadow);
+  transition: filter .15s ease;
+}
+.btn:hover{ filter: brightness(.95) }
+
+/* Secundario tipo “outline suave” con tu paleta */
+.btn.secondary{
+  background: #fff;
+  color: var(--text);
+  border: 1px solid #ccc;
+}
+
+/* Navegación del wizard */
+.wizard-nav{ display:flex; justify-content:space-between; gap:10px; margin-top:10px }
+
+/* Píldoras de pasos */
+.steps{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px }
+.step-pill{
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: var(--muted);
+  box-shadow: var(--shadow);
+}
+.step-pill.active{
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.hidden{ display:none }
+
+/* Chips */
+.chips{ display:flex; flex-wrap:wrap; gap:8px }
+.chip{
+  background: #f0f0f0;
+  border: 1px solid #e5e5ea;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--text);
+}
+
+/* Barra “Tu selección” (sticky) */
+.summary-bar{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  padding: 10px;
+  margin: 10px 0;
+  box-shadow: var(--shadow);
+}
+
+/* Salida SQL */
+.out{
+  white-space: pre-wrap;
+  background: #fff;
+  border: 1px dashed #ddd;
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 140px;
+  color: var(--text);
+}
+
+/* ====== Acordeones (Etapa 3 – Filtros) ====== */
+.accordion{
+  border: 1px solid #e5e5ea;
+  border-radius: 12px;
+  margin: 8px 0;
+  overflow: hidden;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+.accordion .acc-head{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  cursor:pointer; padding:12px 14px;
+  background: #f7f7f7;
+  border-bottom: 1px solid #eee;
+}
+.acc-title{ font-weight: 700; color: var(--text) }
+.acc-icon{
+  width: 22px; height: 22px;
+  display:inline-flex; align-items:center; justify-content:center;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+  background: #fff;
+}
+.accordion .acc-content{
+  display:none; padding:12px 14px; background:#fff; color:var(--text)
+}
+.accordion.open .acc-content{ display:block }
+.hint{ font-size:13px; color: var(--muted); margin-top:6px }
+
+/* ====== Pequeñas mejoras responsivas ====== */
+@media (max-width: 768px){
+  .col2{ grid-template-columns: 1fr; }
+  .summary-bar{ top: 0; }
+}
