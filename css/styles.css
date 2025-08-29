@@ -1569,3 +1569,8 @@ nav a.activo,
   #wizard-sql .col2{ grid-template-columns: 1fr; }
   #wizard-sql .summary-bar{ top: 0; }
 }
+
+
+textarea.form-control.inspira{
+    height: 50vh!important;
+}

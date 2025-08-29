@@ -281,7 +281,7 @@ document.addEventListener('click', function(e) {
 function mostrarModalHTML(contenidoHTML) {
   const body = `
     <h5 class="mb-3">📋 Código HTML generado</h5>
-    <textarea id="modalContenido" class="form-control" rows="16"
+    <textarea id="modalContenido" class="form-control inspira" rows="16"
       style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size:14px;"></textarea>
     <button class="btn btn-primary mt-3" onclick="copiarAlPortapapeles()">📎 Copiar HTML</button>
   `;
