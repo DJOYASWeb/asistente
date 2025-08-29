@@ -59,4 +59,4 @@ document.addEventListener('click', function (event) {
   });
 });
 
-//v.1
+//v.1.2
