@@ -487,27 +487,29 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 
 function mostrarCodigoEnModal(codigo) {
   abrirModalBase({
-    titulo: "🧩 Código HTML",
+    titulo: "📋 Código HTML generado",
     html: `
-      <div class="mb-2 d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Código HTML</h5>
-        <button class="btn btn-sm btn-outline-secondary" onclick="copiarCodigoDesdeTextarea()">Copiar</button>
-      </div>
-      <textarea id="codigoTextarea" class="form-control" rows="16" style="font-family: ui-monospace, monospace;"></textarea>
+      <textarea id="codigoGenerado" class="form-control" rows="14" style="font-family: ui-monospace, monospace; font-size: 14px;"></textarea>
+      <button class="btn btn-primary mt-3" onclick="copiarAlPortapapeles()">📎 Copiar HTML</button>
     `
   });
 
-  const ta = document.getElementById("codigoTextarea");
-  if (ta) ta.value = codigo; // <- se carga de inmediato al abrir
+  // Aquí va lo importante: poner el HTML como texto, no como innerHTML
+  const ta = document.getElementById("codigoGenerado");
+  if (ta) ta.value = codigo;
 }
 
-function copiarCodigoDesdeTextarea() {
-  const ta = document.getElementById("codigoTextarea");
+function copiarAlPortapapeles() {
+  const ta = document.getElementById("codigoGenerado");
   if (!ta) return;
   ta.select();
   document.execCommand("copy");
-  if (typeof mostrarPopupSuccess === "function") mostrarPopupSuccess("✅ Código copiado");
+  if (typeof mostrarPopupSuccess === "function") {
+    mostrarPopupSuccess("✅ Código copiado");
+  } else {
+    alert("✅ Código copiado");
+  }
 }
 
 
-//upd v.1.4
+//upd v.1.5
