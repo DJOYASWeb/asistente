@@ -1493,9 +1493,8 @@ nav a.activo,
   box-shadow: var(--shadow);
 }
 #wizard-sql .step-pill.active{
-  background: var(--primary);
+  background: #323232;
   color: #fff;
-  border-color: var(--primary);
 }
 
 #wizard-sql .hidden{ display:none }
