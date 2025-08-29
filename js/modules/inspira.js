@@ -485,4 +485,29 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 
 
 
-//upd v.1.3
+function mostrarCodigoEnModal(codigo) {
+  abrirModalBase({
+    titulo: "🧩 Código HTML",
+    html: `
+      <div class="mb-2 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Código HTML</h5>
+        <button class="btn btn-sm btn-outline-secondary" onclick="copiarCodigoDesdeTextarea()">Copiar</button>
+      </div>
+      <textarea id="codigoTextarea" class="form-control" rows="16" style="font-family: ui-monospace, monospace;"></textarea>
+    `
+  });
+
+  const ta = document.getElementById("codigoTextarea");
+  if (ta) ta.value = codigo; // <- se carga de inmediato al abrir
+}
+
+function copiarCodigoDesdeTextarea() {
+  const ta = document.getElementById("codigoTextarea");
+  if (!ta) return;
+  ta.select();
+  document.execCommand("copy");
+  if (typeof mostrarPopupSuccess === "function") mostrarPopupSuccess("✅ Código copiado");
+}
+
+
+//upd v.1.4
