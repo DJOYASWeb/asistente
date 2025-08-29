@@ -63,8 +63,8 @@ async function cargarContenidos() {
       select.appendChild(option);
     });
   } catch (error) {
-    console.error("Error al cargar contenidos:", error);
-    select.innerHTML = '<option>Error al cargar</option>';
+mostrarNotificacion("Error al cargar contenidos", "error");
+select.innerHTML = '<option>Error al cargar</option>';
   }
 }
 
@@ -139,7 +139,7 @@ async function generarBloqueContenido() {
 
   try {
     const doc = await db.collection("inspira").doc(id).get();
-    if (!doc.exists) return alert("Contenido no encontrado");
+if (!doc.exists) return mostrarNotificacion("Contenido no encontrado", "alerta");
     const data = doc.data();
 
     const fechaObj = new Date(data.fecha);
@@ -213,8 +213,8 @@ async function generarBloqueContenido() {
 
     contenedor.classList.remove("d-none");
   } catch (err) {
-    alert("Error al generar el contenido: " + err.message);
-  }
+  mostrarNotificacion("Error al generar el contenido: " + (err?.message || "desconocido"), "error");
+}
 }
 
 function mostrarModalFormularioInfluencer() {
@@ -347,23 +347,21 @@ function cargarRecursos() {
 
 // Editar recurso
 function editarRecurso(id) {
-  alert(`Editar recurso con ID: ${id}`);
+mostrarNotificacion(`Editar recurso con ID: ${id}`, "alerta");
   // Aquí puedes abrir un modal y precargar los datos para editar
 }
 
 // Eliminar recurso
 function eliminarRecurso(id) {
-  if (!confirm("¿Estás segura/o de eliminar esta entrada?")) return;
-
-  db.collection("inspira").doc(id).delete()
-    .then(() => {
-      alert("Entrada eliminada");
-      cargarRecursos();
-    })
-    .catch((error) => {
-      console.error("Error eliminando:", error);
-      alert("Error al eliminar la entrada");
-    });
+if (!confirm("¿Estás segura/o de eliminar esta entrada?")) return;
+db.collection("inspira").doc(id).delete()
+  .then(() => {
+    mostrarNotificacion("Entrada eliminada correctamente", "exito");
+    cargarRecursos();
+  })
+  .catch((error) => {
+    mostrarNotificacion("Error al eliminar la entrada", "error");
+  });
 }
 
 // Si quieres, llama a esta función al mostrar el tab:
@@ -512,4 +510,4 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 
 
 
-//upd v.1.6
+//upd v.1.7
