@@ -1575,7 +1575,7 @@ textarea.form-control.inspira{
     height: 50vh!important;
 }
 
-.fixed-bottom-right {
+.fix-r {
   position: fixed;
   bottom: 20px;   /* distancia desde abajo */
   right: 20px;    /* distancia desde la derecha */
