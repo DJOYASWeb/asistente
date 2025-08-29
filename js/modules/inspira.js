@@ -91,7 +91,6 @@ async function guardarInspira(e) {
     cerrarModalAgregarRecurso(); // 👈 aquí cerramos el modal
     mostrarNotificacion("El contenido fue guardado correctamente", "exito");
   } catch (err) {
-    console.error("❌ Error al guardar entrada:", err);
     mostrarNotificacion("No se pudo guardar. Intenta de nuevo", "error");
   }
 }
@@ -379,7 +378,7 @@ window.showTab = function(tab) {
   if (currentBtn) currentBtn.classList.add("active");
 
   if (tab.toLowerCase() === "recursos") {
-    console.log("✅ Tab recursos activado");
+mostrarNotificacion("Pestaña Recursos activada", "exito");
     cargarRecursos();
   }
 };
@@ -510,4 +509,4 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 
 
 
-//upd v.1.7
+//upd v.1.8
