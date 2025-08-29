@@ -1381,32 +1381,32 @@ nav a.activo,
 
 
 
+/* ====== SKIN DEL WIZARD (scopeado a #wizard-sql) ====== */
 
-/* Contenedor principal del wizard */
-.wrap{
+#wizard-sql .wrap{
   max-width: 1100px;
   margin: 0 auto;
   padding: 24px;
 }
 
 /* Títulos y textos */
-h1{ 
+#wizard-sql h1{ 
   font-size: 22px;
   margin: 0 0 14px;
   color: var(--text);
 }
-.title{
+#wizard-sql .title{
   font-size: 18px;
   margin: 0 0 8px;
   color: var(--text);
 }
-.muted{
+#wizard-sql .muted{
   color: var(--muted);
   font-size: 14px;
 }
 
-/* Tarjetas (cards) del wizard -> usa tu look iOS */
-.card{
+/* Tarjetas (cards) del wizard */
+#wizard-sql .card{
   background: var(--card-bg);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -1416,12 +1416,16 @@ h1{
   color: var(--text);
 }
 
-/* Fila/columnas internas */
-.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-.col2{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px }
+/* Layout interno */
+#wizard-sql .row{ 
+  display:flex; gap:12px; flex-wrap:wrap; align-items:center; 
+}
+#wizard-sql .col2{ 
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 
+}
 
-/* Etiquetas “grandes” tipo chip-selección de campo */
-label.big{
+/* Selección de campos (labels grandes) */
+#wizard-sql label.big{
   display:flex; align-items:center; gap:10px;
   background: var(--card-bg);
   border: 1px solid #ddd;
@@ -1432,9 +1436,14 @@ label.big{
 }
 
 /* Controles */
-input[type="checkbox"], input[type="radio"]{ transform: scale(1.15) }
+#wizard-sql input[type="checkbox"],
+#wizard-sql input[type="radio"]{ transform: scale(1.15) }
 
-select, input[type="date"], input[type="number"], input[type="text"], textarea{
+#wizard-sql select,
+#wizard-sql input[type="date"],
+#wizard-sql input[type="number"],
+#wizard-sql input[type="text"],
+#wizard-sql textarea{
   width:100%; max-width:100%;
   background: var(--card-bg);
   border: 1px solid #ccc;
@@ -1444,10 +1453,10 @@ select, input[type="date"], input[type="number"], input[type="text"], textarea{
   font-size: 16px;
   box-shadow: var(--shadow);
 }
-textarea{ min-height: 90px }
+#wizard-sql textarea{ min-height: 90px }
 
-
-.btn{
+/* Botones del wizard (no afecta tus .btn globales fuera del wrapper) */
+#wizard-sql .btn{
   display:inline-block;
   background: var(--primary);
   color: #fff;
@@ -1460,21 +1469,22 @@ textarea{ min-height: 90px }
   box-shadow: var(--shadow);
   transition: filter .15s ease;
 }
-.btn:hover{ filter: brightness(.95) }
+#wizard-sql .btn:hover{ filter: brightness(.95) }
 
-/* Secundario tipo “outline suave” con tu paleta */
-.btn.secondary{
+#wizard-sql .btn.secondary{
   background: #fff;
   color: var(--text);
   border: 1px solid #ccc;
 }
 
 /* Navegación del wizard */
-.wizard-nav{ display:flex; justify-content:space-between; gap:10px; margin-top:10px }
+#wizard-sql .wizard-nav{ 
+  display:flex; justify-content:space-between; gap:10px; margin-top:10px 
+}
 
 /* Píldoras de pasos */
-.steps{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px }
-.step-pill{
+#wizard-sql .steps{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px }
+#wizard-sql .step-pill{
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid #ddd;
@@ -1482,17 +1492,17 @@ textarea{ min-height: 90px }
   color: var(--muted);
   box-shadow: var(--shadow);
 }
-.step-pill.active{
+#wizard-sql .step-pill.active{
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
 }
 
-.hidden{ display:none }
+#wizard-sql .hidden{ display:none }
 
 /* Chips */
-.chips{ display:flex; flex-wrap:wrap; gap:8px }
-.chip{
+#wizard-sql .chips{ display:flex; flex-wrap:wrap; gap:8px }
+#wizard-sql .chip{
   background: #f0f0f0;
   border: 1px solid #e5e5ea;
   padding: 6px 10px;
@@ -1501,7 +1511,7 @@ textarea{ min-height: 90px }
 }
 
 /* Barra “Tu selección” (sticky) */
-.summary-bar{
+#wizard-sql .summary-bar{
   position: sticky;
   top: 0;
   z-index: 5;
@@ -1514,7 +1524,7 @@ textarea{ min-height: 90px }
 }
 
 /* Salida SQL */
-.out{
+#wizard-sql .out{
   white-space: pre-wrap;
   background: #fff;
   border: 1px dashed #ddd;
@@ -1525,7 +1535,7 @@ textarea{ min-height: 90px }
 }
 
 /* ====== Acordeones (Etapa 3 – Filtros) ====== */
-.accordion{
+#wizard-sql .accordion{
   border: 1px solid #e5e5ea;
   border-radius: 12px;
   margin: 8px 0;
@@ -1533,14 +1543,14 @@ textarea{ min-height: 90px }
   background: var(--card-bg);
   box-shadow: var(--shadow);
 }
-.accordion .acc-head{
+#wizard-sql .accordion .acc-head{
   display:flex; align-items:center; justify-content:space-between; gap:12px;
   cursor:pointer; padding:12px 14px;
   background: #f7f7f7;
   border-bottom: 1px solid #eee;
 }
-.acc-title{ font-weight: 700; color: var(--text) }
-.acc-icon{
+#wizard-sql .acc-title{ font-weight: 700; color: var(--text) }
+#wizard-sql .acc-icon{
   width: 22px; height: 22px;
   display:inline-flex; align-items:center; justify-content:center;
   border: 1px solid #d9d9d9;
@@ -1549,14 +1559,14 @@ textarea{ min-height: 90px }
   font-size: 14px;
   background: #fff;
 }
-.accordion .acc-content{
+#wizard-sql .accordion .acc-content{
   display:none; padding:12px 14px; background:#fff; color:var(--text)
 }
-.accordion.open .acc-content{ display:block }
-.hint{ font-size:13px; color: var(--muted); margin-top:6px }
+#wizard-sql .accordion.open .acc-content{ display:block }
+#wizard-sql .hint{ font-size:13px; color: var(--muted); margin-top:6px }
 
-/* ====== Pequeñas mejoras responsivas ====== */
+/* ====== Responsive ====== */
 @media (max-width: 768px){
-  .col2{ grid-template-columns: 1fr; }
-  .summary-bar{ top: 0; }
+  #wizard-sql .col2{ grid-template-columns: 1fr; }
+  #wizard-sql .summary-bar{ top: 0; }
 }
