@@ -1,32 +1,32 @@
 /* ===================== Campos por entidad (amigables) ===================== */
 const CAMPOS = {
   clientes: [
-    {n:"id_customer", l:"id_cliente"},
-    {n:"firstname",   l:"nombre"},
-    {n:"lastname",    l:"apellido"},
-    {n:"email",       l:"correo"},
-    {n:"date_add",    l:"fecha_registro"},
-    {n:"ultima_compra", l:"ultima_compra (calc)"},
-    {n:"cant_pedidos",  l:"cantidad_pedidos (calc)"},
-    {n:"monto_total",   l:"monto_total (entero, calc)"}
+    {n:"id_customer", l:"ID Cliente"},
+    {n:"firstname",   l:"Nombre"},
+    {n:"lastname",    l:"Apellido"},
+    {n:"email",       l:"Correo"},
+    {n:"date_add",    l:"Fecha de Registro"},
+    {n:"ultima_compra", l:"Ultima compra"},
+    {n:"cant_pedidos",  l:"Cantidad de Pedidos"},
+    {n:"monto_total",   l:"Monto Total"}
   ],
   productos: [
-    {n:"id_product",      l:"id_producto"},
-    {n:"reference",       l:"sku"},
-    {n:"date_add",        l:"fecha_creacion"},
-    {n:"precio",          l:"precio (entero)"},
-    {n:"active",          l:"activo"},
-    {n:"stock.quantity",  l:"stock_cantidad"},
-    {n:"unidades_vendidas", l:"unidades_vendidas (calc)"}
+    {n:"id_product",      l:"ID Producto"},
+    {n:"reference",       l:"Código de Producto"},
+    {n:"date_add",        l:"Fecha Creación"},
+    {n:"precio",          l:"Precio"},
+    {n:"active",          l:"Activo"},
+    {n:"stock.quantity",  l:"Cantidad"},
+    {n:"unidades_vendidas", l:"Unidades Vendidas"}
   ],
   pedidos: [
-    {n:"id_order",     l:"id_orden"},
-    {n:"reference",    l:"referencia"},
-    {n:"total_paid",   l:"total_pagado (entero)"},
-    {n:"payment",      l:"metodo_pago"},
-    {n:"date_add",     l:"fecha_pedido"},
-    {n:"current_state",l:"estado"},
-    {n:"cliente",      l:"cliente (calc nombre)"}
+    {n:"id_order",     l:"ID Pedido"},
+    {n:"reference",    l:"Referencia"},
+    {n:"total_paid",   l:"Total Pagado"},
+    {n:"payment",      l:"Método de Pago"},
+    {n:"date_add",     l:"Fecha de Pedido"},
+    {n:"current_state",l:"Estado"},
+    {n:"cliente",      l:"Cliente"}
   ],
   categorias: [
     {n:"id_product",     l:"id_producto"},
@@ -51,22 +51,22 @@ const CAMPOS = {
   ],
   ventas: [
     {n:"id_customer",    l:"id_cliente"},
-    {n:"nombre",         l:"nombre (calc)"},
-    {n:"cantidad_pedidos", l:"cantidad_pedidos"},
-    {n:"monto_compras",  l:"monto_compras (entero)"},
-    {n:"metodo_envio",   l:"metodo_envio (opcional)"}
+    {n:"nombre",         l:"Nombre"},
+    {n:"cantidad_pedidos", l:"Cantidad de Pedidos"},
+    {n:"monto_compras",  l:"Monto de Compras"},
+    {n:"metodo_envio",   l:"Método de Envío"}
   ],
   carros: [
     {n:"id_cart",          l:"id_carrito"},
-    {n:"firstname",        l:"nombre_cliente"},
-    {n:"lastname",         l:"apellido_cliente"},
-    {n:"email",            l:"email_cliente"},
-    {n:"phone",            l:"telefono_cliente"},
-    {n:"city",             l:"ciudad_cliente"},
-    {n:"date_add",         l:"fecha_creacion"},
-    {n:"date_upd",         l:"ultima_actualizacion"},
-    {n:"total_productos",  l:"total_productos (calc)"},
-    {n:"valor_total_carrito", l:"valor_total_carrito (entero, calc)"}
+    {n:"firstname",        l:"Nombre Clienta"},
+    {n:"lastname",         l:"Apellido Clienta"},
+    {n:"email",            l:"Correo Clienta"},
+    {n:"phone",            l:"Telefono Clienta"},
+    {n:"city",             l:"Ciudad Clienta"},
+    {n:"date_add",         l:"Fecha Creación"},
+    {n:"date_upd",         l:"Última Actualización"},
+    {n:"total_productos",  l:"Total de Productos"},
+    {n:"valor_total_carrito", l:"Valor Total del Carrito"}
   ]
 };
 
