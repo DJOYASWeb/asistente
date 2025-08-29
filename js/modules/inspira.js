@@ -507,6 +507,18 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 });
 
 
+function copiarAlPortapapeles() {
+  const ta = document.getElementById('modalContenido');
+  if (!ta) {
+    mostrarNotificacion("No se encontró el contenido a copiar", "error");
+    return;
+  }
+
+  ta.select();
+  document.execCommand('copy'); // método clásico y compatible
+
+  mostrarNotificacion("Código copiado al portapapeles", "exito");
+}
 
 
-//upd v.1.8
+//upd v.1.9
