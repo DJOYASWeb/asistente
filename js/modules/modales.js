@@ -17,12 +17,6 @@ function closeIosModal() {
   if (modal) modal.style.display = 'none';
 }
 
-function copiarAlPortapapeles() {
-  const texto = document.getElementById("modalContenido").textContent;
-  navigator.clipboard.writeText(texto).then(() => {
-    alert("¡Código HTML copiado al portapapeles!");
-  });
-}
 
 // Cierre universal de modales con ESC
 window.addEventListener('keydown', function (event) {
