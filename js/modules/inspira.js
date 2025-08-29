@@ -283,7 +283,7 @@ function mostrarModalHTML(contenidoHTML) {
     <h5 class="mb-3">📋 Código HTML generado</h5>
     <textarea id="modalContenido" class="form-control inspira" rows="16"
       style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size:14px;"></textarea>
-    <button class="btn btn-primary mt-3 fix-r" onclick="copiarAlPortapapeles()">📎 Copiar HTML</button>
+    <button class="btn btn-primary mt-3" onclick="copiarAlPortapapeles()">📎 Copiar HTML</button>
   `;
 
   // Si tu abrirModalBase recibe un string de HTML:

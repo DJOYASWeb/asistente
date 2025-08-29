@@ -1575,13 +1575,3 @@ textarea.form-control.inspira{
     height: 50vh!important;
 }
 
-.fix-r {
-  position: fixed;
-  bottom: 20px;   /* distancia desde abajo */
-  right: 20px;    /* distancia desde la derecha */
-  z-index: 1050;  /* que quede por encima del contenido */
-  background: #fff;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
