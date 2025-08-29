@@ -257,34 +257,56 @@ function generarHTMLInfluencer() {
   mostrarModalHTML(html);
 }
 
+// (Opcional) Decodifica entidades si vienen en el data-html (e.g., &lt; &gt; &amp; &quot;)
+function decodeHtmlEntities(str = "") {
+  return String(str)
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+// Delegación de eventos: botón que abre el modal con el código
 document.addEventListener('click', function(e) {
   if (e.target.classList.contains('ver-codigo-btn')) {
-    const contenidoHTML = e.target.getAttribute('data-html').replace(/&quot;/g, '"');
+    const contenidoAttr = e.target.getAttribute('data-html') || "";
+    const contenidoHTML = decodeHtmlEntities(contenidoAttr);
     mostrarModalHTML(contenidoHTML);
   }
 });
 
+// Abre el modal y NO inyecta el código dentro del HTML del modal;
+// crea un textarea y luego le pone el valor por JS
 function mostrarModalHTML(contenidoHTML) {
   const body = `
     <h5 class="mb-3">📋 Código HTML generado</h5>
-    <pre id="modalContenido" 
-         style="white-space:pre-wrap; background:#f9f9f9; padding:1rem; border-radius:10px;">
-${contenidoHTML}
-    </pre>
+    <textarea id="modalContenido" class="form-control" rows="16"
+      style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; font-size:14px;"></textarea>
     <button class="btn btn-primary mt-3" onclick="copiarAlPortapapeles()">📎 Copiar HTML</button>
   `;
+
+  // Si tu abrirModalBase recibe un string de HTML:
   abrirModalBase(body);
+
+  // 👇 AHORA ponemos el contenido como TEXTO, no como innerHTML
+  const ta = document.getElementById('modalContenido');
+  if (ta) ta.value = contenidoHTML;
 }
 
-
+// Copiar el texto del textarea
 function copiarAlPortapapeles() {
-  const texto = document.getElementById("modalContenido").textContent;
-  navigator.clipboard.writeText(texto).then(() => {
-    mostrarNotificacion("Código HTML copiado al portapapeles", "exito");
-  }).catch(() => {
-    mostrarNotificacion("No se pudo copiar el código", "error");
-  });
+  const ta = document.getElementById('modalContenido');
+  if (!ta) return;
+  ta.select();
+  document.execCommand('copy'); // compatible
+  if (typeof mostrarPopupSuccess === "function") {
+    mostrarPopupSuccess("✅ Código copiado");
+  } else {
+    alert("✅ Código copiado");
+  }
 }
+
 
 
 
@@ -485,31 +507,5 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 
 
 
-function mostrarCodigoEnModal(codigo) {
-  abrirModalBase({
-    titulo: "📋 Código HTML generado",
-    html: `
-      <textarea id="codigoGenerado" class="form-control" rows="14" style="font-family: ui-monospace, monospace; font-size: 14px;"></textarea>
-      <button class="btn btn-primary mt-3" onclick="copiarAlPortapapeles()">📎 Copiar HTML</button>
-    `
-  });
 
-  // Aquí va lo importante: poner el HTML como texto, no como innerHTML
-  const ta = document.getElementById("codigoGenerado");
-  if (ta) ta.value = codigo;
-}
-
-function copiarAlPortapapeles() {
-  const ta = document.getElementById("codigoGenerado");
-  if (!ta) return;
-  ta.select();
-  document.execCommand("copy");
-  if (typeof mostrarPopupSuccess === "function") {
-    mostrarPopupSuccess("✅ Código copiado");
-  } else {
-    alert("✅ Código copiado");
-  }
-}
-
-
-//upd v.1.5
+//upd v.1.6
