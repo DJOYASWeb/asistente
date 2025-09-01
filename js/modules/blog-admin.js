@@ -237,6 +237,20 @@ function editarFila(index) {
   `;
 
   document.body.appendChild(modal);
+
+const selectCat = modal.querySelector('#editCategoria');
+if (dato.categoria) {
+  selectCat.value = dato.categoria.trim();
+  // Fallback: si no existe la opción, agregarla y marcarla
+  if (selectCat.value !== dato.categoria.trim()) {
+    const opt = document.createElement('option');
+    opt.value = dato.categoria.trim();
+    opt.textContent = dato.categoria.trim();
+    opt.selected = true;
+    selectCat.appendChild(opt);
+  }
+}
+
 }
 
 function cerrarModalEditarDato() {
@@ -297,4 +311,4 @@ document.addEventListener('click', e => {
 
 
 
-//upd 8-7 v3
+// v1.2
