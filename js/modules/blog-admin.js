@@ -278,7 +278,7 @@ async function guardarEdicionFila() {
   const categoria = modal.querySelector('#editCategoria').value;
 
   if (!id || !nombre || !estado || !blog || !meta || !fecha || !categoria) {
-    alert('⚠️ Completa todos los campos.');
+mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
     return;
   }
 
@@ -287,8 +287,9 @@ async function guardarEdicionFila() {
     datosTabla[index] = { id, nombre, estado, blog, blogHtml, meta, fecha, categoria };
     renderizarTabla();
     cerrarModalEditarDato();
+    mostrarNotificacion("✅ Blog guardado con éxito", "exito");
   } catch {
-    alert('Error al actualizar.');
+  mostrarNotificacion("❌ Error al actualizar el blog.", "error");
   }
 }
 
@@ -298,7 +299,7 @@ document.addEventListener('click', e => {
   if (e.target && e.target.id === 'btnCopiarBlog') {
     const contenido = document.getElementById('editBlogHtml').value.trim();
     if (!contenido) {
-      alert('No hay contenido para copiar.');
+  mostrarNotificacion("⚠️ No hay contenido para copiar.", "alerta");
       return;
     }
     navigator.clipboard.writeText(contenido)
@@ -312,4 +313,4 @@ document.addEventListener('click', e => {
 
 
 
-// v1.3
+// v1.4
