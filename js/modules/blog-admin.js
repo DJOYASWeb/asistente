@@ -163,7 +163,7 @@ async function agregarNuevoDato() {
   const categoria = document.getElementById('nuevaCategoria').value.trim();
 
   if (!id || !nombre || !estado || !blog || !meta || !fecha || !categoria) {
-    alert('⚠️ Completa todos los campos.');
+mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
     return;
   }
 
@@ -175,8 +175,9 @@ async function agregarNuevoDato() {
     renderizarTabla();
     cerrarModalAgregarDato();
     limpiarFormulario();
+    mostrarNotificacion("✅ Blog agregado correctamente", "exito");
   } catch {
-    alert('Error al guardar en Firestore.');
+  mostrarNotificacion("❌ Error al guardar en Firestore.", "error");
   }
 }
 
@@ -301,8 +302,8 @@ document.addEventListener('click', e => {
       return;
     }
     navigator.clipboard.writeText(contenido)
-      .then(() => alert('✅ Contenido HTML copiado al portapapeles.'))
-      .catch(err => alert('❌ Error al copiar: ' + err));
+  .then(() => mostrarNotificacion("✅ Contenido HTML copiado", "exito"))
+  .catch(err => mostrarNotificacion("❌ Error al copiar: " + err, "error"));
   }
 });
 
@@ -311,4 +312,4 @@ document.addEventListener('click', e => {
 
 
 
-// v1.2
+// v1.3
