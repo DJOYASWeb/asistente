@@ -660,11 +660,26 @@ function construirCaracteristicas(row) {
 
 // --- Categorías a exportar (con los nuevos nombres confirmados) ---
 function construirCategorias(row) {
-  const campos = ["Categoría principal", "procucto_tipo", "procucto_subtipo"];
-  return campos
-    .map(k => (row[k] || "").toString().trim())
-    .filter(v => v && v.toLowerCase() !== "sin valor")
-    .join(", ");
+  const categoriaPrincipal = (row["Categoría principal"] || "").toString().trim();
+  const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().trim();
+  const subtipo = (row["producto_subtipo"] || row["procucto_subtipo"] || "").toString().trim();
+
+  const partes = [];
+
+  if (categoriaPrincipal && categoriaPrincipal.toLowerCase() !== "sin valor") {
+    partes.push(categoriaPrincipal);
+  }
+
+  if (tipo && tipo.toLowerCase() !== "sin valor") {
+    partes.push(tipo);
+  }
+
+  // 👉 solo agregamos subtipo si no es ENCHAPADO
+  if (categoriaPrincipal !== "ENCHAPADO" && subtipo && subtipo.toLowerCase() !== "sin valor") {
+    partes.push(subtipo);
+  }
+
+  return partes.join(", ");
 }
 
 // --- Precio ---
@@ -1300,4 +1315,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.8
+//V 1.9
