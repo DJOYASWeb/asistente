@@ -467,7 +467,7 @@ function leerExcelDesdeFilaA(file) {
         if (tipoRaw.includes("insumos de plata")) {
           categoria = "Joyas de plata por mayor";
         } else if (tipoRaw.includes("insumos enchapados")) {
-          categoria = "Joyas de plata por mayor: ENCHAPADO";
+          categoria = "ENCHAPADO";
         }
       }
 
@@ -1296,4 +1296,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.6
+//V 1.7
