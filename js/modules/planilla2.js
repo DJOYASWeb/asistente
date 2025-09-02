@@ -438,9 +438,12 @@ function leerExcelDesdeFilaA(file) {
     });
 
     // --- Generar "Categoría principal" usando lógica por "incluye" + detección de columna material ---
-// --- Generar "Categoría principal" desde 'procucto_material' ---
 datos.forEach(row => {
-  const materialRaw = (row["procucto_material"] ?? "").toString().trim().toLowerCase();
+  const materialRaw = (
+    row["producto_material"] || 
+    row["procucto_material"] || 
+    ""
+  ).toString().trim().toLowerCase();
 
   let categoria = "";
   if (materialRaw.includes("enchape")) {
@@ -1270,4 +1273,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.4
+//V 1.5
