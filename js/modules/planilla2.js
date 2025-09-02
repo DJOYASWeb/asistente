@@ -454,6 +454,24 @@ datos.forEach(row => {
     categoria = "Joyas de plata por mayor";
   }
 
+    // Si no hay categoría por material, revisamos el tipo
+  if (!categoria) {
+    const tipoRaw = (
+      row["producto_tipo"] || 
+      row["procucto_tipo"] || 
+      ""
+    ).toString().trim().toLowerCase();
+
+    if (tipoRaw.includes("Insumos de plata")) {
+      categoria = "Joyas de plata por mayor";
+    } else if (tipoRaw.includes("Insumos enchapados")) {
+      categoria = "ENCHAPADO";
+    }
+  }
+
+  row["Categoría principal"] = categoria;
+});
+
   row["Categoría principal"] = categoria;
 });
 
