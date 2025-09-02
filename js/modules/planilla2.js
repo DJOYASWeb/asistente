@@ -22,8 +22,12 @@ function normalizarTexto(valor) {
 
 function esAnillo(row) {
   const tipo = (row["procucto_tipo"] || row["producto_tipo"] || "").toString().toLowerCase();
-  return tipo.includes("anillo"); // matchea "Anillo" o "Anillos"
+  const combi = (row["producto_combinacion"] || "").toString().trim().toLowerCase();
+
+  // Es anillo solo si dice "anillo" y no es Midi
+  return tipo.includes("anillo") && combi !== "midi";
 }
+
 
 function ultimosDosDigitosDeCodigo(codigo) {
   const s = String(codigo ?? "");
@@ -1296,4 +1300,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.7
+//V 1.8
