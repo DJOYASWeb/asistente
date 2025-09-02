@@ -437,46 +437,44 @@ function leerExcelDesdeFilaA(file) {
       return obj;
     });
 
-    // --- Generar "Categoría principal" usando lógica por "incluye" + detección de columna material ---
-datos.forEach(row => {
-  const materialRaw = (
-    row["producto_material"] || 
-    row["procucto_material"] || 
-    ""
-  ).toString().trim().toLowerCase();
+    // --- Generar "Categoría principal" ---
+    datos.forEach(row => {
+      // Buscar material (con typo y sin typo)
+      const materialRaw = (
+        row["producto_material"] ||
+        row["procucto_material"] ||
+        ""
+      ).toString().trim().toLowerCase();
 
-  let categoria = "";
-  if (materialRaw.includes("enchape")) {
-    categoria = "ENCHAPADO";
-  } else if (materialRaw.includes("accesorios")) {
-    categoria = "ACCESORIOS";
-  } else if (materialRaw.includes("plata")) {
-    categoria = "Joyas de plata por mayor";
-  }
+      let categoria = "";
 
-    // Si no hay categoría por material, revisamos el tipo
-  if (!categoria) {
-    const tipoRaw = (
-      row["producto_tipo"] || 
-      row["procucto_tipo"] || 
-      ""
-    ).toString().trim().toLowerCase();
+      if (materialRaw.includes("enchape")) {
+        categoria = "ENCHAPADO";
+      } else if (materialRaw.includes("accesorios")) {
+        categoria = "ACCESORIOS";
+      } else if (materialRaw.includes("plata")) {
+        categoria = "Joyas de plata por mayor";
+      }
 
-    if (tipoRaw.includes("Insumos de plata")) {
-      categoria = "Joyas de plata por mayor";
-    } else if (tipoRaw.includes("Insumos enchapados")) {
-      categoria = "ENCHAPADO";
-    }
-  }
+      // Si no hay categoría por material, revisamos el tipo
+      if (!categoria) {
+        const tipoRaw = (
+          row["producto_tipo"] ||
+          row["procucto_tipo"] ||
+          ""
+        ).toString().trim().toLowerCase();
 
-  row["Categoría principal"] = categoria;
-});
+        if (tipoRaw.includes("insumos de plata")) {
+          categoria = "Joyas de plata por mayor";
+        } else if (tipoRaw.includes("insumos enchapados")) {
+          categoria = "Joyas de plata por mayor: ENCHAPADO";
+        }
+      }
 
-  row["Categoría principal"] = categoria;
-});
+      row["Categoría principal"] = categoria;
+    });
 
     // Construimos el orden de columnas a mostrar en la vista:
-    // (1) Todas las que venían en el Excel, (2) + "Categoría principal" al final
     ordenColumnasVista = [...headers];
     if (!ordenColumnasVista.includes("Categoría principal")) {
       ordenColumnasVista.push("Categoría principal");
@@ -496,7 +494,7 @@ datos.forEach(row => {
       const sku = (row["codigo_producto"] || row["Código"] || "SKU no definido").toString().trim();
       const categoria = (row["Categoría principal"] || "").toString().trim();
 
-      // Validar combinaciones vacías solo en ciertos tipos de anillos (misma lógica existente)
+      // Validar combinaciones vacías solo en ciertos tipos de anillos
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
       if (esAnilloConValidacion && "Combinaciones" in row && combinacion === "") {
@@ -521,6 +519,10 @@ datos.forEach(row => {
 
         if (errorDetectado) return;
 
+        // ❌ Excluir si producto_combinacion = "Midi"
+        const combiTipo = (row["producto_combinacion"] || "").toString().trim().toLowerCase();
+        if (combiTipo === "midi") return;
+
         row["Cantidad"] = 0;
         datosCombinaciones.push(row);
 
@@ -543,14 +545,17 @@ datos.forEach(row => {
       document.getElementById("alertas").innerHTML = "";
     }
 
-// Mostrar TODO (nuevos + con combinaciones) por defecto
-tipoSeleccionado = "todo";
-datosFiltrados = [...datosOriginales, ...datosCombinaciones];
-document.getElementById("botonesTipo").classList.remove("d-none");
-renderTablaConOrden(datosFiltrados);
+    // Mostrar TODO (nuevos + con combinaciones) por defecto
+    tipoSeleccionado = "todo";
+    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+    document.getElementById("botonesTipo").classList.remove("d-none");
+    renderTablaConOrden(datosFiltrados);
   };
   reader.readAsArrayBuffer(file);
 }
+
+
+
 
 // --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
 // --- Características (con manejo especial de Dimensión) ---
@@ -1291,4 +1296,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.5
+//V 1.6
