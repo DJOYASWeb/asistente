@@ -433,14 +433,20 @@ function leerExcelDesdeFilaA(file) {
     const filas = todasLasFilas.slice(1);
 
     // Construir objetos respetando los encabezados tal cual vienen
-    const datos = filas.map(fila => {
-      const obj = {};
-      headers.forEach((col, i) => {
-        obj[col || `Columna${i}`] = fila[i] ?? "";
-      });
-      return obj;
-    });
+const datos = filas.map(fila => {
+  const obj = {};
+  headers.forEach((col, i) => {
+    let valor = fila[i] ?? "";
 
+    // 🚫 Si trae "NULL" (cualquier combinación de mayúsculas/minúsculas) → vacío
+    if (typeof valor === "string" && valor.trim().toUpperCase() === "NULL") {
+      valor = "";
+    }
+
+    obj[col || `Columna${i}`] = valor;
+  });
+  return obj;
+});
     // --- Generar "Categoría principal" ---
     datos.forEach(row => {
       // Buscar material (con typo y sin typo)
@@ -1315,4 +1321,4 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-//V 1.9
+//V 2
