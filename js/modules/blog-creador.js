@@ -340,10 +340,6 @@ document.addEventListener("DOMContentLoaded", () => {
 let currentStep = 0; // 0..3  (1..4 en UI)
 const stepsIds = ["step1", "step2", "step3", "step4"];
 
-function showWizardHeader(show) {
-  const hdr = document.getElementById("wizardHeader");
-  if (hdr) hdr.style.display = show ? "block" : "none";
-}
 
 function setStep(n) {
   currentStep = Math.max(0, Math.min(n, stepsIds.length - 1));
@@ -459,4 +455,150 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-//updd v2
+// === Flujo con botón "Iniciar blog" y cabeceras con nombre ===
+(function BlogStartFlow(){
+  const stepIds = ["step1","step2","step3","step4"];
+  let current = -1;
+  let selectedBlogId = null;
+  let selectedBlogTitle = "";
+
+  const $ = (sel)=> document.querySelector(sel);
+  const byId = (id)=> document.getElementById(id);
+
+  // Ocultar pasos
+  function hideAllSteps(){
+    stepIds.forEach(id => { const el = byId(id); if (el) el.style.display = "none"; });
+  }
+
+  function setStep(n){
+    hideAllSteps();
+    current = Math.max(0, Math.min(n, stepIds.length-1));
+    const el = byId(stepIds[current]);
+    if (el) el.style.display = "block";
+  }
+
+  // Obtiene el nombre "limpio" del blog seleccionado
+  function getSelectedBlogTitle(){
+    const sel = byId("selectBlogExistente");
+    if (!sel) return "";
+    const id = sel.value;
+    if (!id) return "";
+
+    // 1) Si tienes blogsData cargado (tu código), úsalo
+    if (window.blogsData && window.blogsData[id] && window.blogsData[id].nombre) {
+      return String(window.blogsData[id].nombre).trim();
+    }
+    // 2) Intenta parsear el texto de la opción (quita " (fecha)")
+    const opt = sel.options[sel.selectedIndex];
+    const raw = (opt?.textContent || "").trim();
+    const m = raw.match(/^(.+?)\s*\(/);
+    return (m ? m[1] : raw).trim();
+  }
+
+  // Inserta el título después de los dos puntos en cada h2 de cabecera de paso
+  function stampTitleOnHeaders(title){
+    // Cubrimos h2 dentro de .cabecera-step y también h2 directos del paso
+    const headers = document.querySelectorAll("#blogWizard .wizard-step .cabecera-step h2, #blogWizard .wizard-step > h2");
+    headers.forEach(h2 => {
+      const txt = (h2.textContent || "").trim();
+      const idx = txt.indexOf(":");
+      if (idx >= 0) {
+        // Re-escribe manteniendo todo hasta ":" y agregando el título
+        const base = txt.slice(0, idx + 1);
+        h2.textContent = base + " " + title;
+      } else {
+        // Si no hay ":", lo añadimos
+        h2.textContent = txt + ": " + title;
+      }
+    });
+  }
+
+  // Validaciones suaves (puedes endurecer si quieres)
+  function showModal(title, msg){
+    if (typeof showIosModal === "function") return showIosModal(title, msg);
+    alert(`${title}\n\n${msg}`);
+  }
+  function validateStep1(){
+    const req = ["titulo","fecha","autor","categoria","imagen"];
+    for (const id of req){
+      const el = byId(id);
+      if (!el || !el.value.trim()){
+        showModal("Faltan datos", "Completa los datos del blog antes de continuar.");
+        return false;
+      }
+    }
+    return true;
+  }
+  function validateStep2(){
+    const cuerpo = byId("cuerpo")?.value.trim();
+    if (!cuerpo){
+      showModal("Contenido vacío", "Pega el HTML del blog en esta etapa.");
+      return false;
+    }
+    return true;
+  }
+  function validateStep3(){ return true; }
+
+  // Navegación
+  function bindNav(){
+    byId("next1")?.addEventListener("click", ()=> { if (validateStep1()) setStep(1); });
+    byId("prev2")?.addEventListener("click", ()=> setStep(0));
+    byId("next2")?.addEventListener("click", ()=> { if (validateStep2()) setStep(2); });
+    byId("prev3")?.addEventListener("click", ()=> setStep(1));
+    byId("next3")?.addEventListener("click", ()=> { if (validateStep3()) setStep(3); });
+    byId("prev4")?.addEventListener("click", ()=> setStep(2));
+
+    // Reutiliza tus funciones de generar/copiar
+    byId("btnGenerar")?.addEventListener("click", ()=> {
+      try { generarHTML(); }
+      catch(e){ console.error(e); showModal("Error", "No se pudo generar el HTML."); }
+    });
+    byId("btnCopiar")?.addEventListener("click", ()=> {
+      try { copiarHTML(); }
+      catch(e){ console.error(e); showModal("Error", "No se pudo copiar el código."); }
+    });
+  }
+
+  // Botón "Iniciar blog"
+  function bindStart(){
+    const sel = byId("selectBlogExistente");
+    const btn = byId("btnIniciarBlog");
+    if (!sel || !btn) return;
+
+    // Habilita el botón solo si hay selección
+    sel.addEventListener("change", ()=>{
+      btn.disabled = !sel.value;
+      // No mostramos pasos automáticamente; solo cuando aprietan "Iniciar blog"
+    });
+
+    // Inicia el flujo
+    btn.addEventListener("click", ()=>{
+      if (!sel.value){
+        showModal("Selecciona un blog", "Primero elige un blog para iniciar.");
+        return;
+      }
+      selectedBlogId = sel.value;
+      selectedBlogTitle = getSelectedBlogTitle();
+      stampTitleOnHeaders(selectedBlogTitle);
+      setStep(0); // mostrar Etapa 1
+    });
+  }
+
+  // Rellenar relacionados (reusa lo tuyo)
+  function bindRelacionados(){
+    if (typeof cargarNavegacionSelects === "function") cargarNavegacionSelects();
+    if (typeof llenarSelects === "function") llenarSelects();
+  }
+
+  // Init
+  document.addEventListener("DOMContentLoaded", ()=>{
+    hideAllSteps();       // Al inicio no se ven pasos
+    bindStart();          // Botón y select
+    bindNav();            // Prev/Next + generar/copiar
+    bindRelacionados();   // Cargar selects de relacionados/destacados
+  });
+})();
+
+
+
+//updd v2.1
