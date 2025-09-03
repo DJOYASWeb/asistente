@@ -1575,3 +1575,46 @@ textarea.form-control.inspira{
     height: 50vh!important;
 }
 
+/* --- Tabs del wizard --- */
+.wizard-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: .6rem;
+  margin: .5rem 0 1rem;
+}
+
+.wizbox {
+  border: 1px solid #e3e3e7;
+  border-radius: 12px;
+  background: #f4f5f7;       /* gris = incompleto */
+  padding: .65rem .8rem;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+  box-shadow: var(--shadow, 0 10px 20px rgba(0,0,0,0.05));
+  transition: transform .08s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease;
+}
+.wizbox:hover { transform: translateY(-1px); }
+
+.wizbox .wiz-title { font-weight: 600; font-size: .95rem; }
+.wizbox .wiz-sub { font-size: .8rem; opacity: .8; }
+
+/* activo (paso actual) */
+.wizbox.is-active {
+  outline: 2px solid var(--primary, #0a84ff);
+  background: #eaf4ff;
+  color: #0a84ff;
+  border-color: #cfe6ff;
+}
+
+/* completado (verde claro) */
+.wizbox.is-done {
+  background: #e9f7ef;
+  border-color: #b9f1c8;
+  color: #2e7d32;
+}
+
+/* móvil: 2 columnas si el ancho es chico */
+@media (max-width: 576px) {
+  .wizard-nav { grid-template-columns: repeat(2, 1fr); }
+}
