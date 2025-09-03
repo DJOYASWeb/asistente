@@ -70,122 +70,170 @@
 <div class="container">
   <div class="tab-content-ios">
 
-    <!-- TAB CREAR -->    
+<!-- TAB CREAR -->
 <div id="crear" class="tab-section d-none">
-<div class="container">
-<h1>Generador de Blog DJOYAS</h1>
-<div class="ios-card mb-3">
-<div class="row pb-3">
-  <div class="col-12">
-    <label>📝 Cargar blog existente:</label>
-    <select id="selectBlogExistente" class="form-control">
-      <option value="">-- Selecciona un blog existente --</option>
-    </select>
-  </div>
-</div>
-</div>
+  <div class="container" id="blogWizard">
+    <h1>Generador de Blog DJOYAS</h1>
 
-
-<div class="ios-card mb-5">
-
-  
-  <!-- ENCABEZADO -->
-  <div class="row">
-    <div class="col-lg-6 col-12">
-      <label>📌 TÍTULO DEL BLOG:</label>
-      <input class="form-control" type="text" id="titulo" placeholder="Ingresa el título del blog">
-    </div>
-    <div class="col-lg-6 col-12">
-      <label>📆 FECHA DE PUBLICACIÓN:</label>
-      <input class="form-control" type="text" id="fecha" placeholder="Ingresa la fecha del blog">
-    </div>
-  </div>
-
-  <div class="row pt-3">
-    <div class="col-lg-6 col-12">
-      <label>👩‍💻 AUTOR/A:</label>
-      <select class="form-control" id="autor">
-        <option value="Sofía de DJOYAS">Sofía de DJOYAS</option>
-        <option value="Camila de DJOYAS">Sandra Conejeros</option>
-      </select>
-    </div>
-    <div class="col-lg-6 col-12">
-      <label>🏷️ CATEGORÍA:</label>
-      <select class="form-control" id="categoria">
-        <option value="Emprendimiento">Emprendimiento</option>
-        <option value="Sabías que?">Sabías que?</option>
-        <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
-        <option value="Innovación">Innovación</option>
-        <option value="Beneficios">Beneficios</option>
-        <option value="Sustentable">Sustentable</option>
-        <option value="Tips">Tips</option>
-        <option value="Tendencias">Tendencias</option>
-      </select>
-    </div>
-  </div>
-  <div class="row pt-3">
-    <div class="col-lg-6 col-12">
-  <label>🖼️ URL DE LA IMAGEN PRINCIPAL:</label>
-  <input class="form-control" type="text" id="imagen" placeholder="Ingresa la url de la imagen">
-</div>
-<div class="col-lg-6 col-12">
-  <label>🔤 Texto ALT de la imagen:</label>
-  <input class="form-control" type="text" id="altImagen" placeholder="Ingresa la descripcion de la imagen">
-</div>
-</div>
-  <!-- CUERPO -->
-   <section class="cuerpo py-3">
- <div class="row py-3">
- <div class="col-lg-6 col-12">
-       <label>💎 CUERPO DEL BLOG:</label>
- </div>
- </div>
-     <textarea class="form-control" id="cuerpo" rows="6" ></textarea>
-   </section>
-
-
-  <!-- NAVEGACIÓN -->
-   <section class="navegacion py-5">
-    <div class="row">
-      <div class="col-lg-6 col-12">
-        <h3>🔙 Blog Anterior</h3>
-        <label>Seleccionar blog anterior:</label>
-        <select class="form-control" id="selectAnterior"></select>
+    <!-- Selector de blog existente -->
+    <div class="ios-card mb-3">
+      <div class="row pb-3">
+        <div class="col-12">
+          <label>📝 Cargar blog existente:</label>
+          <select id="selectBlogExistente" class="form-control">
+            <option value="">-- Selecciona un blog existente --</option>
+          </select>
+        </div>
       </div>
-      <div class="col-lg-6 col-12">
-        <h3>🔜 Blog Siguiente</h3>
-        <label>Seleccionar blog siguiente:</label>
-        <select class="form-control" id="selectSiguiente"></select>
+    </div>
+
+    <!-- Indicador simple de paso -->
+    <div class="ios-card mb-3" id="wizardHeader" style="display:none;">
+      <div class="row">
+        <div class="col-12">
+          <div id="wizardSteps" class="d-flex gap-2 align-items-center">
+            <span data-step="1" class="badge rounded-pill px-3 py-2 step-badge">1. Datos</span>
+            <span data-step="2" class="badge rounded-pill px-3 py-2 step-badge">2. Cuerpo</span>
+            <span data-step="3" class="badge rounded-pill px-3 py-2 step-badge">3. Relacionados</span>
+            <span data-step="4" class="badge rounded-pill px-3 py-2 step-badge">4. Blog HTML</span>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <!-- === ETAPA 1: Datos del Blog === -->
+    <div class="ios-card mb-5 wizard-step" id="step1" style="display:none;">
+      <div class="row">
+        <div class="col-lg-6 col-12">
+          <label>📌 TÍTULO DEL BLOG:</label>
+          <input class="form-control" type="text" id="titulo" placeholder="Ingresa el título del blog">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label>📆 FECHA DE PUBLICACIÓN:</label>
+          <input class="form-control" type="text" id="fecha" placeholder="Ingresa la fecha del blog">
+        </div>
+      </div>
+
+      <div class="row pt-3">
+        <div class="col-lg-6 col-12">
+          <label>👩‍💻 AUTOR/A:</label>
+          <select class="form-control" id="autor">
+            <option value="Sofía de DJOYAS">Sofía de DJOYAS</option>
+            <option value="Sandra Conejeros">Sandra Conejeros</option>
+          </select>
+        </div>
+        <div class="col-lg-6 col-12">
+          <label>🏷️ CATEGORÍA:</label>
+          <select class="form-control" id="categoria">
+            <option value="Emprendimiento">Emprendimiento</option>
+            <option value="Sabías que?">Sabías que?</option>
+            <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
+            <option value="Innovación">Innovación</option>
+            <option value="Beneficios">Beneficios</option>
+            <option value="Sustentable">Sustentable</option>
+            <option value="Tips">Tips</option>
+            <option value="Tendencias">Tendencias</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row pt-3">
+        <div class="col-lg-6 col-12">
+          <label>🖼️ URL DE LA IMAGEN PRINCIPAL:</label>
+          <input class="form-control" type="text" id="imagen" placeholder="Ingresa la url de la imagen">
+        </div>
+        <div class="col-lg-6 col-12">
+          <label>🔤 Texto ALT de la imagen:</label>
+          <input class="form-control" type="text" id="altImagen" placeholder="Ingresa la descripcion de la imagen">
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <button class="btn btn-primary" id="next1" type="button">Siguiente</button>
+      </div>
+    </div>
+
+    <!-- === ETAPA 2: Cuerpo del Blog === -->
+    <div class="ios-card mb-5 wizard-step" id="step2" style="display:none;">
+      <section class="cuerpo py-3">
+        <div class="row py-3">
+          <div class="col-12">
+            <label>💎 CUERPO DEL BLOG (HTML):</label>
+          </div>
+          <div class="col-12">
+            <textarea class="form-control" id="cuerpo" rows="10" placeholder="Pega aquí el contenido HTML del blog"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <div class="d-flex justify-content-between gap-2 mt-2">
+        <button class="btn btn-outline-secondary" id="prev2" type="button">Atrás</button>
+        <button class="btn btn-primary" id="next2" type="button">Siguiente</button>
+      </div>
+    </div>
+
+    <!-- === ETAPA 3: Blogs Relacionados === -->
+    <div class="ios-card mb-5 wizard-step" id="step3" style="display:none;">
+      <!-- Navegación -->
+      <section class="navegacion py-3">
+        <div class="row">
+          <div class="col-lg-6 col-12">
+            <h3>🔙 Blog Anterior</h3>
+            <label>Seleccionar blog anterior:</label>
+            <select class="form-control" id="selectAnterior"></select>
+          </div>
+          <div class="col-lg-6 col-12">
+            <h3>🔜 Blog Siguiente</h3>
+            <label>Seleccionar blog siguiente:</label>
+            <select class="form-control" id="selectSiguiente"></select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Destacados -->
+      <section class="destacados py-3">
+        <h3>🌟 Blogs Destacados</h3>
+        <div class="row">
+          <div class="col-12">
+            <label>Destacado 1</label>
+            <select class="form-control" id="select1"></select>
+          </div>
+          <div class="col-12 mt-2">
+            <label>Destacado 2</label>
+            <select class="form-control" id="select2"></select>
+          </div>
+          <div class="col-12 mt-2">
+            <label>Destacado 3</label>
+            <select class="form-control" id="select3"></select>
+          </div>
+        </div>
+      </section>
+
+      <div class="d-flex justify-content-between gap-2 mt-2">
+        <button class="btn btn-outline-secondary" id="prev3" type="button">Atrás</button>
+        <button class="btn btn-primary" id="next3" type="button">Siguiente</button>
+      </div>
+    </div>
+
+    <!-- === ETAPA 4: Blog HTML (Generación final) === -->
+    <div class="ios-card mb-5 wizard-step" id="step4" style="display:none;">
+      <section class="generar py-3">
+        <button class="btn btn-success" id="btnGenerar" type="button">Generar HTML</button>
+      </section>
+
+      <section class="resultado pt-3">
+        <h2>📋 Código generado:</h2>
+        <button class="btn btn-outline-primary btn-copy" id="btnCopiar" type="button">📋 Copiar al portapapeles</button>
+        <pre id="resultado"></pre>
+      </section>
+
+      <div class="d-flex justify-content-start gap-2 mt-3">
+        <button class="btn btn-outline-secondary" id="prev4" type="button">Atrás</button>
+      </div>
+    </div>
+  </div>
 </div>
-</section>
 
-
-
-  <!-- DESTACADOS -->
-   <section class="destacados py-5">
-  <h3>🌟 Blogs Destacados</h3>
-     <div class="row">
-       <div class="col-12">  <label>Destacado 1</label>
-  <select class="form-control" id="select1"></select></div>
-       <div class="col-12">  <label>Destacado 2</label>
-  <select class="form-control" id="select2"></select></div>
-       <div class="col-12">  <label>Destacado 3</label>
-  <select class="form-control" id="select3"></select></div>
-     </div>
-</section>
-<div class="generar py-3">
-  <button onclick="generarHTML()">Generar HTML</button>
-</div>
-
-
-<section class="resultado pt-5">
-  <h2>📋 Código generado:</h2>
-    <button class="btn-copy" onclick="copiarHTML()">📋 Copiar al portapapeles</button>
-  <pre id="resultado"></pre>
-</section>
-</div>
-        </div> </div>
 
 
  <div id="calendario" class="tab-section">
