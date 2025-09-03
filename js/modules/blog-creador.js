@@ -572,16 +572,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Inicia el flujo
-    btn.addEventListener("click", ()=>{
-      if (!sel.value){
-        showModal("Selecciona un blog", "Primero elige un blog para iniciar.");
-        return;
-      }
-      selectedBlogId = sel.value;
-      selectedBlogTitle = getSelectedBlogTitle();
-      stampTitleOnHeaders(selectedBlogTitle);
-      setStep(0); // mostrar Etapa 1
-    });
+btn.addEventListener("click", ()=>{
+  if (!sel.value){
+    showModal("Selecciona un blog","Primero elige un blog para iniciar.");
+    return;
+  }
+  const title = getSelectedBlogTitle();
+  stampTitleOnHeaders(title);
+
+  // ⬇️ NUEVO: ocultar la card que contiene el select
+  const selectorCard = sel.closest(".ios-card");
+  if (selectorCard) selectorCard.style.display = "none";
+
+  setStep(0); // mostrar Paso 1
+});
   }
 
   // Rellenar relacionados (reusa lo tuyo)
