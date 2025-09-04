@@ -652,7 +652,7 @@ btn.addEventListener("click", ()=>{
     bindRelacionados();  // Carga selects
       const step4Resultado = document.querySelector("#step4 .resultado");
   if (step4Resultado) step4Resultado.style.display = "none";
-  });
+
 })();
 
 
@@ -755,4 +755,4 @@ btn.addEventListener("click", ()=>{
 
 
 
-//updd v1.8
+//updd v1.9
