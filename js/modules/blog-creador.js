@@ -342,105 +342,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-// ====== WIZARD ETAPAS ======
-let currentStep = 0; // 0..3  (1..4 en UI)
-const stepsIds = ["step1", "step2", "step3", "step4"];
-
 
 function setStep(n) {
-  currentStep = Math.max(0, Math.min(n, stepsIds.length - 1));
-  stepsIds.forEach((id, idx) => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = idx === currentStep ? "block" : "none";
-  });
-  // Pintar badges
-  document.querySelectorAll("#wizardSteps .step-badge").forEach((b, idx) => {
-    b.classList.remove("bg-primary","text-white","bg-light","text-muted");
-    if (idx === currentStep) {
-      b.classList.add("bg-primary","text-white");
-    } else {
-      b.classList.add("bg-light","text-muted");
-    }
-  });
+  // manejado por BlogStartFlow
 }
+function nextStep() {}
+function prevStep() {}
 
-function nextStep() { setStep(currentStep + 1); }
-function prevStep() { setStep(currentStep - 1); }
+// Validaciones (stubs para compatibilidad)
+function validateStep1() { return true; }
+function validateStep2() { return true; }
+function validateStep3() { return true; }
 
-// Validaciones mínimas por etapa
-function validateStep1() {
-  const req = ["titulo","fecha","autor","categoria","imagen"];
-  for (const id of req) {
-    const el = document.getElementById(id);
-    if (!el || !el.value.trim()) {
-      showIosModal("Falta completar", "Por favor completa los datos del blog.");
-      return false;
-    }
-  }
-  return true;
-}
-function validateStep2() {
-  const cuerpo = document.getElementById("cuerpo")?.value.trim();
-  if (!cuerpo) {
-    showIosModal("Contenido vacío", "Pega el HTML del blog en esta etapa.");
-    return false;
-  }
-  return true;
-}
-function validateStep3() {
-  // No es obligatorio, pero si quieres obligar: verifica que haya selección
-  return true;
-}
-
-// Conectar botones
-function initWizardControls() {
-  // Etapa 1
-  document.getElementById("next1")?.addEventListener("click", () => {
-    if (validateStep1()) nextStep();
-  });
-  // Etapa 2
-  document.getElementById("prev2")?.addEventListener("click", prevStep);
-  document.getElementById("next2")?.addEventListener("click", () => {
-    if (validateStep2()) nextStep();
-  });
-  // Etapa 3
-  document.getElementById("prev3")?.addEventListener("click", prevStep);
-  document.getElementById("next3")?.addEventListener("click", () => {
-    if (validateStep3()) nextStep();
-  });
-  // Etapa 4
-  document.getElementById("prev4")?.addEventListener("click", prevStep);
-
-  // Generar y copiar (llaman tus funciones existentes)
-  document.getElementById("btnGenerar")?.addEventListener("click", () => {
-    try { generarHTML(); }
-    catch (e) { console.error(e); showIosModal("Error", "No se pudo generar el HTML."); }
-  });
-  document.getElementById("btnCopiar")?.addEventListener("click", () => {
-    try { copiarHTML(); }
-    catch (e) { console.error(e); showIosModal("Error", "No se pudo copiar el código."); }
-  });
-}
-
-// Mostrar paso 1 al elegir un blog existente
-(function attachWizardToSelect() {
-  const sel = document.getElementById("selectBlogExistente");
-  if (!sel) return;
-
-  sel.addEventListener("change", (e) => {
-    const id = e.target.value;
-    if (!id) {
-      // Si deselecciona, ocultamos wizard
-      showWizardHeader(false);
-      stepsIds.forEach(s => { const el = document.getElementById(s); if (el) el.style.display = "none"; });
-      return;
-    }
-    // Si selecciona un blog, mostramos etapa 1
-    showWizardHeader(true);
-    setStep(0);
-  });
-})();
-
+// No conectar botones (evita listeners duplicados)
+function initWizardControls() { /* no-op */ }
 // Llenado de selects relacionados (asegurar referencias DOM)
 function safeBindRelacionados() {
   const selectAnterior = document.getElementById("selectAnterior");
@@ -453,13 +368,6 @@ function safeBindRelacionados() {
   if (typeof cargarNavegacionSelects === "function") cargarNavegacionSelects();
   if (typeof llenarSelects === "function") llenarSelects();
 }
-
-// Iniciar wizard cuando el DOM esté listo
-document.addEventListener("DOMContentLoaded", () => {
-  initWizardControls();
-  safeBindRelacionados();
-});
-
 
 // === Flujo con botón "Iniciar blog" y cabeceras con nombre ===
 // === Flujo con botón "Iniciar blog", cabeceras con nombre y tabs de pasos ===
@@ -847,4 +755,4 @@ btn.addEventListener("click", ()=>{
 
 
 
-//updd v1.7
+//updd v1.8
