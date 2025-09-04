@@ -465,6 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // === Flujo con botón "Iniciar blog", cabeceras con nombre y tabs de pasos ===
 (function BlogStartFlow(){
   const stepIds = ["step1","step2","step3","step4"];
+  let editorHeightPx = null;
   let current = -1;
   const done = [false,false,false,false];
 
@@ -495,6 +496,7 @@ if (current === 3) {
     const tieneCodigo = !!document.getElementById("resultado")?.textContent.trim();
     if (secGen) secGen.style.display = tieneCodigo ? "none" : "block";
     if (secRes) secRes.style.display = tieneCodigo ? "block" : "none";
+      if (preRes && editorHeightPx) preRes.style.minHeight = editorHeightPx + "px";
   }
 
 
@@ -612,11 +614,16 @@ if (current === 3) {
     });
 
     byId("prev2")?.addEventListener("click", ()=> setStep(0));
-    byId("next2")?.addEventListener("click", ()=> {
-      const ok = validateStep2(true);
-      markDone(1, ok);
-      if (ok) setStep(2);
-    });
+byId("next2")?.addEventListener("click", ()=> {
+  const ok = validateStep2(true);
+  markDone(1, ok);
+  if (ok) {
+    const t = byId("cuerpo");
+    editorHeightPx = t ? t.clientHeight : null; // ← guarda altura del Paso 2
+    setStep(2);
+  }
+});
+
 
     byId("prev3")?.addEventListener("click", ()=> setStep(1));
     byId("next3")?.addEventListener("click", ()=> {
@@ -652,6 +659,45 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
     else alert("No se pudo generar el HTML.");
   }
 });
+
+byId("btnRedactarOtro")?.addEventListener("click", ()=> {
+  // 1) limpiar formulario
+  ["titulo","fecha","imagen","altImagen","cuerpo"].forEach(id=>{
+    const el = byId(id); if (el) el.value = "";
+  });
+  const selAutor = byId("autor"); if (selAutor) selAutor.value = "Sofía de DJOYAS";
+  const selCat   = byId("categoria"); if (selCat) selCat.value = "";
+
+  // Paso 3 selects
+  ["selectAnterior","selectSiguiente","select1","select2","select3"].forEach(id=>{
+    const el = byId(id); if (el) el.value = "";
+  });
+
+  // 2) limpiar resultado y volver a mostrar botón Generar
+  const preRes = byId("resultado"); if (preRes) preRes.textContent = "";
+  const secGen = document.querySelector("#step4 .generar");
+  const secRes = document.querySelector("#step4 .resultado");
+  if (secGen) secGen.style.display = "block";
+  if (secRes) secRes.style.display = "none";
+
+  // 3) resetear estado de pasos
+  if (Array.isArray(done)) { for (let i=0;i<done.length;i++) done[i]=false; }
+  if (typeof paintNav === "function") paintNav();
+
+  // 4) mostrar de nuevo la card del selector y “cerrar” el wizard
+  const sel = byId("selectBlogExistente");
+  const selectorCard = sel?.closest(".ios-card");
+  if (selectorCard) selectorCard.style.display = "";
+
+  const btnInit = byId("btnIniciarBlog");
+  if (btnInit) btnInit.disabled = true;
+  if (sel) sel.value = "";
+
+  // 5) ocultar los pasos y subir a la card
+  if (typeof hideAllSteps === "function") hideAllSteps();
+  window.scrollTo({ top: selectorCard?.offsetTop || 0, behavior: "smooth" });
+});
+
 
     byId("btnCopiar")?.addEventListener("click", ()=> {
       try { copiarHTML(); }

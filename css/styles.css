@@ -1615,3 +1615,13 @@ textarea.form-control.inspira{
 @media (max-width: 576px) {
   .wizard-nav { grid-template-columns: repeat(2, 1fr); }
 }
+
+#step4 .resultado pre {
+  min-height: 260px; /* fallback */
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: .75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
