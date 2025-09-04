@@ -534,10 +534,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function navTemplate(){
     return `
       <div class="wizard-nav" data-wiznav>
-        <div class="wizbox" data-target-step="0"><div class="wiz-title">Datos</div><div class="wiz-sub" data-sub>Incompleto</div></div>
-        <div class="wizbox" data-target-step="1"><div class="wiz-title">Cuerpo</div><div class="wiz-sub" data-sub>Incompleto</div></div>
-        <div class="wizbox" data-target-step="2"><div class="wiz-title">Relacionados</div><div class="wiz-sub" data-sub>Incompleto</div></div>
-        <div class="wizbox" data-target-step="3"><div class="wiz-title">HTML</div><div class="wiz-sub" data-sub>Incompleto</div></div>
+        <div class="wizbox" data-target-step="0"><div class="wiz-title">1. Datos</div><div class="wiz-sub" data-sub>Incompleto</div></div>
+        <div class="wizbox" data-target-step="1"><div class="wiz-title">2. Cuerpo</div><div class="wiz-sub" data-sub>Incompleto</div></div>
+        <div class="wizbox" data-target-step="2"><div class="wiz-title">3. Relacionados</div><div class="wiz-sub" data-sub>Incompleto</div></div>
+        <div class="wizbox" data-target-step="3"><div class="wiz-title">4. HTML</div><div class="wiz-sub" data-sub>Incompleto</div></div>
       </div>`;
   }
 
