@@ -684,9 +684,6 @@ a   {
     }
  
     /*estilo pagina de  blog - tab de creacion*/
- #cuerpo{
-      height: 300px;
-    }
     .division{
       display: flex;
       gap: 5rem;
