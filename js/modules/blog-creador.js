@@ -661,4 +661,102 @@ btn.addEventListener("click", ()=>{
 
 
 
-//updd v1.2
+// === Auto asignar (Paso 3) ===
+(function AutoAsignarRelacionados(){
+  const byId = (id)=> document.getElementById(id);
+
+  // Normaliza textos (sin tildes, minúsculas, espacios compactados)
+  const norm = (s)=> (s||"")
+    .toString()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .toLowerCase().replace(/\s+/g," ").trim();
+
+  // Fisher–Yates shuffle
+  function shuffle(a){
+    for (let i=a.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  // Elige una opción única (por texto) dentro de un <select>
+  function pickUniqueForSelect(selectEl, usedKeys){
+    if (!selectEl) return false;
+    const options = Array.from(selectEl.options).filter(o => o.value !== "");
+    if (options.length === 0) return false;
+
+    const shuffled = shuffle(options.slice());
+    for (const opt of shuffled){
+      const key = norm(opt.textContent || opt.label || "");
+      if (!key) continue;
+      if (!usedKeys.has(key)){
+        selectEl.value = opt.value;
+        usedKeys.add(key);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Intenta auto-asignar; si aún no hay datos cargados, reintenta un poco
+  function autoAsignarIntent(retriesLeft=3){
+    const sAnt = byId("selectAnterior");
+    const sSig = byId("selectSiguiente");
+    const s1   = byId("select1");
+    const s2   = byId("select2");
+    const s3   = byId("select3");
+
+    // Esperar a que los selects estén poblados
+    const allHaveOptions = [sAnt,sSig,s1,s2,s3].every(sel => sel && sel.options && sel.options.length > 1);
+    if (!allHaveOptions){
+      if (retriesLeft > 0) setTimeout(()=> autoAsignarIntent(retriesLeft-1), 300);
+      else if (typeof showIosModal === "function") showIosModal("Sin datos", "Aún no hay suficientes opciones para auto asignar.");
+      return;
+    }
+
+    // Construir asignación única
+    const used = new Set();
+
+    // Si ya hay selecciones previas, respétalas como usadas
+    [sAnt,sSig,s1,s2,s3].forEach(sel => {
+      const opt = sel.options[sel.selectedIndex];
+      const key = norm(opt?.textContent || "");
+      if (key) used.add(key);
+    });
+
+    // Limpia selecciones antes de asignar (opcional)
+    [sAnt,sSig,s1,s2,s3].forEach(sel => { if (sel) sel.value = ""; });
+
+    // Orden de pick (puedes cambiarlo si prefieres otra prioridad)
+    const order = [sAnt, sSig, s1, s2, s3];
+    let successCount = 0;
+    for (const sel of order){
+      if (pickUniqueForSelect(sel, used)) successCount++;
+    }
+
+    if (successCount < order.length){
+      if (typeof showIosModal === "function") {
+        showIosModal("Opciones insuficientes",
+          "No hay suficientes blogs distintos para completar los 5 campos sin repetir.");
+      } else {
+        alert("No hay suficientes blogs distintos para completar los 5 campos sin repetir.");
+      }
+    } else {
+      if (typeof showIosModal === "function") showIosModal("Listo", "Relacionados auto asignados sin repetir.");
+    }
+
+    // Si tu wizard marca “verde” al validar el paso 3 solo al presionar Siguiente,
+    // no tocamos ese estado aquí. El verde aparecerá cuando avances con “Siguiente”.
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const btn = byId("btnAutoAsignar");
+    if (!btn) return;
+    btn.addEventListener("click", ()=> autoAsignarIntent());
+  });
+})();
+
+
+
+//updd v1.3
