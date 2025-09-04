@@ -1325,115 +1325,58 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// Formatea una descripción larga en párrafos HTML legibles (UX web)
-// - 300–400 chars por párrafo
-// - Corta en el punto/coma más cercano sin romper palabras
-// - Mantiene juntas medidas/atributos (Plata 925, 2,1 cm, 1,1 gramos, etc.)
-function formatearDescripcionHTML(texto, maxPorParrafo = 380) {
+
+function formatearDescripcionHTML(texto, baseCaracteres = 200) {
   if (!texto) return "";
 
   // 1) Limpieza básica
   let raw = String(texto)
-    // eliminar etiquetas HTML existentes para evitar anidar incoherencias
-    .replace(/<[^>]+>/g, " ")
-    // normalizar espacios
+    .replace(/<[^>]+>/g, " ") // quita HTML previo
     .replace(/\s+/g, " ")
     .trim();
-
   if (!raw) return "";
 
-  // 2) Proteger tokens técnicos con no-break space (NBSP) para no separarlos en cortes
-  //    - Plata 925, Plata 950
-  //    - n[.,]n (opcional) + espacio + unidad (cm, mm, gramos, g, kg)
+  // 2) Proteger tokens técnicos (no separar)
   const NBSP = "\u00A0";
-  // "Plata 925" → "Plata 925"
   raw = raw.replace(/\b(Plata)\s+(9(?:25|50))\b/gi, (_, m1, m2) => `${m1}${NBSP}${m2}`);
-
-  // "2,1 cm", "1.1 gramos", "3 mm", "0,5 g", etc. → unir número y unidad
-  raw = raw.replace(
-    /\b(\d+(?:[.,]\d+)?)\s+(cm|mm|m|gramos|grs?|g|kg|tamaño|ancho|alto|largo|di[aá]metro)\b/gi,
-    (_, num, unidad) => `${num}${NBSP}${unidad}`
-  );
-
-  // También: “de Alargue” suele ir unido a la cifra previa cuando corresponde
+  raw = raw.replace(/\b(\d+(?:[.,]\d+)?)\s+(cm|mm|m|gramos|grs?|g|kg)\b/gi,
+    (_, num, unidad) => `${num}${NBSP}${unidad}`);
   raw = raw.replace(/\b(de)\s+(Alargue)\b/gi, (_, d, a) => `${d}${NBSP}${a}`);
 
-  // 3) Particionado en párrafos ~380 chars, priorizando cortes en ".", luego ";", luego ","
-  const parrafos = [];
-  let start = 0;
+  // 3) Particionado en párrafos: 200 chars y cortar en el siguiente punto
+  const bloques = [];
   const n = raw.length;
+  let i = 0;
 
-  while (start < n) {
-    let limite = Math.min(start + maxPorParrafo, n);
-    // si ya estamos al final, empujamos el resto
-    if (limite >= n) {
-      parrafos.push(raw.slice(start).trim());
+  while (i < n) {
+    // Si lo que queda es <= baseCaracteres, es el último párrafo
+    if (n - i <= baseCaracteres) {
+      bloques.push(raw.slice(i).trim());
       break;
     }
 
-    // buscamos el mejor corte desde 'limite' hacia adelante en una ventana razonable
-    const ventanaMax = Math.min(limite + 120, n); // pequeño margen para encontrar un buen corte
-    let corte = -1;
+    const base = i + baseCaracteres;
 
-    // preferencia 1: punto seguido/fin de oración
-    for (let i = limite; i < ventanaMax; i++) {
-      const ch = raw[i];
-      if (ch === ".") {
-        corte = i + 1; // incluye el punto
-        break;
-      }
+    // Buscar el próximo punto desde 'base'
+    let p = raw.indexOf(".", base);
+    if (p === -1) {
+      // No hay más puntos: empuja todo lo restante y termina
+      bloques.push(raw.slice(i).trim());
+      break;
     }
 
-    // preferencia 2: punto y coma
-    if (corte === -1) {
-      for (let i = limite; i < ventanaMax; i++) {
-        const ch = raw[i];
-        if (ch === ";") {
-          corte = i + 1;
-          break;
-        }
-      }
-    }
+    // Incluye el punto
+    p = p + 1;
 
-    // preferencia 3: coma “fuerte” (seguida de espacio)
-    if (corte === -1) {
-      for (let i = limite; i < ventanaMax; i++) {
-        if (raw[i] === "," && (i + 1 < n ? /\s/.test(raw[i + 1]) : true)) {
-          corte = i + 1;
-          break;
-        }
-      }
-    }
-
-    // si no encontramos buen corte hacia adelante, buscamos hacia atrás hasta el inicio del bloque
-    if (corte === -1) {
-      for (let i = limite; i > start; i--) {
-        if (raw[i] === "." || raw[i] === ";" || raw[i] === ",") {
-          corte = i + 1;
-          break;
-        }
-      }
-    }
-
-    // si aún no hay corte, cortamos en el último espacio antes del límite para no partir una palabra
-    if (corte === -1) {
-      const previoEspacio = raw.lastIndexOf(" ", limite);
-      corte = previoEspacio > start ? previoEspacio : limite;
-    }
-
-    parrafos.push(raw.slice(start, corte).trim());
-    start = corte;
+    // Empuja bloque [i, p) y avanza
+    bloques.push(raw.slice(i, p).trim());
+    i = p;
   }
 
-  // 4) Envolver en <p>...</p> (HTML)
-  const html = parrafos
-    .filter(p => p.length > 0)
-    .map(p => `<p>${p}</p>`)
-    .join("");
-
-  return html;
+  // 4) Envolver en <p>...</p>
+  return bloques.map(b => `<p>${b}</p>`).join("");
 }
 
 
 
-//V 2.1
+//V 1.2
