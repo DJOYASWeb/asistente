@@ -490,18 +490,21 @@ function setStep(n){
   if (current === 0) ensureDefaultAuthor();
 
 if (current === 3) {
-    const secGen = document.querySelector("#step4 .generar");
-    const secRes = document.querySelector("#step4 .resultado");
-    // Si aún no hay código generado, muestra el botón y oculta resultado
-    const tieneCodigo = !!document.getElementById("resultado")?.textContent.trim();
-    if (secGen) secGen.style.display = tieneCodigo ? "none" : "block";
-    if (secRes) secRes.style.display = tieneCodigo ? "block" : "none";
-      if (preRes && editorHeightPx) preRes.style.minHeight = editorHeightPx + "px";
+  const secGen = document.querySelector("#step4 .generar");
+  const secRes = document.querySelector("#step4 .resultado");
+  const preRes = document.getElementById("resultado"); // ← declarar aquí
+
+  // Si aún no hay código generado, muestra el botón y oculta resultado
+  const tieneCodigo = !!preRes?.textContent.trim();
+  if (secGen) secGen.style.display = tieneCodigo ? "none" : "block";
+  if (secRes) secRes.style.display = tieneCodigo ? "block" : "none";
+
+  // Igualar altura al editor del paso 2 si la tenemos
+  if (preRes && typeof editorHeightPx !== "undefined" && editorHeightPx) {
+    preRes.style.minHeight = editorHeightPx + "px";
   }
-
-
-  paintNav && paintNav();
 }
+
 
   /* ---------- utilidades ---------- */
   function showModal(title, msg){
@@ -844,4 +847,4 @@ btn.addEventListener("click", ()=>{
 
 
 
-//updd v1.6
+//updd v1.7
