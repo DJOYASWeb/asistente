@@ -482,6 +482,16 @@ function setStep(n){
   // ← Garantiza autor por defecto cuando entras al Paso 1
   if (current === 0) ensureDefaultAuthor();
 
+if (current === 3) {
+    const secGen = document.querySelector("#step4 .generar");
+    const secRes = document.querySelector("#step4 .resultado");
+    // Si aún no hay código generado, muestra el botón y oculta resultado
+    const tieneCodigo = !!document.getElementById("resultado")?.textContent.trim();
+    if (secGen) secGen.style.display = tieneCodigo ? "none" : "block";
+    if (secRes) secRes.style.display = tieneCodigo ? "block" : "none";
+  }
+
+
   paintNav && paintNav();
 }
 
@@ -782,4 +792,4 @@ btn.addEventListener("click", ()=>{
 
 
 
-//updd v1.4
+//updd v1.5
