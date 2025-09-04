@@ -612,10 +612,31 @@ function setStep(n){
     byId("prev4")?.addEventListener("click", ()=> setStep(2));
 
     // Generar/Copiar (mantengo tus funciones)
-    byId("btnGenerar")?.addEventListener("click", ()=> {
-      try { generarHTML(); markDone(3, true); paintNav(); }
-      catch(e){ console.error(e); showModal("Error","No se pudo generar el HTML."); }
-    });
+byId("btnGenerar")?.addEventListener("click", ()=> {
+  try {
+    // Genera el HTML como siempre
+    generarHTML();
+
+    // Marca el paso como completo (si usas la barra de estado)
+    if (typeof markDone === "function") markDone(3, true);
+    if (typeof paintNav === "function") paintNav();
+
+    // Toggle: oculta sección de generar y muestra resultado
+    const secGen = document.querySelector("#step4 .generar");
+    const secRes = document.querySelector("#step4 .resultado");
+    if (secGen) secGen.style.display = "none";
+    if (secRes) secRes.style.display = "block";
+
+    // Enfoca el botón copiar (opcional)
+    byId("btnCopiar")?.focus();
+
+  } catch(e){
+    console.error(e);
+    if (typeof showIosModal === "function") showIosModal("Error","No se pudo generar el HTML.");
+    else alert("No se pudo generar el HTML.");
+  }
+});
+
     byId("btnCopiar")?.addEventListener("click", ()=> {
       try { copiarHTML(); }
       catch(e){ console.error(e); showModal("Error","No se pudo copiar el código."); }
@@ -656,6 +677,8 @@ btn.addEventListener("click", ()=>{
     bindStart();         // Select + Iniciar
     bindNavButtons();    // Prev, Next, Generar, Copiar
     bindRelacionados();  // Carga selects
+      const step4Resultado = document.querySelector("#step4 .resultado");
+  if (step4Resultado) step4Resultado.style.display = "none";
   });
 })();
 
@@ -759,4 +782,4 @@ btn.addEventListener("click", ()=>{
 
 
 
-//updd v1.3
+//updd v1.4
