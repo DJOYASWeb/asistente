@@ -76,6 +76,7 @@ function generarHTML() {
   ];
 
   const destacadosHTML = destacados.map(blog => `
+        <hr>
     <div class="row card-recomendados">
       <div class="col-5 portada-recomendados">
         <a href="${blog.url}"><img src="${blog.img}"></a>
@@ -85,7 +86,7 @@ function generarHTML() {
         <div class="etiquetas"><a class="etiqueta-tag" href="${blog.url.split('/').slice(0, 6).join('/')}">${blog.categoria}</a></div>
       </div>
     </div>
-    <hr>
+
   `).join('\n');
 
   const slug = categoria.toLowerCase().replace(/\s+/g, '-');
@@ -169,7 +170,6 @@ function generarHTML() {
   <section class="destacados mt-5">
     <div class="caja">
       <h2 class="titulo-card">Blog más vistos</h2>
-      <hr>
       ${destacadosHTML}
     </div>
   </section>
