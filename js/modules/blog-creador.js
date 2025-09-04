@@ -34,7 +34,12 @@ function llenarSelects() {
     })
     .then(data => {
       blogs = data;
-      const selects = [select1, select2, select3];
+      const selects = [
+        document.getElementById('select1'),
+        document.getElementById('select2'),
+        document.getElementById('select3')
+      ].filter(Boolean); // evita null
+
       selects.forEach(select => {
         select.innerHTML = "";
         blogs.forEach((blog, index) => {
@@ -46,6 +51,7 @@ function llenarSelects() {
       });
     });
 }
+
 
 window.onload = () => {
   llenarSelects();
