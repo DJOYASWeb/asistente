@@ -311,7 +311,7 @@ console.log("blogsData[blogId]:", blogsData[blogId]);
 
   document.getElementById("titulo").value = data.nombre || "";
   document.getElementById("fecha").value = data.fecha || "";
-  document.getElementById("autor").value = data.autor || "";
+  document.getElementById("autor").value = (data.autor && data.autor.trim()) || "Sofía de DJOYAS";
   document.getElementById("categoria").value = data.categoria || "";
   document.getElementById("imagen").value = `/img/cms/paginas%20internas/blogs/blog-${blogId}.jpg`;
   document.getElementById("altImagen").value = data.altImagen || "";
@@ -468,12 +468,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function hideAllSteps(){ stepIds.forEach(id => { const el = byId(id); if (el) el.style.display = "none"; }); }
 
-  function setStep(n){
-    hideAllSteps();
-    current = Math.max(0, Math.min(n, stepIds.length-1));
-    const el = byId(stepIds[current]); if (el) el.style.display = "block";
-    paintNav();
-  }
+  function ensureDefaultAuthor(){
+  const selAutor = document.getElementById("autor");
+  if (selAutor && !selAutor.value) selAutor.value = "Sofía de DJOYAS";
+}
+
+function setStep(n){
+  hideAllSteps();
+  current = Math.max(0, Math.min(n, stepIds.length-1));
+  const el = document.getElementById(stepIds[current]);
+  if (el) el.style.display = "block";
+
+  // ← Garantiza autor por defecto cuando entras al Paso 1
+  if (current === 0) ensureDefaultAuthor();
+
+  paintNav && paintNav();
+}
 
   /* ---------- utilidades ---------- */
   function showModal(title, msg){
@@ -620,23 +630,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     sel.addEventListener("change", ()=> { btn.disabled = !sel.value; });
 
-    btn.addEventListener("click", ()=>{
-      if (!sel.value){
-        showModal("Selecciona un blog","Primero elige un blog para iniciar.");
-        return;
-      }
-      const title = getSelectedBlogTitle();
-      stampTitleOnHeaders(title);
+btn.addEventListener("click", ()=>{
+  if (!sel.value){ /* ... */ return; }
+  const title = getSelectedBlogTitle();
+  stampTitleOnHeaders(title);
 
-      // ocultar la card del selector
-      const selectorCard = sel.closest(".ios-card");
-      if (selectorCard) selectorCard.style.display = "none";
+  const selectorCard = sel.closest(".ios-card");
+  if (selectorCard) selectorCard.style.display = "none";
 
-      // montar tabs y mostrar paso 1
-      mountNavs();
-      paintNav();
-      setStep(0);
-    });
+  mountNavs && mountNavs();
+  paintNav && paintNav();
+  setStep(0);
+  ensureDefaultAuthor();  // ← por si Step 1 ya estaba montado
+});
   }
 
   function bindRelacionados(){
@@ -655,4 +661,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-//updd v2.3
+//updd v1.2
