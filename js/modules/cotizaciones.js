@@ -101,16 +101,21 @@
   }
 
   // —— Navegación ————————————————————
-  function showListado(){
-    q("#cotzVistaListado").classList.remove("d-none");
-    q("#cotzVistaEditor").classList.add("d-none");
-    renderListado();
-  }
-  function showEditor(reset = true){
-    if (reset) resetEditor();
-    q("#cotzVistaListado").classList.add("d-none");
-    q("#cotzVistaEditor").classList.remove("d-none");
-  }
+function showListado(){
+  q("#cotzVistaListado").classList.remove("d-none");
+  q("#cotzVistaEditor").classList.add("d-none");
+  // Mostrar el botón "Crear nueva cotización" arriba
+  q("#cotzBtnNueva")?.classList.remove("d-none");
+  renderListado();
+}
+
+function showEditor(reset = true){
+  if (reset) resetEditor();
+  q("#cotzVistaListado").classList.add("d-none");
+  q("#cotzVistaEditor").classList.remove("d-none");
+  // Ocultar el botón "Crear nueva cotización" arriba
+  q("#cotzBtnNueva")?.classList.add("d-none");
+}
 
   // —— Editor: Reset / Bind ————————————————
   function resetEditor(){
@@ -335,4 +340,4 @@
   document.addEventListener("DOMContentLoaded", init);
 })();
 
-//v1
+//v1.2
