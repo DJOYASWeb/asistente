@@ -6,6 +6,41 @@
 
 let currentDetailId = null;
 
+
+// ——— Carga de scripts por demanda (no uses async en <script> del HTML)
+function loadScript(src){
+  return new Promise((resolve, reject)=>{
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = false;                // respetar orden
+    s.onload = resolve;
+    s.onerror = ()=> reject(new Error(`No se pudo cargar: ${src}`));
+    document.head.appendChild(s);
+  });
+}
+
+// ——— Detecta autoTable como plugin o como función UMD
+function getAutoTableRef(){
+  const w = window;
+  // Plugin clásico: doc.autoTable
+  if (w.jspdf?.jsPDF?.prototype?.autoTable) return { type: "prototype", fn: null };
+  // UMD: jspdfAutoTable(doc, options)
+  if (typeof w.jspdfAutoTable === "function") return { type: "function", fn: w.jspdfAutoTable };
+  if (typeof w.jspdfAutoTable?.autoTable === "function") return { type: "function", fn: w.jspdfAutoTable.autoTable };
+  if (typeof w.autoTable === "function") return { type: "function", fn: w.autoTable };
+  return null;
+}
+
+// ——— Garantiza jsPDF + autoTable desde CDNJS (si faltan)
+async function ensurePdfLibs(){
+  if(!(window.jspdf && window.jspdf.jsPDF)){
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  }
+  if(!getAutoTableRef()){
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js");
+  }
+}
+
   // —— Config / Helpers ——————————————————
   const STORAGE_KEY = "djoyas_cotizaciones_v1";
   const currencyCLP = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
@@ -569,8 +604,8 @@ async function exportCotizacionPDF(id){
   const cot = state.cotizaciones.find(x => x.id === id);
   if(!cot){ notiError("No se encontró la cotización."); return; }
 
-  // Garantiza libs (si ya están, esto no hace nada)
-  try { await ensurePdfLibs(); } 
+  // Cargar libs si faltan
+  try { await ensurePdfLibs(); }
   catch (e){ notiError("No se pudieron cargar las librerías de PDF."); console.error(e); return; }
 
   const at = getAutoTableRef();
@@ -626,8 +661,7 @@ async function exportCotizacionPDF(id){
   if (at.type === "prototype") {
     doc.autoTable(tableOptions);
   } else {
-    // modo función UMD: jspdfAutoTable(doc, options)
-    at.fn(doc, tableOptions);
+    at.fn(doc, tableOptions); // UMD
   }
 
   let finalY = doc.lastAutoTable?.finalY || (y + 30);
@@ -663,6 +697,7 @@ async function exportCotizacionPDF(id){
 }
 
 
+
   
   document.addEventListener("DOMContentLoaded", init);
 })();
@@ -670,4 +705,4 @@ async function exportCotizacionPDF(id){
 
 
 
-//v2.1
+//v2.2
