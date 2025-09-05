@@ -78,27 +78,30 @@
   }
 
   // —— Render: Listado ——————————————————
-  function renderListado(){
-    const tbody = q("#cotzTbodyListado");
-    const vacio = q("#cotzVacio");
-    tbody.innerHTML = "";
-    if(!state.cotizaciones.length){
-      vacio.classList.remove("d-none");
-      return;
-    }
-    vacio.classList.add("d-none");
-    state.cotizaciones.forEach(c => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${c.id}</td>
-        <td>${c.cliente?.nombre || "-"}</td>
-        <td>${formatDDMMYYYY(c.fecha)}</td>
-        <td>${c.sucursal || "-"}</td>
-        <td class="cotz-right">${fmtCLP(c.total || 0)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+function renderListado(){
+  const tbody = q("#cotzTbodyListado");
+  const vacio = q("#cotzVacio");
+  tbody.innerHTML = "";
+  if(!state.cotizaciones.length){
+    vacio.classList.remove("d-none");
+    return;
   }
+  vacio.classList.add("d-none");
+  state.cotizaciones.forEach(c => {
+    const tr = document.createElement("tr");
+    tr.dataset.id = c.id;                   // ← para abrir al hacer clic
+    tr.className = "cotz-row-openable";     // ← estilo hover/cursor (CSS abajo)
+    tr.title = "Abrir cotización";
+    tr.innerHTML = `
+      <td>${c.id}</td>
+      <td>${c.cliente?.nombre || "-"}</td>
+      <td>${formatDDMMYYYY(c.fecha)}</td>
+      <td>${c.sucursal || "-"}</td>
+      <td class="cotz-right">${fmtCLP(c.total || 0)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
   // —— Navegación ————————————————————
 function showListado(){
@@ -140,6 +143,65 @@ function showEditor(reset = true){
     // checkboxes marcadas por defecto
     state.editor.notas = getChecklistSeleccionadas();
   }
+
+  // ——————————— Cargar cotización existente en el editor ———————————
+function applyNotasToUI(notas = []){
+  // checkboxes base
+  const checks = $$("#cotizacionesApp #cotzChecklist input[type='checkbox']");
+  const baseTexts = checks.map(ch => ch.dataset.text);
+  // marca/desmarca según lo guardado
+  checks.forEach(ch => { ch.checked = notas.includes(ch.dataset.text); });
+
+  // notas extras = todas las que no son de los checkboxes base
+  const extras = (notas || []).filter(n => !baseTexts.includes(n));
+  const cont = q("#cotzNotasExtras");
+  cont.innerHTML = "";
+  extras.forEach(val => {
+    const chip = document.createElement("div");
+    chip.className = "cotz-chip";
+    chip.dataset.text = val;
+    chip.innerHTML = `<span>${val}</span><button title="Eliminar" class="cotz-chip-del">×</button>`;
+    cont.appendChild(chip);
+  });
+}
+
+function loadCotizacionById(id){
+  const idx = state.cotizaciones.findIndex(x => x.id === id);
+  if (idx < 0) {
+    notiError("No se encontró la cotización.");
+    return;
+  }
+  const c = state.cotizaciones[idx];
+
+  // Carga en estado del editor (copia superficial suficiente aquí)
+  state.editor = {
+    id: c.id,
+    fecha: c.fecha, // conservamos fecha original
+    cliente: { ...c.cliente },
+    sucursal: c.sucursal || "",
+    items: (c.items || []).map(it => ({ ...it })), // [{sku,nombre,precio,stock,img,qty}]
+    notas: Array.isArray(c.notas) ? [...c.notas] : []
+  };
+
+  // Pasa a vista editor (sin resetear)
+  showEditor(false);
+
+  // Rellena inputs
+  q("#cotzCliNombre").value = c.cliente?.nombre || "";
+  q("#cotzCliCorreo").value = c.cliente?.correo || "";
+  q("#cotzCliRut").value    = c.cliente?.rut || "";
+  q("#cotzCliFono").value   = c.cliente?.fono || "";
+  q("#cotzSucursal").value  = c.sucursal || "";
+
+  // Rellena items y total
+  renderItems();
+
+  // Rellena notas (checks + extras)
+  applyNotasToUI(state.editor.notas);
+
+  notiOk(`Abierta cotización ${c.id}`);
+}
+
 
   function getChecklistSeleccionadas(){
     return $$("#cotizacionesApp #cotzChecklist input[type='checkbox']")
@@ -220,45 +282,54 @@ function showEditor(reset = true){
   }
 
   // —— Guardar cotización ————————————————
-  function guardarCotizacion(){
-    const nombre = q("#cotzCliNombre").value.trim();
-    const correo = q("#cotzCliCorreo").value.trim();
-    const rut    = q("#cotzCliRut").value.trim();
-    const fono   = q("#cotzCliFono").value.trim();
-    const sucursal = q("#cotzSucursal").value;
+function guardarCotizacion(){
+  const nombre = q("#cotzCliNombre").value.trim();
+  const correo = q("#cotzCliCorreo").value.trim();
+  const rut    = q("#cotzCliRut").value.trim();
+  const fono   = q("#cotzCliFono").value.trim();
+  const sucursal = q("#cotzSucursal").value;
 
-    if(!nombre || !correo || !rut || !sucursal){
-      notiError("Completa Nombre, Correo, RUT y Sucursal.");
-      return;
-    }
-    if(state.editor.items.length === 0){
-      notiError("Agrega al menos 1 producto.");
-      return;
-    }
-
-    // refresca notas (por si cambió selección)
-    const notasChecklist = getChecklistSeleccionadas();
-    const notasExtras = Array.from(q("#cotzNotasExtras").querySelectorAll(".cotz-chip"))
-      .map(ch => ch.dataset.text);
-    state.editor.notas = [...notasChecklist, ...notasExtras];
-
-    const total = updateTotal();
-
-    const cot = {
-      id: state.editor.id || uid(),
-      fecha: todayISO(),
-      sucursal,
-      cliente: { nombre, correo, rut, fono },
-      items: state.editor.items,
-      notas: state.editor.notas,
-      total
-    };
-
-    state.cotizaciones.unshift(cot);
-    saveState();
-    notiOk("Cotización guardada");
-    showListado();
+  if(!nombre || !correo || !rut || !sucursal){
+    notiError("Completa Nombre, Correo, RUT y Sucursal.");
+    return;
   }
+  if(state.editor.items.length === 0){
+    notiError("Agrega al menos 1 producto.");
+    return;
+  }
+
+  // refresca notas
+  const notasChecklist = getChecklistSeleccionadas();
+  const notasExtras = Array.from(q("#cotzNotasExtras").querySelectorAll(".cotz-chip"))
+    .map(ch => ch.dataset.text);
+  state.editor.notas = [...notasChecklist, ...notasExtras];
+
+  const total = updateTotal();
+
+  const cot = {
+    id: state.editor.id || uid(),
+    fecha: state.editor.fecha || todayISO(), // mantiene fecha si ya existía
+    sucursal,
+    cliente: { nombre, correo, rut, fono },
+    items: state.editor.items,
+    notas: state.editor.notas,
+    total
+  };
+
+  const idx = state.cotizaciones.findIndex(x => x.id === cot.id);
+  if (idx >= 0) {
+    // actualizar existente
+    state.cotizaciones[idx] = cot;
+    notiOk("Cotización actualizada");
+  } else {
+    // nueva
+    state.cotizaciones.unshift(cot);
+    notiOk("Cotización guardada");
+  }
+  saveState();
+  showListado();
+}
+
 
   // —— Notas extras ————————————————
   function agregarNotaExtra(){
@@ -319,6 +390,14 @@ function showEditor(reset = true){
       // no hacemos nada inmediato; se refresca al guardar
     });
 
+    // Abrir cotización desde el listado
+q("#cotzTbodyListado").addEventListener("click", (e)=>{
+  const tr = e.target.closest("tr");
+  if(!tr || !tr.dataset.id) return;
+  loadCotizacionById(tr.dataset.id);
+});
+
+
     // Nota extra
     q("#cotzBtnAgregarNota").addEventListener("click", agregarNotaExtra);
     q("#cotzNotasExtras").addEventListener("click", (e)=>{
@@ -340,4 +419,4 @@ function showEditor(reset = true){
   document.addEventListener("DOMContentLoaded", init);
 })();
 
-//v1.2
+//v1.4

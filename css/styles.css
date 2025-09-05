@@ -1693,3 +1693,8 @@ textarea.form-control.inspira{
 #cotizacionesApp .cotz-footer-actions {
   display:flex; justify-content:flex-end; margin-top:1.25rem;
 }
+
+#cotizacionesApp .cotz-row-openable { cursor: pointer; }
+#cotizacionesApp #cotzVistaListado .cotz-table tbody tr.cotz-row-openable:hover {
+  background: #f7f9ff;
+}
