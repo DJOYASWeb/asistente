@@ -97,6 +97,40 @@ async function ensurePdfLibs(){
     }
   };
 
+
+// ——— Correlativo para IDs tipo #COT00001
+const STORAGE_SEQ_KEY = "djoyas_cotz_seq_v1";
+
+function parseSeqFromId(id){
+  const m = /^#COT(\d{5})$/.exec(id || "");
+  return m ? parseInt(m[1], 10) : null;
+}
+function getMaxSeqFromState(){
+  const nums = (state.cotizaciones || [])
+    .map(c => parseSeqFromId(c.id))
+    .filter(n => Number.isInteger(n));
+  return nums.length ? Math.max(...nums) : 0;
+}
+function getNextCorrelativo(){
+  let seq = parseInt(localStorage.getItem(STORAGE_SEQ_KEY) || "0", 10);
+  // si aún no hay secuencia guardada, arranca desde el máximo existente
+  if (!seq) seq = getMaxSeqFromState();
+  seq += 1;
+  localStorage.setItem(STORAGE_SEQ_KEY, String(seq));
+  return `#COT${String(seq).padStart(5, "0")}`;
+}
+
+// ——— Fecha DD/MM/YYYY (para el PDF)
+function formatDDMMYYYYSlash(iso){
+  const d = iso ? new Date(iso) : new Date();
+  const dd = String(d.getDate()).padStart(2,"0");
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+
+
   // —— Persistencia ————————————————————
   function loadState(){
     try {
@@ -782,4 +816,4 @@ doc.text(cot.id, margin, y);
 
 
 
-//v3.1
+//v3.2
