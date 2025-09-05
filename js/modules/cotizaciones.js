@@ -20,16 +20,17 @@ function loadScript(src){
 }
 
 // Detecta autoTable en todas las variantes: prototype, API o función UMD global
+// Detecta autoTable en todas las variantes: prototype, API o función UMD
 function getAutoTableRef(){
   const JSPDF = window.jspdf?.jsPDF;
   if (!JSPDF) return null;
 
-  // 1) Plugin acoplado al prototipo (doc.autoTable)
+  // 1) Plugin en el prototipo: doc.autoTable(...)
   if (JSPDF.prototype && JSPDF.prototype.autoTable) {
     return { type: "prototype", fn: null };
   }
 
-  // 2) Plugin expuesto en la API estática (jsPDF.API.autoTable)
+  // 2) Plugin en la API estática: jsPDF.API.autoTable(...)
   if (JSPDF.API && typeof JSPDF.API.autoTable === "function") {
     return { type: "api", fn: JSPDF.API.autoTable };
   }
@@ -44,7 +45,6 @@ function getAutoTableRef(){
   if (typeof window.autoTable === "function") {
     return { type: "function", fn: window.autoTable };
   }
-
   return null;
 }
 
@@ -640,16 +640,17 @@ if (!at || !window.jspdf?.jsPDF) {
 
 // Llamada compatible con todos los modos
 if (at.type === "prototype") {
-  // doc.autoTable(...)
+  // doc.autoTable(options)
   doc.autoTable(tableOptions);
 } else if (at.type === "api") {
-  // jsPDF.API.autoTable.call(doc, ...)
+  // jsPDF.API.autoTable.call(doc, options)
   at.fn.call(doc, tableOptions);
 } else {
-  // función UMD: jspdfAutoTable(doc, options)
+  // Función UMD: jspdfAutoTable(doc, options)
   at.fn(doc, tableOptions);
 }
 
+let finalY = doc.lastAutoTable?.finalY || (y + 30);
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -742,4 +743,4 @@ if (at.type === "prototype") {
 
 
 
-//v2.4
+//v2.5
