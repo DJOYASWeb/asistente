@@ -4,6 +4,8 @@
 (function () {
   "use strict";
 
+let currentDetailId = null;
+
   // —— Config / Helpers ——————————————————
   const STORAGE_KEY = "djoyas_cotizaciones_v1";
   const currencyCLP = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
@@ -353,7 +355,7 @@ function guardarCotizacion(){
 
   // —— Eventos globales ————————————————
 function bindEvents(){
-  // Navegación
+  // ——— Navegación
   q("#cotzBtnNueva").addEventListener("click", ()=> showEditor(true));
   q("#cotzBtnVolver").addEventListener("click", ()=>{
     const confirmSalir = state.editor.items.length>0 || q("#cotzCliNombre").value || q("#cotzCliCorreo").value || q("#cotzCliRut").value;
@@ -362,9 +364,11 @@ function bindEvents(){
   });
   q("#cotzBtnGuardar").addEventListener("click", guardarCotizacion);
 
-  // Búsqueda
+  // ——— Búsqueda
   q("#cotzBtnBuscar").addEventListener("click", handleBuscar);
-  q("#cotzBuscar").addEventListener("keydown", (e)=>{ if(e.key==="Enter") handleBuscar(); });
+  q("#cotzBuscar").addEventListener("keydown", (e)=>{
+    if (e.key === "Enter") { e.preventDefault(); handleBuscar(); }
+  });
   q("#cotzResultados").addEventListener("click", async (e)=>{
     const btn = e.target.closest("[data-add]");
     if(!btn) return;
@@ -374,7 +378,7 @@ function bindEvents(){
     if (prod) addItem(prod);
   });
 
-  // Items: qty / delete
+  // ——— Items: cantidad / eliminar
   q("#cotzTbodyItems").addEventListener("input", (e)=>{
     const inp = e.target.closest(".cotz-qty");
     if(!inp) return;
@@ -392,39 +396,38 @@ function bindEvents(){
     renderItems();
   });
 
-  // Checklist cambios (no hacemos nada inmediato; se refresca al guardar)
+  // ——— Checklist (se refresca al guardar)
   q("#cotzChecklist").addEventListener("change", ()=>{});
 
-  // ===== NUEVO: Listado y Detalle =====
-
-  // Listado: Ver, Editar, Eliminar
-  q("#cotzTbodyListado").addEventListener("click", (e)=>{
-    const btnEdit = e.target.closest("[data-edit]");
-    if (btnEdit) {
-      loadCotizacionById(btnEdit.getAttribute("data-edit"));
-      return;
-    }
-    const btnDel = e.target.closest("[data-del]");
-    if (btnDel) {
-      deleteCotizacion(btnDel.getAttribute("data-del"));
-      return;
-    }
-    const tr = e.target.closest("tr");
-    if (tr?.dataset.id) {
-      showDetalleById(tr.dataset.id);
+  // ——— Notas extra (ahora dentro de bindEvents, no fuera)
+  q("#cotzBtnAgregarNota").addEventListener("click", agregarNotaExtra);
+  q("#cotzNotasExtras").addEventListener("click", (e)=>{
+    if (e.target.classList.contains("cotz-chip-del")){
+      e.target.parentElement.remove();
     }
   });
 
-  // Detalle: Volver y Editar
-  q("#cotzDetVolver").addEventListener("click", showListado);
-  q("#cotzDetEditar").addEventListener("click", ()=>{
+  // ——— Listado: Ver (clic fila), Editar, Eliminar
+  q("#cotzTbodyListado").addEventListener("click", (e)=>{
+    const btnEdit = e.target.closest("[data-edit]");
+    if (btnEdit) { loadCotizacionById(btnEdit.getAttribute("data-edit")); return; }
+    const btnDel = e.target.closest("[data-del]");
+    if (btnDel) { deleteCotizacion(btnDel.getAttribute("data-del")); return; }
+    const tr = e.target.closest("tr");
+    if (tr?.dataset.id) { showDetalleById(tr.dataset.id); }
+  });
+
+  // ——— Detalle (read-only): Volver y Editar
+  q("#cotzDetVolver")?.addEventListener("click", showListado);
+  q("#cotzDetEditar")?.addEventListener("click", ()=>{
     if (!currentDetailId) return;
     loadCotizacionById(currentDetailId);
   });
 }
 
 
-let currentDetailId = null;
+
+
 
 function showDetalle(){
   q("#cotzVistaListado").classList.add("d-none");
@@ -529,4 +532,4 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
   document.addEventListener("DOMContentLoaded", init);
 })();
 
-//v1.6
+//v1.7
