@@ -266,8 +266,14 @@ function generarHTML() {
 function copiarHTML() {
   const resultado = document.getElementById("resultado").textContent;
   navigator.clipboard.writeText(resultado)
-    .then(() => alert("Código copiado al portapapeles"))
-    .catch(err => alert("Error al copiar: " + err));
+    .then(() => {
+      // ✅ Toast de éxito
+      mostrarNotificacion("Código copiado al portapapeles", "exito");
+    })
+    .catch(err => {
+      // ❌ Toast de error
+      mostrarNotificacion("Error al copiar: " + err, "error");
+    });
 }
 
 /* =====================
@@ -504,22 +510,28 @@ function safeBindRelacionados() {
 
     byId("prev4")?.addEventListener("click", ()=> setStepLocal(2));
 
-    byId("btnGenerar")?.addEventListener("click", ()=> {
-      try {
-        generarHTML();
-        markDone(3, true);
-        paintNav();
-        const secGen = document.querySelector("#step4 .generar");
-        const secRes = document.querySelector("#step4 .resultado");
-        if (secGen) secGen.style.display = "none";
-        if (secRes) secRes.style.display = "block";
-        byId("btnCopiar")?.focus();
-} catch(e){
-  mostrarNotificacion("No se pudo generar el HTML.", "error");
-  if (typeof showIosModal === "function") showIosModal("Error","No se pudo generar el HTML.");
-  else alert("No se pudo generar el HTML.");
-}
-    });
+byId("btnGenerar")?.addEventListener("click", ()=> {
+  try {
+    generarHTML();
+    markDone(3, true);
+    paintNav();
+
+    const secGen = document.querySelector("#step4 .generar");
+    const secRes = document.querySelector("#step4 .resultado");
+    if (secGen) secGen.style.display = "none";
+    if (secRes) secRes.style.display = "block";
+    byId("btnCopiar")?.focus();
+
+    // ✅ Toast de éxito
+    mostrarNotificacion("HTML generado correctamente", "exito");
+  } catch(e){
+    // ❌ Toast de error
+    mostrarNotificacion("No se pudo generar el HTML.", "error");
+    if (typeof showIosModal === "function") showIosModal("Error","No se pudo generar el HTML.");
+    else alert("No se pudo generar el HTML.");
+  }
+});
+
 
     byId("btnRedactarOtro")?.addEventListener("click", ()=> {
       ["titulo","fecha","imagen","altImagen","cuerpo"].forEach(id=>{
@@ -681,4 +693,4 @@ function safeBindRelacionados() {
   });
 })();
 
-// updd v2.1
+// updd v2.2
