@@ -112,21 +112,43 @@ function renderListado(){
 }
 
 
+
+// ——— Gestor único de vistas (evita vistas duplicadas)
+function setView(view){
+  const vListado = q("#cotzVistaListado");
+  const vEditor  = q("#cotzVistaEditor");
+  const vDetalle = q("#cotzVistaDetalle");
+  const btnNueva = q("#cotzBtnNueva");
+
+  // Oculta todo
+  vListado?.classList.add("d-none");
+  vEditor?.classList.add("d-none");
+  vDetalle?.classList.add("d-none");
+
+  // Muestra solo la vista solicitada
+  if (view === "listado") vListado?.classList.remove("d-none");
+  if (view === "editor")  vEditor?.classList.remove("d-none");
+  if (view === "detalle") vDetalle?.classList.remove("d-none");
+
+  // Botón "Crear nueva cotización"
+  if (view === "listado") btnNueva?.classList.remove("d-none");
+  else btnNueva?.classList.add("d-none");
+}
+
+
   // —— Navegación ————————————————————
 function showListado(){
-  q("#cotzVistaListado").classList.remove("d-none");
-  q("#cotzVistaEditor").classList.add("d-none");
-  // Mostrar el botón "Crear nueva cotización" arriba
-  q("#cotzBtnNueva")?.classList.remove("d-none");
+  setView("listado");
   renderListado();
 }
 
 function showEditor(reset = true){
   if (reset) resetEditor();
-  q("#cotzVistaListado").classList.add("d-none");
-  q("#cotzVistaEditor").classList.remove("d-none");
-  // Ocultar el botón "Crear nueva cotización" arriba
-  q("#cotzBtnNueva")?.classList.add("d-none");
+  setView("editor");
+}
+
+function showDetalle(){
+  setView("detalle");
 }
 
   // —— Editor: Reset / Bind ————————————————
@@ -426,17 +448,6 @@ function bindEvents(){
 }
 
 
-
-
-
-function showDetalle(){
-  q("#cotzVistaListado").classList.add("d-none");
-  q("#cotzVistaEditor").classList.add("d-none");
-  q("#cotzVistaDetalle").classList.remove("d-none");
-  // Oculta "Crear nueva cotización"
-  q("#cotzBtnNueva")?.classList.add("d-none");
-}
-
 function renderDetalle(c){
   currentDetailId = c.id || null;
 
@@ -532,4 +543,4 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
   document.addEventListener("DOMContentLoaded", init);
 })();
 
-//v1.7
+//v1.8
