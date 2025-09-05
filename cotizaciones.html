@@ -223,6 +223,78 @@
   </div>
 </section>
 
+
+<!-- Vista Detalle (read-only) -->
+<section id="cotzVistaDetalle" class="cotz-card d-none">
+  <div class="cotz-editor-header">
+    <button id="cotzDetVolver" class="cotz-btn-ghost">← Volver</button>
+    <div class="cotz-spacer"></div>
+    <button id="cotzDetEditar" class="cotz-btn-primary">Editar</button>
+  </div>
+
+  <!-- Sección: Datos de Cliente(a) -->
+  <div class="cotz-section">
+    <h2 class="cotz-h2">Datos de Cliente(a)</h2>
+    <div class="cotz-detail-grid">
+      <div class="cotz-detail-field">
+        <div class="cotz-detail-label">Nombre</div>
+        <div id="cotzDetCliNombre" class="cotz-detail-value">—</div>
+      </div>
+      <div class="cotz-detail-field">
+        <div class="cotz-detail-label">Correo</div>
+        <div id="cotzDetCliCorreo" class="cotz-detail-value">—</div>
+      </div>
+      <div class="cotz-detail-field">
+        <div class="cotz-detail-label">RUT</div>
+        <div id="cotzDetCliRut" class="cotz-detail-value">—</div>
+      </div>
+      <div class="cotz-detail-field">
+        <div class="cotz-detail-label">Teléfono</div>
+        <div id="cotzDetCliFono" class="cotz-detail-value">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección: Productos -->
+  <div class="cotz-section">
+    <h2 class="cotz-h2">Productos</h2>
+    <div class="cotz-table-wrap">
+      <table class="cotz-table">
+        <thead>
+          <tr>
+            <th style="width:100px">Cantidad</th>
+            <th>Detalle</th>
+            <th class="cotz-right" style="width:160px">Valor Unitario</th>
+            <th class="cotz-right" style="width:160px">Valor Total</th>
+          </tr>
+        </thead>
+        <tbody id="cotzDetTbodyItems"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="cotz-right"><strong>Total</strong></td>
+            <td class="cotz-right"><strong id="cotzDetTotal">$0</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sección: Datos DJOYAS -->
+  <div class="cotz-section">
+    <h2 class="cotz-h2">Datos DJOYAS</h2>
+    <div class="cotz-detail-grid">
+      <div class="cotz-detail-field">
+        <div class="cotz-detail-label">Sucursal</div>
+        <div id="cotzDetSucursal" class="cotz-detail-value">—</div>
+      </div>
+    </div>
+
+    <div class="cotz-h3">Mostrar en la cotización:</div>
+    <ul id="cotzDetNotas" class="cotz-detail-list"></ul>
+  </div>
+</section>
+
+
 </div>
 
 
