@@ -787,30 +787,25 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
 
 
 // ===============================
-// Exportar PDF SIN autoTable
-// ===============================
-// ===============================
-// Exportar PDF (Carta, header/footer en todas las páginas)
+// Exportar PDF (Carta) con header/footer por página, datos en 2 columnas,
+// tabla con header repetido y más espacio al continuar.
 // ===============================
 async function exportCotizacionPDF(id){
   const cot = state.cotizaciones.find(x => x.id === id);
   if(!cot){ notiError("No se encontró la cotización."); return; }
 
-  // Chequeo jsPDF
   if (!(window.jspdf && window.jspdf.jsPDF)) {
     notiError("jsPDF no está cargado. Revisa el <script> en el HTML.");
     return;
   }
 
   const { jsPDF } = window.jspdf;
-  // 👉 Formato CARTA
-  const doc = new jsPDF({ unit: "pt", format: "letter" });
+  const doc = new jsPDF({ unit: "pt", format: "letter" }); // 👉 Formato Carta
 
   let pageW = doc.internal.pageSize.getWidth();
   let pageH = doc.internal.pageSize.getHeight();
   const margin = 40;
 
-  // Helpers locales
   const textRight = (txt, xRight, y) => doc.text(String(txt), xRight, y, { align: "right" });
 
   // Logo (carga una sola vez)
@@ -826,46 +821,43 @@ async function exportCotizacionPDF(id){
   let y = drawHeader(doc, pageW, pageH, margin, logoImg, "COTIZACIÓN", fechaTxt, cot.id);
   drawFooter(doc, pageW, pageH, margin);
 
-  // ensureSpace que respeta el footer fijo y re-dibuja header/footer en páginas nuevas
-  function ensureSpace(h){
-    if (y + h > pageH - (margin + PDF_FMT.FOOTER_H)) {
+  // ensureSpace: respeta footer y reimprime header/footer + header de tabla si hace falta
+  function ensureSpace(h, opts = {}){
+    const bottomLimit = pageH - (margin + PDF_FMT.FOOTER_H);
+    if (y + h > bottomLimit){
       doc.addPage();
       pageW = doc.internal.pageSize.getWidth();
       pageH = doc.internal.pageSize.getHeight();
       y = drawHeader(doc, pageW, pageH, margin, logoImg, "COTIZACIÓN", fechaTxt, cot.id);
       drawFooter(doc, pageW, pageH, margin);
+      if (opts.afterNewPage === "tableHeader"){
+        y += PDF_FMT.TABLE_CONT_TOP_GAP;
+        y = drawTableHeader(doc, pageW, margin, y, computeColW(pageW, margin));
+      }
     }
   }
 
-  // ===== Datos Cliente
-  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
-  doc.text("Datos de Cliente(a)", margin, y);
-  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  // Helper para widths de tabla según ancho de página actual
+  function computeColW(pageW, margin){
+    return {
+      cant: 60,
+      vunit: 100,
+      vtotal: 100,
+      detalle: pageW - margin*2 - 60 - 100 - 100
+    };
+  }
 
-  y += 14; ensureSpace(56);
-  doc.text(`Nombre:  ${cot.cliente?.nombre || "-"}`, margin, y); y += 14;
-  doc.text(`Correo:  ${cot.cliente?.correo || "-"}`, margin, y); y += 14;
-  doc.text(`RUT:     ${cot.cliente?.rut || "-"}`, margin, y);    y += 14;
-  doc.text(`Teléfono: ${cot.cliente?.fono || "-"}`, margin, y);
+  // ===== Datos de Cliente(a) en dos columnas
+  // Reserva espacio del bloque (título + 2 líneas por columna ≈ 38–42pt)
+  ensureSpace(56);
+  y = drawClientTwoCol(doc, pageW, margin, y, cot);
 
-  // ===== Tabla – layout
-  y += 18; ensureSpace(40);
+  // ===== Tabla
+  y += PDF_FMT.TABLE_TOP_GAP;     // más aire antes de la tabla
+  ensureSpace(40);                // header de tabla cabe seguro
 
-  const colW = {
-    cant: 60,
-    detalle: pageW - margin*2 - 60 - 100 - 100, // ocupa el resto
-    vunit: 100,
-    vtotal: 100
-  };
-
-  // Header tabla
-  doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-  textRight("Cantidad", margin + colW.cant - 4, y);
-  doc.text("Detalle", margin + colW.cant + 4, y);
-  textRight("Valor Unitario", margin + colW.cant + colW.detalle + colW.vunit - 4, y);
-  textRight("Valor Total",    margin + colW.cant + colW.detalle + colW.vunit + colW.vtotal - 4, y);
-
-  y += 8; doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y); y += 10;
+  const colW = computeColW(pageW, margin);
+  y = drawTableHeader(doc, pageW, margin, y, colW);
 
   // Filas
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
@@ -881,14 +873,16 @@ async function exportCotizacionPDF(id){
     const detalleLines = doc.splitTextToSize(detalle, colW.detalle - 8);
     const lineCount = Math.max(1, detalleLines.length);
     const rowH = 14 * lineCount + 4;
+    // Si no cabe la fila, nueva página + header de tabla
+    ensureSpace(rowH + 6, { afterNewPage: "tableHeader" });
 
-    ensureSpace(rowH + 6);
-
+    // Dibujo de la fila
     textRight(cant, margin + colW.cant - 4, y + 12);
     doc.text(detalleLines, margin + colW.cant + 4, y + 12);
     textRight(vunit,  margin + colW.cant + colW.detalle + colW.vunit - 4, y + 12);
     textRight(vtotal, margin + colW.cant + colW.detalle + colW.vunit + colW.vtotal - 4, y + 12);
 
+    // Línea bajo la fila
     y += rowH;
     doc.setDrawColor(240); doc.line(margin, y, pageW - margin, y);
     y += 6;
@@ -921,14 +915,13 @@ async function exportCotizacionPDF(id){
     });
   }
 
-  // (No dibujamos pie aquí; ya está en todas las páginas desde drawFooter)
+  // (No dibujamos pie aquí; drawFooter ya lo puso en cada página)
 
   // Descargar
   const safeName = (cot.cliente?.nombre || "cotizacion").replace(/[\\/:*?"<>|]+/g, " ");
   doc.save(`${cot.id} - ${safeName}.pdf`);
   notiOk("PDF generado correctamente");
 }
-
 
   
   document.addEventListener("DOMContentLoaded", init);
@@ -937,4 +930,4 @@ async function exportCotizacionPDF(id){
 
 
 
-//v1
+//v1.2
