@@ -211,28 +211,29 @@ function showDetalle(){
 }
 
   // —— Editor: Reset / Bind ————————————————
-  function resetEditor(){
-    state.editor = {
-      id: uid(),
-      cliente: { nombre:"", correo:"", rut:"", fono:"" },
-      sucursal: "",
-      items: [],
-      notas: []
-    };
-    // limpiar inputs
-    q("#cotzCliNombre").value = "";
-    q("#cotzCliCorreo").value = "";
-    q("#cotzCliRut").value = "";
-    q("#cotzCliFono").value = "";
-    q("#cotzSucursal").value = "";
-    q("#cotzBuscar").value = "";
-    q("#cotzResultados").innerHTML = "";
-    q("#cotzTbodyItems").innerHTML = "";
-    q("#cotzTotal").textContent = fmtCLP(0);
-    q("#cotzNotasExtras").innerHTML = "";
-    // checkboxes marcadas por defecto
-    state.editor.notas = getChecklistSeleccionadas();
-  }
+function resetEditor(){
+  state.editor = {
+    id: getNextCorrelativo(),                   // ← nuevo correlativo #COT00001
+    cliente: { nombre:"", correo:"", rut:"", fono:"" },
+    sucursal: "",
+    items: [],
+    notas: []
+  };
+  // limpiar inputs
+  q("#cotzCliNombre").value = "";
+  q("#cotzCliCorreo").value = "";
+  q("#cotzCliRut").value = "";
+  q("#cotzCliFono").value = "";
+  q("#cotzSucursal").value = "";
+  q("#cotzBuscar").value = "";
+  q("#cotzResultados").innerHTML = "";
+  q("#cotzTbodyItems").innerHTML = "";
+  q("#cotzTotal").textContent = fmtCLP(0);
+  q("#cotzNotasExtras").innerHTML = "";
+  // checkboxes marcadas por defecto
+  state.editor.notas = getChecklistSeleccionadas();
+}
+
 
   // ——————————— Cargar cotización existente en el editor ———————————
 function applyNotasToUI(notas = []){
@@ -397,7 +398,7 @@ function guardarCotizacion(){
   const total = updateTotal();
 
   const cot = {
-    id: state.editor.id || uid(),
+id: state.editor.id,
     fecha: state.editor.fecha || todayISO(), // mantiene fecha si ya existía
     sucursal,
     cliente: { nombre, correo, rut, fono },
@@ -654,15 +655,20 @@ function exportCotizacionPDF(id){
   }
 
   // ===== Encabezado
-  doc.setFont("helvetica", "bold"); doc.setFontSize(14);
-  doc.text("DJOYAS – Cotización", margin, y);
-  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-  const fechaTxt = formatDDMMYYYY(cot.fecha || todayISO());
-  textRight(`ID: ${cot.id}`, pageW - margin, y);
-  y += 14;
-  textRight(`Fecha: ${fechaTxt}`, pageW - margin, y);
-  y += 14;
-  textRight(`Sucursal: ${cot.sucursal || "-"}`, pageW - margin, y);
+// ===== Encabezado (nuevo)
+doc.setFont("helvetica", "bold"); 
+doc.setFontSize(16);
+doc.text("COTIZACIÓN", margin, y);                 // línea 1: nombre del documento
+
+doc.setFont("helvetica", "normal"); 
+doc.setFontSize(11);
+
+y += 18; ensureSpace(14);
+const fechaTxt = formatDDMMYYYYSlash(cot.fecha || todayISO());
+doc.text(fechaTxt, margin, y);                      // línea 2: fecha dd/mm/yyyy
+
+y += 16; ensureSpace(14);
+doc.text(cot.id, margin, y);     
 
   // Separador
   y += 16; doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y); y += 16;
