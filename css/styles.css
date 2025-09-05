@@ -1690,3 +1690,6 @@ textarea.form-control.inspira{
 #cotizacionesApp .cotz-notas-extras { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; }
 #cotizacionesApp .cotz-chip { background:#eef3ff; border:1px solid #d4e2ff; color:#123; padding:.3rem .5rem; border-radius:999px; display:flex; align-items:center; gap:.35rem; font-size:.85rem; }
 #cotizacionesApp .cotz-chip button { border:0; background:transparent; cursor:pointer; }
+#cotizacionesApp .cotz-footer-actions {
+  display:flex; justify-content:flex-end; margin-top:1.25rem;
+}
