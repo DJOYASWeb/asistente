@@ -551,6 +551,19 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
   }
 
 
+  function getAutoTableRef(){
+  const w = window;
+  // Modo plugin (doc.autoTable)
+  if (w.jspdf?.jsPDF?.prototype?.autoTable) return { type: "prototype", fn: null };
+  // Modo función UMD
+  if (typeof w.jspdfAutoTable === "function") return { type: "function", fn: w.jspdfAutoTable };
+  if (typeof w.jspdfAutoTable?.autoTable === "function") return { type: "function", fn: w.jspdfAutoTable.autoTable };
+  if (typeof w.autoTable === "function") return { type: "function", fn: w.autoTable };
+  return null;
+}
+
+
+
 // ——— Exportar PDF de una cotización (usa jsPDF + autoTable)
 function exportCotizacionPDF(id){
   const cot = state.cotizaciones.find(x => x.id === id);
@@ -672,4 +685,4 @@ function exportCotizacionPDF(id){
 
 
 
-//v1.9
+//v2
