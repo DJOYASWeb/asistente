@@ -934,4 +934,4 @@ async function exportCotizacionPDF(id){
 
 
 
-//v1.2
+//v1.3
