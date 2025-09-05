@@ -99,10 +99,17 @@ function loadImage(url){
 
 // ===== Config de PDF (header/footer)
 const PDF_FMT = {
-  HEADER_IMG_H: 42,      // alto del logo en puntos
-  HEADER_TOP_PAD: 12,    // cuánto baja el bloque de la derecha para centrar con logo
-  FOOTER_TEXT_SIZE: 8,   // tamaño del texto de pie de página
-  FOOTER_H: 40           // altura reservada para pie (no imprimir encima)
+  HEADER_IMG_H: 42,       // alto del logo
+  HEADER_TOP_PAD: 12,     // ajuste vertical del bloque derecho
+  COL_GAP: 24,            // espacio entre columnas de "Datos de Cliente(a)"
+  TABLE_TOP_GAP: 24,      // espacio extra antes de la tabla
+  TABLE_CONT_TOP_GAP: 16, // espacio extra cuando la tabla continúa en nueva página
+  FOOTER_TEXT_SIZE: 8,
+  FOOTER_LINES: 3,
+  FOOTER_LEADING: 12,
+  FOOTER_TOP_PAD: 10,
+  // reserva mínima para que el contenido no choque con el footer
+  FOOTER_H: 60
 };
 
 // Dibuja el header (logo izq + título/fecha/id der). Devuelve el nuevo "y" para continuar.
@@ -119,34 +126,40 @@ function drawHeader(doc, pageW, pageH, margin, logoImg, title, dateTxt, idTxt){
 
   let yRight = yTop + PDF_FMT.HEADER_TOP_PAD;
   doc.setFont("helvetica", "bold"); doc.setFontSize(16);
-  doc.text("COTIZACIÓN", pageW - margin, yRight, { align: "right" });
+  doc.text(title || "COTIZACIÓN", pageW - margin, yRight, { align: "right" });
 
   doc.setFont("helvetica", "normal"); doc.setFontSize(11);
   yRight += 18;
-  doc.text(dateTxt, pageW - margin, yRight, { align: "right" });
+  doc.text(dateTxt || "", pageW - margin, yRight, { align: "right" });
 
   yRight += 16;
-  doc.text(idTxt, pageW - margin, yRight, { align: "right" });
+  doc.text(idTxt || "", pageW - margin, yRight, { align: "right" });
 
-  // línea separadora
+  // línea separadora debajo del header
   const yAfter = Math.max(yTop + logoH, yRight) + 12;
   doc.setDrawColor(220);
   doc.line(margin, yAfter, pageW - margin, yAfter);
 
-  return yAfter + 16; // y para continuar contenido
+  return yAfter + 16;
 }
 
-// Dibuja el footer pegado al bottom
+// Dibuja el footer pegado al bottom con línea divisoria superior
 function drawFooter(doc, pageW, pageH, margin){
   const l1 = "DistribuidoraDeJoyas.cl - Antonio Varas #989, Oficina 802, Edificio Capital - 4791154 Temuco - Chile";
   const l2 = "Para obtener más ayuda, póngase en contacto con Soporte:";
   const l3 = "Tel: 56 9 6390 7000";
 
-  const yBottom = pageH - margin;
-  const y3 = yBottom;
-  const y2 = y3 - 12;
-  const y1 = y2 - 12;
+  // Posiciones de texto (tres líneas)
+  const y3 = pageH - margin;
+  const y2 = y3 - PDF_FMT.FOOTER_LEADING;
+  const y1 = y2 - PDF_FMT.FOOTER_LEADING;
 
+  // Línea divisoria justo antes del footer
+  const lineY = y1 - PDF_FMT.FOOTER_TOP_PAD;
+  doc.setDrawColor(220);
+  doc.line(margin, lineY, pageW - margin, lineY);
+
+  // Texto de footer
   doc.setFont("helvetica", "normal");
   doc.setFontSize(PDF_FMT.FOOTER_TEXT_SIZE);
   doc.text(l1, margin, y1);
@@ -155,6 +168,45 @@ function drawFooter(doc, pageW, pageH, margin){
 }
 
 
+// Header de la tabla (reutilizable en nuevas páginas). Devuelve nuevo y.
+function drawTableHeader(doc, pageW, margin, y, colW){
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+  // helpers locales
+  const textRight = (txt, xRight, yy) => doc.text(String(txt), xRight, yy, { align: "right" });
+
+  textRight("Cantidad", margin + colW.cant - 4, y);
+  doc.text("Detalle", margin + colW.cant + 4, y);
+  textRight("Valor Unitario", margin + colW.cant + colW.detalle + colW.vunit - 4, y);
+  textRight("Valor Total",    margin + colW.cant + colW.detalle + colW.vunit + colW.vtotal - 4, y);
+
+  y += 8; doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y); y += 10;
+  return y;
+}
+
+// Sección "Datos de Cliente(a)" en dos columnas simétricas. Devuelve nuevo y.
+function drawClientTwoCol(doc, pageW, margin, y, cot){
+  const colGap = PDF_FMT.COL_GAP;
+  const colW = (pageW - margin*2 - colGap) / 2;
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+  doc.text("Datos de Cliente(a)", margin, y);
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  const baseY = y + 14;               // primera línea bajo el título
+  const lead  = 14;                   // interlineado
+
+  // Izquierda
+  doc.text(`Nombre:  ${cot.cliente?.nombre || "-"}`, margin, baseY);
+  doc.text(`Correo:  ${cot.cliente?.correo || "-"}`, margin, baseY + lead);
+
+  // Derecha
+  const xRightCol = margin + colW + colGap;
+  doc.text(`RUT:     ${cot.cliente?.rut || "-"}`,    xRightCol, baseY);
+  doc.text(`Teléfono: ${cot.cliente?.fono || "-"}`,  xRightCol, baseY + lead);
+
+  // Devuelve el y siguiente (2 líneas + título)
+  return baseY + lead + 10;
+}
 
   function uid(){ const d=new Date(); return `COT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}${String(d.getSeconds()).padStart(2,"0")}`; }
 
@@ -885,4 +937,4 @@ async function exportCotizacionPDF(id){
 
 
 
-//v3.4
+//v1
