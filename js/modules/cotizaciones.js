@@ -83,6 +83,18 @@ async function ensurePdfLibs(){
     const yyyy = d.getFullYear();
     return `${dd}-${mm}-${yyyy}`;
   }
+
+// Cargar imagen con CORS habilitado (sirve para GitHub Pages u orígenes externos)
+function loadImage(url){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("No se pudo cargar la imagen: " + url));
+    img.src = url;
+  });
+}
+
   function uid(){ const d=new Date(); return `COT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}${String(d.getSeconds()).padStart(2,"0")}`; }
 
   // —— Estado ————————————————————————
@@ -661,7 +673,7 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
 // ===============================
 // Exportar PDF SIN autoTable
 // ===============================
-function exportCotizacionPDF(id){
+async function exportCotizacionPDF(id){
   const cot = state.cotizaciones.find(x => x.id === id);
   if(!cot){ notiError("No se encontró la cotización."); return; }
 
@@ -688,24 +700,50 @@ function exportCotizacionPDF(id){
     }
   }
 
-  // ===== Encabezado
-// ===== Encabezado (nuevo)
-doc.setFont("helvetica", "bold"); 
+// ===== Encabezado (logo izq, datos der)
+const logoUrl = "https://djoyasweb.github.io/asistente/img/logo_byn.png";
+let yTop = y; // punto de arranque del encabezado
+
+// Intentamos cargar el logo (si falla, seguimos sin él)
+let logoW = 0, logoH = 0;
+try {
+  const img = await loadImage(logoUrl);
+  // Alto deseado en puntos (ajústalo a gusto)
+  logoH = 42;
+  const ratio = (img.naturalWidth || 1) / (img.naturalHeight || 1);
+  logoW = Math.round(logoH * ratio);
+  // Dibuja el logo a la izquierda
+  doc.addImage(img, "PNG", margin, yTop, logoW, logoH);
+} catch(e){
+  // No interrumpimos el PDF si falla el logo
+  logoW = 0; logoH = 0;
+}
+
+// Bloque derecho (alineado al borde derecho)
+let yRight = yTop + 12; // baja un poquito para centrar visualmente con el logo
+doc.setFont("helvetica", "bold");
 doc.setFontSize(16);
-doc.text("COTIZACIÓN", margin, y);                 // línea 1: nombre del documento
+doc.text("COTIZACIÓN", pageW - margin, yRight, { align: "right" });
 
-doc.setFont("helvetica", "normal"); 
+doc.setFont("helvetica", "normal");
 doc.setFontSize(11);
+yRight += 18;
+const fechaTxt = (typeof formatDDMMYYYYSlash === "function")
+  ? formatDDMMYYYYSlash(cot.fecha || todayISO())
+  : formatDDMMYYYY(cot.fecha || todayISO()).replace(/-/g,"/");
+doc.text(fechaTxt, pageW - margin, yRight, { align: "right" });
 
-y += 18; ensureSpace(14);
-const fechaTxt = formatDDMMYYYYSlash(cot.fecha || todayISO());
-doc.text(fechaTxt, margin, y);                      // línea 2: fecha dd/mm/yyyy
+yRight += 16;
+doc.text(cot.id, pageW - margin, yRight, { align: "right" });
 
-y += 16; ensureSpace(14);
-doc.text(cot.id, margin, y);     
+// Avanza 'y' debajo de lo más bajo entre logo y bloque derecho
+y = Math.max(yTop + logoH, yRight) + 12;
 
-  // Separador
-  y += 16; doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y); y += 16;
+// Separador bajo el header
+doc.setDrawColor(220);
+doc.line(margin, y, pageW - margin, y);
+y += 16;
+
 
   // ===== Datos Cliente
   doc.setFont("helvetica", "bold"); doc.setFontSize(12);
@@ -816,4 +854,4 @@ doc.text(cot.id, margin, y);
 
 
 
-//v3.2
+//v3.3
