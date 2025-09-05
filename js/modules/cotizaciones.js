@@ -95,6 +95,67 @@ function loadImage(url){
   });
 }
 
+
+
+// ===== Config de PDF (header/footer)
+const PDF_FMT = {
+  HEADER_IMG_H: 42,      // alto del logo en puntos
+  HEADER_TOP_PAD: 12,    // cuánto baja el bloque de la derecha para centrar con logo
+  FOOTER_TEXT_SIZE: 8,   // tamaño del texto de pie de página
+  FOOTER_H: 40           // altura reservada para pie (no imprimir encima)
+};
+
+// Dibuja el header (logo izq + título/fecha/id der). Devuelve el nuevo "y" para continuar.
+function drawHeader(doc, pageW, pageH, margin, logoImg, title, dateTxt, idTxt){
+  const yTop = margin;
+  let logoW = 0, logoH = 0;
+
+  if (logoImg){
+    const ratio = (logoImg.naturalWidth || 1) / (logoImg.naturalHeight || 1);
+    logoH = PDF_FMT.HEADER_IMG_H;
+    logoW = Math.round(logoH * ratio);
+    doc.addImage(logoImg, "PNG", margin, yTop, logoW, logoH);
+  }
+
+  let yRight = yTop + PDF_FMT.HEADER_TOP_PAD;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(16);
+  doc.text("COTIZACIÓN", pageW - margin, yRight, { align: "right" });
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(11);
+  yRight += 18;
+  doc.text(dateTxt, pageW - margin, yRight, { align: "right" });
+
+  yRight += 16;
+  doc.text(idTxt, pageW - margin, yRight, { align: "right" });
+
+  // línea separadora
+  const yAfter = Math.max(yTop + logoH, yRight) + 12;
+  doc.setDrawColor(220);
+  doc.line(margin, yAfter, pageW - margin, yAfter);
+
+  return yAfter + 16; // y para continuar contenido
+}
+
+// Dibuja el footer pegado al bottom
+function drawFooter(doc, pageW, pageH, margin){
+  const l1 = "DistribuidoraDeJoyas.cl - Antonio Varas #989, Oficina 802, Edificio Capital - 4791154 Temuco - Chile";
+  const l2 = "Para obtener más ayuda, póngase en contacto con Soporte:";
+  const l3 = "Tel: 56 9 6390 7000";
+
+  const yBottom = pageH - margin;
+  const y3 = yBottom;
+  const y2 = y3 - 12;
+  const y1 = y2 - 12;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(PDF_FMT.FOOTER_TEXT_SIZE);
+  doc.text(l1, margin, y1);
+  doc.text(l2, margin, y2);
+  doc.text(l3, margin, y3);
+}
+
+
+
   function uid(){ const d=new Date(); return `COT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}${String(d.getSeconds()).padStart(2,"0")}`; }
 
   // —— Estado ————————————————————————
@@ -140,6 +201,9 @@ function formatDDMMYYYYSlash(iso){
   const yyyy = d.getFullYear();
   return `${dd}/${mm}/${yyyy}`;
 }
+
+
+
 
 
 
@@ -673,6 +737,9 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
 // ===============================
 // Exportar PDF SIN autoTable
 // ===============================
+// ===============================
+// Exportar PDF (Carta, header/footer en todas las páginas)
+// ===============================
 async function exportCotizacionPDF(id){
   const cot = state.cotizaciones.find(x => x.id === id);
   if(!cot){ notiError("No se encontró la cotización."); return; }
@@ -684,75 +751,49 @@ async function exportCotizacionPDF(id){
   }
 
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
+  // 👉 Formato CARTA
+  const doc = new jsPDF({ unit: "pt", format: "letter" });
+
+  let pageW = doc.internal.pageSize.getWidth();
+  let pageH = doc.internal.pageSize.getHeight();
   const margin = 40;
 
-  let y = margin;
-
-  // Helpers
+  // Helpers locales
   const textRight = (txt, xRight, y) => doc.text(String(txt), xRight, y, { align: "right" });
+
+  // Logo (carga una sola vez)
+  const logoUrl = "https://djoyasweb.github.io/asistente/img/logo_byn.png";
+  let logoImg = null;
+  try { logoImg = await loadImage(logoUrl); } catch(e){ logoImg = null; }
+
+  const fechaTxt = (typeof formatDDMMYYYYSlash === "function")
+    ? formatDDMMYYYYSlash(cot.fecha || todayISO())
+    : formatDDMMYYYY(cot.fecha || todayISO()).replace(/-/g, "/");
+
+  // ===== Header y Footer de la primera página
+  let y = drawHeader(doc, pageW, pageH, margin, logoImg, "COTIZACIÓN", fechaTxt, cot.id);
+  drawFooter(doc, pageW, pageH, margin);
+
+  // ensureSpace que respeta el footer fijo y re-dibuja header/footer en páginas nuevas
   function ensureSpace(h){
-    if (y + h > pageH - margin) {
+    if (y + h > pageH - (margin + PDF_FMT.FOOTER_H)) {
       doc.addPage();
-      y = margin;
+      pageW = doc.internal.pageSize.getWidth();
+      pageH = doc.internal.pageSize.getHeight();
+      y = drawHeader(doc, pageW, pageH, margin, logoImg, "COTIZACIÓN", fechaTxt, cot.id);
+      drawFooter(doc, pageW, pageH, margin);
     }
   }
-
-// ===== Encabezado (logo izq, datos der)
-const logoUrl = "https://djoyasweb.github.io/asistente/img/logo_byn.png";
-let yTop = y; // punto de arranque del encabezado
-
-// Intentamos cargar el logo (si falla, seguimos sin él)
-let logoW = 0, logoH = 0;
-try {
-  const img = await loadImage(logoUrl);
-  // Alto deseado en puntos (ajústalo a gusto)
-  logoH = 42;
-  const ratio = (img.naturalWidth || 1) / (img.naturalHeight || 1);
-  logoW = Math.round(logoH * ratio);
-  // Dibuja el logo a la izquierda
-  doc.addImage(img, "PNG", margin, yTop, logoW, logoH);
-} catch(e){
-  // No interrumpimos el PDF si falla el logo
-  logoW = 0; logoH = 0;
-}
-
-// Bloque derecho (alineado al borde derecho)
-let yRight = yTop + 12; // baja un poquito para centrar visualmente con el logo
-doc.setFont("helvetica", "bold");
-doc.setFontSize(16);
-doc.text("COTIZACIÓN", pageW - margin, yRight, { align: "right" });
-
-doc.setFont("helvetica", "normal");
-doc.setFontSize(11);
-yRight += 18;
-const fechaTxt = (typeof formatDDMMYYYYSlash === "function")
-  ? formatDDMMYYYYSlash(cot.fecha || todayISO())
-  : formatDDMMYYYY(cot.fecha || todayISO()).replace(/-/g,"/");
-doc.text(fechaTxt, pageW - margin, yRight, { align: "right" });
-
-yRight += 16;
-doc.text(cot.id, pageW - margin, yRight, { align: "right" });
-
-// Avanza 'y' debajo de lo más bajo entre logo y bloque derecho
-y = Math.max(yTop + logoH, yRight) + 12;
-
-// Separador bajo el header
-doc.setDrawColor(220);
-doc.line(margin, y, pageW - margin, y);
-y += 16;
-
 
   // ===== Datos Cliente
   doc.setFont("helvetica", "bold"); doc.setFontSize(12);
   doc.text("Datos de Cliente(a)", margin, y);
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+
   y += 14; ensureSpace(56);
   doc.text(`Nombre:  ${cot.cliente?.nombre || "-"}`, margin, y); y += 14;
   doc.text(`Correo:  ${cot.cliente?.correo || "-"}`, margin, y); y += 14;
-  doc.text(`Rut:     ${cot.cliente?.rut || "-"}`, margin, y);    y += 14;
+  doc.text(`RUT:     ${cot.cliente?.rut || "-"}`, margin, y);    y += 14;
   doc.text(`Teléfono: ${cot.cliente?.fono || "-"}`, margin, y);
 
   // ===== Tabla – layout
@@ -791,15 +832,11 @@ y += 16;
 
     ensureSpace(rowH + 6);
 
-    // Cantidad
     textRight(cant, margin + colW.cant - 4, y + 12);
-    // Detalle (multi-línea)
     doc.text(detalleLines, margin + colW.cant + 4, y + 12);
-    // V Unit / Total
     textRight(vunit,  margin + colW.cant + colW.detalle + colW.vunit - 4, y + 12);
     textRight(vtotal, margin + colW.cant + colW.detalle + colW.vunit + colW.vtotal - 4, y + 12);
 
-    // subrayado de la fila
     y += rowH;
     doc.setDrawColor(240); doc.line(margin, y, pageW - margin, y);
     y += 6;
@@ -832,19 +869,13 @@ y += 16;
     });
   }
 
-  // Pie
-  ensureSpace(30);
-  doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y);
-  y += 14; doc.setFontSize(9);
-  doc.text("DistribuidoraDeJoyas.cl", margin, y);
-  textRight("Este documento es una cotización. Valores en CLP.", pageW - margin, y);
+  // (No dibujamos pie aquí; ya está en todas las páginas desde drawFooter)
 
   // Descargar
   const safeName = (cot.cliente?.nombre || "cotizacion").replace(/[\\/:*?"<>|]+/g, " ");
   doc.save(`${cot.id} - ${safeName}.pdf`);
   notiOk("PDF generado correctamente");
 }
-
 
 
   
@@ -854,4 +885,4 @@ y += 16;
 
 
 
-//v3.3
+//v3.4
