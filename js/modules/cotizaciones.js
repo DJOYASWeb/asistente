@@ -89,19 +89,26 @@ function renderListado(){
   vacio.classList.add("d-none");
   state.cotizaciones.forEach(c => {
     const tr = document.createElement("tr");
-    tr.dataset.id = c.id;                   // ← para abrir al hacer clic
-    tr.className = "cotz-row-openable";     // ← estilo hover/cursor (CSS abajo)
-    tr.title = "Abrir cotización";
+    tr.dataset.id = c.id;
+    tr.className = "cotz-row-openable";
+    tr.title = "Ver cotización";
     tr.innerHTML = `
       <td>${c.id}</td>
       <td>${c.cliente?.nombre || "-"}</td>
       <td>${formatDDMMYYYY(c.fecha)}</td>
       <td>${c.sucursal || "-"}</td>
       <td class="cotz-right">${fmtCLP(c.total || 0)}</td>
+      <td>
+        <div class="cotz-actions">
+          <button class="cotz-btn-mini cotz-btn-secondary" data-edit="${c.id}">Editar</button>
+          <button class="cotz-btn-mini cotz-btn-danger" data-del="${c.id}">Eliminar</button>
+        </div>
+      </td>
     `;
     tbody.appendChild(tr);
   });
 }
+
 
   // —— Navegación ————————————————————
 function showListado(){
@@ -345,50 +352,149 @@ function guardarCotizacion(){
   }
 
   // —— Eventos globales ————————————————
-  function bindEvents(){
-    // Navegación
-    q("#cotzBtnNueva").addEventListener("click", ()=> showEditor(true));
-    q("#cotzBtnVolver").addEventListener("click", ()=>{
-      const confirmSalir = state.editor.items.length>0 || q("#cotzCliNombre").value || q("#cotzCliCorreo").value || q("#cotzCliRut").value;
-      if(confirmSalir && !confirm("Hay cambios sin guardar. ¿Volver de todos modos?")) return;
-      showListado();
-    });
-    q("#cotzBtnGuardar").addEventListener("click", guardarCotizacion);
+function bindEvents(){
+  // Navegación
+  q("#cotzBtnNueva").addEventListener("click", ()=> showEditor(true));
+  q("#cotzBtnVolver").addEventListener("click", ()=>{
+    const confirmSalir = state.editor.items.length>0 || q("#cotzCliNombre").value || q("#cotzCliCorreo").value || q("#cotzCliRut").value;
+    if (confirmSalir && !confirm("Hay cambios sin guardar. ¿Volver de todos modos?")) return;
+    showListado();
+  });
+  q("#cotzBtnGuardar").addEventListener("click", guardarCotizacion);
 
-    // Búsqueda
-    q("#cotzBtnBuscar").addEventListener("click", handleBuscar);
-    q("#cotzBuscar").addEventListener("keydown", (e)=>{ if(e.key==="Enter") handleBuscar(); });
-    q("#cotzResultados").addEventListener("click", async (e)=>{
-      const btn = e.target.closest("[data-add]");
-      if(!btn) return;
-      const sku = btn.getAttribute("data-add");
-      const results = await searchProductos(q("#cotzBuscar").value);
-      const prod = results.find(p => p.sku === sku);
-      if(prod) addItem(prod);
-    });
+  // Búsqueda
+  q("#cotzBtnBuscar").addEventListener("click", handleBuscar);
+  q("#cotzBuscar").addEventListener("keydown", (e)=>{ if(e.key==="Enter") handleBuscar(); });
+  q("#cotzResultados").addEventListener("click", async (e)=>{
+    const btn = e.target.closest("[data-add]");
+    if(!btn) return;
+    const sku = btn.getAttribute("data-add");
+    const results = await searchProductos(q("#cotzBuscar").value);
+    const prod = results.find(p => p.sku === sku);
+    if (prod) addItem(prod);
+  });
 
-    // Items: qty / delete
-    q("#cotzTbodyItems").addEventListener("input", (e)=>{
-      const inp = e.target.closest(".cotz-qty");
-      if(!inp) return;
-      const idx = Number(inp.getAttribute("data-idx"));
-      let v = parseInt(inp.value, 10);
-      if(isNaN(v) || v < 1) v = 1;
-      state.editor.items[idx].qty = v;
-      renderItems();
-    });
-    q("#cotzTbodyItems").addEventListener("click", (e)=>{
-      const btn = e.target.closest("[data-del]");
-      if(!btn) return;
-      const idx = Number(btn.getAttribute("data-del"));
-      state.editor.items.splice(idx,1);
-      renderItems();
-    });
+  // Items: qty / delete
+  q("#cotzTbodyItems").addEventListener("input", (e)=>{
+    const inp = e.target.closest(".cotz-qty");
+    if(!inp) return;
+    const idx = Number(inp.getAttribute("data-idx"));
+    let v = parseInt(inp.value, 10);
+    if (isNaN(v) || v < 1) v = 1;
+    state.editor.items[idx].qty = v;
+    renderItems();
+  });
+  q("#cotzTbodyItems").addEventListener("click", (e)=>{
+    const btn = e.target.closest("[data-del]");
+    if(!btn) return;
+    const idx = Number(btn.getAttribute("data-del"));
+    state.editor.items.splice(idx,1);
+    renderItems();
+  });
 
-    // Checklist cambios
-    q("#cotzChecklist").addEventListener("change", ()=>{
-      // no hacemos nada inmediato; se refresca al guardar
-    });
+  // Checklist cambios (no hacemos nada inmediato; se refresca al guardar)
+  q("#cotzChecklist").addEventListener("change", ()=>{});
+
+  // ===== NUEVO: Listado y Detalle =====
+
+  // Listado: Ver, Editar, Eliminar
+  q("#cotzTbodyListado").addEventListener("click", (e)=>{
+    const btnEdit = e.target.closest("[data-edit]");
+    if (btnEdit) {
+      loadCotizacionById(btnEdit.getAttribute("data-edit"));
+      return;
+    }
+    const btnDel = e.target.closest("[data-del]");
+    if (btnDel) {
+      deleteCotizacion(btnDel.getAttribute("data-del"));
+      return;
+    }
+    const tr = e.target.closest("tr");
+    if (tr?.dataset.id) {
+      showDetalleById(tr.dataset.id);
+    }
+  });
+
+  // Detalle: Volver y Editar
+  q("#cotzDetVolver").addEventListener("click", showListado);
+  q("#cotzDetEditar").addEventListener("click", ()=>{
+    if (!currentDetailId) return;
+    loadCotizacionById(currentDetailId);
+  });
+}
+
+
+let currentDetailId = null;
+
+function showDetalle(){
+  q("#cotzVistaListado").classList.add("d-none");
+  q("#cotzVistaEditor").classList.add("d-none");
+  q("#cotzVistaDetalle").classList.remove("d-none");
+  // Oculta "Crear nueva cotización"
+  q("#cotzBtnNueva")?.classList.add("d-none");
+}
+
+function renderDetalle(c){
+  currentDetailId = c.id || null;
+
+  q("#cotzDetCliNombre").textContent = c.cliente?.nombre || "—";
+  q("#cotzDetCliCorreo").textContent = c.cliente?.correo || "—";
+  q("#cotzDetCliRut").textContent    = c.cliente?.rut || "—";
+  q("#cotzDetCliFono").textContent   = c.cliente?.fono || "—";
+  q("#cotzDetSucursal").textContent  = c.sucursal || "—";
+
+  // Items
+  const tb = q("#cotzDetTbodyItems");
+  tb.innerHTML = "";
+  (c.items || []).forEach(it=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${it.qty}</td>
+      <td>
+        <div style="font-weight:600">${it.nombre}</div>
+        <div style="font-size:.85rem; color:#666">${it.sku}</div>
+      </td>
+      <td class="cotz-right">${fmtCLP(it.precio)}</td>
+      <td class="cotz-right">${fmtCLP(it.precio * it.qty)}</td>
+    `;
+    tb.appendChild(tr);
+  });
+
+  // Total
+  const total = (c.items || []).reduce((acc,it)=> acc + (it.precio*it.qty), 0);
+  q("#cotzDetTotal").textContent = fmtCLP(total);
+
+  // Notas
+  const ul = q("#cotzDetNotas");
+  ul.innerHTML = "";
+  (c.notas || []).forEach(n=>{
+    const li = document.createElement("li");
+    li.textContent = n;
+    ul.appendChild(li);
+  });
+}
+
+function showDetalleById(id){
+  const c = state.cotizaciones.find(x => x.id === id);
+  if(!c){ notiError("No se encontró la cotización."); return; }
+  renderDetalle(c);
+  showDetalle();
+  notiOk(`Viendo cotización ${c.id}`);
+}
+
+function deleteCotizacion(id){
+  const idx = state.cotizaciones.findIndex(x => x.id === id);
+  if(idx < 0){ notiError("No se encontró la cotización."); return; }
+  if(!confirm(`¿Eliminar la cotización ${state.cotizaciones[idx].id}? Esta acción no se puede deshacer.`)) return;
+  state.cotizaciones.splice(idx,1);
+  saveState();
+  notiOk("Cotización eliminada");
+  // Si estabas viendo esa misma, vuelve al listado
+  showListado();
+}
+
+
+
 
     // Abrir cotización desde el listado
 q("#cotzTbodyListado").addEventListener("click", (e)=>{
@@ -407,6 +513,17 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
     });
   }
 
+
+
+
+
+
+
+
+
+
+  
+
   // —— Init ———————————————————————————
   function init(){
     const app = $(appSel);
@@ -416,7 +533,11 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
     bindEvents();
   }
 
+
+
+
+  
   document.addEventListener("DOMContentLoaded", init);
 })();
 
-//v1.4
+//v1.5

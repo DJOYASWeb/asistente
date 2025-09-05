@@ -1698,3 +1698,24 @@ textarea.form-control.inspira{
 #cotizacionesApp #cotzVistaListado .cotz-table tbody tr.cotz-row-openable:hover {
   background: #f7f9ff;
 }
+
+
+
+/* Acciones del listado */
+#cotizacionesApp .cotz-btn-mini {
+  border:0; border-radius:10px; padding:.35rem .6rem; font-weight:600; cursor:pointer;
+}
+#cotizacionesApp .cotz-btn-danger { background:#ffe8e8; border:1px solid #ffcccc; color:#9a0000; }
+#cotizacionesApp .cotz-actions { display:flex; gap:.4rem; align-items:center; }
+
+/* Fila clicable para ver */
+#cotizacionesApp .cotz-row-openable { cursor:pointer; }
+#cotizacionesApp #cotzVistaListado .cotz-table tbody tr.cotz-row-openable:hover { background:#f7f9ff; }
+
+/* Vista Detalle (read-only) */
+#cotizacionesApp .cotz-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+#cotizacionesApp .cotz-detail-field { background:#fff; border:1px solid #eee; border-radius:12px; padding:.6rem .75rem; }
+#cotizacionesApp .cotz-detail-label { font-size:.8rem; color:#666; margin-bottom:.2rem; }
+#cotizacionesApp .cotz-detail-value { font-weight:600; }
+#cotizacionesApp .cotz-detail-list { margin:.5rem 0 0; padding-left:1.1rem; display:grid; gap:.25rem; }
+#cotizacionesApp .cotz-detail-list li { list-style:disc; }
