@@ -290,6 +290,10 @@ function formatDDMMYYYYSlash(iso){
     { sku:"CHA-0010", nombre:"Choker Esmaltado Pastel", precio: 10990,stock: 9,  img:"https://picsum.photos/seed/cha10/400" },
     { sku:"EAR-0011", nombre:"Aros Perla Clásicos", precio: 5590, stock: 28, img:"https://picsum.photos/seed/ear11/400" },
     { sku:"NEC-0012", nombre:"Collar Medallón Estrella", precio: 9290, stock: 11, img:"https://picsum.photos/seed/nec12/400" },
+     { sku:"BRA-0013", nombre:"Pulsera Macramé Corazón", precio: 4990, stock: 22, img:"https://picsum.photos/seed/bra9/400" },
+    { sku:"CHA-0014", nombre:"Choker Esmaltado Pastel", precio: 10990,stock: 9,  img:"https://picsum.photos/seed/cha10/400" },
+    { sku:"EAR-0015", nombre:"Aros Perla Clásicos", precio: 5590, stock: 28, img:"https://picsum.photos/seed/ear11/400" },
+    { sku:"NEC-0016", nombre:"Collar Medallón Estrella", precio: 9290, stock: 11, img:"https://picsum.photos/seed/nec12/400" },
   ];
 
   async function searchProductos(query){
