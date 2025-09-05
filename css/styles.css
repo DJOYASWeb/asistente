@@ -1625,3 +1625,68 @@ textarea.form-control.inspira{
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+
+
+
+
+
+/* =========================
+   COTIZACIONES – ESTILOS
+   ========================= */
+#cotizacionesApp { --bg:#fff; --text:#1c1c1e; --muted:#8e8e93; --card:#f5f5f5; --primary:#0a84ff; --radius:16px; --shadow:0 10px 20px rgba(0,0,0,.05); }
+#cotizacionesApp { color:var(--text); }
+#cotizacionesApp .cotz-header { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:1rem; }
+#cotizacionesApp .cotz-title { font-size:1.6rem; margin:0; }
+#cotizacionesApp .cotz-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:1rem; }
+#cotizacionesApp .cotz-editor-header { display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem; }
+#cotizacionesApp .cotz-spacer { flex:1; }
+
+#cotizacionesApp .cotz-btn-primary, 
+#cotizacionesApp .cotz-btn-secondary, 
+#cotizacionesApp .cotz-btn-ghost {
+  border:0; border-radius:12px; padding:.6rem .9rem; cursor:pointer; font-weight:600;
+}
+#cotizacionesApp .cotz-btn-primary { background:var(--primary); color:#fff; }
+#cotizacionesApp .cotz-btn-secondary { background:#e9e9ef; color:#000; }
+#cotizacionesApp .cotz-btn-ghost { background:transparent; color:#000; }
+
+#cotizacionesApp .cotz-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+#cotizacionesApp .cotz-grid10 { display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-top:.75rem; }
+#cotizacionesApp .mt-16 { margin-top:1rem; }
+#cotizacionesApp .cotz-section { margin-top:1rem; }
+#cotizacionesApp .cotz-h2 { font-size:1.1rem; margin:.25rem 0 .5rem; }
+#cotizacionesApp .cotz-h3 { font-weight:600; margin:.75rem 0 .5rem; }
+
+#cotizacionesApp .cotz-field { display:flex; flex-direction:column; gap:.35rem; }
+#cotizacionesApp .cotz-field input, 
+#cotizacionesApp .cotz-field select { width:100%; border:1px solid #ddd; border-radius:12px; padding:.55rem .7rem; background:#fff; }
+
+#cotizacionesApp .cotz-searchbar { display:flex; gap:.5rem; }
+#cotizacionesApp .cotz-searchbar input { flex:1; border:1px solid #ddd; border-radius:12px; padding:.55rem .7rem; background:#fff; }
+
+#cotizacionesApp .cotz-card-prod { background:#fff; border:1px solid #eee; border-radius:14px; padding:.6rem; display:flex; flex-direction:column; gap:.4rem; }
+#cotizacionesApp .cotz-card-prod img { width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:10px; background:#f8f8f8; }
+#cotizacionesApp .cotz-prod-name { font-size:.95rem; font-weight:600; line-height:1.2; }
+#cotizacionesApp .cotz-prod-sku { font-size:.8rem; color:var(--muted); }
+#cotizacionesApp .cotz-prod-meta { display:flex; align-items:center; justify-content:space-between; font-size:.85rem; }
+#cotizacionesApp .cotz-prod-actions { display:flex; gap:.5rem; }
+
+#cotizacionesApp .cotz-table-wrap { overflow:auto; }
+#cotizacionesApp .cotz-table { width:100%; border-collapse:separate; border-spacing:0; }
+#cotizacionesApp .cotz-table th, 
+#cotizacionesApp .cotz-table td { padding:.6rem .5rem; border-bottom:1px solid #eee; vertical-align:middle; }
+#cotizacionesApp .cotz-table thead th { text-align:left; font-size:.9rem; color:#444; }
+#cotizacionesApp .cotz-right { text-align:right; }
+#cotizacionesApp .cotz-empty { padding:1rem; text-align:center; color:var(--muted); }
+
+#cotizacionesApp .cotz-qty { width:90px; border:1px solid #ddd; border-radius:10px; padding:.4rem .5rem; }
+#cotizacionesApp .cotz-del { background:#fff1f1; border:1px solid #ffd6d6; color:#b10000; border-radius:10px; padding:.35rem .55rem; cursor:pointer; }
+
+#cotizacionesApp .cotz-checklist { display:grid; gap:.4rem; }
+#cotizacionesApp .cotz-check { display:flex; gap:.5rem; align-items:flex-start; }
+#cotizacionesApp .cotz-check input { margin-top:.2rem; }
+#cotizacionesApp .cotz-addnote { display:flex; gap:.5rem; margin-top:.6rem; }
+#cotizacionesApp .cotz-notas-extras { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.5rem; }
+#cotizacionesApp .cotz-chip { background:#eef3ff; border:1px solid #d4e2ff; color:#123; padding:.3rem .5rem; border-radius:999px; display:flex; align-items:center; gap:.35rem; font-size:.85rem; }
+#cotizacionesApp .cotz-chip button { border:0; background:transparent; cursor:pointer; }

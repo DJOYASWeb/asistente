@@ -1,0 +1,338 @@
+// ==========================================
+// COTIZACIONES – LÓGICA (scopeado y seguro)
+// ==========================================
+(function () {
+  "use strict";
+
+  // —— Config / Helpers ——————————————————
+  const STORAGE_KEY = "djoyas_cotizaciones_v1";
+  const currencyCLP = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  function notiOk(msg){ try{ mostrarNotificacion(msg, "exito"); }catch{ console.log("✅", msg); } }
+  function notiError(msg){ try{ mostrarNotificacion(msg, "error"); }catch{ console.error("⛔", msg); } }
+  function fmtCLP(n){ return currencyCLP.format(n || 0); }
+  function todayISO(){ return new Date().toISOString(); }
+  function formatDDMMYYYY(iso){
+    const d = iso ? new Date(iso) : new Date();
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth()+1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  }
+  function uid(){ const d=new Date(); return `COT-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${String(d.getHours()).padStart(2,"0")}${String(d.getMinutes()).padStart(2,"0")}${String(d.getSeconds()).padStart(2,"0")}`; }
+
+  // —— Estado ————————————————————————
+  const state = {
+    cotizaciones: [],
+    editor: {
+      id: null,
+      cliente: { nombre:"", correo:"", rut:"", fono:"" },
+      sucursal: "",
+      items: [], // { sku, nombre, precio, stock, img, qty }
+      notas: []  // strings seleccionadas (checkboxes + extras)
+    }
+  };
+
+  // —— Persistencia ————————————————————
+  function loadState(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) state.cotizaciones = JSON.parse(raw);
+    } catch (e) { console.warn("No se pudo leer localStorage", e); }
+  }
+  function saveState(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.cotizaciones)); }
+    catch (e){ console.warn("No se pudo guardar localStorage", e); }
+  }
+
+  // —— UI: Referencias ——————————————————
+  const appSel = "#cotizacionesApp";
+  function q(sel){ return $(`${appSel} ${sel}`); }
+
+  // —— Productos: Provider dummy (reemplazable) ——————————
+  // ⚠️ Para conectar a tu base, cambia searchProductos() por tu consulta real.
+  const SAMPLE_PRODUCTS = [
+    { sku:"EAR-0001", nombre:"Aros Plata 925 Corazón", precio: 5990, stock: 24, img:"https://picsum.photos/seed/ear1/400" },
+    { sku:"NEC-0002", nombre:"Collar Infinito Plata 925", precio: 8990, stock: 12, img:"https://picsum.photos/seed/nec2/400" },
+    { sku:"RIN-0003", nombre:"Anillo Ajustable Circones", precio: 7490, stock: 31, img:"https://picsum.photos/seed/rin3/400" },
+    { sku:"BRA-0004", nombre:"Pulsera Doble Cadena", precio: 6990, stock: 18, img:"https://picsum.photos/seed/bra4/400" },
+    { sku:"CHA-0005", nombre:"Cadena Plata 925 45cm", precio: 9990, stock: 40, img:"https://picsum.photos/seed/cha5/400" },
+    { sku:"EAR-0006", nombre:"Aros Argollas 15mm", precio: 6490, stock: 7,  img:"https://picsum.photos/seed/ear6/400" },
+    { sku:"NEC-0007", nombre:"Collar Inicial Letra A", precio: 8490, stock: 16, img:"https://picsum.photos/seed/nec7/400" },
+    { sku:"RIN-0008", nombre:"Anillo Solitario Zircon", precio: 7990, stock: 20, img:"https://picsum.photos/seed/rin8/400" },
+    { sku:"BRA-0009", nombre:"Pulsera Macramé Corazón", precio: 4990, stock: 22, img:"https://picsum.photos/seed/bra9/400" },
+    { sku:"CHA-0010", nombre:"Choker Esmaltado Pastel", precio: 10990,stock: 9,  img:"https://picsum.photos/seed/cha10/400" },
+    { sku:"EAR-0011", nombre:"Aros Perla Clásicos", precio: 5590, stock: 28, img:"https://picsum.photos/seed/ear11/400" },
+    { sku:"NEC-0012", nombre:"Collar Medallón Estrella", precio: 9290, stock: 11, img:"https://picsum.photos/seed/nec12/400" },
+  ];
+
+  async function searchProductos(query){
+    const q = (query||"").trim().toLowerCase();
+    if(!q) return SAMPLE_PRODUCTS.slice(0,10); // 2 filas × 5 columnas
+    return SAMPLE_PRODUCTS.filter(p => 
+      p.sku.toLowerCase().includes(q) || p.nombre.toLowerCase().includes(q)
+    ).slice(0,10);
+  }
+
+  // —— Render: Listado ——————————————————
+  function renderListado(){
+    const tbody = q("#cotzTbodyListado");
+    const vacio = q("#cotzVacio");
+    tbody.innerHTML = "";
+    if(!state.cotizaciones.length){
+      vacio.classList.remove("d-none");
+      return;
+    }
+    vacio.classList.add("d-none");
+    state.cotizaciones.forEach(c => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${c.id}</td>
+        <td>${c.cliente?.nombre || "-"}</td>
+        <td>${formatDDMMYYYY(c.fecha)}</td>
+        <td>${c.sucursal || "-"}</td>
+        <td class="cotz-right">${fmtCLP(c.total || 0)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // —— Navegación ————————————————————
+  function showListado(){
+    q("#cotzVistaListado").classList.remove("d-none");
+    q("#cotzVistaEditor").classList.add("d-none");
+    renderListado();
+  }
+  function showEditor(reset = true){
+    if (reset) resetEditor();
+    q("#cotzVistaListado").classList.add("d-none");
+    q("#cotzVistaEditor").classList.remove("d-none");
+  }
+
+  // —— Editor: Reset / Bind ————————————————
+  function resetEditor(){
+    state.editor = {
+      id: uid(),
+      cliente: { nombre:"", correo:"", rut:"", fono:"" },
+      sucursal: "",
+      items: [],
+      notas: []
+    };
+    // limpiar inputs
+    q("#cotzCliNombre").value = "";
+    q("#cotzCliCorreo").value = "";
+    q("#cotzCliRut").value = "";
+    q("#cotzCliFono").value = "";
+    q("#cotzSucursal").value = "";
+    q("#cotzBuscar").value = "";
+    q("#cotzResultados").innerHTML = "";
+    q("#cotzTbodyItems").innerHTML = "";
+    q("#cotzTotal").textContent = fmtCLP(0);
+    q("#cotzNotasExtras").innerHTML = "";
+    // checkboxes marcadas por defecto
+    state.editor.notas = getChecklistSeleccionadas();
+  }
+
+  function getChecklistSeleccionadas(){
+    return $$("#cotizacionesApp #cotzChecklist input[type='checkbox']")
+      .filter(ch => ch.checked)
+      .map(ch => ch.dataset.text);
+  }
+
+  // —— Productos: Render resultados ————————————
+  async function handleBuscar(){
+    const query = q("#cotzBuscar").value;
+    const resultados = await searchProductos(query);
+    const wrap = q("#cotzResultados");
+    wrap.innerHTML = "";
+    resultados.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "cotz-card-prod";
+      card.innerHTML = `
+        <img src="${p.img}" alt="${p.nombre}">
+        <div class="cotz-prod-name">${p.nombre}</div>
+        <div class="cotz-prod-sku">${p.sku}</div>
+        <div class="cotz-prod-meta">
+          <span>${fmtCLP(p.precio)}</span>
+          <span>Stock: ${p.stock}</span>
+        </div>
+        <div class="cotz-prod-actions">
+          <button class="cotz-btn-secondary" data-add="${p.sku}">Agregar</button>
+        </div>
+      `;
+      wrap.appendChild(card);
+    });
+  }
+
+  // —— Ítems: Añadir / Render / Totales —————————
+  function addItem(prod){
+    const found = state.editor.items.find(it => it.sku === prod.sku);
+    if(found){
+      found.qty += 1;
+    } else {
+      state.editor.items.push({
+        sku: prod.sku,
+        nombre: prod.nombre,
+        precio: prod.precio,
+        stock: prod.stock,
+        img: prod.img,
+        qty: 1
+      });
+    }
+    renderItems();
+    notiOk("Producto agregado a la cotización");
+  }
+
+  function renderItems(){
+    const tbody = q("#cotzTbodyItems");
+    tbody.innerHTML = "";
+    state.editor.items.forEach((it, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>
+          <input class="cotz-qty" type="number" min="1" value="${it.qty}" data-idx="${idx}">
+        </td>
+        <td>
+          <div style="font-weight:600">${it.nombre}</div>
+          <div style="font-size:.85rem; color:#666">${it.sku}</div>
+        </td>
+        <td class="cotz-right">${fmtCLP(it.precio)}</td>
+        <td class="cotz-right">${fmtCLP(it.precio * it.qty)}</td>
+        <td><button class="cotz-del" data-del="${idx}">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+    updateTotal();
+  }
+
+  function updateTotal(){
+    const total = state.editor.items.reduce((acc, it) => acc + (it.precio * it.qty), 0);
+    q("#cotzTotal").textContent = fmtCLP(total);
+    return total;
+  }
+
+  // —— Guardar cotización ————————————————
+  function guardarCotizacion(){
+    const nombre = q("#cotzCliNombre").value.trim();
+    const correo = q("#cotzCliCorreo").value.trim();
+    const rut    = q("#cotzCliRut").value.trim();
+    const fono   = q("#cotzCliFono").value.trim();
+    const sucursal = q("#cotzSucursal").value;
+
+    if(!nombre || !correo || !rut || !sucursal){
+      notiError("Completa Nombre, Correo, RUT y Sucursal.");
+      return;
+    }
+    if(state.editor.items.length === 0){
+      notiError("Agrega al menos 1 producto.");
+      return;
+    }
+
+    // refresca notas (por si cambió selección)
+    const notasChecklist = getChecklistSeleccionadas();
+    const notasExtras = Array.from(q("#cotzNotasExtras").querySelectorAll(".cotz-chip"))
+      .map(ch => ch.dataset.text);
+    state.editor.notas = [...notasChecklist, ...notasExtras];
+
+    const total = updateTotal();
+
+    const cot = {
+      id: state.editor.id || uid(),
+      fecha: todayISO(),
+      sucursal,
+      cliente: { nombre, correo, rut, fono },
+      items: state.editor.items,
+      notas: state.editor.notas,
+      total
+    };
+
+    state.cotizaciones.unshift(cot);
+    saveState();
+    notiOk("Cotización guardada");
+    showListado();
+  }
+
+  // —— Notas extras ————————————————
+  function agregarNotaExtra(){
+    const val = q("#cotzNotaExtra").value.trim();
+    if(!val) return;
+    const cont = q("#cotzNotasExtras");
+    const chip = document.createElement("div");
+    chip.className = "cotz-chip";
+    chip.dataset.text = val;
+    chip.innerHTML = `<span>${val}</span><button title="Eliminar" class="cotz-chip-del">×</button>`;
+    cont.appendChild(chip);
+    q("#cotzNotaExtra").value = "";
+  }
+
+  // —— Eventos globales ————————————————
+  function bindEvents(){
+    // Navegación
+    q("#cotzBtnNueva").addEventListener("click", ()=> showEditor(true));
+    q("#cotzBtnVolver").addEventListener("click", ()=>{
+      const confirmSalir = state.editor.items.length>0 || q("#cotzCliNombre").value || q("#cotzCliCorreo").value || q("#cotzCliRut").value;
+      if(confirmSalir && !confirm("Hay cambios sin guardar. ¿Volver de todos modos?")) return;
+      showListado();
+    });
+    q("#cotzBtnGuardar").addEventListener("click", guardarCotizacion);
+
+    // Búsqueda
+    q("#cotzBtnBuscar").addEventListener("click", handleBuscar);
+    q("#cotzBuscar").addEventListener("keydown", (e)=>{ if(e.key==="Enter") handleBuscar(); });
+    q("#cotzResultados").addEventListener("click", async (e)=>{
+      const btn = e.target.closest("[data-add]");
+      if(!btn) return;
+      const sku = btn.getAttribute("data-add");
+      const results = await searchProductos(q("#cotzBuscar").value);
+      const prod = results.find(p => p.sku === sku);
+      if(prod) addItem(prod);
+    });
+
+    // Items: qty / delete
+    q("#cotzTbodyItems").addEventListener("input", (e)=>{
+      const inp = e.target.closest(".cotz-qty");
+      if(!inp) return;
+      const idx = Number(inp.getAttribute("data-idx"));
+      let v = parseInt(inp.value, 10);
+      if(isNaN(v) || v < 1) v = 1;
+      state.editor.items[idx].qty = v;
+      renderItems();
+    });
+    q("#cotzTbodyItems").addEventListener("click", (e)=>{
+      const btn = e.target.closest("[data-del]");
+      if(!btn) return;
+      const idx = Number(btn.getAttribute("data-del"));
+      state.editor.items.splice(idx,1);
+      renderItems();
+    });
+
+    // Checklist cambios
+    q("#cotzChecklist").addEventListener("change", ()=>{
+      // no hacemos nada inmediato; se refresca al guardar
+    });
+
+    // Nota extra
+    q("#cotzBtnAgregarNota").addEventListener("click", agregarNotaExtra);
+    q("#cotzNotasExtras").addEventListener("click", (e)=>{
+      if(e.target.classList.contains("cotz-chip-del")){
+        e.target.parentElement.remove();
+      }
+    });
+  }
+
+  // —— Init ———————————————————————————
+  function init(){
+    const app = $(appSel);
+    if(!app) return; // no está en esta página
+    loadState();
+    renderListado();
+    bindEvents();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
+
+//v1

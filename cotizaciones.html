@@ -66,7 +66,162 @@
 
 
 <div class="container">
-<h1>Cotizaciones</h1>
+<!-- =========================
+     COTIZACIONES – CONTENEDOR
+     ========================= -->
+<div id="cotizacionesApp" data-theme="light">
+  <!-- Encabezado -->
+  <div class="cotz-header">
+    <h1 class="cotz-title">Cotizaciones</h1>
+    <button id="cotzBtnNueva" class="cotz-btn-primary">Crear nueva cotización</button>
+  </div>
+
+  <!-- Vista Listado -->
+  <section id="cotzVistaListado" class="cotz-card">
+    <div class="cotz-table-wrap">
+      <table class="cotz-table">
+        <thead>
+          <tr>
+            <th>ID de cotización</th>
+            <th>Nombre Clienta</th>
+            <th>Fecha de cotización</th>
+            <th>Sucursal</th>
+            <th class="cotz-right">Monto</th>
+          </tr>
+        </thead>
+        <tbody id="cotzTbodyListado">
+          <!-- Se rellena por JS -->
+        </tbody>
+      </table>
+      <div id="cotzVacio" class="cotz-empty d-none">No hay cotizaciones aún.</div>
+    </div>
+  </section>
+
+  <!-- Vista Editor -->
+  <section id="cotzVistaEditor" class="cotz-card d-none">
+    <div class="cotz-editor-header">
+      <button id="cotzBtnVolver" class="cotz-btn-ghost">← Volver</button>
+      <div class="cotz-spacer"></div>
+      <button id="cotzBtnGuardar" class="cotz-btn-primary">Guardar cotización</button>
+    </div>
+
+    <!-- Sección 1: Datos de Cliente(a) -->
+    <div class="cotz-section">
+      <h2 class="cotz-h2">Datos de Cliente(a)</h2>
+      <div class="cotz-grid2">
+        <label class="cotz-field">
+          <span>Nombre *</span>
+          <input id="cotzCliNombre" type="text" placeholder="Ej: María López" required />
+        </label>
+        <label class="cotz-field">
+          <span>Correo *</span>
+          <input id="cotzCliCorreo" type="email" placeholder="Ej: maria@email.cl" required />
+        </label>
+        <label class="cotz-field">
+          <span>RUT *</span>
+          <input id="cotzCliRut" type="text" placeholder="Ej: 12.345.678-9" required />
+        </label>
+        <label class="cotz-field">
+          <span>Teléfono (opcional)</span>
+          <input id="cotzCliFono" type="tel" placeholder="Ej: +56 9 1234 5678" />
+        </label>
+      </div>
+    </div>
+
+    <!-- Sección 2: Productos -->
+    <div class="cotz-section">
+      <h2 class="cotz-h2">Productos</h2>
+
+      <!-- Buscador -->
+      <div class="cotz-searchbar">
+        <input id="cotzBuscar" type="text" placeholder="Buscar por nombre o SKU..." />
+        <button id="cotzBtnBuscar" class="cotz-btn-secondary">Buscar</button>
+      </div>
+
+      <!-- Resultados (2 filas x 5 columnas) -->
+      <div id="cotzResultados" class="cotz-grid10">
+        <!-- Cards generadas por JS -->
+      </div>
+
+      <!-- Planilla de Ítems -->
+      <div class="cotz-table-wrap mt-16">
+        <table class="cotz-table">
+          <thead>
+            <tr>
+              <th style="width:100px">Cantidad</th>
+              <th>Detalle</th>
+              <th class="cotz-right" style="width:160px">Valor Unitario</th>
+              <th class="cotz-right" style="width:160px">Valor Total</th>
+              <th style="width:60px"></th>
+            </tr>
+          </thead>
+          <tbody id="cotzTbodyItems">
+            <!-- Items por JS -->
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="cotz-right"><strong>Total</strong></td>
+              <td class="cotz-right"><strong id="cotzTotal">$0</strong></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sección 3: Datos DJOYAS -->
+    <div class="cotz-section">
+      <h2 class="cotz-h2">Datos DJOYAS</h2>
+
+      <div class="cotz-grid2">
+        <label class="cotz-field">
+          <span>Sucursal *</span>
+          <select id="cotzSucursal" required>
+            <!-- Ajusta nombres si quieres -->
+            <option value="">Selecciona...</option>
+            <option>Santiago</option>
+            <option>Concepción 1</option>
+            <option>Concepción 2</option>
+            <option>Temuco</option>
+          </select>
+        </label>
+
+        <div></div>
+      </div>
+
+      <div class="cotz-h3">Mostrar en la cotización:</div>
+      <div id="cotzChecklist" class="cotz-checklist">
+        <label class="cotz-check">
+          <input type="checkbox" data-text="Despacho gratis por compras sobre $100.000 en producto" checked>
+          <span>Despacho gratis por compras sobre $100.000 en producto</span>
+        </label>
+        <label class="cotz-check">
+          <input type="checkbox" data-text="Cotización a precio mayorista." checked>
+          <span>Cotización a precio mayorista.</span>
+        </label>
+        <label class="cotz-check">
+          <input type="checkbox" data-text="Cotización válida por 15 días" checked>
+          <span>Cotización válida por 15 días</span>
+        </label>
+        <label class="cotz-check">
+          <input type="checkbox" data-text="Puede ver más opciones ingresando a nuestro sitio web, www.distribuidoradejoyas.cl" checked>
+          <span>Puede ver más opciones ingresando a nuestro sitio web, www.distribuidoradejoyas.cl</span>
+        </label>
+      </div>
+
+      <div class="cotz-addnote">
+        <input id="cotzNotaExtra" type="text" placeholder="Agregar otra nota (opcional)..." />
+        <button id="cotzBtnAgregarNota" class="cotz-btn-secondary">Agregar</button>
+      </div>
+      <div id="cotzNotasExtras" class="cotz-notas-extras"></div>
+    </div>
+
+  </section>
+</div>
+
+
+
+
   </div>
 
 
