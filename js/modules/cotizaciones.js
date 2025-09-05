@@ -702,8 +702,6 @@ let finalY = doc.lastAutoTable?.finalY || (y + 30);
     at.fn(doc, tableOptions); // UMD
   }
 
-  let finalY = doc.lastAutoTable?.finalY || (y + 30);
-
   // Total
   finalY += 10;
   doc.setFont("helvetica","bold"); doc.setFontSize(11);
@@ -743,4 +741,4 @@ let finalY = doc.lastAutoTable?.finalY || (y + 30);
 
 
 
-//v2.5
+//v2.6
