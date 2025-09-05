@@ -623,110 +623,145 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
 
 
 
-// ——— Exportar PDF de una cotización (usa jsPDF + autoTable)
-async function exportCotizacionPDF(id){
+// ===============================
+// Exportar PDF SIN autoTable
+// ===============================
+function exportCotizacionPDF(id){
   const cot = state.cotizaciones.find(x => x.id === id);
   if(!cot){ notiError("No se encontró la cotización."); return; }
 
-  // Cargar libs si faltan
-  try { await ensurePdfLibs(); }
-  catch (e){ notiError("No se pudieron cargar las librerías de PDF."); console.error(e); return; }
-
-const at = getAutoTableRef();
-if (!at || !window.jspdf?.jsPDF) {
-  notiError("Falta jsPDF o autoTable. Revisa la carga.");
-  return;
-}
-
-// Llamada compatible con todos los modos
-if (at.type === "prototype") {
-  // doc.autoTable(options)
-  doc.autoTable(tableOptions);
-} else if (at.type === "api") {
-  // jsPDF.API.autoTable.call(doc, options)
-  at.fn.call(doc, tableOptions);
-} else {
-  // Función UMD: jspdfAutoTable(doc, options)
-  at.fn(doc, tableOptions);
-}
-
-let finalY = doc.lastAutoTable?.finalY || (y + 30);
+  // Chequeo jsPDF
+  if (!(window.jspdf && window.jspdf.jsPDF)) {
+    notiError("jsPDF no está cargado. Revisa el <script> en el HTML.");
+    return;
+  }
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
   const margin = 40;
+
   let y = margin;
 
-  // Encabezado
-  doc.setFont("helvetica","bold"); doc.setFontSize(14);
-  doc.text("DJOYAS – Cotización", margin, y);
-  doc.setFont("helvetica","normal"); doc.setFontSize(10);
-  const fechaTxt = formatDDMMYYYY(cot.fecha || todayISO());
-  doc.text(`ID: ${cot.id}`, pageW - margin, y, { align: "right" }); y += 16;
-  doc.text(`Fecha: ${fechaTxt}`, pageW - margin, y, { align: "right" }); y += 8;
-  doc.text(`Sucursal: ${cot.sucursal || "-"}`, pageW - margin, y, { align: "right" });
+  // Helpers
+  const textRight = (txt, xRight, y) => doc.text(String(txt), xRight, y, { align: "right" });
+  function ensureSpace(h){
+    if (y + h > pageH - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  }
 
+  // ===== Encabezado
+  doc.setFont("helvetica", "bold"); doc.setFontSize(14);
+  doc.text("DJOYAS – Cotización", margin, y);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  const fechaTxt = formatDDMMYYYY(cot.fecha || todayISO());
+  textRight(`ID: ${cot.id}`, pageW - margin, y);
+  y += 16;
+  textRight(`Fecha: ${fechaTxt}`, pageW - margin, y);
+  y += 8;
+  textRight(`Sucursal: ${cot.sucursal || "-"}`, pageW - margin, y);
+
+  // Separador
   y += 16; doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y); y += 16;
 
-  // Datos Cliente
-  doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text("Datos de Cliente(a)", margin, y);
-  doc.setFont("helvetica","normal"); doc.setFontSize(10); y += 14;
+  // ===== Datos Cliente
+  doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+  doc.text("Datos de Cliente(a)", margin, y);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  y += 14; ensureSpace(56);
   doc.text(`Nombre:  ${cot.cliente?.nombre || "-"}`, margin, y); y += 14;
   doc.text(`Correo:  ${cot.cliente?.correo || "-"}`, margin, y); y += 14;
   doc.text(`RUT:     ${cot.cliente?.rut || "-"}`, margin, y);    y += 14;
   doc.text(`Teléfono: ${cot.cliente?.fono || "-"}`, margin, y);
 
-  // Tabla
-  y += 18;
-  const bodyRows = (cot.items || []).map(it => ([
+  // ===== Tabla – layout
+  y += 18; ensureSpace(40);
+
+  const colW = {
+    cant: 60,
+    detalle: pageW - margin*2 - 60 - 100 - 100, // ocupa el resto
+    vunit: 100,
+    vtotal: 100
+  };
+
+  // Header tabla
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+  textRight("Cantidad", margin + colW.cant - 4, y);
+  doc.text("Detalle", margin + colW.cant + 4, y);
+  textRight("V. Unitario", margin + colW.cant + colW.detalle + colW.vunit - 4, y);
+  textRight("V. Total",    margin + colW.cant + colW.detalle + colW.vunit + colW.vtotal - 4, y);
+
+  y += 8; doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y); y += 10;
+
+  // Filas
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  const rows = (cot.items || []).map(it => ([
     String(it.qty),
     `${it.nombre}\n${it.sku}`,
     fmtCLP(it.precio),
     fmtCLP(it.precio * it.qty),
   ]));
 
-  const tableOptions = {
-    startY: y,
-    head: [[ "Cantidad", "Detalle", "V. Unitario", "V. Total" ]],
-    body: bodyRows,
-    styles: { font: "helvetica", fontSize: 10, cellPadding: 6, valign: "middle" },
-    headStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: "bold" },
-    columnStyles: { 0:{cellWidth:70, halign:"right"}, 1:{cellWidth:280}, 2:{cellWidth:100, halign:"right"}, 3:{cellWidth:100, halign:"right"} },
-    margin: { left: margin, right: margin },
-  };
+  rows.forEach(r => {
+    const [cant, detalle, vunit, vtotal] = r;
+    const detalleLines = doc.splitTextToSize(detalle, colW.detalle - 8);
+    const lineCount = Math.max(1, detalleLines.length);
+    const rowH = 14 * lineCount + 4;
 
-  if (at.type === "prototype") {
-    doc.autoTable(tableOptions);
-  } else {
-    at.fn(doc, tableOptions); // UMD
-  }
+    ensureSpace(rowH + 6);
 
-  // Total
-  finalY += 10;
-  doc.setFont("helvetica","bold"); doc.setFontSize(11);
-  doc.text("Total:", pageW - margin - 120, finalY, { align: "left" });
-  doc.text(fmtCLP(cot.total || 0), pageW - margin, finalY, { align: "right" });
+    // Cantidad
+    textRight(cant, margin + colW.cant - 4, y + 12);
+    // Detalle (multi-línea)
+    doc.text(detalleLines, margin + colW.cant + 4, y + 12);
+    // V Unit / Total
+    textRight(vunit,  margin + colW.cant + colW.detalle + colW.vunit - 4, y + 12);
+    textRight(vtotal, margin + colW.cant + colW.detalle + colW.vunit + colW.vtotal - 4, y + 12);
 
-  // Notas
+    // subrayado de la fila
+    y += rowH;
+    doc.setDrawColor(240); doc.line(margin, y, pageW - margin, y);
+    y += 6;
+  });
+
+  // ===== Total
+  ensureSpace(30);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+  doc.text("Total:", pageW - margin - 120, y + 12);
+  textRight(fmtCLP(cot.total || 0), pageW - margin, y + 12);
+  y += 28;
+
+  // ===== Notas
   const notas = cot.notas || [];
-  if (notas.length){
-    finalY += 22;
-    doc.setFontSize(12); doc.text("Notas", margin, finalY);
-    finalY += 12; doc.setFont("helvetica","normal"); doc.setFontSize(10);
+  if (notas.length) {
+    ensureSpace(20);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+    doc.text("Notas", margin, y);
+    y += 12;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+
     const lineW = pageW - margin*2;
     notas.forEach(n => {
       const wrapped = doc.splitTextToSize(`• ${n}`, lineW);
-      doc.text(wrapped, margin, finalY);
-      finalY += wrapped.length * 12;
+      wrapped.forEach(line => {
+        ensureSpace(14);
+        doc.text(line, margin, y + 12);
+        y += 14;
+      });
     });
   }
 
-  finalY += 18; doc.setDrawColor(220); doc.line(margin, finalY, pageW - margin, finalY);
-  finalY += 14; doc.setFontSize(9);
-  doc.text("DistribuidoraDeJoyas.cl", margin, finalY);
-  doc.text("Este documento es una cotización. Valores en CLP.", pageW - margin, finalY, { align: "right" });
+  // Pie
+  ensureSpace(30);
+  doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y);
+  y += 14; doc.setFontSize(9);
+  doc.text("DistribuidoraDeJoyas.cl", margin, y);
+  textRight("Este documento es una cotización. Valores en CLP.", pageW - margin, y);
 
+  // Descargar
   const safeName = (cot.cliente?.nombre || "cotizacion").replace(/[\\/:*?"<>|]+/g, " ");
   doc.save(`${cot.id} - ${safeName}.pdf`);
   notiOk("PDF generado correctamente");
@@ -741,4 +776,4 @@ let finalY = doc.lastAutoTable?.finalY || (y + 30);
 
 
 
-//v2.6
+//v3
