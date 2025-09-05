@@ -273,45 +273,6 @@ function copiarHTML() {
 /* =====================
    FIREBASE (cargas)
 ===================== */
-function cargarBlogsEnSelect() {
-  const select = document.getElementById('selectBlogExistente');
-  if (!select) return;
-  select.innerHTML = `<option value="">-- Selecciona un blog existente --</option>`;
-
-  db.collection("blog").get().then(snapshot => {
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const opt = document.createElement('option');
-      opt.value = doc.id;
-      opt.textContent = `${data.nombre} (${data.fecha || 'sin fecha'})`;
-      select.appendChild(opt);
-    });
-  }).catch(err => {
-    console.error("Error al cargar blogs existentes:", err);
-  });
-}
-
-document.getElementById('selectBlogExistente')?.addEventListener('change', e => {
-  const id = e.target.value;
-  if (!id) return;
-
-  db.collection("blog").doc(id).get().then(doc => {
-    if (!doc.exists) return alert("Blog no encontrado");
-    const data = doc.data();
-
-    document.getElementById('titulo').value = data.nombre || "";
-    document.getElementById('fecha').value = data.fecha || "";
-    document.getElementById('categoria').value = data.categoria || "";
-    document.getElementById('cuerpo').value = data.blog || "";
-    document.getElementById('altImagen').value = ""; // No lo tienes en firebase
-    document.getElementById('imagen').value = "";    // No lo tienes en firebase
-
-    const metaInput = document.getElementById('meta');
-    if (metaInput) metaInput.value = data.meta || "";
-  });
-});
-
-window.addEventListener('load', cargarBlogsEnSelect);
 
 const blogsData = {};
 
@@ -720,4 +681,4 @@ function safeBindRelacionados() {
   });
 })();
 
-// updd v1.10
+// updd v2
