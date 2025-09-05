@@ -691,8 +691,8 @@ function exportCotizacionPDF(id){
   doc.setFont("helvetica", "bold"); doc.setFontSize(10);
   textRight("Cantidad", margin + colW.cant - 4, y);
   doc.text("Detalle", margin + colW.cant + 4, y);
-  textRight("V. Unitario", margin + colW.cant + colW.detalle + colW.vunit - 4, y);
-  textRight("V. Total",    margin + colW.cant + colW.detalle + colW.vunit + colW.vtotal - 4, y);
+  textRight("Valor Unitario", margin + colW.cant + colW.detalle + colW.vunit - 4, y);
+  textRight("Valor Total",    margin + colW.cant + colW.detalle + colW.vunit + colW.vtotal - 4, y);
 
   y += 8; doc.setDrawColor(220); doc.line(margin, y, pageW - margin, y); y += 10;
 
