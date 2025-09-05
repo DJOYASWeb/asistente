@@ -19,27 +19,39 @@ function loadScript(src){
   });
 }
 
-// ——— Detecta autoTable como plugin o como función UMD
+// Detecta autoTable como método de instancia, API o función UMD
 function getAutoTableRef(){
   const w = window;
-  // Plugin clásico: doc.autoTable
-  if (w.jspdf?.jsPDF?.prototype?.autoTable) return { type: "prototype", fn: null };
-  // UMD: jspdfAutoTable(doc, options)
-  if (typeof w.jspdfAutoTable === "function") return { type: "function", fn: w.jspdfAutoTable };
-  if (typeof w.jspdfAutoTable?.autoTable === "function") return { type: "function", fn: w.jspdfAutoTable.autoTable };
-  if (typeof w.autoTable === "function") return { type: "function", fn: w.autoTable };
+  const JSPDF = w.jspdf?.jsPDF;
+
+  // 1) Plugin acoplado a jsPDF (instancia o API)
+  if (JSPDF?.prototype?.autoTable) return { type: "prototype", fn: null };
+  if (JSPDF?.API?.autoTable)       return { type: "prototype", fn: null }; // muchos builds lo exponen aquí
+
+  // 2) UMD: función global
+  if (typeof w.jspdfAutoTable === "function")                 return { type: "function", fn: w.jspdfAutoTable };
+  if (typeof w.jspdfAutoTable?.autoTable === "function")      return { type: "function", fn: w.jspdfAutoTable.autoTable };
+  if (typeof w.autoTable === "function")                      return { type: "function", fn: w.autoTable };
+
   return null;
 }
 
+
 // ——— Garantiza jsPDF + autoTable desde CDNJS (si faltan)
 async function ensurePdfLibs(){
+  // jsPDF primero
   if(!(window.jspdf && window.jspdf.jsPDF)){
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
   }
+  // autoTable después
   if(!getAutoTableRef()){
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js");
   }
+  // verificación final
+  const ok = !!(window.jspdf?.jsPDF) && !!getAutoTableRef();
+  if(!ok) throw new Error("autoTable no disponible tras cargar scripts");
 }
+
 
   // —— Config / Helpers ——————————————————
   const STORAGE_KEY = "djoyas_cotizaciones_v1";
@@ -608,12 +620,12 @@ async function exportCotizacionPDF(id){
   try { await ensurePdfLibs(); }
   catch (e){ notiError("No se pudieron cargar las librerías de PDF."); console.error(e); return; }
 
-  const at = getAutoTableRef();
-  if(!(window.jspdf?.jsPDF) || !at){
-    notiError("Falta jsPDF o autoTable. Revisa la carga.");
-    return;
-  }
-
+const at = getAutoTableRef();
+if (at.type === "prototype") {
+  doc.autoTable(tableOptions);     // plugin por API/instancia
+} else {
+  at.fn(doc, tableOptions);        // UMD: jspdfAutoTable(doc, options)
+}
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
@@ -705,4 +717,4 @@ async function exportCotizacionPDF(id){
 
 
 
-//v2.2
+//v2.3
