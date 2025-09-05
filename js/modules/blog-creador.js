@@ -293,14 +293,14 @@ function cargarBlogsExistentes() {
       select.appendChild(option);
     });
   }).catch((error) => {
-    console.error("Error cargando blogs: ", error);
+  mostrarNotificacion("Error cargando blogs: " + (error?.message || error), "error");
   });
 }
 
 function autocompletarFormulario(blogId) {
   const data = blogsData[blogId];
   if (!data) {
-    if (blogId !== "") console.warn(`Blog con ID ${blogId} no encontrado`);
+ if (blogId !== "") mostrarNotificacion(`Blog con ID ${blogId} no encontrado`, "alerta");
     return;
   }
 
@@ -514,11 +514,11 @@ function safeBindRelacionados() {
         if (secGen) secGen.style.display = "none";
         if (secRes) secRes.style.display = "block";
         byId("btnCopiar")?.focus();
-      } catch(e){
-        console.error(e);
-        if (typeof showIosModal === "function") showIosModal("Error","No se pudo generar el HTML.");
-        else alert("No se pudo generar el HTML.");
-      }
+} catch(e){
+  mostrarNotificacion("No se pudo generar el HTML.", "error");
+  if (typeof showIosModal === "function") showIosModal("Error","No se pudo generar el HTML.");
+  else alert("No se pudo generar el HTML.");
+}
     });
 
     byId("btnRedactarOtro")?.addEventListener("click", ()=> {
@@ -554,7 +554,7 @@ function safeBindRelacionados() {
 
     byId("btnCopiar")?.addEventListener("click", ()=> {
       try { copiarHTML(); }
-      catch(e){ console.error(e); showModal("Error","No se pudo copiar el código."); }
+      catch(e){ mostrarNotificacion("No se pudo copiar el código.", "error"); showModal("Error","No se pudo copiar el código."); }
     });
   }
 
@@ -681,4 +681,4 @@ function safeBindRelacionados() {
   });
 })();
 
-// updd v2
+// updd v2.1
