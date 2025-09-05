@@ -226,11 +226,13 @@
 
 <!-- Vista Detalle (read-only) -->
 <section id="cotzVistaDetalle" class="cotz-card d-none">
-  <div class="cotz-editor-header">
-    <button id="cotzDetVolver" class="cotz-btn-ghost">← Volver</button>
-    <div class="cotz-spacer"></div>
-    <button id="cotzDetEditar" class="cotz-btn-primary">Editar</button>
-  </div>
+<div class="cotz-editor-header">
+  <button id="cotzDetVolver" class="cotz-btn-ghost">← Volver</button>
+  <div class="cotz-spacer"></div>
+  <button id="cotzDetPdf" class="cotz-btn-secondary">Exportar PDF</button>
+  <button id="cotzDetEditar" class="cotz-btn-primary">Editar</button>
+</div>
+  
 
   <!-- Sección: Datos de Cliente(a) -->
   <div class="cotz-section">
@@ -325,6 +327,11 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- PDF libs -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
 
 
 <!-- Tu script -->
