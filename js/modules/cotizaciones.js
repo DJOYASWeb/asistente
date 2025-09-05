@@ -659,9 +659,9 @@ function exportCotizacionPDF(id){
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
   const fechaTxt = formatDDMMYYYY(cot.fecha || todayISO());
   textRight(`ID: ${cot.id}`, pageW - margin, y);
-  y += 16;
+  y += 14;
   textRight(`Fecha: ${fechaTxt}`, pageW - margin, y);
-  y += 8;
+  y += 14;
   textRight(`Sucursal: ${cot.sucursal || "-"}`, pageW - margin, y);
 
   // Separador
@@ -674,7 +674,7 @@ function exportCotizacionPDF(id){
   y += 14; ensureSpace(56);
   doc.text(`Nombre:  ${cot.cliente?.nombre || "-"}`, margin, y); y += 14;
   doc.text(`Correo:  ${cot.cliente?.correo || "-"}`, margin, y); y += 14;
-  doc.text(`RUT:     ${cot.cliente?.rut || "-"}`, margin, y);    y += 14;
+  doc.text(`Rut:     ${cot.cliente?.rut || "-"}`, margin, y);    y += 14;
   doc.text(`Teléfono: ${cot.cliente?.fono || "-"}`, margin, y);
 
   // ===== Tabla – layout
@@ -776,4 +776,4 @@ function exportCotizacionPDF(id){
 
 
 
-//v3
+//v3.1
