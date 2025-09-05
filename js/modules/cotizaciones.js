@@ -511,18 +511,7 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
         e.target.parentElement.remove();
       }
     });
-  }
-
-
-
-
-
-
-
-
-
-
-  
+ 
 
   // —— Init ———————————————————————————
   function init(){
@@ -540,4 +529,4 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
   document.addEventListener("DOMContentLoaded", init);
 })();
 
-//v1.5
+//v1.6
