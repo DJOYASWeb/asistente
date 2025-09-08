@@ -706,36 +706,33 @@ function loadCotizacionById(id){
     return total;
   }
 
+// Guardar cotización con notificaciones de éxito / error
 async function guardarCotizacion(){
-  // 1) Validación amigable
+  // 1) Validación amigable (ya marca campos, hace scroll y muestra toast)
   const res = validateCotizacion();
   if(!res.ok){
-    // Mensaje legible: "Falta completar: Nombre, Correo, Sucursal, Productos..."
     const lista = res.errors.map(e=> e.name).join(", ");
     mostrarNotificacion(`Falta completar: ${lista}`, "error");
 
-    // Enfoca y desplaza al primer error
+    // Enfocar y desplazar al primer error
     const first = res.errors[0]?.el;
     if(first){
-      // si es contenedor de productos, busca un input cercano para el focus suave
       const focusEl = first.querySelector?.("input,select,textarea,button") || first;
       scrollToAndFocus(focusEl);
-      // Marca el/los campos específicos
       if(first.matches?.("input,select,textarea")) addFieldError(first);
-      // aseguramos marca del bloque productos si aplica
       if(first === getProductosContainer()) markProductosError(true);
     }
     return; // No guardamos si faltan campos
   }
 
-  // 2) Si pasa la validación, seguimos como siempre:
-  const nombre = q("#cotzCliNombre").value.trim();
-  const correo = q("#cotzCliCorreo").value.trim();
-  const rut    = q("#cotzCliRut").value.trim();
-  const fono   = q("#cotzCliFono").value.trim();
+  // 2) Armar objeto a guardar
+  const nombre   = q("#cotzCliNombre").value.trim();
+  const correo   = q("#cotzCliCorreo").value.trim();
+  const rut      = q("#cotzCliRut").value.trim();
+  const fono     = q("#cotzCliFono").value.trim();
   const sucursal = q("#cotzSucursal").value;
 
-  // refresca notas desde UI
+  // refresca notas seleccionadas + extras
   const notasChecklist = getChecklistSeleccionadas();
   const notasExtras = Array.from(q("#cotzNotasExtras").querySelectorAll(".cotz-chip"))
     .map(ch => ch.dataset.text);
@@ -744,8 +741,8 @@ async function guardarCotizacion(){
   const total = updateTotal();
 
   const cot = {
-    id: state.editor.id,                          // correlativo #COT00001
-    fecha: state.editor.fecha || todayISO(),      // mantiene fecha si ya existía
+    id: state.editor.id,                          // correlativo tipo #COT00001
+    fecha: state.editor.fecha || todayISO(),
     sucursal,
     cliente: { nombre, correo, rut, fono },
     items: state.editor.items,
@@ -753,27 +750,36 @@ async function guardarCotizacion(){
     total
   };
 
-  // Persistencia local (siempre)
+  // 3) Guardado local (siempre) + notificación de éxito
   const idx = state.cotizaciones.findIndex(x => x.id === cot.id);
   if (idx >= 0) {
     state.cotizaciones[idx] = cot;
-    mostrarNotificacion("Cotización actualizada", "exito");
+    mostrarNotificacion(`Cambios guardados en ${cot.id}`, "exito");
   } else {
     state.cotizaciones.unshift(cot);
-    mostrarNotificacion("Cotización guardada", "exito");
+    mostrarNotificacion(`${cot.id} guardada correctamente`, "exito");
   }
   saveState();
 
-  // Persistencia remota (si configuraste Firestore en pasos previos)
+  // 4) Sincronización con Firestore (si está configurado)
   try {
     const ok = await (typeof saveCotizacionToFirestore === "function" ? saveCotizacionToFirestore(cot) : false);
+    if (ok) {
+      mostrarNotificacion("Sincronizada con la base de datos", "exito");
+    } else {
+      // Si no hay Firestore o no hay sesión, informamos sin molestar
+      // Usa "alerta" para diferenciar de error real
+      mostrarNotificacion("Guardada localmente (no sincronizada)", "alerta");
+    }
   } catch (e){
-    // Silencioso para no ensuciar UX si estás offline; queda guardada local
-    // Si prefieres, muestra: mostrarNotificacion("No se pudo sincronizar con Firestore (queda local)", "alerta");
+    // Error real de red o permisos
+    mostrarNotificacion("No se pudo sincronizar con la base de datos; queda guardada localmente.", "error");
   }
 
+  // 5) Volver al listado
   showListado();
 }
+
 
 
   // —— Notas extras ————————————————
