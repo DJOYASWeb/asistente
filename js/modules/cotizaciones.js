@@ -768,7 +768,6 @@ async function guardarCotizacion(){
   // Persistencia remota (si configuraste Firestore en pasos previos)
   try {
     const ok = await (typeof saveCotizacionToFirestore === "function" ? saveCotizacionToFirestore(cot) : false);
-    if (ok) mostrarNotificacion("Sincronizada con Firestore", "exito");
   } catch (e){
     // Silencioso para no ensuciar UX si estás offline; queda guardada local
     // Si prefieres, muestra: mostrarNotificacion("No se pudo sincronizar con Firestore (queda local)", "alerta");
