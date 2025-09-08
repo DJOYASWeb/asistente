@@ -406,7 +406,6 @@ function initFirestoreCotizaciones(){
           try {
             await loadCotizacionesFromFirestore();
             renderListado(); // ← pinta el listado con datos remotos
-            notiOk("Cotizaciones sincronizadas desde Firestore");
           } catch (e){
             console.warn("No se pudieron cargar las cotizaciones remotas:", e);
           }
@@ -1017,7 +1016,6 @@ function showDetalleById(id){
   if(!c){ notiError("No se encontró la cotización."); return; }
   renderDetalle(c);
   showDetalle();
-  notiOk(`Viendo cotización ${c.id}`);
 }
 
 function deleteCotizacion(id){
@@ -1232,4 +1230,4 @@ if (notas.length) {
 
 
 
-//v1.9
+//v2
