@@ -103,7 +103,7 @@ const PDF_FMT = {
   HEADER_TOP_PAD: 12,     // ajuste vertical del bloque derecho
   COL_GAP: 24,            // espacio entre columnas de "Datos de Cliente(a)"
   TABLE_TOP_GAP: 24,      // espacio extra antes de la tabla
-  TABLE_CONT_TOP_GAP: 16, // espacio extra cuando la tabla continúa en nueva página
+  TABLE_CONT_TOP_GAP: 24, // espacio extra cuando la tabla continúa en nueva página
   FOOTER_TEXT_SIZE: 8,
   FOOTER_LINES: 3,
   FOOTER_LEADING: 12,
@@ -825,21 +825,27 @@ async function exportCotizacionPDF(id){
   let y = drawHeader(doc, pageW, pageH, margin, logoImg, "COTIZACIÓN", fechaTxt, cot.id);
   drawFooter(doc, pageW, pageH, margin);
 
-  // ensureSpace: respeta footer y reimprime header/footer + header de tabla si hace falta
-  function ensureSpace(h, opts = {}){
-    const bottomLimit = pageH - (margin + PDF_FMT.FOOTER_H);
-    if (y + h > bottomLimit){
-      doc.addPage();
-      pageW = doc.internal.pageSize.getWidth();
-      pageH = doc.internal.pageSize.getHeight();
-      y = drawHeader(doc, pageW, pageH, margin, logoImg, "COTIZACIÓN", fechaTxt, cot.id);
-      drawFooter(doc, pageW, pageH, margin);
-      if (opts.afterNewPage === "tableHeader"){
-        y += PDF_FMT.TABLE_CONT_TOP_GAP;
-        y = drawTableHeader(doc, pageW, margin, y, computeColW(pageW, margin));
-      }
+function ensureSpace(h, opts = {}){
+  const bottomLimit = pageH - (margin + PDF_FMT.FOOTER_H);
+  if (y + h > bottomLimit){
+    doc.addPage();
+    pageW = doc.internal.pageSize.getWidth();
+    pageH = doc.internal.pageSize.getHeight();
+    y = drawHeader(doc, pageW, pageH, margin, logoImg, "COTIZACIÓN", fechaTxt, cot.id);
+    drawFooter(doc, pageW, pageH, margin);
+
+    if (opts.afterNewPage === "tableHeader"){
+      // Reimprimimos cabeceras en negrita
+      y += PDF_FMT.TABLE_CONT_TOP_GAP;
+      y = drawTableHeader(doc, pageW, margin, y, computeColW(pageW, margin));
+      // 👇 Reset: filas en normal, como en la primera página
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
     }
   }
+}
+
+
 
   // Helper para widths de tabla según ancho de página actual
   function computeColW(pageW, margin){
@@ -862,6 +868,8 @@ async function exportCotizacionPDF(id){
 
   const colW = computeColW(pageW, margin);
   y = drawTableHeader(doc, pageW, margin, y, colW);
+  doc.setFont("helvetica", "normal");
+doc.setFontSize(10);
 
   // Filas
   doc.setFont("helvetica", "normal"); doc.setFontSize(10);
@@ -934,4 +942,4 @@ async function exportCotizacionPDF(id){
 
 
 
-//v1.3
+//v1.4
