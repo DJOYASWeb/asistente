@@ -222,6 +222,68 @@ function drawClientTwoCol(doc, pageW, margin, y, cot){
     }
   };
 
+// ===== Modales & cambios =====
+let pendingDeleteId = null;              // id a eliminar cuando confirmen
+let _editorBaselineStr = "";             // snapshot JSON para detectar cambios
+
+function abrirModalEliminarCotz(id){
+  pendingDeleteId = id || null;
+  const span = q("#cotzDelIdSpan"); if (span) span.textContent = id || "";
+  const m = q("#modalConfirmarEliminarCotz"); if (m) m.style.display = "flex";
+}
+function cerrarModalEliminarCotz(){
+  pendingDeleteId = null;
+  const m = q("#modalConfirmarEliminarCotz"); if (m) m.style.display = "none";
+}
+function eliminarCotizacionConfirmado(){
+  if (pendingDeleteId) {
+    deleteCotizacion(pendingDeleteId);
+  }
+  cerrarModalEliminarCotz();
+}
+
+// — Salir sin guardar
+function abrirModalSalirSinGuardar(){
+  const m = q("#modalConfirmarSalirCotz"); if (m) m.style.display = "flex";
+}
+function cerrarModalSalirCotz(){
+  const m = q("#modalConfirmarSalirCotz"); if (m) m.style.display = "none";
+}
+function salirCotizacionConfirmado(){
+  cerrarModalSalirCotz();
+  showListado();
+}
+
+// — Detección de cambios en el editor
+function getEditorSnapshot(){
+  const notasChecklist = getChecklistSeleccionadas();
+  const notasExtras = Array.from(q("#cotzNotasExtras").querySelectorAll(".cotz-chip")).map(ch => ch.dataset.text);
+  return {
+    cliente: {
+      nombre: q("#cotzCliNombre")?.value?.trim() || "",
+      correo: q("#cotzCliCorreo")?.value?.trim() || "",
+      rut:    q("#cotzCliRut")?.value?.trim()    || "",
+      fono:   q("#cotzCliFono")?.value?.trim()   || ""
+    },
+    sucursal: q("#cotzSucursal")?.value || "",
+    items: (state.editor.items || []).map(it => ({ sku: it.sku, qty: it.qty, precio: it.precio })),
+    notas: [...notasChecklist, ...notasExtras]
+  };
+}
+function captureEditorBaseline(){
+  _editorBaselineStr = JSON.stringify(getEditorSnapshot());
+}
+function hasEditorChanges(){
+  return JSON.stringify(getEditorSnapshot()) !== _editorBaselineStr;
+}
+
+// Exponer funciones usadas por los modales en atributos onclick (global)
+window.eliminarCotizacionConfirmado = eliminarCotizacionConfirmado;
+window.cerrarModalEliminarCotz      = cerrarModalEliminarCotz;
+window.salirCotizacionConfirmado    = salirCotizacionConfirmado;
+window.cerrarModalSalirCotz         = cerrarModalSalirCotz;
+
+
 
 // ——— Correlativo para IDs tipo #COT00001
 const STORAGE_SEQ_KEY = "djoyas_cotz_seq_v1";
@@ -567,6 +629,7 @@ function resetEditor(){
   q("#cotzNotasExtras").innerHTML = "";
   // checkboxes marcadas por defecto
   state.editor.notas = getChecklistSeleccionadas();
+  captureEditorBaseline();
 }
 
 
@@ -624,6 +687,7 @@ function loadCotizacionById(id){
 
   // Rellena notas (checks + extras)
   applyNotasToUI(state.editor.notas);
+  captureEditorBaseline();
 }
 
 
@@ -782,11 +846,33 @@ async function guardarCotizacion(){
 function bindEvents(){
   // ——— Navegación
   q("#cotzBtnNueva").addEventListener("click", ()=> showEditor(true));
-  q("#cotzBtnVolver").addEventListener("click", ()=>{
-    const confirmSalir = state.editor.items.length>0 || q("#cotzCliNombre").value || q("#cotzCliCorreo").value || q("#cotzCliRut").value;
-    if (confirmSalir && !confirm("Hay cambios sin guardar. ¿Volver de todos modos?")) return;
-    showListado();
-  });
+
+  // Listado: Ver, Editar, Eliminar (con stopPropagation)
+q("#cotzTbodyListado").addEventListener("click", (e)=>{
+  const btnDel  = e.target.closest("[data-del]");
+  const btnEdit = e.target.closest("[data-edit]");
+
+  if (btnDel){
+    e.preventDefault(); e.stopPropagation();
+    const id = btnDel.getAttribute("data-del");
+    abrirModalEliminarCotz(id);
+    return;
+  }
+  if (btnEdit){
+    e.preventDefault(); e.stopPropagation();
+    const id = btnEdit.getAttribute("data-edit");
+    loadCotizacionById(id);
+    return;
+  }
+
+  // Click en la fila = ver detalle
+  const tr = e.target.closest("tr");
+  if (tr?.dataset.id) {
+    showDetalleById(tr.dataset.id);
+  }
+});
+
+  
   q("#cotzBtnGuardar").addEventListener("click", guardarCotizacion);
 
   // ——— Búsqueda
@@ -947,13 +1033,6 @@ function deleteCotizacion(id){
 
 
 
-
-    // Abrir cotización desde el listado
-q("#cotzTbodyListado").addEventListener("click", (e)=>{
-  const tr = e.target.closest("tr");
-  if(!tr || !tr.dataset.id) return;
-  loadCotizacionById(tr.dataset.id);
-});
 
 
     // Nota extra
@@ -1153,4 +1232,4 @@ if (notas.length) {
 
 
 
-//v1.8
+//v1.9
