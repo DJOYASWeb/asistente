@@ -900,12 +900,6 @@ doc.setFontSize(10);
     y += 6;
   });
 
-// ===== Divisor antes del Total (marca fin de productos)
-ensureSpace(22);                       // nos aseguramos espacio para la línea + aire
-doc.setDrawColor(220);                 // mismo tono que el header
-doc.line(margin, y, pageW - margin, y);
-y += 16;       
-
   // ===== Total
   ensureSpace(30);
   doc.setFont("helvetica", "bold"); doc.setFontSize(11);

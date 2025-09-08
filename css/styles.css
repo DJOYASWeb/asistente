@@ -1638,7 +1638,7 @@ textarea.form-control.inspira{
 #cotizacionesApp { color:var(--text); }
 #cotizacionesApp .cotz-header { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:1rem; }
 #cotizacionesApp .cotz-title { font-size:1.6rem; margin:0; }
-#cotizacionesApp .cotz-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:1rem; }
+#cotizacionesApp .cotz-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:2rem; }
 #cotizacionesApp .cotz-editor-header { display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem; }
 #cotizacionesApp .cotz-spacer { flex:1; }
 
