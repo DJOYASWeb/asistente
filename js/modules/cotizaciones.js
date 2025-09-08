@@ -257,6 +257,112 @@ function formatDDMMYYYYSlash(iso){
 
 
 
+// ===== Firestore: init y helpers (cotizaciones)
+let dbCotz = null; // referencia a Firestore para este módulo
+const FIRE_COLLECTION_COTZ = "cotizaciones"; // <- cambia el nombre si quieres otra colección
+
+// Devuelve true si la SDK de Firebase está disponible
+function hasFirebase(){
+  return typeof window.firebase !== "undefined" && window.firebase?.firestore;
+}
+
+function initFirestoreCotizaciones(){
+  if (!hasFirebase()) {
+    console.warn("Firebase SDK no está cargada en esta página (se guardará solo local).");
+    return;
+  }
+  try {
+    if (window.firebase.auth) {
+      // Con autenticación: esperamos el estado
+      window.firebase.auth().onAuthStateChanged(async (user)=>{
+        if (user) {
+          dbCotz = window.firebase.firestore();
+          console.log("[Cotizaciones] Firestore listo (autenticada)");
+          try {
+            await loadCotizacionesFromFirestore();
+            renderListado(); // ← pinta el listado con datos remotos
+            notiOk("Cotizaciones sincronizadas desde Firestore");
+          } catch (e){
+            console.warn("No se pudieron cargar las cotizaciones remotas:", e);
+          }
+        } else {
+          dbCotz = null;
+          console.warn("[Cotizaciones] No autenticada: se usará solo el guardado local.");
+        }
+      });
+    } else {
+      // Sin autenticación: usa Firestore directo
+      dbCotz = window.firebase.firestore();
+      console.log("[Cotizaciones] Firestore listo (sin auth)");
+      loadCotizacionesFromFirestore()
+        .then(()=> { renderListado(); notiOk("Cotizaciones sincronizadas desde Firestore"); })
+        .catch((e)=> console.warn("No se pudieron cargar las cotizaciones remotas:", e));
+    }
+  } catch (e){
+    dbCotz = null;
+    console.warn("No se pudo inicializar Firestore (guardado local).", e);
+  }
+}
+
+
+// Guarda/actualiza una cotización en Firestore (best-effort)
+async function saveCotizacionToFirestore(cot){
+  if (!dbCotz) return false;
+  const cleanId = String(cot.id || "").replace(/^#/, ""); // #COT00001 -> COT00001
+  const ref = dbCotz.collection(FIRE_COLLECTION_COTZ).doc(cleanId);
+
+  // Prepara payload (no muta el objeto local)
+  const payload = {
+    id: cot.id,                 // conserva tu id visible (#COT00001)
+    fecha: cot.fecha || todayISO(),
+    sucursal: cot.sucursal || "",
+    cliente: { ...(cot.cliente || {}) },
+    items: Array.isArray(cot.items) ? cot.items : [],
+    notas: Array.isArray(cot.notas) ? cot.notas : [],
+    total: Number(cot.total || 0),
+    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  const snap = await ref.get();
+  if (!snap.exists) {
+    payload.createdAt = window.firebase.firestore.FieldValue.serverTimestamp();
+  }
+
+  await ref.set(payload, { merge: true });
+  return true;
+}
+
+// Carga la colección completa desde Firestore a memoria y cache local
+async function loadCotizacionesFromFirestore(){
+  if (!dbCotz) return false;
+
+  const snap = await dbCotz.collection(FIRE_COLLECTION_COTZ)
+    .orderBy("createdAt", "desc")
+    .get();
+
+  const rows = [];
+  snap.forEach(doc=>{
+    const data = doc.data() || {};
+    rows.push({
+      id: data.id || ("#"+doc.id),
+      fecha: data.fecha || todayISO(),
+      sucursal: data.sucursal || "",
+      cliente: data.cliente || {},
+      items: Array.isArray(data.items) ? data.items : [],
+      notas: Array.isArray(data.notas) ? data.notas : [],
+      total: Number(data.total || 0)
+    });
+  });
+
+  // Actualiza memoria + cache local
+  state.cotizaciones = rows;
+  saveState();
+  return true;
+}
+
+
+
+
 
 
   // —— Persistencia ————————————————————
@@ -538,8 +644,7 @@ function loadCotizacionById(id){
     return total;
   }
 
-  // —— Guardar cotización ————————————————
-function guardarCotizacion(){
+async function guardarCotizacion(){
   const nombre = q("#cotzCliNombre").value.trim();
   const correo = q("#cotzCliCorreo").value.trim();
   const rut    = q("#cotzCliRut").value.trim();
@@ -555,7 +660,7 @@ function guardarCotizacion(){
     return;
   }
 
-  // refresca notas
+  // refresca notas desde UI
   const notasChecklist = getChecklistSeleccionadas();
   const notasExtras = Array.from(q("#cotzNotasExtras").querySelectorAll(".cotz-chip"))
     .map(ch => ch.dataset.text);
@@ -564,8 +669,8 @@ function guardarCotizacion(){
   const total = updateTotal();
 
   const cot = {
-id: state.editor.id,
-    fecha: state.editor.fecha || todayISO(), // mantiene fecha si ya existía
+    id: state.editor.id,                          // ← usa tu correlativo #COT00001
+    fecha: state.editor.fecha || todayISO(),      // mantiene fecha si ya existía
     sucursal,
     cliente: { nombre, correo, rut, fono },
     items: state.editor.items,
@@ -573,17 +678,31 @@ id: state.editor.id,
     total
   };
 
+  // Persistencia local (siempre)
   const idx = state.cotizaciones.findIndex(x => x.id === cot.id);
   if (idx >= 0) {
-    // actualizar existente
     state.cotizaciones[idx] = cot;
     notiOk("Cotización actualizada");
   } else {
-    // nueva
     state.cotizaciones.unshift(cot);
     notiOk("Cotización guardada");
   }
   saveState();
+
+  // Persistencia remota (best-effort)
+  try {
+    const ok = await saveCotizacionToFirestore(cot);
+    if (ok) {
+      notiOk("Sincronizada con Firestore");
+    } else {
+      console.warn("Sin Firestore (SDK no cargada o no autenticada).");
+      // no mostramos error al usuario, ya que quedó guardada localmente
+    }
+  } catch (e){
+    console.error("Error guardando en Firestore", e);
+    // opcional: notiError("No se pudo sincronizar con Firestore (queda guardada local).");
+  }
+
   showListado();
 }
 
@@ -771,6 +890,8 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
   function init(){
     const app = $(appSel);
     if(!app) return; // no está en esta página
+    + initFirestoreCotizaciones(); // ← habilita Firestore si está disponible
+
     loadState();
     renderListado();
     bindEvents();
@@ -953,4 +1074,4 @@ if (notas.length) {
 
 
 
-//v1.5
+//v1.6
