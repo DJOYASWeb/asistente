@@ -257,6 +257,69 @@ function formatDDMMYYYYSlash(iso){
 
 
 
+// ===== Validación: helpers =========================
+function scrollToAndFocus(el){
+  if(!el) return;
+  try { el.focus({preventScroll:true}); } catch {}
+  const top = (el.getBoundingClientRect().top + window.pageYOffset) - 120; // ajusta 120 si tienes header fijo
+  window.scrollTo({ top, behavior: "smooth" });
+}
+
+function addFieldError(el){
+  if(!el) return;
+  el.classList.add("field-error");
+}
+function clearFieldError(el){
+  if(!el) return;
+  el.classList.remove("field-error");
+}
+
+function getProductosContainer(){
+  const tb = q("#cotzTbodyItems");
+  if(!tb) return null;
+  return tb.closest("table") || tb.parentElement || tb; // fallback seguro
+}
+function markProductosError(on){
+  const cont = getProductosContainer();
+  if(!cont) return;
+  cont.classList.toggle("block-error", !!on);
+}
+
+/**
+ * Valida la cotización actual.
+ * Devuelve { ok:boolean, errors:[{name, el}] }
+ */
+function validateCotizacion(){
+  const nombre   = q("#cotzCliNombre");
+  const correo   = q("#cotzCliCorreo");
+  const rut      = q("#cotzCliRut");
+  const fono     = q("#cotzCliFono");     // opcional (no se valida vacío)
+  const sucursal = q("#cotzSucursal");
+
+  // limpia marcas previas
+  [nombre, correo, rut, fono, sucursal].forEach(clearFieldError);
+  markProductosError(false);
+
+  const errors = [];
+
+  // Requeridos
+  if(!nombre || !nombre.value.trim()) errors.push({name:"Nombre", el:nombre});
+  if(!correo || !correo.value.trim()) errors.push({name:"Correo", el:correo});
+  if(!rut    || !rut.value.trim())    errors.push({name:"RUT",    el:rut});
+  if(!sucursal || !String(sucursal.value).trim()) errors.push({name:"Sucursal", el:sucursal});
+
+  // Productos
+  if(!Array.isArray(state.editor.items) || state.editor.items.length === 0){
+    errors.push({name:"Productos (agrega al menos 1)", el:getProductosContainer()});
+    markProductosError(true);
+  }
+
+  return { ok: errors.length===0, errors };
+}
+
+
+
+
 // ===== Firestore: init y helpers (cotizaciones)
 let dbCotz = null; // referencia a Firestore para este módulo
 const FIRE_COLLECTION_COTZ = "cotizaciones"; // <- cambia el nombre si quieres otra colección
@@ -645,20 +708,33 @@ function loadCotizacionById(id){
   }
 
 async function guardarCotizacion(){
+  // 1) Validación amigable
+  const res = validateCotizacion();
+  if(!res.ok){
+    // Mensaje legible: "Falta completar: Nombre, Correo, Sucursal, Productos..."
+    const lista = res.errors.map(e=> e.name).join(", ");
+    mostrarNotificacion(`Falta completar: ${lista}`, "error");
+
+    // Enfoca y desplaza al primer error
+    const first = res.errors[0]?.el;
+    if(first){
+      // si es contenedor de productos, busca un input cercano para el focus suave
+      const focusEl = first.querySelector?.("input,select,textarea,button") || first;
+      scrollToAndFocus(focusEl);
+      // Marca el/los campos específicos
+      if(first.matches?.("input,select,textarea")) addFieldError(first);
+      // aseguramos marca del bloque productos si aplica
+      if(first === getProductosContainer()) markProductosError(true);
+    }
+    return; // No guardamos si faltan campos
+  }
+
+  // 2) Si pasa la validación, seguimos como siempre:
   const nombre = q("#cotzCliNombre").value.trim();
   const correo = q("#cotzCliCorreo").value.trim();
   const rut    = q("#cotzCliRut").value.trim();
   const fono   = q("#cotzCliFono").value.trim();
   const sucursal = q("#cotzSucursal").value;
-
-  if(!nombre || !correo || !rut || !sucursal){
-    notiError("Completa Nombre, Correo, RUT y Sucursal.");
-    return;
-  }
-  if(state.editor.items.length === 0){
-    notiError("Agrega al menos 1 producto.");
-    return;
-  }
 
   // refresca notas desde UI
   const notasChecklist = getChecklistSeleccionadas();
@@ -669,7 +745,7 @@ async function guardarCotizacion(){
   const total = updateTotal();
 
   const cot = {
-    id: state.editor.id,                          // ← usa tu correlativo #COT00001
+    id: state.editor.id,                          // correlativo #COT00001
     fecha: state.editor.fecha || todayISO(),      // mantiene fecha si ya existía
     sucursal,
     cliente: { nombre, correo, rut, fono },
@@ -682,25 +758,20 @@ async function guardarCotizacion(){
   const idx = state.cotizaciones.findIndex(x => x.id === cot.id);
   if (idx >= 0) {
     state.cotizaciones[idx] = cot;
-    notiOk("Cotización actualizada");
+    mostrarNotificacion("Cotización actualizada", "exito");
   } else {
     state.cotizaciones.unshift(cot);
-    notiOk("Cotización guardada");
+    mostrarNotificacion("Cotización guardada", "exito");
   }
   saveState();
 
-  // Persistencia remota (best-effort)
+  // Persistencia remota (si configuraste Firestore en pasos previos)
   try {
-    const ok = await saveCotizacionToFirestore(cot);
-    if (ok) {
-      notiOk("Sincronizada con Firestore");
-    } else {
-      console.warn("Sin Firestore (SDK no cargada o no autenticada).");
-      // no mostramos error al usuario, ya que quedó guardada localmente
-    }
+    const ok = await (typeof saveCotizacionToFirestore === "function" ? saveCotizacionToFirestore(cot) : false);
+    if (ok) mostrarNotificacion("Sincronizada con Firestore", "exito");
   } catch (e){
-    console.error("Error guardando en Firestore", e);
-    // opcional: notiError("No se pudo sincronizar con Firestore (queda guardada local).");
+    // Silencioso para no ensuciar UX si estás offline; queda guardada local
+    // Si prefieres, muestra: mostrarNotificacion("No se pudo sincronizar con Firestore (queda local)", "alerta");
   }
 
   showListado();
@@ -795,6 +866,27 @@ q("#cotzDetPdf")?.addEventListener("click", ()=>{
   if (!currentDetailId) return;
   exportCotizacionPDF(currentDetailId);
 });
+
+
+
+  // —— Validación: limpiar estado de error al editar
+  ["#cotzCliNombre","#cotzCliCorreo","#cotzCliRut","#cotzCliFono","#cotzSucursal"].forEach(sel=>{
+    const el = q(sel);
+    if(!el) return;
+    ["input","change","blur"].forEach(evt=>{
+      el.addEventListener(evt, ()=> clearFieldError(el));
+    });
+  });
+
+  // Si agrega un producto, quitamos error del bloque de productos
+  q("#cotzResultados").addEventListener("click", (e)=>{
+    const btn = e.target.closest("[data-add]");
+    if(btn) markProductosError(false);
+  });
+  // También si cambia cantidad o borra/añade filas, re-evaluamos borde
+  const prodTb = q("#cotzTbodyItems");
+  prodTb.addEventListener("input", ()=> markProductosError(state.editor.items.length===0));
+  prodTb.addEventListener("click", ()=> markProductosError(state.editor.items.length===0));
 
 
 
@@ -1074,4 +1166,4 @@ if (notas.length) {
 
 
 
-//v1.6
+//v1.7
