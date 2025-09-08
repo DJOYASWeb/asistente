@@ -676,7 +676,6 @@ function loadCotizacionById(id){
       });
     }
     renderItems();
-    notiOk("Producto agregado a la cotización");
   }
 
   function renderItems(){
