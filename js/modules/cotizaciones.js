@@ -900,6 +900,12 @@ doc.setFontSize(10);
     y += 6;
   });
 
+// ===== Divisor antes del Total (marca fin de productos)
+ensureSpace(22);                       // nos aseguramos espacio para la línea + aire
+doc.setDrawColor(220);                 // mismo tono que el header
+doc.line(margin, y, pageW - margin, y);
+y += 16;       
+
   // ===== Total
   ensureSpace(30);
   doc.setFont("helvetica", "bold"); doc.setFontSize(11);
@@ -907,27 +913,38 @@ doc.setFontSize(10);
   textRight(fmtCLP(cot.total || 0), pageW - margin, y + 12);
   y += 28;
 
-  // ===== Notas
-  const notas = cot.notas || [];
-  if (notas.length) {
-    ensureSpace(20);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(12);
-    doc.text("Notas", margin, y);
-    y += 12;
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
 
-    const lineW = pageW - margin*2;
-    notas.forEach(n => {
-      const wrapped = doc.splitTextToSize(`• ${n}`, lineW);
-      wrapped.forEach(line => {
-        ensureSpace(14);
-        doc.text(line, margin, y + 12);
-        y += 14;
-      });
+// ===== Notas
+const notas = cot.notas || [];
+if (notas.length) {
+  // Más aire ANTES del título
+  ensureSpace(36);  // en vez de 20
+  y += 8;           // separación superior extra
+
+  // Título
+  doc.setFont("helvetica", "bold"); 
+  doc.setFontSize(12);
+  doc.text("Notas", margin, y);
+
+  // Más aire DESPUÉS del título
+  y += 16;          // en vez de 12
+  doc.setFont("helvetica", "normal"); 
+  doc.setFontSize(10);
+
+  // Contenido
+  const lineW = pageW - margin*2;
+  notas.forEach(n => {
+    const wrapped = doc.splitTextToSize(`• ${n}`, lineW);
+    wrapped.forEach(line => {
+      ensureSpace(14);
+      doc.text(line, margin, y + 12);
+      y += 14;
     });
-  }
+  });
+}
 
-  // (No dibujamos pie aquí; drawFooter ya lo puso en cada página)
+
+
 
   // Descargar
   const safeName = (cot.cliente?.nombre || "cotizacion").replace(/[\\/:*?"<>|]+/g, " ");
@@ -942,4 +959,4 @@ doc.setFontSize(10);
 
 
 
-//v1.4
+//v1.5
