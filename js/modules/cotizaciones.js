@@ -846,6 +846,15 @@ function bindEvents(){
   // ——— Navegación
   q("#cotzBtnNueva").addEventListener("click", ()=> showEditor(true));
 
+  q("#cotzBtnVolver")?.addEventListener("click", ()=>{
+  if (hasEditorChanges()) {
+    abrirModalSalirSinGuardar();
+  } else {
+    showListado();
+  }
+});
+
+
   // Listado: Ver, Editar, Eliminar (con stopPropagation)
 q("#cotzTbodyListado").addEventListener("click", (e)=>{
   const btnDel  = e.target.closest("[data-del]");
@@ -916,17 +925,6 @@ q("#cotzTbodyListado").addEventListener("click", (e)=>{
       e.target.parentElement.remove();
     }
   });
-
-  // ——— Listado: Ver (clic fila), Editar, Eliminar
-  q("#cotzTbodyListado").addEventListener("click", (e)=>{
-    const btnEdit = e.target.closest("[data-edit]");
-    if (btnEdit) { loadCotizacionById(btnEdit.getAttribute("data-edit")); return; }
-    const btnDel = e.target.closest("[data-del]");
-    if (btnDel) { deleteCotizacion(btnDel.getAttribute("data-del")); return; }
-    const tr = e.target.closest("tr");
-    if (tr?.dataset.id) { showDetalleById(tr.dataset.id); }
-  });
-
 
   // ——— Detalle (read-only): Volver, Editar, Exportar PDF
 q("#cotzDetVolver")?.addEventListener("click", showListado);
@@ -1021,57 +1019,38 @@ function showDetalleById(id){
 function deleteCotizacion(id){
   const idx = state.cotizaciones.findIndex(x => x.id === id);
   if(idx < 0){ notiError("No se encontró la cotización."); return; }
-  if(!confirm(`¿Eliminar la cotización ${state.cotizaciones[idx].id}? Esta acción no se puede deshacer.`)) return;
   state.cotizaciones.splice(idx,1);
   saveState();
-  notiOk("Cotización eliminada");
+  mostrarNotificacion("Cotización eliminada", "exito");
   // Si estabas viendo esa misma, vuelve al listado
+  if (currentDetailId === id) currentDetailId = null;
   showListado();
 }
 
-
-
-
-
-    // Nota extra
-    q("#cotzBtnAgregarNota").addEventListener("click", agregarNotaExtra);
-    q("#cotzNotasExtras").addEventListener("click", (e)=>{
-      if(e.target.classList.contains("cotz-chip-del")){
-        e.target.parentElement.remove();
-      }
-    });
- 
 
   // —— Init ———————————————————————————
   function init(){
     const app = $(appSel);
     if(!app) return; // no está en esta página
-    + initFirestoreCotizaciones(); // ← habilita Firestore si está disponible
+    initFirestoreCotizaciones(); // ← habilita Firestore si está disponible
 
     loadState();
     renderListado();
     bindEvents();
   }
 
-
-  function getAutoTableRef(){
-  const w = window;
-  // Modo plugin (doc.autoTable)
-  if (w.jspdf?.jsPDF?.prototype?.autoTable) return { type: "prototype", fn: null };
-  // Modo función UMD
-  if (typeof w.jspdfAutoTable === "function") return { type: "function", fn: w.jspdfAutoTable };
-  if (typeof w.jspdfAutoTable?.autoTable === "function") return { type: "function", fn: w.jspdfAutoTable.autoTable };
-  if (typeof w.autoTable === "function") return { type: "function", fn: w.autoTable };
-  return null;
-}
-
-
-
 // ===============================
 // Exportar PDF (Carta) con header/footer por página, datos en 2 columnas,
 // tabla con header repetido y más espacio al continuar.
 // ===============================
 async function exportCotizacionPDF(id){
+
+try { await ensurePdfLibs(); } catch(e){
+  notiError("No se pudo preparar la librería de PDF.");
+  return;
+}
+
+
   const cot = state.cotizaciones.find(x => x.id === id);
   if(!cot){ notiError("No se encontró la cotización."); return; }
 
@@ -1230,4 +1209,4 @@ if (notas.length) {
 
 
 
-//v2
+//v2.2
