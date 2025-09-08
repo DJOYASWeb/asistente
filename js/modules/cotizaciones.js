@@ -759,21 +759,6 @@ async function guardarCotizacion(){
   }
   saveState();
 
-  // 4) Sincronización con Firestore (si está configurado)
-  try {
-    const ok = await (typeof saveCotizacionToFirestore === "function" ? saveCotizacionToFirestore(cot) : false);
-    if (ok) {
-      mostrarNotificacion("Sincronizada con la base de datos", "exito");
-    } else {
-      // Si no hay Firestore o no hay sesión, informamos sin molestar
-      // Usa "alerta" para diferenciar de error real
-      mostrarNotificacion("Guardada localmente (no sincronizada)", "alerta");
-    }
-  } catch (e){
-    // Error real de red o permisos
-    mostrarNotificacion("No se pudo sincronizar con la base de datos; queda guardada localmente.", "error");
-  }
-
   // 5) Volver al listado
   showListado();
 }
