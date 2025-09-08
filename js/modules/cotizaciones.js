@@ -624,8 +624,6 @@ function loadCotizacionById(id){
 
   // Rellena notas (checks + extras)
   applyNotasToUI(state.editor.notas);
-
-  notiOk(`Abierta cotización ${c.id}`);
 }
 
 
