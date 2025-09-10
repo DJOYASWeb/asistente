@@ -115,6 +115,24 @@
 <div id="archivos" class="tab-section d-none">
   <h2>Archivos</h2>
 
+
+  <section class="ios-card p-3 mt-4">
+  <h4>🔐 Conexión catálogo (token)</h4>
+  <p class="text-muted">
+    Ingresa el token que valida las búsquedas contra tu tienda.
+  </p>
+
+  <div class="d-flex gap-2 align-items-center flex-wrap">
+    <input id="cfgTokenInput" type="password" class="form-control" placeholder="Tu token secreto" style="max-width:360px">
+    <button id="cfgBtnSave"  class="btn btn-primary">Guardar token</button>
+    <button id="cfgBtnShow"  class="btn btn-outline-secondary">Mostrar</button>
+    <button id="cfgBtnTest"  class="btn btn-outline-info">Probar conexión</button>
+    <button id="cfgBtnClear" class="btn btn-outline-danger">Quitar token</button>
+  </div>
+
+  <div id="cfgTokenStatus" class="small text-muted mt-2"></div>
+</section>
+
   <div class="ios-card mb-3">
     <label for="archivoDashboard" class="form-label">Sube el archivo de datos del Dashboard (.xlsx)</label>
     <input type="file" id="archivoDashboard" accept=".xlsx" class="form-control">
