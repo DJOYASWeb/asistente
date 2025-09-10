@@ -384,9 +384,15 @@ function validateCotizacion(){
 const LIVE_SEARCH = {
   endpoint: "https://distribuidoradejoyas.cl/modules/ps_products_export/products_live.php",
   getToken(){
-    // Puedes guardar el token desde tu configuración en localStorage con la clave 'djq_token'
-    // o exponer temporalmente window.DJQ_TOKEN en configuracion.html
-    return localStorage.getItem("djq_token") || (window.DJQ_TOKEN || "");
+    const t = localStorage.getItem("djq_token") || (window.DJQ_TOKEN || "");
+    // Bloquear si accidentalmente guardaron un hash bcrypt
+    if (/^\$2[aby]\$/.test(String(t))) {
+      try {
+        mostrarNotificacion("El valor guardado es un HASH. Ingresa el TOKEN en texto plano en Configuración.", "alerta");
+      } catch {}
+      return "";
+    }
+    return t;
   }
 };
 

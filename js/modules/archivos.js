@@ -124,57 +124,62 @@ function mostrarTabla(sheets) {
 
 });
 
-
 /* ============================
-   Configuración: Token Catálogo
-   (para configuracion.html)
+   Configuración: Token Catálogo (sin consola)
    ============================ */
-
 (function(){
-  // ENDPOINT live en tu servidor (ya creado)
   const ENDPOINT = 'https://distribuidoradejoyas.cl/modules/ps_products_export/products_live.php';
-  const KEY = 'djq_token'; // clave donde guardamos el token en localStorage
+  const KEY = 'djq_token';
 
   const $ = (s)=> document.querySelector(s);
+  const input   = $('#cfgTokenInput');
+  const btnSave = $('#cfgBtnSave');
+  const btnShow = $('#cfgBtnShow');
+  const btnTest = $('#cfgBtnTest');
+  const btnClear= $('#cfgBtnClear');
+  const status  = $('#cfgTokenStatus');
 
-  // Elementos (deben existir en tu HTML de configuracion.html)
-  const input   = $('#cfgTokenInput');   // <input id="cfgTokenInput">
-  const btnSave = $('#cfgBtnSave');      // <button id="cfgBtnSave">
-  const btnShow = $('#cfgBtnShow');      // <button id="cfgBtnShow">
-  const btnTest = $('#cfgBtnTest');      // <button id="cfgBtnTest">
-  const btnClear= $('#cfgBtnClear');     // <button id="cfgBtnClear">
-  const status  = $('#cfgTokenStatus');  // <div id="cfgTokenStatus">
+  const toast = (msg, tipo='exito') =>
+    (typeof window.mostrarNotificacion === 'function'
+      ? mostrarNotificacion(msg, tipo)
+      : alert((tipo==='error'?'❌ ':'✅ ')+msg));
 
-  // Toaster (sin console.log)
-  const toast = (msg, tipo='exito') => {
-    if (typeof window.mostrarNotificacion === 'function') {
-      mostrarNotificacion(msg, tipo);
-    } else {
-      // Fallback silencioso
-      if (tipo === 'error') alert('❌ ' + msg);
-      else alert('✅ ' + msg);
-    }
-  };
+  const looksLikeBcrypt = (s='') => /^\$2[aby]\$/.test(String(s));
 
-  // Enmascara token para mostrar estado
-  function mask(s){
+  const mask = (s)=>{
     if(!s) return '(sin token)';
     if(s.length <= 6) return '*'.repeat(s.length);
-    return s.slice(0,3) + '***' + s.slice(-3);
-  }
+    return s.slice(0,3)+'***'+s.slice(-3);
+  };
 
   function refreshUI(){
     const saved = localStorage.getItem(KEY) || '';
-    if (input) { input.value = ''; input.type = 'password'; }
-    if (btnShow) btnShow.textContent = 'Mostrar';
-    if (status) status.textContent = saved ? `Token guardado: ${mask(saved)}` : 'No hay token guardado';
+    if (input)  { input.value = ''; input.type = 'password'; }
+    if (btnShow){ btnShow.textContent = 'Mostrar'; }
+    if (status) {
+      status.textContent = saved
+        ? (looksLikeBcrypt(saved)
+            ? '⚠️ Detectado HASH guardado. Debes ingresar el TOKEN en texto plano.'
+            : `Token guardado: ${mask(saved)}`)
+        : 'No hay token guardado';
+    }
+  }
+
+  // Migración automática: si hay un HASH guardado, se elimina y se avisa.
+  function migrateIfHashStored(){
+    const saved = localStorage.getItem(KEY) || '';
+    if (looksLikeBcrypt(saved)){
+      localStorage.removeItem(KEY);
+      refreshUI();
+      toast('Se detectó un HASH guardado. Por seguridad, debes ingresar el TOKEN en texto plano.', 'alerta');
+    }
   }
 
   function saveToken(){
     const t = (input?.value || '').trim();
-    if(!t){
-      toast('Ingresa un token válido', 'alerta');
-      input?.focus();
+    if(!t){ toast('Ingresa un token válido', 'alerta'); input?.focus(); return; }
+    if (looksLikeBcrypt(t)){
+      toast('No pegues el HASH. Debes pegar el TOKEN en texto plano que corresponde a ese hash.', 'error');
       return;
     }
     localStorage.setItem(KEY, t);
@@ -184,23 +189,19 @@ function mostrarTabla(sheets) {
 
   function toggleShow(){
     if (!input || !btnShow) return;
-    if (input.type === 'password') {
-      input.type = 'text';
-      btnShow.textContent = 'Ocultar';
-    } else {
-      input.type = 'password';
-      btnShow.textContent = 'Mostrar';
-    }
+    const isPwd = input.type === 'password';
+    input.type = isPwd ? 'text' : 'password';
+    btnShow.textContent = isPwd ? 'Ocultar' : 'Mostrar';
   }
 
   async function testConnection(){
     const tok = localStorage.getItem(KEY) || '';
-    if(!tok){
-      toast('No hay token guardado. Guarda uno primero.', 'alerta');
+    if(!tok){ toast('No hay token guardado. Guarda uno primero.', 'alerta'); return; }
+    if (looksLikeBcrypt(tok)){
+      toast('El valor guardado parece un HASH. Guarda el TOKEN en texto plano.', 'error');
       return;
     }
     try{
-      // Consulta mínima (respeta rate limit del servidor)
       const url = `${ENDPOINT}?q=aro&limit=1`;
       const res = await fetch(url, { headers: { 'X-Auth-Token': tok }});
       if(!res.ok){
@@ -208,8 +209,7 @@ function mostrarTabla(sheets) {
         throw new Error(`HTTP ${res.status} ${txt}`);
       }
       const data = await res.json();
-      const n = Array.isArray(data) ? data.length : 0;
-      toast(`Conexión OK. Recibidos ${n} resultado(s).`);
+      toast(`Conexión OK. Recibidos ${Array.isArray(data)?data.length:0} resultado(s).`);
     }catch(e){
       toast(`No se pudo conectar: ${e.message || e}`, 'error');
     }
@@ -230,22 +230,27 @@ function mostrarTabla(sheets) {
   }
 
   function boot(){
-    // Solo corre en la página de configuración (si existen los nodos)
+    // Si no estás en configuracion.html, no hace nada
     if (!input && !btnSave && !btnShow && !btnTest && !btnClear && !status) return;
+    migrateIfHashStored();
     refreshUI();
     bind();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 
-  // (Opcional) expone utilidades por si quieres invocarlas desde consola
-  window.DJQ_TOKEN_UI = { refreshUI, saveToken, clearToken, testConnection };
-
+  // Opcional para depuración desde botones u otros JS
+  window.DJQ_TOKEN_UI = { refreshUI, testConnection, clearToken, saveToken };
 })();
+
+
+
+
+
+
+
+
 
 
 //upd v1
