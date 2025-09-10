@@ -380,6 +380,17 @@ function validateCotizacion(){
 }
 
 
+// —— Live Search (endpoint PrestaShop) ——————————————————
+const LIVE_SEARCH = {
+  endpoint: "https://distribuidoradejoyas.cl/modules/ps_products_export/products_live.php",
+  getToken(){
+    // Puedes guardar el token desde tu configuración en localStorage con la clave 'djq_token'
+    // o exponer temporalmente window.DJQ_TOKEN en configuracion.html
+    return localStorage.getItem("djq_token") || (window.DJQ_TOKEN || "");
+  }
+};
+
+
 
 
 // ===== Firestore: init y helpers (cotizaciones)
@@ -526,13 +537,64 @@ async function loadCotizacionesFromFirestore(){
     { sku:"NEC-0016", nombre:"Collar Medallón Estrella", precio: 9290, stock: 11, img:"https://picsum.photos/seed/nec12/400" },
   ];
 
-  async function searchProductos(query){
-    const q = (query||"").trim().toLowerCase();
-    if(!q) return SAMPLE_PRODUCTS.slice(0,10); // 2 filas × 5 columnas
-    return SAMPLE_PRODUCTS.filter(p => 
-      p.sku.toLowerCase().includes(q) || p.nombre.toLowerCase().includes(q)
-    ).slice(0,10);
+
+// —— Productos: BÚSQUEDA usando endpoint live (y fallback) ——————————
+async function searchProductos(query){
+  const q = (query || "").trim();
+
+  // Sin texto: mantenemos el comportamiento anterior (muestra 10 demos)
+  if (!q) return SAMPLE_PRODUCTS.slice(0, 10);
+
+  // Evita llamadas con 1 solo carácter (el server pide >=2)
+  if (q.length < 2) {
+    try { mostrarNotificacion("Escribe al menos 2 caracteres para buscar", "alerta"); } catch {}
+    return [];
   }
+
+  // Intento live contra el endpoint
+  try {
+    const token = LIVE_SEARCH.getToken();
+    if (!token) {
+      try { mostrarNotificacion("Falta el token de catálogo. Ingresa el token en Configuración.", "alerta"); } catch {}
+      return [];
+    }
+
+    const url = `${LIVE_SEARCH.endpoint}?q=${encodeURIComponent(q)}&limit=10`;
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "X-Auth-Token": token }
+    });
+
+    if (!res.ok) {
+      // 401 = token inválido, 429 = rate limit, 500 = server, etc.
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    // Mapeo al formato que usa tu UI de productos
+    const list = (Array.isArray(data) ? data : []).map(r => ({
+      sku: r.reference || "",
+      nombre: r.name || "",
+      precio: Number(r.price || 0),
+      stock: Number(r.stock || 0),
+      img: r.image || "https://via.placeholder.com/400x400?text=Producto",
+      id_product: r.id
+    }));
+
+    return list.slice(0, 10); // 2 filas × 5 tarjetas
+
+  } catch (e) {
+    // Fallback suave para no dejar vacía la UI
+    try { mostrarNotificacion("No se pudo consultar el catálogo en vivo. Mostrando resultados de ejemplo.", "alerta"); } catch {}
+    const qlc = q.toLowerCase();
+    return SAMPLE_PRODUCTS
+      .filter(p => p.sku.toLowerCase().includes(qlc) || p.nombre.toLowerCase().includes(qlc))
+      .slice(0, 10);
+  }
+}
+
+
+
 
   // —— Render: Listado ——————————————————
 function renderListado(){
@@ -1209,4 +1271,4 @@ if (notas.length) {
 
 
 
-//v2.2
+//v1
