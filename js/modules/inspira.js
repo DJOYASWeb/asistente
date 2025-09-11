@@ -60,14 +60,21 @@ async function cargarContenidos() {
   const select = document.getElementById('contenidoSelect');
   select.innerHTML = '<option value="">Selecciona un contenido</option>';
   try {
-const snapshot = await db.collection("inspira").orderBy("id", "desc").get();
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const option = document.createElement("option");
-      option.value = doc.id;
-      option.textContent = `${data.titulo} (${data.tematica || 'sin temática'})`;
-      select.appendChild(option);
-    });
+const snapshot = await db.collection("inspira").get();
+const docs = [];
+snapshot.forEach(doc => {
+  const data = doc.data();
+  docs.push({ idNum: Number(data.id || doc.id), docId: doc.id, data });
+});
+docs.sort((a, b) => b.idNum - a.idNum);
+
+docs.forEach(({ docId, data }) => {
+  const option = document.createElement("option");
+  option.value = docId;
+  option.textContent = `${data.titulo} (${data.tematica || 'sin temática'})`;
+  select.appendChild(option);
+});
+
   } catch (error) {
 mostrarNotificacion("Error al cargar contenidos", "error");
 select.innerHTML = '<option>Error al cargar</option>';
@@ -78,7 +85,7 @@ async function guardarInspira(e) {
   e.preventDefault();
 
   const nuevaEntrada = {
-    id: document.getElementById('inspiraId').value,
+id: Number(document.getElementById('inspiraId').value),
     titulo: document.getElementById('inspiraTitulo').value,
     autor: document.getElementById('inspiraAutor').value,
     descripcion: document.getElementById('inspiraDescripcion').value,
@@ -331,27 +338,30 @@ function cargarRecursos() {
   const tbody = document.getElementById("tablaRecursos");
   tbody.innerHTML = "";
 
-db.collection("inspira").orderBy("id", "desc").get().then((querySnapshot) => {
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-
-      const tr = document.createElement("tr");
-
-      tr.innerHTML = `
-        <td>${data.id || doc.id}</td>
-        <td>${data.titulo || "-"}</td>
-        <td>${data.fecha || "-"}</td>
-        <td>${data.tematica || "-"}</td>
-        <td>${data.autor || "-"}</td>
-        <td>
-          <button class="btn" onclick="editarRecurso('${doc.id}')">✏️</button>
-          <button class="btn" onclick="eliminarRecurso('${doc.id}')">🗑️</button>
-        </td>
-      `;
-
-      tbody.appendChild(tr);
-    });
+db.collection("inspira").get().then((querySnapshot) => {
+  const rows = [];
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    rows.push({ idNum: Number(data.id || doc.id), docId: doc.id, data });
   });
+  rows.sort((a, b) => b.idNum - a.idNum);
+
+  rows.forEach(({ docId, data }) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${data.id || docId}</td>
+      <td>${data.titulo || "-"}</td>
+      <td>${data.fecha || "-"}</td>
+      <td>${data.tematica || "-"}</td>
+      <td>${data.autor || "-"}</td>
+      <td>
+        <button class="btn" onclick="editarRecurso('${docId}')">✏️</button>
+        <button class="btn" onclick="eliminarRecurso('${docId}')">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+});
 }
 
 
@@ -532,4 +542,4 @@ function copiarAlPortapapeles() {
 }
 
 
-//upd v.1.3
+//upd v.1.4
