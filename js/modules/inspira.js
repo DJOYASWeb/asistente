@@ -50,6 +50,12 @@ function refrescarContenidos() {
   mostrarNotificacion("Contenidos actualizados correctamente", "exito");
 }
 
+function refrescarRecursos() {
+  cargarRecursos();
+  mostrarNotificacion("Recursos actualizados correctamente", "exito");
+}
+
+
 async function cargarContenidos() {
   const select = document.getElementById('contenidoSelect');
   select.innerHTML = '<option value="">Selecciona un contenido</option>';
@@ -85,14 +91,19 @@ async function guardarInspira(e) {
     timestamp: new Date().toISOString()
   };
 
-  try {
-await db.collection("inspira").doc(String(nuevaEntrada.id)).set(nuevaEntrada);
-    document.getElementById('formInspira').reset();
-    cerrarModalAgregarRecurso(); // 👈 aquí cerramos el modal
-    mostrarNotificacion("El contenido fue guardado correctamente", "exito");
-  } catch (err) {
-    mostrarNotificacion("No se pudo guardar. Intenta de nuevo", "error");
-  }
+try {
+  await db.collection("inspira").doc(String(nuevaEntrada.id)).set(nuevaEntrada);
+  document.getElementById('formInspira').reset();
+  cerrarModalAgregarRecurso(); // 👈 aquí cierras el modal
+
+  // 🔄 Refrescar ambos listados inmediatamente
+  cargarContenidos(); // actualiza el <select id="contenidoSelect">
+  cargarRecursos();   // actualiza la tabla de la pestaña "Recursos"
+
+  mostrarNotificacion("El contenido fue guardado correctamente", "exito");
+} catch (err) {
+  mostrarNotificacion("No se pudo guardar. Intenta de nuevo", "error");
+}
 }
 
 
@@ -521,4 +532,4 @@ function copiarAlPortapapeles() {
 }
 
 
-//upd v.1
+//upd v.1.3
