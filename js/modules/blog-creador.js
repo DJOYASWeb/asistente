@@ -693,4 +693,105 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
   });
 })();
 
-// updd v2.2
+
+// =====================
+// Importador CSV blogs
+// =====================
+(function initCsvImport(){
+  const btn  = document.getElementById('btnCargarCsv');
+  const file = document.getElementById('csvInput');
+  if (!btn || !file) return;
+
+  btn.addEventListener('click', () => file.click());
+
+  file.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+
+    if (!/\.csv$/i.test(f.name)) {
+      mostrarNotificacion("Selecciona un archivo .csv válido", "alerta");
+      file.value = "";
+      return;
+    }
+
+    Papa.parse(f, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (res) => {
+        try {
+          await importCsvRows(res.data || []);
+          file.value = "";
+        } catch (err) {
+          mostrarNotificacion("Error durante la importación: " + (err?.message || err), "error");
+          file.value = "";
+        }
+      },
+      error: (err) => {
+        mostrarNotificacion("Error al leer CSV: " + (err?.message || err), "error");
+        file.value = "";
+      }
+    });
+  });
+
+  async function importCsvRows(rows){
+    if (!Array.isArray(rows) || rows.length === 0){
+      mostrarNotificacion("El CSV está vacío o sin encabezados", "alerta");
+      return;
+    }
+
+    const db = firebase.firestore();
+    const batch = db.batch();
+    let ok = 0, fail = 0;
+    const fallos = [];
+
+    rows.forEach((r, i) => {
+      const fila = i + 2; // +2 por encabezado
+      const nombre = (r.nombre || r.titulo || "").toString().trim();
+
+      if (!nombre){
+        fail++; fallos.push(`Fila ${fila}: falta 'nombre'`);
+        return;
+      }
+
+      const docId = (r.id || "").toString().trim(); // opcional
+      const ref = docId ? db.collection("blogs").doc(docId) : db.collection("blogs").doc();
+
+      const doc = {
+        nombre,
+        fecha: (r.fecha || "").toString().trim(),
+        autor: (r.autor || "Sofía de DJOYAS").toString().trim(),
+        categoria: (r.categoria || "").toString().trim(),
+        estado: (r.estado || "pendiente").toString().trim(),
+        meta: (r.meta || "").toString().trim(),
+        altImagen: (r.altImagen || "").toString().trim(),
+        // Si no viene blogHtml, usamos 'blog' (texto plano) tal cual.
+        blogHtml: (r.blogHtml || r.blog || "").toString()
+      };
+
+      batch.set(ref, doc, { merge: true });
+      ok++;
+    });
+
+    if (ok === 0){
+      mostrarNotificacion(`No se pudo importar ninguna fila (${fail} con errores)`, "alerta");
+      if (fallos.length && typeof showIosModal === "function") {
+        showIosModal("Detalles de errores", fallos.join("<br>"));
+      }
+      return;
+    }
+
+    await batch.commit();
+
+    mostrarNotificacion(`Importación completada: ${ok} ok, ${fail} con errores`, "exito");
+    if (fallos.length && typeof showIosModal === "function") {
+      showIosModal("Detalles de errores", fallos.join("<br>"));
+    }
+
+    if (typeof cargarDatosDesdeFirestore === "function") {
+      cargarDatosDesdeFirestore();
+    }
+  }
+})();
+
+
+// updd v1
