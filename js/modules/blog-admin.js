@@ -555,6 +555,73 @@ document.addEventListener('click', e => {
 })();
 
 
+// ====== Eliminación de blogs con modal ======
+(function initDeleteFlow(){
+  const MODAL_ID = "modalConfirmarEliminar";
+  let _docIdAEliminar = null;
+
+  function abrirModal(){
+    const m = document.getElementById(MODAL_ID);
+    if (m) m.style.display = "flex";
+  }
+  function cerrarModal(){
+    const m = document.getElementById(MODAL_ID);
+    if (m) m.style.display = "none";
+  }
+
+  // Llamada desde el botón de la fila: onclick="confirmarEliminarFila('DOC_ID')"
+  function confirmarEliminarFila(docId){
+    if (!docId) {
+      if (typeof mostrarNotificacion === "function") {
+        mostrarNotificacion("ID de blog inválido para eliminar.", "alerta");
+      }
+      return;
+    }
+    _docIdAEliminar = String(docId);
+    abrirModal();
+  }
+
+  async function eliminarFilaConfirmado(){
+    if (!_docIdAEliminar) {
+      if (typeof mostrarNotificacion === "function") {
+        mostrarNotificacion("No hay blog seleccionado para eliminar.", "alerta");
+      }
+      return;
+    }
+    try {
+      const db = firebase.firestore();
+
+      // Ajusta la colección si tu tabla usa "blog" (singular):
+      await db.collection("blogs").doc(_docIdAEliminar).delete();
+
+      if (typeof mostrarNotificacion === "function") {
+        mostrarNotificacion("Blog eliminado correctamente", "exito");
+      }
+
+      // refresca la tabla si tienes esta función
+      if (typeof cargarDatosDesdeFirestore === "function") {
+        cargarDatosDesdeFirestore();
+      }
+    } catch (e) {
+      if (typeof mostrarNotificacion === "function") {
+        mostrarNotificacion("Error al eliminar: " + (e?.message || e), "error");
+      }
+    } finally {
+      _docIdAEliminar = null;
+      cerrarModal();
+    }
+  }
+
+  function cerrarModalEliminar(){
+    _docIdAEliminar = null;
+    cerrarModal();
+  }
+
+  // Exponer global para que funcionen los onclick inline del HTML
+  window.confirmarEliminarFila = confirmarEliminarFila;
+  window.eliminarFilaConfirmado = eliminarFilaConfirmado;
+  window.cerrarModalEliminar = cerrarModalEliminar;
+})();
 
 
-// v1
+// v1.1
