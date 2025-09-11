@@ -555,7 +555,7 @@ document.addEventListener('click', e => {
 })();
 
 
-// ====== Eliminación de blogs con modal ======
+// ====== Eliminación de blogs con modal (acepta this en onclick) ======
 (function initDeleteFlow(){
   const MODAL_ID = "modalConfirmarEliminar";
   let _docIdAEliminar = null;
@@ -569,15 +569,43 @@ document.addEventListener('click', e => {
     if (m) m.style.display = "none";
   }
 
-  // Llamada desde el botón de la fila: onclick="confirmarEliminarFila('DOC_ID')"
-  function confirmarEliminarFila(docId){
-    if (!docId) {
+  // Intenta obtener el ID desde: data-id del botón, data-doc-id de la fila, o 1ª celda
+  function resolverDocId(btnOrId){
+    if (typeof btnOrId === "string") return btnOrId.trim();
+
+    const el = btnOrId;
+    if (!el) return "";
+
+    // 1) data-id en el botón <button data-id="...">
+    let id = el.dataset?.id || "";
+    if (id) return id.trim();
+
+    // 2) data-doc-id en la fila <tr data-doc-id="...">
+    const tr = el.closest("tr");
+    if (tr){
+      id = tr.dataset?.docId || tr.getAttribute("data-doc-id") || tr.dataset?.id || "";
+      if (id) return id.trim();
+
+      // 3) 1ª celda de la fila (si tu primera columna es el ID)
+      const firstCell = tr.querySelector("td,th");
+      if (firstCell){
+        const txt = (firstCell.textContent || "").trim();
+        if (txt) return txt;
+      }
+    }
+    return "";
+  }
+
+  // Llamada desde el botón: onclick="confirmarEliminarFila(this)" o con un string ID
+  function confirmarEliminarFila(btnOrId){
+    const id = resolverDocId(btnOrId);
+    if (!id){
       if (typeof mostrarNotificacion === "function") {
-        mostrarNotificacion("ID de blog inválido para eliminar.", "alerta");
+        mostrarNotificacion("No pude obtener el ID del blog a eliminar. Asegúrate de que la fila tenga el ID en la primera columna o agrega data-doc-id al <tr>.", "alerta");
       }
       return;
     }
-    _docIdAEliminar = String(docId);
+    _docIdAEliminar = id;
     abrirModal();
   }
 
@@ -590,15 +618,11 @@ document.addEventListener('click', e => {
     }
     try {
       const db = firebase.firestore();
-
-      // Ajusta la colección si tu tabla usa "blog" (singular):
       await db.collection("blogs").doc(_docIdAEliminar).delete();
 
       if (typeof mostrarNotificacion === "function") {
         mostrarNotificacion("Blog eliminado correctamente", "exito");
       }
-
-      // refresca la tabla si tienes esta función
       if (typeof cargarDatosDesdeFirestore === "function") {
         cargarDatosDesdeFirestore();
       }
@@ -617,11 +641,11 @@ document.addEventListener('click', e => {
     cerrarModal();
   }
 
-  // Exponer global para que funcionen los onclick inline del HTML
+  // Exponer globalmente para que funcione el onclick inline
   window.confirmarEliminarFila = confirmarEliminarFila;
   window.eliminarFilaConfirmado = eliminarFilaConfirmado;
   window.cerrarModalEliminar = cerrarModalEliminar;
 })();
 
 
-// v1.1
+// v1.2
