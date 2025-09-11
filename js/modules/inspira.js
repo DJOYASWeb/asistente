@@ -234,6 +234,125 @@ if (!doc.exists) return mostrarNotificacion("Contenido no encontrado", "alerta")
 }
 }
 
+
+function generarContenidoSemanal() {
+  // 1) Calcular el viernes de la semana ISO actual (semana inicia Lunes)
+  const hoy = new Date();
+  const isoDow = ((hoy.getDay() + 6) % 7) + 1;  // L=1 ... D=7
+  const diasHastaViernes = 5 - isoDow;          // Viernes = 5
+  const viernes = new Date(hoy);
+  viernes.setDate(hoy.getDate() + diasHastaViernes);
+
+  // Formato 'YYYY-MM-DD' (igual al input date)
+  const yyyy = viernes.getFullYear();
+  const mm = String(viernes.getMonth() + 1).padStart(2, '0');
+  const dd = String(viernes.getDate()).padStart(2, '0');
+  const viernesStr = `${yyyy}-${mm}-${dd}`;
+
+  // 2) Traer todos, encontrar el destacado (fecha = viernes actual) y el carrusel = id-1
+  db.collection("inspira").get().then((qs) => {
+    const items = [];
+    const byId = new Map();
+
+    qs.forEach((doc) => {
+      const data = doc.data();
+      const idNum = Number(data.id || doc.id);
+      items.push({ idNum, docId: doc.id, data });
+      byId.set(idNum, { docId: doc.id, data });
+    });
+
+    // Buscar contenido con fecha = viernes actual
+    const candidato = items.find(it => (it.data.fecha === viernesStr));
+    if (!candidato) {
+      mostrarNotificacion("No hay contenido con fecha del viernes de esta semana", "alerta");
+      return;
+    }
+
+    const destacado = candidato;          // destacado = el de este viernes
+    const previo = byId.get(destacado.idNum - 1); // carrusel = id anterior
+
+    // 3) Construir HTML usando el mismo estilo que tus plantillas
+    const fechaObj = new Date(destacado.data.fecha);
+    const fechaFormato = fechaObj.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+
+    const htmlDestacado =
+      `<section class="card contenido" data-title="${destacado.data.titulo}" data-subtitle="${destacado.data.descripcion}" data-img="${destacado.data.imagen}" data-date="${fechaFormato}" data-category="${destacado.data.categoria}" data-duration="${destacado.data.duracion}" data-autor="${destacado.data.autor}" data-link="${destacado.data.link}">
+        <div class="img-text-portada">
+          <img src="${destacado.data.imagen}" alt="Imagen" draggable="false">
+          <div class="overlay-gradient"></div>
+          <div class="text">
+            <img id="marca-image" src="/img/cms/paginas internas/DJOYAS INSPIRA/logo-inspira-1.png" alt="Marca">
+            <h2>${destacado.data.titulo}</h2>
+            <span>${destacado.data.categoria}</span>
+          </div>
+        </div>
+      </section>`;
+
+    let tarjetaCarrusel = "";
+    if (previo && previo.data) {
+      const fechaPrev = new Date(previo.data.fecha);
+      const fechaPrevFmt = fechaPrev.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+
+      tarjetaCarrusel =
+        `<li class="card" data-title="${previo.data.titulo}" data-subtitle="${previo.data.descripcion}" data-img="${previo.data.imagen}" data-date="${fechaPrevFmt}" data-category="${previo.data.categoria}" data-duration="${previo.data.duracion}" data-link="${previo.data.link}" data-autor="${previo.data.autor}" data-section="${previo.data.categoria}">
+          <div class="img-text-overlay">
+            <img src="${previo.data.imagen}" alt="Imagen" draggable="false">
+            <div class="overlay-gradient"></div>
+            <div class="text">
+              <h2>${previo.data.titulo}</h2>
+              <span>${previo.data.tematica}</span>
+            </div>
+          </div>
+        </li>`;
+    } else {
+      mostrarNotificacion(`No se encontró contenido previo para ID ${destacado.idNum}`, "alerta");
+    }
+
+    // 4) Pintar mini-cards en el contenedor de resultados (igual que tu flujo actual)
+    const contenedor = document.getElementById("bloqueGenerado");
+    const lista = document.createElement("div");
+    lista.className = "row";
+    contenedor.innerHTML = '<h6>🗓️ Contenido semanal:</h6>';
+    contenedor.appendChild(lista);
+
+    // Mini card destacado
+    const cardDest = document.createElement("div");
+    cardDest.className = "col-md-6 col-lg-4 mb-3";
+    cardDest.innerHTML = `
+      <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #ffffff, #f8f9fa);">
+        <div>
+          <h6 class="text-primary">🔹 DESTACADO (ID ${destacado.idNum})</h6>
+          <strong>${destacado.data.titulo}</strong>
+          <p class="text-muted small mb-0 text-truncate">${destacado.data.descripcion}</p>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary mt-2 ver-codigo-btn" data-html="${htmlDestacado.replace(/"/g, '&quot;')}">Ver código</button>
+      </div>`;
+    lista.appendChild(cardDest);
+
+    // Mini card carrusel (si hay)
+    if (tarjetaCarrusel) {
+      const cardCar = document.createElement("div");
+      cardCar.className = "col-md-6 col-lg-4 mb-3";
+      cardCar.innerHTML = `
+        <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #fff0f5, #fafafa);">
+          <div>
+            <h6 class="text-danger">🎠 CARRUSEL (ID ${destacado.idNum - 1})</h6>
+            <strong>${previo.data.titulo}</strong>
+            <p class="text-muted small mb-0 text-truncate">${previo.data.descripcion}</p>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary mt-2 ver-codigo-btn" data-html="${tarjetaCarrusel.replace(/"/g, '&quot;')}">Ver código</button>
+        </div>`;
+      lista.appendChild(cardCar);
+    }
+
+    contenedor.classList.remove("d-none");
+    mostrarNotificacion("Contenido semanal generado", "exito");
+  }).catch(() => {
+    mostrarNotificacion("Error al generar contenido semanal", "error");
+  });
+}
+
+
 function mostrarModalFormularioInfluencer() {
   const body = `
     <h5 class="mb-3">💫 Crear tarjeta de Influencer</h5>
@@ -542,4 +661,4 @@ function copiarAlPortapapeles() {
 }
 
 
-//upd v.1.5
+//upd v.1.6
