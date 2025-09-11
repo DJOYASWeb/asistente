@@ -71,7 +71,7 @@ docs.sort((a, b) => b.idNum - a.idNum);
 docs.forEach(({ docId, data }) => {
   const option = document.createElement("option");
   option.value = docId;
-  option.textContent = `${data.titulo} (${data.tematica || 'sin temática'})`;
+option.textContent = `${Number(data.id || doc.id)} - ${data.titulo}`;
   select.appendChild(option);
 });
 
@@ -542,4 +542,4 @@ function copiarAlPortapapeles() {
 }
 
 
-//upd v.1.4
+//upd v.1.5
