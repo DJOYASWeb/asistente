@@ -1733,3 +1733,7 @@ textarea.form-control.inspira{
   border-radius: 8px;
 }
 
+.borde{
+      border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
