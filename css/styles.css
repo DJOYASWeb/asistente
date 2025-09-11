@@ -1796,7 +1796,7 @@ textarea.form-control.inspira{
 
 /* Estado seleccionado */
 .select-card input:checked + .select-card-body {
-  border-color: #2563eb;             /* azul sobrio */
+  border-color: #323232;             /* azul sobrio */
   background: #f8fbff;
   box-shadow: 0 6px 16px rgba(37, 99, 235, .08);
 }
