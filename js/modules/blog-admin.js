@@ -104,40 +104,61 @@ firebase.auth().onAuthStateChanged(user => {
 });
 
 async function cargarDatosDesdeFirestore() {
-  const tbody = document.querySelector('#tablaDatos tbody');
-  tbody.innerHTML = '<tr><td colspan="7" class="text-center">🔄 Cargando datos...</td></tr>';
+  const db = firebase.firestore();
+  const snap = await db.collection("blogs").get();
 
-  try {
-    const snapshot = await firebase.firestore().collection('blogs').orderBy('fecha', 'desc').get();
-    datosTabla = snapshot.docs.map(doc => doc.data());
-    renderizarTabla();
-  } catch (error) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar.</td></tr>';
-  }
+  datosTabla = snap.docs.map(doc => {
+    const data = doc.data() || {};
+    return {
+      // el ID visible en la primera columna: si no existe campo `id`, usamos doc.id
+      id: data.id || doc.id,
+      // guardamos aparte el doc.id real para eliminar/editar con total seguridad
+      docId: doc.id,
+      nombre: data.nombre || "",
+      estado: data.estado || "",
+      blog: data.blog || "",
+      meta: data.meta || "",
+      fecha: data.fecha || "",
+      categoria: data.categoria || ""
+    };
+  });
+
+  renderizarTabla();
 }
+
 
 function renderizarTabla() {
   const tbody = document.querySelector('#tablaDatos tbody');
   tbody.innerHTML = '';
 
   datosTabla.forEach((dato, index) => {
+    // ID robusto: usa el campo `id` si existe; si no, usa `docId` (doc.id de Firestore)
+    const id = (dato.id && String(dato.id).trim()) || (dato.docId && String(dato.docId).trim()) || "";
+
     const fila = document.createElement('tr');
+    if (id) fila.dataset.docId = id; // ← para confirmarEliminarFila(this)
+
+    // Contenido recortado para vista
+    const blogPreview = (dato.blog || '').toString();
+    const blogShort = blogPreview.length > 160 ? blogPreview.slice(0, 160) + '…' : blogPreview;
+
     fila.innerHTML = `
-      <td class="celda-id">${dato.id || ''}</td>
+      <td class="celda-id">${id}</td>
       <td class="celda-nombre">${dato.nombre || ''}</td>
       <td class="celda-estado">${dato.estado || ''}</td>
-      <td class="celda-blog">${dato.blog || ''}</td>
+      <td class="celda-blog">${blogShort}</td>
       <td class="celda-meta">${dato.meta || ''}</td>
       <td class="celda-fecha">${dato.fecha || ''}</td>
       <td class="celda-categoria">${dato.categoria || ''}</td>
       <td>
         <button class="btn p-0 mx-1" onclick="editarFila(${index})">✏️</button>
-        <button class="btn btn-sm p-0" onclick="confirmarEliminarFila(this)">🗑️</button>
+        <button class="btn btn-sm p-0" data-id="${id}" onclick="confirmarEliminarFila(this)">🗑️</button>
       </td>
     `;
     tbody.appendChild(fila);
   });
 }
+
 
 function abrirModalAgregarDato() {
   document.getElementById('modalAgregarDato').style.display = 'flex';
@@ -527,6 +548,7 @@ document.addEventListener('click', e => {
 
         const ref = id ? db.collection("blogs").doc(id) : db.collection("blogs").doc();
         const doc = {
+          id: ref.id,        
           nombre,
           estado,
           fecha,
@@ -648,4 +670,4 @@ document.addEventListener('click', e => {
 })();
 
 
-// v1.2
+// v1.3
