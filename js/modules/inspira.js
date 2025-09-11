@@ -54,7 +54,7 @@ async function cargarContenidos() {
   const select = document.getElementById('contenidoSelect');
   select.innerHTML = '<option value="">Selecciona un contenido</option>';
   try {
-    const snapshot = await db.collection("inspira").get();
+const snapshot = await db.collection("inspira").orderBy("id", "desc").get();
     snapshot.forEach(doc => {
       const data = doc.data();
       const option = document.createElement("option");
@@ -86,7 +86,7 @@ async function guardarInspira(e) {
   };
 
   try {
-    await db.collection("inspira").doc(nuevaEntrada.id).set(nuevaEntrada);
+await db.collection("inspira").doc(String(nuevaEntrada.id)).set(nuevaEntrada);
     document.getElementById('formInspira').reset();
     cerrarModalAgregarRecurso(); // 👈 aquí cerramos el modal
     mostrarNotificacion("El contenido fue guardado correctamente", "exito");
@@ -320,7 +320,7 @@ function cargarRecursos() {
   const tbody = document.getElementById("tablaRecursos");
   tbody.innerHTML = "";
 
-  db.collection("inspira").get().then((querySnapshot) => {
+db.collection("inspira").orderBy("id", "desc").get().then((querySnapshot) => {
     querySnapshot.forEach((doc) => {
       const data = doc.data();
 
@@ -521,4 +521,4 @@ function copiarAlPortapapeles() {
 }
 
 
-//upd v.1.9
+//upd v.1
