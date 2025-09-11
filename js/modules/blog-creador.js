@@ -733,65 +733,88 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
     });
   });
 
-  async function importCsvRows(rows){
-    if (!Array.isArray(rows) || rows.length === 0){
-      mostrarNotificacion("El CSV está vacío o sin encabezados", "alerta");
-      return;
-    }
-
-    const db = firebase.firestore();
-    const batch = db.batch();
-    let ok = 0, fail = 0;
-    const fallos = [];
-
-    rows.forEach((r, i) => {
-      const fila = i + 2; // +2 por encabezado
-      const nombre = (r.nombre || r.titulo || "").toString().trim();
-
-      if (!nombre){
-        fail++; fallos.push(`Fila ${fila}: falta 'nombre'`);
-        return;
-      }
-
-      const docId = (r.id || "").toString().trim(); // opcional
-      const ref = docId ? db.collection("blogs").doc(docId) : db.collection("blogs").doc();
-
-      const doc = {
-        nombre,
-        fecha: (r.fecha || "").toString().trim(),
-        autor: (r.autor || "Sofía de DJOYAS").toString().trim(),
-        categoria: (r.categoria || "").toString().trim(),
-        estado: (r.estado || "pendiente").toString().trim(),
-        meta: (r.meta || "").toString().trim(),
-        altImagen: (r.altImagen || "").toString().trim(),
-        // Si no viene blogHtml, usamos 'blog' (texto plano) tal cual.
-        blogHtml: (r.blogHtml || r.blog || "").toString()
-      };
-
-      batch.set(ref, doc, { merge: true });
-      ok++;
-    });
-
-    if (ok === 0){
-      mostrarNotificacion(`No se pudo importar ninguna fila (${fail} con errores)`, "alerta");
-      if (fallos.length && typeof showIosModal === "function") {
-        showIosModal("Detalles de errores", fallos.join("<br>"));
-      }
-      return;
-    }
-
-    await batch.commit();
-
-    mostrarNotificacion(`Importación completada: ${ok} ok, ${fail} con errores`, "exito");
-    if (fallos.length && typeof showIosModal === "function") {
-      showIosModal("Detalles de errores", fallos.join("<br>"));
-    }
-
-    if (typeof cargarDatosDesdeFirestore === "function") {
-      cargarDatosDesdeFirestore();
-    }
+async function importCsvRows(rows){
+  if (!Array.isArray(rows) || rows.length === 0){
+    mostrarNotificacion("El CSV está vacío o sin encabezados", "alerta");
+    return;
   }
+
+  const db = firebase.firestore();
+  const batch = db.batch();
+  let ok = 0, fail = 0;
+  const fallos = [];
+
+  // Utilidad para leer una clave con varios alias (soporta acentos/variantes)
+  const pick = (obj, keys) => {
+    for (const k of keys) {
+      if (Object.prototype.hasOwnProperty.call(obj, k)) {
+        const v = obj[k];
+        if (v !== undefined && v !== null && String(v).trim() !== "") {
+          return String(v).trim();
+        }
+      }
+    }
+    return "";
+  };
+
+  rows.forEach((r, i) => {
+    const fila = i + 2; // +2 por el encabezado del CSV
+
+    // === Campos esperados (con alias de respaldo) ===
+    const id         = pick(r, ["ID de Blog", "ID", "id"]);
+    const nombre     = pick(r, ["Nombre de Blog", "nombre", "titulo", "título"]);
+    const estado     = pick(r, ["Estado de Blog", "estado"]);
+    const fecha      = pick(r, ["Fecha de Blog", "fecha"]);
+    const categoria  = pick(r, ["Categoría", "categoria", "Categoria"]);
+    const meta       = pick(r, ["Meta Descripción", "meta", "Meta"]);
+    const contenido  = pick(r, ["Contenido de Blog", "contenido", "blog"]); // TEXTO PLANO
+
+    if (!nombre) {
+      fail++; 
+      fallos.push(`Fila ${fila}: falta "Nombre de Blog"`);
+      return;
+    }
+
+    const ref = id ? db.collection("blogs").doc(id) : db.collection("blogs").doc();
+
+    // Guardamos igual que en el formulario
+    const doc = {
+      nombre,                     // Nombre de Blog
+      estado: estado || "pendiente",
+      fecha,                      // Fecha de Blog
+      categoria,                  // Categoría
+      meta,                       // Meta Descripción
+      blog: contenido,            // Contenido plano
+      blogHtml: ""                // Sin convertir por ahora
+      // autor y altImagen quedan a criterio (opcionales)
+    };
+
+    batch.set(ref, doc, { merge: true });
+    ok++;
+  });
+
+  if (ok === 0){
+    mostrarNotificacion(`No se importó ninguna fila (${fail} con errores)`, "alerta");
+    if (fallos.length && typeof showIosModal === "function") {
+      showIosModal("Errores de importación", fallos.join("<br>"));
+    }
+    return;
+  }
+
+  await batch.commit();
+
+  mostrarNotificacion(`Importación completada: ${ok} ok, ${fail} con errores`, "exito");
+  if (fallos.length && typeof showIosModal === "function") {
+    showIosModal("Detalles", fallos.join("<br>"));
+  }
+
+  if (typeof cargarDatosDesdeFirestore === "function") {
+    cargarDatosDesdeFirestore();
+  }
+}
+
+
 })();
 
 
-// updd v1
+// updd v1.2
