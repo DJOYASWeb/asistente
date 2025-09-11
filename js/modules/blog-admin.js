@@ -309,8 +309,252 @@ document.addEventListener('click', e => {
 });
 
 
+// ===============================
+// CSV Preview + Import con progreso
+// ===============================
+(function initCsvPreviewAndImport(){
+  const btn  = document.getElementById('btnCargarCsv');
+  const file = document.getElementById('csvInput');
+  if (!btn || !file) return;
+
+  // Campos esperados (tal cual los enviarás en el CSV)
+  const REQUIRED_HEADERS = [
+    "ID de Blog",
+    "Nombre de Blog",
+    "Estado de Blog",
+    "Fecha de Blog",
+    "Categoría",
+    "Meta Descripción",
+    "Contenido de Blog"
+  ];
+
+  // Estado interno
+  let parsedRows = [];
+  let parsedHeaders = [];
+
+  // Abrir selector de archivo
+  btn.addEventListener('click', () => file.click());
+
+  // Leer CSV y abrir modal
+  file.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+
+    if (!/\.csv$/i.test(f.name)) {
+      mostrarNotificacion("Selecciona un archivo .csv válido", "alerta");
+      file.value = "";
+      return;
+    }
+
+    if (typeof Papa === "undefined") {
+      mostrarNotificacion("No se encontró el parser CSV (PapaParse).", "error");
+      file.value = "";
+      return;
+    }
+
+    Papa.parse(f, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (res) => {
+        parsedRows = res.data || [];
+        parsedHeaders = (res.meta && res.meta.fields) || [];
+        abrirPreviewModal(parsedRows, parsedHeaders);
+        file.value = "";
+      },
+      error: (err) => {
+        mostrarNotificacion("Error al leer CSV: " + (err?.message || err), "error");
+        file.value = "";
+      }
+    });
+  });
+
+  // ---- Modal helpers ----
+  const modal = document.getElementById("csvPreviewModal");
+  const $ = (sel) => document.querySelector(sel);
+
+  function showModal(show){
+    modal.style.display = show ? "flex" : "none";
+  }
+
+  function renderPreviewTable(rows, headers){
+    const thead = $("#csvPreviewTable thead");
+    const tbody = $("#csvPreviewTable tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    // Encabezados
+    const trh = document.createElement("tr");
+    headers.forEach(h => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+
+    // Primeras 5 filas
+    rows.slice(0,5).forEach(r => {
+      const tr = document.createElement("tr");
+      headers.forEach(h => {
+        const td = document.createElement("td");
+        td.textContent = (r[h] ?? "").toString();
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function validarHeaders(headers){
+    const faltantes = REQUIRED_HEADERS.filter(h => !headers.includes(h));
+    return faltantes;
+  }
+
+  function abrirPreviewModal(rows, headers){
+    const errBox = $("#csvPrevErrors");
+    const btnImport = $("#csvPrevImport");
+    const progressBox = $("#csvImportProgress");
+    const summaryBox = $("#csvImportSummary");
+
+    // Reset UI
+    errBox.classList.add("d-none");
+    errBox.innerHTML = "";
+    btnImport.disabled = true;
+    progressBox.classList.add("d-none");
+    $("#csvImportStatus").textContent = "";
+    progressBox.querySelector(".progress-bar").style.width = "0%";
+    summaryBox.classList.add("d-none");
+    summaryBox.innerHTML = "";
+
+    if (!rows.length){
+      errBox.classList.remove("d-none");
+      errBox.innerHTML = "El CSV está vacío.";
+      renderPreviewTable([], headers);
+      showModal(true);
+      return;
+    }
+
+    // Valida cabeceras esperadas
+    const faltantes = validarHeaders(headers);
+    if (faltantes.length){
+      errBox.classList.remove("d-none");
+      errBox.innerHTML = `Faltan columnas obligatorias: <strong>${faltantes.join(", ")}</strong>`;
+    } else {
+      btnImport.disabled = false;
+    }
+
+    // Render tabla (5 filas)
+    renderPreviewTable(rows, headers);
+    showModal(true);
+  }
+
+  $("#csvPrevClose")?.addEventListener("click", () => showModal(false));
+  $("#csvPrevCancel")?.addEventListener("click", () => showModal(false));
+
+  // ---- Importación con progreso ----
+  $("#csvPrevImport")?.addEventListener("click", async () => {
+    const bars = $("#csvImportProgress");
+    const bar  = bars.querySelector(".progress-bar");
+    const stat = $("#csvImportStatus");
+    const btnImport = $("#csvPrevImport");
+    const errBox = $("#csvPrevErrors");
+    const summaryBox = $("#csvImportSummary");
+
+    btnImport.disabled = true;
+    errBox.classList.add("d-none");
+    summaryBox.classList.add("d-none");
+    bars.classList.remove("d-none");
+
+    try {
+      const { ok, fail, total, fallos } = await importCsvRowsWithProgress(parsedRows, (p, msg) => {
+        bar.style.width = `${p}%`;
+        stat.textContent = msg || "";
+      });
+
+      // Resumen
+      summaryBox.classList.remove("d-none");
+      summaryBox.innerHTML = `
+        <div class="alert alert-${fail ? 'warning' : 'success'} mb-2">
+          Importados ${ok} de ${total}. ${fail ? (fail + " con errores.") : "Sin errores."}
+        </div>
+        ${fallos.length ? `<div class="small"><strong>Detalles:</strong><ul class="mt-2 mb-0">${fallos.map(f => `<li>${f}</li>`).join("")}</ul></div>` : ""}
+      `;
+
+      mostrarNotificacion(`Importación: ${ok}/${total}${fail ? `, fallos: ${fail}` : ""}`, fail ? "alerta" : "exito");
+
+      // refrescar tabla
+      if (typeof cargarDatosDesdeFirestore === "function") {
+        cargarDatosDesdeFirestore();
+      }
+    } catch (err) {
+      errBox.classList.remove("d-none");
+      errBox.innerHTML = "Error durante la importación: " + (err?.message || err);
+      mostrarNotificacion("Error durante la importación", "error");
+    } finally {
+      // mantener el modal abierto para ver el resumen
+    }
+  });
+
+  // Mapea filas y hace commit por lotes con progreso
+  async function importCsvRowsWithProgress(rows, onProgress){
+    const db = firebase.firestore();
+    const chunkSize = 400; // seguro para límite de batch (~500)
+    const fallos = [];
+    let ok = 0, fail = 0;
+    const total = rows.length;
+
+    const pick = (obj, key) => {
+      // clave exacta (cabeceras en español tal cual)
+      return (obj[key] ?? "").toString().trim();
+    };
+
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      const slice = rows.slice(i, i + chunkSize);
+      const batch = db.batch();
+
+      slice.forEach((r, idx) => {
+        const rowNum = i + idx + 2; // +2 por encabezado
+        const id         = pick(r, "ID de Blog");
+        const nombre     = pick(r, "Nombre de Blog");
+        const estado     = pick(r, "Estado de Blog") || "pendiente";
+        const fecha      = pick(r, "Fecha de Blog");
+        const categoria  = pick(r, "Categoría");
+        const meta       = pick(r, "Meta Descripción");
+        const contenido  = pick(r, "Contenido de Blog"); // texto plano
+
+        if (!nombre) {
+          fail++; fallos.push(`Fila ${rowNum}: falta "Nombre de Blog"`);
+          return; // no se agrega al batch
+        }
+
+        const ref = id ? db.collection("blogs").doc(id) : db.collection("blogs").doc();
+        const doc = {
+          nombre,
+          estado,
+          fecha,
+          categoria,
+          meta,
+          blog: contenido,
+          blogHtml: "" // sin convertir ahora
+        };
+
+        batch.set(ref, doc, { merge: true });
+        ok++;
+      });
+
+      await batch.commit();
+
+      const processed = Math.min(i + slice.length, total);
+      const pct = Math.round((processed / total) * 100);
+      if (typeof onProgress === "function") {
+        onProgress(pct, `Procesando ${processed} / ${total}...`);
+      }
+    }
+
+    if (typeof onProgress === "function") onProgress(100, `Completado: ${ok} OK, ${fail} con errores.`);
+    return { ok, fail, total, fallos };
+  }
+})();
 
 
 
 
-// v1.4
+// v1
