@@ -107,21 +107,20 @@ async function cargarDatosDesdeFirestore() {
   const db = firebase.firestore();
   const snap = await db.collection("blogs").get();
 
-  datosTabla = snap.docs.map(doc => {
-    const data = doc.data() || {};
-    return {
-      // el ID visible en la primera columna: si no existe campo `id`, usamos doc.id
-      id: data.id || doc.id,
-      // guardamos aparte el doc.id real para eliminar/editar con total seguridad
-      docId: doc.id,
-      nombre: data.nombre || "",
-      estado: data.estado || "",
-      blog: data.blog || "",
-      meta: data.meta || "",
-      fecha: data.fecha || "",
-      categoria: data.categoria || ""
-    };
-  });
+ datosTabla = snap.docs.map(doc => {
+  const data = doc.data() || {};
+  const fechaUi = data.fecha || fechaFromIsoToDisplay(data.fechaIso) || ""; // 👈 preferimos DD/MM/YYYY
+  return {
+    id: data.id || doc.id,
+    docId: doc.id,
+    nombre: data.nombre || "",
+    estado: data.estado || "",
+    blog: data.blog || "",
+    meta: data.meta || "",
+    fecha: fechaUi,                   // 👈 lo que verá la tabla
+    categoria: data.categoria || ""
+  };
+});
 
   renderizarTabla();
 }
@@ -182,6 +181,8 @@ async function agregarNuevoDato() {
   const meta = document.getElementById('nuevoMeta').value.trim();
   const fecha = document.getElementById('nuevaFecha').value.trim();
   const categoria = document.getElementById('nuevaCategoria').value.trim();
+  const fechaRaw = document.getElementById('nuevaFecha')?.value; // puede venir "2025-06-02" (input date) o manual
+const norm = normalizeFecha(fechaRaw);
 
   if (!id || !nombre || !estado || !blog || !meta || !fecha || !categoria) {
 mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
@@ -200,6 +201,7 @@ mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
   } catch {
   mostrarNotificacion("❌ Error al guardar en Firestore.", "error");
   }
+  await db.collection("blogs").doc(/* tu id o auto */).set(doc, { merge: true });
 }
 
 function editarFila(index) {
@@ -328,6 +330,44 @@ document.addEventListener('click', e => {
   .catch(err => mostrarNotificacion("❌ Error al copiar: " + err, "error"));
   }
 });
+
+
+// ==== Fechas: normalizar y formatear ====
+function normalizeFecha(fechaIn) {
+  if (!fechaIn) return { fecha: "", fechaIso: "" };
+  const s = String(fechaIn).trim();
+  const sep = s.includes('/') ? '/' : (s.includes('-') ? '-' : null);
+  if (!sep) return { fecha: s, fechaIso: "" };
+
+  const parts = s.split(sep).map(p => p.trim());
+  if (parts.length !== 3) return { fecha: s, fechaIso: "" };
+
+  let d, m, y;
+  if (parts[0].length === 4) {        // yyyy-mm-dd
+    y = +parts[0]; m = +parts[1]; d = +parts[2];
+  } else if (parts[2].length === 4) { // dd/mm/yyyy (preferencia Chile)
+    d = +parts[0]; m = +parts[1]; y = +parts[2];
+  } else {                            // dd/mm/yy
+    d = +parts[0]; m = +parts[1]; y = +parts[2];
+    if (y < 100) y += 2000;
+  }
+
+  if (isNaN(d) || isNaN(m) || isNaN(y) || d < 1 || d > 31 || m < 1 || m > 12) {
+    return { fecha: s, fechaIso: "" };
+  }
+
+  const dd = String(d).padStart(2,'0');
+  const mm = String(m).padStart(2,'0');
+  const yyyy = String(y);
+  return { fecha: `${dd}/${mm}/${yyyy}`, fechaIso: `${yyyy}-${mm}-${dd}` };
+}
+
+function fechaFromIsoToDisplay(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso || "";
+  const [y,m,d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 
 
 // ===============================
@@ -546,17 +586,19 @@ document.addEventListener('click', e => {
           return; // no se agrega al batch
         }
 
-        const ref = id ? db.collection("blogs").doc(id) : db.collection("blogs").doc();
-        const doc = {
-          id: ref.id,        
-          nombre,
-          estado,
-          fecha,
-          categoria,
-          meta,
-          blog: contenido,
-          blogHtml: "" // sin convertir ahora
-        };
+const ref = id ? db.collection("blogs").doc(id) : db.collection("blogs").doc();
+const norm = normalizeFecha(fecha); 
+    const docBody = {
+  id: ref.id,
+  nombre,
+  estado,
+  fecha: norm.fecha,                  // 👈 DD/MM/YYYY para UI/HTML
+  fechaIso: norm.fechaIso,            // 👈 YYYY-MM-DD para ordenar/filtrar
+  categoria,
+  meta,
+  blog: contenido,
+  blogHtml: ""
+};
 
         batch.set(ref, doc, { merge: true });
         ok++;
@@ -670,4 +712,4 @@ document.addEventListener('click', e => {
 })();
 
 
-// v1.3
+// v1.5
