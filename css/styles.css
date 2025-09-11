@@ -1737,3 +1737,98 @@ textarea.form-control.inspira{
       border: 1px solid #dee2e6;
     border-radius: 8px;
 }
+
+/* Tarjeta seleccionable sobria */
+.select-card {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.select-card input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;          /* se mantiene accesible pero oculto */
+  pointer-events: none;
+}
+
+.select-card-body {
+  border: 1px solid #e5e7eb;         /* gris claro */
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  transition: box-shadow .2s ease, border-color .2s ease, background .2s ease, transform .05s ease;
+  position: relative;
+}
+
+/* Indicador de selección (check) */
+.select-card-body::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;        /* gris */
+  background: #fff;
+  transition: all .2s ease;
+}
+
+/* Título sobrio */
+.select-title {
+  font-weight: 600;
+  color: #111827;                    /* gris muy oscuro */
+  font-size: 0.95rem;
+}
+
+/* Hover/focus */
+.select-card:hover .select-card-body,
+.select-card:focus-within .select-card-body {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+}
+
+/* Estado seleccionado */
+.select-card input:checked + .select-card-body {
+  border-color: #2563eb;             /* azul sobrio */
+  background: #f8fbff;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, .08);
+}
+
+.select-card input:checked + .select-card-body::after {
+  border-color: #2563eb;
+  background: #2563eb;
+  box-shadow: 0 0 0 2px #eaf1ff inset;
+}
+
+/* Efecto click sutil */
+.select-card:active .select-card-body {
+  transform: scale(0.99);
+}
+
+/* Modo oscuro opcional si usas data-theme */
+[data-theme="dark"] .select-card-body {
+  background: #0f1115;
+  border-color: #2a2f3a;
+}
+[data-theme="dark"] .select-card:hover .select-card-body,
+[data-theme="dark"] .select-card:focus-within .select-card-body {
+  border-color: #394055;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+[data-theme="dark"] .select-title { color: #e5e7eb; }
+[data-theme="dark"] .select-card input:checked + .select-card-body {
+  border-color: #3b82f6;
+  background: #0b1220;
+}
+[data-theme="dark"] .select-card input:checked + .select-card-body::after {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  box-shadow: none;
+}
