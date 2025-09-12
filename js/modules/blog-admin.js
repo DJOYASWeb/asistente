@@ -287,7 +287,6 @@ function editarFila(index) {
     }
   }
 }
-
 window.editarFila = editarFila;
 
 
@@ -297,12 +296,14 @@ function cerrarModalEditarDato() {
   const modal = document.getElementById('modalEditarDato');
   if (modal) modal.remove();
 }
+window.cerrarModalEditarDato = cerrarModalEditarDato;
 
 function convertirEditBlogHtml() {
   const texto = document.getElementById('editBlog').value;
   const html = convertirTextoABlogHtml(texto);
   document.getElementById('editBlogHtml').value = html;
 }
+window.convertirEditBlogHtml = convertirEditBlogHtml;
 
 async function guardarEdicionFila() {
   const modal = document.querySelector('.modal-editar-blog');
@@ -346,7 +347,7 @@ async function guardarEdicionFila() {
     mostrarNotificacion("❌ Error al actualizar el blog.", "error");
   }
 }
-
+window.guardarEdicionFila = guardarEdicionFila;
 
 document.addEventListener('click', e => {
   if (e.target && e.target.id === 'btnCopiarBlog') {
@@ -742,4 +743,4 @@ batch.set(ref, docBody, { merge: true });
 })();
 
 
-// v1.3
+// v3

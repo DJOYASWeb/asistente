@@ -84,12 +84,12 @@ function convertirHTML() {
   html += contenido + '</section>';
   document.getElementById("resultadoHTML").textContent = html;
 }
-
+window.convertirHTML = convertirHTML;
 function copiarResultado() {
   const resultado = document.getElementById("resultadoHTML").textContent;
   navigator.clipboard.writeText(resultado)
     .then(() => alert("✅ HTML copiado al portapapeles"))
     .catch(err => alert("❌ Error al copiar: " + err));
 }
-
-//v1
+window.copiarResultado = copiarResultado;
+//v3

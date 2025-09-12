@@ -268,6 +268,7 @@ function generarHTML() {
 
   document.getElementById("resultado").textContent = html;
 }
+window.generarHTML = generarHTML;
 
 function copiarHTML() {
   const resultado = document.getElementById("resultado").textContent;
@@ -281,7 +282,7 @@ function copiarHTML() {
       mostrarNotificacion("Error al copiar: " + err, "error");
     });
 }
-
+window.copiarHTML = copiarHTML;
 /* =====================
    FIREBASE (cargas)
 ===================== */
@@ -709,4 +710,4 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
 
 
 
-// updd v1.3
+// updd v3
