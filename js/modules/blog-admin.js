@@ -756,6 +756,9 @@ function filtrarTabla() {
   }
 }
 
+window.filtrarTabla = filtrarTabla;
 
 
-// v3.2
+
+
+// v3.3
