@@ -129,6 +129,7 @@ datosTabla.sort((a, b) => toNumId(b.id || b.docId) - toNumId(a.id || a.docId));
 
   renderizarTabla();
 }
+window.cargarDatosDesdeFirestore = cargarDatosDesdeFirestore;
 
 // Convierte el ID a número para ordenar; si no es numérico, lo manda al final
 function toNumId(v){
@@ -173,10 +174,12 @@ function renderizarTabla() {
 function abrirModalAgregarDato() {
   document.getElementById('modalAgregarDato').style.display = 'flex';
 }
+window.abrirModalAgregarDato = abrirModalAgregarDato;
 
 function cerrarModalAgregarDato() {
   document.getElementById('modalAgregarDato').style.display = 'none';
 }
+window.cerrarModalAgregarDato = cerrarModalAgregarDato;
 
 function limpiarFormulario() {
   ['nuevoId', 'nuevoNombre', 'nuevoEstado', 'nuevoBlog', 'nuevoBlogHtml', 'nuevoMeta', 'nuevaFecha', 'nuevaCategoria']
@@ -743,4 +746,4 @@ batch.set(ref, docBody, { merge: true });
 })();
 
 
-// v3
+// v3.1
