@@ -107,37 +107,45 @@ async function cargarDatosDesdeFirestore() {
   const db = firebase.firestore();
   const snap = await db.collection("blogs").get();
 
-  datosTabla = snap.docs.map(doc => {
-    const data = doc.data() || {};
+datosTabla = snap.docs.map(doc => {
+  const data = doc.data() || {};
 
-    // Detecta si 'fecha' viene en ISO y la convierte a display
-    let fechaUi = "";
-    if (data.fecha) {
-      fechaUi = /^\d{4}-\d{2}-\d{2}$/.test(data.fecha)
-        ? fechaFromIsoToDisplay(data.fecha)
-        : data.fecha; // ya viene como DD/MM/YYYY
-    } else if (data.fechaIso) {
-      fechaUi = fechaFromIsoToDisplay(data.fechaIso);
-    }
+  // === FECHA (como dejaste antes) ===
+  let fechaUi = "";
+  if (data.fecha) {
+    fechaUi = /^\d{4}-\d{2}-\d{2}$/.test(data.fecha)
+      ? fechaFromIsoToDisplay(data.fecha)
+      : data.fecha;
+  } else if (data.fechaIso) {
+    fechaUi = fechaFromIsoToDisplay(data.fechaIso);
+  }
+  const fechaIso = data.fechaIso || normalizeFecha(data.fecha || "").fechaIso || "";
 
-    const fechaIso = data.fechaIso || normalizeFecha(data.fecha || "").fechaIso || "";
+  return {
+    id: data.id || doc.id,
+    docId: doc.id,
+    nombre: data.nombre || "",
+    estado: data.estado || "",
+    blog: data.blog || "",
+    meta: data.meta || "",
+    fecha: fechaUi,
+    fechaIso,
+    categoria: data.categoria || ""
+  };
+});
 
-    return {
-      id: data.id || doc.id,
-      docId: doc.id,
-      nombre: data.nombre || "",
-      estado: data.estado || "",
-      blog: data.blog || "",
-      meta: data.meta || "",
-      fecha: fechaUi,       // lo que muestra la tabla (DD/MM/YYYY)
-      fechaIso: fechaIso,   // para el editor (YYYY-MM-DD)
-      categoria: data.categoria || ""
-    };
-  });
+// 👇 Ordena por ID numérico DESC (161 > 2 > 1)
+datosTabla.sort((a, b) => toNumId(b.id || b.docId) - toNumId(a.id || a.docId));
+
 
   renderizarTabla();
 }
 
+// Convierte el ID a número para ordenar; si no es numérico, lo manda al final
+function toNumId(v){
+  const n = parseInt(String(v ?? '').trim(), 10);
+  return Number.isFinite(n) ? n : -Infinity;
+}
 
 
 function renderizarTabla() {
@@ -741,4 +749,4 @@ batch.set(ref, docBody, { merge: true });
 })();
 
 
-// v1.7
+// v1.8
