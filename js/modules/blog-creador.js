@@ -6,6 +6,12 @@ let blogs = [];
 /* =====================
    CARGA DE SELECTS
 ===================== */
+// Convierte el ID a número para ordenar; si no es numérico, lo manda al final
+function toNumId(v){
+  const n = parseInt(String(v ?? '').trim(), 10);
+  return Number.isFinite(n) ? n : -Infinity;
+}
+
 function cargarNavegacionSelects() {
   fetch('./data/navegacion.json')
     .then(res => res.json())
@@ -290,15 +296,20 @@ function cargarBlogsExistentes() {
   select.innerHTML = '<option value="">-- Selecciona un blog existente --</option>';
 
   db.collection("blogs").get()
-    .then((querySnapshot) => {
-      querySnapshot.forEach((doc) => {
+    .then((qs) => {
+      // Pasar a array y ordenar por ID numérico DESC
+      const docs = [];
+      qs.forEach(d => docs.push(d));
+      docs.sort((a, b) => toNumId(b.id) - toNumId(a.id));
+
+      docs.forEach((doc) => {
         const data = doc.data() || {};
         blogsData[doc.id] = data;
 
-        const option = document.createElement("option");
-        option.value = doc.id; // seguimos usando el ID como valor
-        option.textContent = `${doc.id} - ${data.nombre || `Blog ${doc.id}`}`; // 👈 aquí el formato
-        select.appendChild(option);
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = `${doc.id} - ${data.nombre || `Blog ${doc.id}`}`;
+        select.appendChild(opt);
       });
     })
     .catch((error) => {
@@ -698,4 +709,4 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
 
 
 
-// updd v1.2
+// updd v1.3
