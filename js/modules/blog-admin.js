@@ -286,7 +286,7 @@ if (dato.categoria) {
     selectCat.appendChild(opt);
   }
 }
-
+window.editarFila = editarFila;
 }
 
 function cerrarModalEditarDato() {
@@ -738,4 +738,4 @@ batch.set(ref, docBody, { merge: true });
 })();
 
 
-// v1
+// v1.2
