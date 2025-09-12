@@ -215,6 +215,7 @@ mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
   await db.collection("blogs").doc(/* tu id o auto */).set(doc, { merge: true });
 }
 
+
 function editarFila(index) {
   const dato = datosTabla[index];
   const modal = document.createElement('div');
@@ -255,7 +256,7 @@ function editarFila(index) {
       <option value="Sustentable">Sustentable</option>
       <option value="Innovación">Innovación</option>
     </select>
-              <span>Meta Descripción</span>
+          <span>Meta Descripción</span>
            <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
         <div class="col-lg-6 col-12">
@@ -274,20 +275,23 @@ function editarFila(index) {
 
   document.body.appendChild(modal);
 
-const selectCat = modal.querySelector('#editCategoria');
-if (dato.categoria) {
-  selectCat.value = dato.categoria.trim();
-  // Fallback: si no existe la opción, agregarla y marcarla
-  if (selectCat.value !== dato.categoria.trim()) {
-    const opt = document.createElement('option');
-    opt.value = dato.categoria.trim();
-    opt.textContent = dato.categoria.trim();
-    opt.selected = true;
-    selectCat.appendChild(opt);
+  const selectCat = modal.querySelector('#editCategoria');
+  if (dato.categoria) {
+    selectCat.value = dato.categoria.trim();
+    if (selectCat.value !== dato.categoria.trim()) {
+      const opt = document.createElement('option');
+      opt.value = dato.categoria.trim();
+      opt.textContent = dato.categoria.trim();
+      opt.selected = true;
+      selectCat.appendChild(opt);
+    }
   }
 }
+
 window.editarFila = editarFila;
-}
+
+
+
 
 function cerrarModalEditarDato() {
   const modal = document.getElementById('modalEditarDato');
@@ -738,4 +742,4 @@ batch.set(ref, docBody, { merge: true });
 })();
 
 
-// v1.2
+// v1.3
