@@ -284,23 +284,26 @@ const blogsData = {};
 
 function cargarBlogsExistentes() {
   const db = firebase.firestore();
-  db.collection("blogs").get().then((querySnapshot) => {
-    const select = document.getElementById("selectBlogExistente");
-    if (!select) return;
-    select.innerHTML = '<option value="">-- Selecciona un blog existente --</option>';
+  const select = document.getElementById("selectBlogExistente");
+  if (!select) return;
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      blogsData[doc.id] = data; // memoria
+  select.innerHTML = '<option value="">-- Selecciona un blog existente --</option>';
 
-      const option = document.createElement("option");
-      option.value = doc.id;
-      option.textContent = data.nombre || `Blog ${doc.id}`;
-      select.appendChild(option);
+  db.collection("blogs").get()
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        const data = doc.data() || {};
+        blogsData[doc.id] = data;
+
+        const option = document.createElement("option");
+        option.value = doc.id; // seguimos usando el ID como valor
+        option.textContent = `${doc.id} - ${data.nombre || `Blog ${doc.id}`}`; // 👈 aquí el formato
+        select.appendChild(option);
+      });
+    })
+    .catch((error) => {
+      mostrarNotificacion("Error cargando blogs: " + (error?.message || error), "error");
     });
-  }).catch((error) => {
-  mostrarNotificacion("Error cargando blogs: " + (error?.message || error), "error");
-  });
 }
 
 function autocompletarFormulario(blogId) {
@@ -695,4 +698,4 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
 
 
 
-// updd v1
+// updd v1.2
