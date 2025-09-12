@@ -600,7 +600,7 @@ const norm = normalizeFecha(fecha);
   blogHtml: ""
 };
 
-        batch.set(ref, doc, { merge: true });
+batch.set(ref, docBody, { merge: true });
         ok++;
       });
 
@@ -712,4 +712,4 @@ const norm = normalizeFecha(fecha);
 })();
 
 
-// v1.5
+// v1.6
