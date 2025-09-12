@@ -745,5 +745,17 @@ batch.set(ref, docBody, { merge: true });
   window.cerrarModalEliminar = cerrarModalEliminar;
 })();
 
+function filtrarTabla() {
+  const filtro = document.getElementById('filtroTexto').value.toLowerCase().trim();
+  const tabla = document.getElementById('tablaDatos');
+  const filas = tabla.tBodies[0].rows;
 
-// v3.1
+  for (let fila of filas) {
+    const textoFila = fila.textContent.toLowerCase();
+    fila.style.display = textoFila.includes(filtro) ? '' : 'none';
+  }
+}
+
+
+
+// v3.2
