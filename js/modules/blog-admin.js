@@ -107,23 +107,37 @@ async function cargarDatosDesdeFirestore() {
   const db = firebase.firestore();
   const snap = await db.collection("blogs").get();
 
- datosTabla = snap.docs.map(doc => {
-  const data = doc.data() || {};
-  const fechaUi = data.fecha || fechaFromIsoToDisplay(data.fechaIso) || ""; // 👈 preferimos DD/MM/YYYY
-  return {
-    id: data.id || doc.id,
-    docId: doc.id,
-    nombre: data.nombre || "",
-    estado: data.estado || "",
-    blog: data.blog || "",
-    meta: data.meta || "",
-    fecha: fechaUi,                   // 👈 lo que verá la tabla
-    categoria: data.categoria || ""
-  };
-});
+  datosTabla = snap.docs.map(doc => {
+    const data = doc.data() || {};
+
+    // Detecta si 'fecha' viene en ISO y la convierte a display
+    let fechaUi = "";
+    if (data.fecha) {
+      fechaUi = /^\d{4}-\d{2}-\d{2}$/.test(data.fecha)
+        ? fechaFromIsoToDisplay(data.fecha)
+        : data.fecha; // ya viene como DD/MM/YYYY
+    } else if (data.fechaIso) {
+      fechaUi = fechaFromIsoToDisplay(data.fechaIso);
+    }
+
+    const fechaIso = data.fechaIso || normalizeFecha(data.fecha || "").fechaIso || "";
+
+    return {
+      id: data.id || doc.id,
+      docId: doc.id,
+      nombre: data.nombre || "",
+      estado: data.estado || "",
+      blog: data.blog || "",
+      meta: data.meta || "",
+      fecha: fechaUi,       // lo que muestra la tabla (DD/MM/YYYY)
+      fechaIso: fechaIso,   // para el editor (YYYY-MM-DD)
+      categoria: data.categoria || ""
+    };
+  });
 
   renderizarTabla();
 }
+
 
 
 function renderizarTabla() {
@@ -230,7 +244,8 @@ function editarFila(index) {
             <option ${dato.estado === 'reescribir' ? 'selected' : ''}>reescribir</option>
           </select>
            <span>Fecha de Blog</span>   
-          <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fecha}">
+       <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fechaIso || normalizeFecha(dato.fecha || '').fechaIso || ''}">
+
           <span>Categoría</span>
   <select id="editCategoria" class="form-control mb-3">
       <option value="">Selecciona categoría</option>
@@ -297,25 +312,39 @@ async function guardarEdicionFila() {
   const blog = modal.querySelector('#editBlog').value.trim();
   const blogHtml = modal.querySelector('#editBlogHtml').value.trim();
   const meta = modal.querySelector('#editMeta').value.trim();
-  const fecha = modal.querySelector('#editFecha').value;
+  const fechaRaw = modal.querySelector('#editFecha').value; // yyyy-mm-dd
   const categoria = modal.querySelector('#editCategoria').value;
 
-  if (!id || !nombre || !estado || !blog || !meta || !fecha || !categoria) {
-mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
+  if (!id || !nombre || !estado || !blog || !meta || !fechaRaw || !categoria) {
+    mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
     return;
   }
 
+  const norm = normalizeFecha(fechaRaw);
+
   try {
-    await firebase.firestore().collection('blogs').doc(id).update({ nombre, estado, blog, blogHtml, meta, fecha, categoria });
-    datosTabla[index] = { id, nombre, estado, blog, blogHtml, meta, fecha, categoria };
+    await firebase.firestore().collection('blogs').doc(id).update({
+      nombre, estado, blog, blogHtml, meta,
+      fecha: norm.fecha,       // DD/MM/YYYY
+      fechaIso: norm.fechaIso, // YYYY-MM-DD
+      categoria
+    });
+
+    datosTabla[index] = {
+      ...datosTabla[index],
+      id, nombre, estado, blog, blogHtml, meta,
+      fecha: norm.fecha,
+      fechaIso: norm.fechaIso,
+      categoria
+    };
+
     renderizarTabla();
     cerrarModalEditarDato();
     mostrarNotificacion("✅ Blog guardado con éxito", "exito");
   } catch {
-  mostrarNotificacion("❌ Error al actualizar el blog.", "error");
+    mostrarNotificacion("❌ Error al actualizar el blog.", "error");
   }
 }
-
 
 
 document.addEventListener('click', e => {
@@ -712,4 +741,4 @@ batch.set(ref, docBody, { merge: true });
 })();
 
 
-// v1.6
+// v1.7
