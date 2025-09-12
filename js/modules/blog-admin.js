@@ -3,18 +3,7 @@
 let datosTabla = [];
 let filaAEliminar = null;
 
-// 🔷 Función adaptada de blog-redactor.js para devolver el HTML como string
-function slugify(text) {
-  return text.toLowerCase()
-    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function aplicarNegritaUltimaFraseConDosPuntos(texto) {
-  const match = texto.match(/^(.*?:)(\s*)(.*)$/);
-  return match ? `<b>${match[1]}</b> ${match[3]}` : texto;
-}
+import { slugify, aplicarNegritaUltimaFraseConDosPuntos } from './blog-utils.js';
 
 function convertirTextoABlogHtml(input) {
   const lineas = input.trim().split(/\n/);
@@ -749,4 +738,4 @@ batch.set(ref, docBody, { merge: true });
 })();
 
 
-// v1.8
+// v1

@@ -1,16 +1,6 @@
 // blog-redactor.js
 
-function slugify(text) {
-  return text.toLowerCase()
-    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function aplicarNegritaUltimaFraseConDosPuntos(texto) {
-  const match = texto.match(/^(.*?:)(\s*)(.*)$/);
-  return match ? `<b>${match[1]}</b> ${match[3]}` : texto;
-}
+import { slugify, aplicarNegritaUltimaFraseConDosPuntos } from './blog-utils.js';
 
 function convertirHTML() {
   const input = document.getElementById("inputTexto").value.trim();
@@ -101,3 +91,5 @@ function copiarResultado() {
     .then(() => alert("✅ HTML copiado al portapapeles"))
     .catch(err => alert("❌ Error al copiar: " + err));
 }
+
+//v1
