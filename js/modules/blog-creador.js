@@ -240,29 +240,7 @@ function generarHTML() {
     </div>
   </div>
 
-  <!-- Newsletter -->
-  <section class="newsletter-blog my-3">
-    <div class="row">
-      <div class="col-12 col-lg-9 cuerpo-newsletter">
-        <h2>¿Estás buscando ese impulso extra para tu emprendimiento?</h2>
-        <p>Suscríbete y recibe todas las novedades, consejos y más.</p>
-        <form class="elementor-newsletter-form">
-          <div class="row">
-            <div class="col-12">
-              <div class="input-group">
-                <input name="email" type="email" class="form-control" placeholder="Ingresa tu correo electrónico">
-                <button class="btn-newsletter" type="submit">Suscribirse</button>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="col-12 col-lg-3 mt-4 cuerpo-newsletter">
-        <img src="/img/cms/paginas internas/blogs/bloques usuarias.png" width="200px" alt="">
-        <p>Más de 25K + clientas reciben nuestros correos</p>
-      </div>
-    </div>
-  </section>
+
 </div>
 `.trim();
 
