@@ -96,36 +96,38 @@ async function cargarDatosDesdeFirestore() {
   const db = firebase.firestore();
   const snap = await db.collection("blogs").get();
 
-datosTabla = snap.docs.map(doc => {
-  const data = doc.data() || {};
+  datosTabla = snap.docs.map(doc => {
+    const data = doc.data() || {};
 
-  // === FECHA (como dejaste antes) ===
-  let fechaUi = "";
-  if (data.fecha) {
-    fechaUi = /^\d{4}-\d{2}-\d{2}$/.test(data.fecha)
-      ? fechaFromIsoToDisplay(data.fecha)
-      : data.fecha;
-  } else if (data.fechaIso) {
-    fechaUi = fechaFromIsoToDisplay(data.fechaIso);
+    // FECHA consistente (DD/MM/YYYY para UI)
+    let fechaUi = "";
+    if (data.fecha) {
+      fechaUi = /^\d{4}-\d{2}-\d{2}$/.test(data.fecha)
+        ? fechaFromIsoToDisplay(data.fecha)
+        : data.fecha;
+    } else if (data.fechaIso) {
+      fechaUi = fechaFromIsoToDisplay(data.fechaIso);
+    }
+    const fechaIso = data.fechaIso || normalizeFecha(data.fecha || "").fechaIso || "";
+
+    return {
+      id: data.id || doc.id,
+      docId: doc.id,
+      nombre: data.nombre || "",
+      estado: data.estado || "",
+      blog: data.blog || "",
+      blogHtml: data.blogHtml || "",   // 👈 IMPORTANTE: ahora sí lo llevamos a la tabla
+      meta: data.meta || "",
+      fecha: fechaUi,
+      fechaIso,
+      categoria: data.categoria || ""
+    };
+  });
+
+  // Si ordenas por ID:
+  if (typeof toNumId === "function") {
+    datosTabla.sort((a, b) => toNumId(b.id || b.docId) - toNumId(a.id || a.docId));
   }
-  const fechaIso = data.fechaIso || normalizeFecha(data.fecha || "").fechaIso || "";
-
-  return {
-    id: data.id || doc.id,
-    docId: doc.id,
-    nombre: data.nombre || "",
-    estado: data.estado || "",
-    blog: data.blog || "",
-    meta: data.meta || "",
-    fecha: fechaUi,
-    fechaIso,
-    categoria: data.categoria || ""
-  };
-});
-
-// 👇 Ordena por ID numérico DESC (161 > 2 > 1)
-datosTabla.sort((a, b) => toNumId(b.id || b.docId) - toNumId(a.id || a.docId));
-
 
   renderizarTabla();
 }
@@ -761,4 +763,4 @@ window.filtrarTabla = filtrarTabla;
 
 
 
-// v3.3
+// v1
