@@ -141,51 +141,100 @@ $(document).ready(function () {
     mostrarPantallaResultado(resultado);
   }
 
-  // Muestra pantalla Resultado con tabla final dividida
-  function mostrarPantallaResultado(resultado) {
-    $('#columnSelector').hide();
-    $tableContainer.hide();
-    $btnProcesar.hide();
+function mostrarPantallaResultado(resultado) {
+  $('#columnSelector').hide();
+  $tableContainer.hide();
+  $btnProcesar.hide();
 
-    $resultadoDiv.show();
+  $resultadoDiv.show();
 
-    // Construir cabecera resultado: columnas a mostrar + columnas divididas
-    const allCategoriasSet = new Set();
+  // Priorizar categorías principales primero
+  const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
+  const allCategoriasSet = new Set();
 
-    resultado.forEach(r => {
-      r.partes.forEach(p => allCategoriasSet.add(p));
+  resultado.forEach(r => {
+    r.partes.forEach(p => allCategoriasSet.add(p));
+  });
+
+  // Separar principales y resto
+  const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
+  const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
+
+  // Botón agregar categoría
+  const btnAgregar = $('<button class="btn btn-success mb-2">Agregar Categoría a todos</button>');
+  $resultadoDiv.prepend(btnAgregar);
+
+  btnAgregar.on('click', () => {
+    const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
+    if (!nuevaCat || !nuevaCat.trim()) return;
+    // Agregar solo si no está ya
+    filteredData.forEach(row => {
+      let cats = (row['Categorías'] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+      if (!cats.some(c => c.toLowerCase() === nuevaCat.toLowerCase())) {
+        cats.push(nuevaCat.trim());
+        row['Categorías'] = cats.join(', ');
+      }
     });
+    // Recalcular resultado con la nueva categoría incluida
+    mostrarPantallaResultado(generarResultadoDesdeDatos());
+  });
 
-    const categoriasUnicas = Array.from(allCategoriasSet);
+  // Construir cabecera con botón eliminar para categorías divididas
+  let html = '<thead><tr>';
+  colsMostrar.forEach(c => {
+    html += `<th>${c}</th>`;
+  });
+  categoriasUnicas.forEach(cat => {
+    html += `<th>${cat} <button class="btn btn-sm btn-danger btnEliminarCat" data-cat="${cat}" style="margin-left:5px;">Eliminar</button></th>`;
+  });
+  html += '</tr></thead><tbody>';
 
-    let html = '<thead><tr>';
+  filteredData.forEach((row, idx) => {
+    html += '<tr>';
+    // columnas a mostrar
     colsMostrar.forEach(c => {
-      html += `<th>${c}</th>`;
-    });
-    categoriasUnicas.forEach(c => {
-      html += `<th>${c}</th>`;
-    });
-    html += '</tr></thead><tbody>';
-
-    filteredData.forEach((row, idx) => {
-      html += '<tr>';
-      // columnas a mostrar
-      colsMostrar.forEach(c => {
-        html += `<td>${row[c] || ''}</td>`;
-      });
-
-      // columnas divididas: marca con X si esa categoría pertenece a la fila
-      const categoriasFila = resultado[idx].partes;
-      categoriasUnicas.forEach(cat => {
-        html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
-      });
-      html += '</tr>';
+      html += `<td>${row[c] || ''}</td>`;
     });
 
-    html += '</tbody>';
+    // columnas divididas: marcar con X si tiene la categoría
+    const categoriasFila = resultado[idx].partes;
+    categoriasUnicas.forEach(cat => {
+      html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
+    });
+    html += '</tr>';
+  });
 
-    $tablaResultado.html(html);
-  }
+  html += '</tbody>';
+
+  $tablaResultado.html(html);
+
+  // Evento eliminar categoría por columna
+  $('.btnEliminarCat').on('click', function() {
+    const catEliminar = $(this).data('cat');
+    eliminarCategoria(catEliminar);
+  });
+}
+
+// Genera resultado actualizado desde filteredData (para actualizar tras agregar categorías)
+function generarResultadoDesdeDatos() {
+  return filteredData.map(row => {
+    const valor = (row[colProcesar] || '').toString();
+    const partes = valor.split(',').map(p => p.trim()).filter(p => p.length > 0);
+    return { partes };
+  });
+}
+
+// Elimina categoría indicada de todas las filas y actualiza la vista
+function eliminarCategoria(categoria) {
+  filteredData.forEach(row => {
+    let cats = (row['Categorías'] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+    cats = cats.filter(c => c.toLowerCase() !== categoria.toLowerCase());
+    row['Categorías'] = cats.join(', ');
+  });
+  // Recalcular resultado y renderizar tabla resultado actualizada
+  mostrarPantallaResultado(generarResultadoDesdeDatos());
+}
+
 
   // Botón Volver reinicia la pantalla
   $('#btnVolver').on('click', () => {
@@ -213,4 +262,4 @@ $(document).ready(function () {
 });
 
 
-//v. 1.5
+//v. 1.6
