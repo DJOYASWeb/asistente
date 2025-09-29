@@ -67,54 +67,51 @@ $(document).ready(function () {
     selectedColumns = [...columns];
   }
 
-  function renderTable() {
-    if (dataTableInstance) {
-      dataTableInstance.destroy();
-      dataTableInstance = null;
-    }
-    if (filteredData.length === 0) {
-      $tableContainer.html('<p>No hay datos para mostrar.</p>');
-      $btnExport.addClass('d-none');
-      $('#btnDividirCategorias').remove();
-      return;
-    }
-    const headers = selectedColumns;
-    let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
-    headers.forEach(h => { html += `<th>${h}</th>`; });
-    html += '</tr></thead><tbody>';
-    filteredData.forEach(row => {
-      html += '<tr>';
-      headers.forEach(h => {
-        html += `<td contenteditable="true" data-col="${h}">${row[h]}</td>`;
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-    $tableContainer.html(html);
-    
-    dataTableInstance = $('#productosTable').DataTable({
-      lengthMenu: [10, 25, 50, 100],
-      pageLength: 25,
-      scrollX: true,
-      columnDefs: [
-        { targets: '_all', className: 'dt-head-center dt-body-center' }
-      ]
-    });
-    $btnExport.removeClass('d-none');
 
-    // Botón para dividir Categorías si está seleccionada la columna
-    if (selectedColumns.includes('Categorías')) {
-      if ($('#btnDividirCategorias').length === 0) { // evitar duplicados
-        $tableContainer.append('<button id="btnDividirCategorias" class="btn btn-info mt-3">Dividir Categorías</button>');
-        $('#btnDividirCategorias').on('click', () => {
-          dividirCategoriasYCargarTablaAux(filteredData);
-        });
-      }
-    } else {
-      $('#btnDividirCategorias').remove();
-      $('#tablaCategoriasAux').parent().remove();
-    }
+function renderTable() {
+  console.log('renderTable ejecutado'); // LOG para verificar ejecución
+
+  if (dataTableInstance) {
+    dataTableInstance.destroy();
+    dataTableInstance = null;
   }
+  if (filteredData.length === 0) {
+    $tableContainer.html('<p>No hay datos para mostrar.</p>');
+    $btnExport.addClass('d-none');
+    $('#btnDividirCategorias').remove();
+    return;
+  }
+  const headers = selectedColumns;
+  let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
+  headers.forEach(h => { html += `<th>${h}</th>`; });
+  html += '</tr></thead><tbody>';
+  filteredData.forEach(row => {
+    html += '<tr>';
+    headers.forEach(h => {
+      html += `<td contenteditable="true" data-col="${h}">${row[h]}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  $tableContainer.html(html);
+
+  dataTableInstance = $('#productosTable').DataTable({
+    lengthMenu: [10, 25, 50, 100],
+    pageLength: 25,
+    scrollX: true,
+    columnDefs: [
+      { targets: '_all', className: 'dt-head-center dt-body-center' }
+    ]
+  });
+  $btnExport.removeClass('d-none');
+
+  // Añadimos un botón fijo de prueba para ver si se muestra
+  if ($('#btnPrueba').length === 0) {
+    $tableContainer.append('<button id="btnPrueba" class="btn btn-primary mt-3">BOTÓN DE PRUEBA</button>');
+  }
+}
+
+
 
   function applyFilter() {
     const filterValue = $filterInput.val().toLowerCase();
@@ -289,4 +286,4 @@ $(document).ready(function () {
 });
 
 
-//v.1
+//v. 1.2
