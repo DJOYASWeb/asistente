@@ -268,6 +268,11 @@ $(document).ready(function () {
 
   // Mostrar resultado con botones eliminar y agregar distinguido
   function mostrarPantallaResultado(resultado) {
+      $tableContainer.hide().empty();  // Oculta y limpia la tabla principal desordenada
+  $('#columnSelector').hide();
+  $btnProcesar.hide();
+  $resultadoDiv.show();
+
     $('#columnSelector').hide();
     $tableContainer.hide();
     $btnProcesar.hide();
@@ -363,4 +368,4 @@ $(document).ready(function () {
   });
 });
 
-//v. 2.3
+//v. 2.4
