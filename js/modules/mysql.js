@@ -278,14 +278,20 @@ function sql_clientes(){
 function sql_productos(){
   const sel = [];
   const has = id => $("#productos_"+id.replace(".","__"))?.checked;
-const cat = $("#pro_categoria").value;
+const catEl = $("#pro_categoria");
+if (catEl && catEl.value) {
+  addChip(cont, `Categoría: ${catEl.options[catEl.selectedIndex].text}`);
+}
 if(cat) where.push(`EXISTS (
   SELECT 1 FROM ps_category_product cp 
   WHERE cp.id_product = productos.id_product 
   AND cp.id_category = ${parseInt(cat,10)}
 )`);
 
-const marca = $("#pro_marca").value;
+const marcaEl = $("#pro_marca");
+if (marcaEl && marcaEl.value) {
+  addChip(cont, `Marca: ${marcaEl.options[marcaEl.selectedIndex].text}`);
+}
 if(marca) where.push(`productos.id_manufacturer = ${parseInt(marca,10)}`);
 
 
@@ -556,4 +562,4 @@ renderCampos();
 attachMain();
 updateSteps();
 
-//V2
+//V2.1
