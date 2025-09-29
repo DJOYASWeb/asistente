@@ -1,45 +1,45 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DJOYAS Inspira</title>
-    <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
+  <title>Productos - Edición Masiva</title>
+  <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 </head>
 
 <body class="protegido" data-theme="light">
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
   <!-- Sidebar -->
-<div class="sidebar oculta-permisos" id="sidebar">
+  <div class="sidebar" id="sidebar">
     <div>
       <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
         <span class="icon"><i class="fas fa-bars"></i></span>
-        <span class="label"><img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px"></span>
+        <span class="label"><img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px" alt="Logo"></span>
       </h2>
       <nav>
         <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
         <a href="blog.html" data-tab="blog" data-tooltip="blog"><span class="icon"><i class="fa-brands fa-blogger"></i></span><span class="label">DJOYAS Blog</span></a>
         <a href="creative.html" data-tab="creative" data-tooltip="Uso"><span class="icon"><i class="fa-solid fa-globe"></i></span><span class="label">HMTL</span></a>
         <a href="inspira.html" data-tab="inspira" data-tooltip="Inspira"><span class="icon"><i class="fa-solid fa-photo-film"></i></span><span class="label">DJOYAS Inspira</span></a>
-        <a href="planilla.html" data-tab="planilla" data-tooltip="Planilla"><span class="icon"><i class="fa-solid fa-file-excel"></i></span><span class="label">Planilla Presta</span></a>    
+        <a href="planilla.html" data-tab="planilla" data-tooltip="Planilla"><span class="icon"><i class="fa-solid fa-file-excel"></i></span><span class="label">Planilla Presta</span></a>  
+        <a href="productos.html" data-tab="productos" data-tooltip="Productos" class="activo"><span class="icon"><i class="fa-solid fa-box"></i></span><span class="label">Productos</span></a>
         <a href="catalogo.html" data-tab="catalogo" data-tooltip="Catálogo"><span class="icon"><i class="fa-regular fa-address-card"></i></span><span class="label">Catálogo</span></a>
-        <a href="mysql.html" data-tab="mysql" data-tooltip="mysql"><span class="icon"><i class="fa-solid fa-code"></i></span><span class="label">Mysql</span></a>
-        <a href="cotizaciones.html" data-tab="cotizaciones" data-tooltip="cotizaciones"><span class="icon"><i class="fa-solid fa-book"></i></span><span class="label">Cotizaciones</span></a>
-        </nav>
+        <a href="mysql.html" data-tab="catalogo" data-tooltip="Mysql"><span class="icon"><i class="fa-solid fa-code"></i></span><span class="label">Mysql</span></a>
+      </nav>
     </div>
     <div class="bottom-links">
       <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias"><span class="icon"><i class="fas fa-list-check"></i></span><span class="label">Tareas Diarias</span></a>
       <a href="calendario.html" data-tab="calendario" data-tooltip="calendario"><span class="icon"><i class="fa-solid fa-calendar-days"></i></span><span class="label">Calendario</span></a>
-        <a href="configuracion.html" data-tab="configuracion" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
+      <a href="configuracion.html" data-tab="configuracion" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
     </div>
   </div>
 
-  <!-- Contenido principal -->
   <div class="main-content">
     <div class="topbar">
       <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
@@ -60,53 +60,41 @@
       </div>
     </div>
 
+    <div class="container content-area">
+      <div class="ios-card">
+        <h2>Edición Masiva de Productos</h2>
+        <div class="formulario my-4">
+          <label for="excelFile" class="form-label">Selecciona tu archivo Excel (.xlsx):</label>
+          <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" class="form-control" />
+        </div>
 
-  <div class="tab-header">
-    <button class="tab-btn  active" id="btnContenidos" onclick="showTab('categorias')">Categorías</button>
-    <button class="tab-btn" id="btnRecursos" onclick="showTab('historial')">Historial</button>
-  </div>
-<div class="container">
-  <div class="tab-content-ios">
+        <div id="alertas" class="alert alert-warning d-none"></div>
 
-    
-    <div id="categorias" class="tab-section">
+        <div id="columnSelector" class="my-3"></div>
 
+        <div id="filterSection" class="my-3 d-none">
+          <label for="filterInput" class="form-label">Filtrar por Categoría:</label>
+          <input type="text" id="filterInput" class="form-control" placeholder="Escribe para filtrar categorías…" />
+        </div>
 
+        <div id="tableContainer" class="table-responsive scroll-x"></div>
+
+        <button id="btnExport" class="btn btn-primary mt-3 d-none">
+          Exportar Excel Modificado
+        </button>
+      </div>
     </div>
-   
-
-<div id="historial" class="tab-section d-none">
-
-</div>
-
-
- 
-    
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-
-  
-
-
-</div>
-
-
-  </div>
-
-<!-- Firestore -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<!-- Tu script -->
-<script src="js/modules/firebase-init.js"></script>
-<script src="js/modules/notificaciones.js"></script>
-<script src="js/modules/inspira.js"></script>
-<script src="js/modules/modales.js"></script>
-<script src="js/modules/tabs.js"></script>
-<script type="module" src="js/modules/checkAuth.js"></script>
-<script src="js/modules/permisos-tabs.js"></script>
-<script src="js/modules/verificar-tabs.js"></script>
-
+  <!-- Aquí enlazaremos el módulo JS específico luego -->
+  <script src="js/modules/categorias-masivas.js"></script>
 </body>
 </html>
