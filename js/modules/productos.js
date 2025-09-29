@@ -327,4 +327,22 @@ $(document).ready(function () {
   });
 });
 
-//v. 1
+// --- ORDENAR TODAS LAS CATEGORÍAS ---
+function ordenarTodasLasCategorias() {
+  filteredData.forEach(row => {
+    let cats = (row[colProcesar] || '').split(',')
+      .map(c => c.trim())
+      .filter(Boolean);
+    row[colProcesar] = ordenarCategorias(cats).join(', ');
+  });
+  mostrarPantallaResultado(generarResultadoDesdeDatos());
+}
+
+// --- EVENTOS ---
+$('#btnOrdenarCategorias').on('click', () => {
+  ordenarTodasLasCategorias();
+  showAlert('Todas las categorías fueron ordenadas correctamente.', 'success');
+});
+
+
+//v. 1.2
