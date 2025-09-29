@@ -315,7 +315,7 @@ function sql_productos(){
   if(has("reference")) sel.push("  productos.reference AS sku");
   if(has("nombre_producto")) sel.push("  pl.name AS nombre_producto");
   if(has("marca")) sel.push("  productos.id_manufacturer AS marca");
-  if(has("caracteristicas")) sel.push("  productos.description_short AS caracteristicas");
+  if(has("caracteristicas")) sel.push("  GROUP_CONCAT(DISTINCT CONCAT(fl.name, ': ', fvl.value) SEPARATOR ', ') AS caracteristicas");
   if(has("categorias")) sel.push("  GROUP_CONCAT(DISTINCT cp.id_category) AS categorias");
   if(has("categoria_principal")) sel.push("  productos.id_category_default AS categoria_principal");
   if(has("date_add")) sel.push("  productos.date_add AS fecha_creacion");
@@ -331,6 +331,12 @@ function sql_productos(){
   sql += "LEFT JOIN ps_category_product AS cp ON cp.id_product = productos.id_product\n";
   sql += "LEFT JOIN ps_order_detail AS detalle_pedido ON detalle_pedido.product_id = productos.id_product\n";
 
+  // === JOINS de características ===
+  sql += "LEFT JOIN ps_feature_product fp ON fp.id_product = productos.id_product\n";
+  sql += "LEFT JOIN ps_feature_lang fl ON fl.id_feature = fp.id_feature AND fl.id_lang = 1\n";
+  sql += "LEFT JOIN ps_feature_value fv ON fv.id_feature_value = fp.id_feature_value\n";
+  sql += "LEFT JOIN ps_feature_value_lang fvl ON fvl.id_feature_value = fv.id_feature_value AND fvl.id_lang = 1\n";
+
   // === WHERE ===
   const where = [];
 
@@ -344,20 +350,19 @@ function sql_productos(){
     )`);
   }
 
-  // Filtro: lista de IDs
-const idsVal = $("#pro_ids")?.value.trim();
-if(idsVal){
-  // normalizamos separadores (coma, salto de línea, espacio)
-  const ids = idsVal.split(/[\s,;]+/).map(x=>parseInt(x,10)).filter(x=>!isNaN(x));
-  if(ids.length){
-    where.push(`productos.id_product IN (${ids.join(",")})`);
-  }
-}
-
   // Filtro: Marca
   const marcaEl = $("#pro_marca");
   if(marcaEl && marcaEl.value){
     where.push(`productos.id_manufacturer = ${parseInt(marcaEl.value,10)}`);
+  }
+
+  // Filtro: Lista de IDs
+  const idsVal = $("#pro_ids")?.value.trim();
+  if(idsVal){
+    const ids = idsVal.split(/[\s,;]+/).map(x=>parseInt(x,10)).filter(x=>!isNaN(x));
+    if(ids.length){
+      where.push(`productos.id_product IN (${ids.join(",")})`);
+    }
   }
 
   // Otros filtros
@@ -381,6 +386,7 @@ if(idsVal){
 
   return sql;
 }
+
 
 
 function sql_pedidos(){
@@ -587,4 +593,4 @@ renderCampos();
 attachMain();
 updateSteps();
 
-//V2.6
+//V2.7
