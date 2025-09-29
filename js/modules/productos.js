@@ -105,11 +105,17 @@ function renderTable() {
   });
   $btnExport.removeClass('d-none');
 
-  // Añadimos un botón fijo de prueba para ver si se muestra
-  if ($('#btnPrueba').length === 0) {
-    $tableContainer.append('<button id="btnPrueba" class="btn btn-primary mt-3">BOTÓN DE PRUEBA</button>');
+  // Crear botón si no existe
+  if ($('#btnDividirCategorias').length === 0) {
+    $tableContainer.append('<button id="btnDividirCategorias" class="btn btn-info mt-3">Dividir Categorías</button>');
   }
+
+  // Usar delegación para el click en botón dinámico
+  $tableContainer.off('click', '#btnDividirCategorias').on('click', '#btnDividirCategorias', () => {
+    dividirCategoriasYCargarTablaAux(filteredData);
+  });
 }
+
 
 
 
