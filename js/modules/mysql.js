@@ -151,6 +151,8 @@ function addChip(container, txt){
   s.textContent = txt;
   container.appendChild(s);
 }
+
+
 function buildSummaryBar(){
   const cont = $("#summaryBar");
   cont.innerHTML = "";
@@ -165,53 +167,82 @@ function buildSummaryBar(){
 
   // filtros rápidos (por entidad)
   if(ent==="clientes"){
-    if($("#cli_activos").checked) addChip(cont,"Solo activos");
-    if($("#cli_tiene_compras").checked) addChip(cont,"Solo con compras");
-    if($("#cli_reg_desde").value) addChip(cont,`Desde ${$("#cli_reg_desde").value}`);
-    if($("#cli_reg_hasta").value) addChip(cont,`Hasta ${$("#cli_reg_hasta").value}`);
-    const lim = $("#cli_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
+    if($("#cli_activos")?.checked) addChip(cont,"Solo activos");
+    if($("#cli_tiene_compras")?.checked) addChip(cont,"Solo con compras");
+    if($("#cli_reg_desde")?.value) addChip(cont,`Desde ${$("#cli_reg_desde").value}`);
+    if($("#cli_reg_hasta")?.value) addChip(cont,`Hasta ${$("#cli_reg_hasta").value}`);
+    const lim = $("#cli_limite")?.value.trim();
+    addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
+
   if(ent==="productos"){
-    if($("#pro_activos").checked) addChip(cont,"Solo activos");
-    if($("#pro_stock_pos").checked) addChip(cont,"Stock > 0");
-    if($("#pro_fecha_desde").value) addChip(cont,`Desde ${$("#pro_fecha_desde").value}`);
-    if($("#pro_fecha_hasta").value) addChip(cont,`Hasta ${$("#pro_fecha_hasta").value}`);
-    if($("#pro_incluir_ventas").checked) addChip(cont,"Incluye unidades_vendidas");
-    const lim = $("#pro_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
+    if($("#pro_activos")?.checked) addChip(cont,"Solo activos");
+    if($("#pro_stock_pos")?.checked) addChip(cont,"Stock > 0");
+    if($("#pro_fecha_desde")?.value) addChip(cont,`Desde ${$("#pro_fecha_desde").value}`);
+    if($("#pro_fecha_hasta")?.value) addChip(cont,`Hasta ${$("#pro_fecha_hasta").value}`);
+    if($("#pro_incluir_ventas")?.checked) addChip(cont,"Incluye unidades_vendidas");
+
+    const catEl = $("#pro_categoria");
+    if(catEl && catEl.value){
+      addChip(cont, `Categoría: ${catEl.options[catEl.selectedIndex].text}`);
+    }
+
+    const marcaEl = $("#pro_marca");
+    if(marcaEl && marcaEl.value){
+      addChip(cont, `Marca: ${marcaEl.options[marcaEl.selectedIndex].text}`);
+    }
+
+    const lim = $("#pro_limite")?.value.trim();
+    addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
+
   if(ent==="pedidos"){
-    if($("#ped_fecha_desde").value) addChip(cont,`Desde ${$("#ped_fecha_desde").value}`);
-    if($("#ped_fecha_hasta").value) addChip(cont,`Hasta ${$("#ped_fecha_hasta").value}`);
-    if($("#ped_producto").value.trim()) addChip(cont,`Producto: ${$("#ped_producto").value.trim()}`);
-    const lim = $("#ped_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
+    if($("#ped_fecha_desde")?.value) addChip(cont,`Desde ${$("#ped_fecha_desde").value}`);
+    if($("#ped_fecha_hasta")?.value) addChip(cont,`Hasta ${$("#ped_fecha_hasta").value}`);
+    if($("#ped_producto")?.value.trim()) addChip(cont,`Producto: ${$("#ped_producto").value.trim()}`);
+    const lim = $("#ped_limite")?.value.trim();
+    addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
+
   if(ent==="categorias"){
-    if($("#cat_id").value) addChip(cont,`ID categoría: ${$("#cat_id").value}`);
-    addChip(cont,`id_lang: ${$("#cat_lang").value||1}`);
-    const lim = $("#cat_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
+    if($("#cat_id")?.value) addChip(cont,`ID categoría: ${$("#cat_id").value}`);
+    if($("#cat_lang")?.value) addChip(cont,`id_lang: ${$("#cat_lang").value}`);
+    const lim = $("#cat_limite")?.value.trim();
+    addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
+
   if(ent==="marcas"){
-    if($("#mar_id").value) addChip(cont,`ID marca: ${$("#mar_id").value}`);
-    addChip(cont,`id_lang: ${$("#mar_lang").value||1}`);
-    const lim = $("#mar_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
+    if($("#mar_id")?.value) addChip(cont,`ID marca: ${$("#mar_id").value}`);
+    if($("#mar_lang")?.value) addChip(cont,`id_lang: ${$("#mar_lang").value}`);
+    const lim = $("#mar_limite")?.value.trim();
+    addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
+
   if(ent==="transporte"){
-    if($("#tra_carrier").value) addChip(cont,`Carrier: ${$("#tra_carrier").value}`);
-    if($("#tra_zone").value) addChip(cont,`Zona: ${$("#tra_zone").value}`);
-    const lim = $("#tra_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
+    if($("#tra_carrier")?.value) addChip(cont,`Carrier: ${$("#tra_carrier").value}`);
+    if($("#tra_zone")?.value) addChip(cont,`Zona: ${$("#tra_zone").value}`);
+    const lim = $("#tra_limite")?.value.trim();
+    addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
+
   if(ent==="ventas"){
-    if($("#ven_desde").value) addChip(cont,`Desde ${$("#ven_desde").value}`);
-    if($("#ven_hasta").value) addChip(cont,`Hasta ${$("#ven_hasta").value}`);
-    if($("#ven_por_envio").checked) addChip(cont,"Por método de envío");
-    const lim = $("#ven_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
+    if($("#ven_desde")?.value) addChip(cont,`Desde ${$("#ven_desde").value}`);
+    if($("#ven_hasta")?.value) addChip(cont,`Hasta ${$("#ven_hasta").value}`);
+    if($("#ven_por_envio")?.checked) addChip(cont,"Por método de envío");
+    const lim = $("#ven_limite")?.value.trim();
+    addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
+
   if(ent==="carros"){
-    if($("#car_desde").value) addChip(cont,`Desde ${$("#car_desde").value}`);
-    if($("#car_hasta").value) addChip(cont,`Hasta ${$("#car_hasta").value}`);
-    const lim = $("#car_limite").value.trim(); addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
+    if($("#car_desde")?.value) addChip(cont,`Desde ${$("#car_desde").value}`);
+    if($("#car_hasta")?.value) addChip(cont,`Hasta ${$("#car_hasta").value}`);
+    const lim = $("#car_limite")?.value.trim();
+    addChip(cont, lim?`Límite: ${lim}`:"Sin límite");
   }
 }
+
+
+
 // refrescar barra al cambiar cualquier cosa
 document.addEventListener("input", buildSummaryBar);
 document.addEventListener("change", buildSummaryBar);
