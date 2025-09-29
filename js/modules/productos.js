@@ -14,6 +14,7 @@ $(document).ready(function () {
   const $resultadoDiv = $('#resultadoDiv');
   const $tablaResultado = $('#tablaResultado');
   const $alertas = $('#alertas');
+  const $tableContainer = $('#tableContainer');
 
   function showAlert(message, type = 'warning') {
     $alertas.text(message).removeClass('d-none alert-warning alert-danger alert-success')
@@ -212,4 +213,4 @@ $(document).ready(function () {
 });
 
 
-//v. 1.4
+//v. 1.5
