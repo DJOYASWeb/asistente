@@ -311,31 +311,30 @@ function sql_productos(){
   const has = id => $("#productos_"+id.replace(".","__"))?.checked;
 
   // === CAMPOS DISPONIBLES ===
-  sel.push("  productos.id_product AS id_producto");
-  if(has("reference")) sel.push("  productos.reference AS sku");
+  sel.push("  p.id_product AS id_producto");
+  if(has("reference")) sel.push("  p.reference AS sku");
   if(has("nombre_producto")) sel.push("  pl.name AS nombre_producto");
-  if(has("marca")) sel.push("  productos.id_manufacturer AS marca");
-  if(has("caracteristicas")) sel.push("  GROUP_CONCAT(DISTINCT CONCAT(fl.name, ': ', fvl.value) SEPARATOR ', ') AS caracteristicas");
-  if(has("categorias")) sel.push("  GROUP_CONCAT(DISTINCT cp.id_category) AS categorias");
-  if(has("categoria_principal")) sel.push("  productos.id_category_default AS categoria_principal");
-  if(has("date_add")) sel.push("  productos.date_add AS fecha_creacion");
-  if(has("precio")) sel.push("  ROUND(productos.price,0) AS precio");
-  if(has("active")) sel.push("  productos.active AS activo");
+  if(has("marca")) sel.push("  m.name AS marca");
+  if(has("caracteristicas")) sel.push("  GROUP_CONCAT(DISTINCT CONCAT(fl.name, ': ', fvl.value) ORDER BY fl.name SEPARATOR ', ') AS caracteristicas");
+  if(has("categorias")) sel.push("  GROUP_CONCAT(DISTINCT cl.name ORDER BY cl.name SEPARATOR ', ') AS categorias");
+  if(has("categoria_principal")) sel.push("  p.id_category_default AS categoria_principal");
+  if(has("date_add")) sel.push("  p.date_add AS fecha_creacion");
+  if(has("precio")) sel.push("  ROUND(p.price,0) AS precio");
+  if(has("active")) sel.push("  p.active AS activo");
   if(has("stock.quantity")) sel.push("  COALESCE(stock.quantity,0) AS stock_cantidad");
   if(has("unidades_vendidas")) sel.push("  COALESCE(SUM(detalle_pedido.product_quantity),0) AS unidades_vendidas");
 
   // === FROM y JOINs ===
-  let sql = "SELECT\n" + sel.join(",\n") + "\nFROM ps_product AS productos\n";
-  sql += "LEFT JOIN ps_product_lang AS pl ON pl.id_product = productos.id_product AND pl.id_lang = 1\n";
-  sql += "LEFT JOIN ps_stock_available AS stock ON stock.id_product = productos.id_product AND stock.id_product_attribute = 0\n";
-  sql += "LEFT JOIN ps_category_product AS cp ON cp.id_product = productos.id_product\n";
-  sql += "LEFT JOIN ps_order_detail AS detalle_pedido ON detalle_pedido.product_id = productos.id_product\n";
-
-  // === JOINS de características ===
-  sql += "LEFT JOIN ps_feature_product fp ON fp.id_product = productos.id_product\n";
-  sql += "LEFT JOIN ps_feature_lang fl ON fl.id_feature = fp.id_feature AND fl.id_lang = 1\n";
-  sql += "LEFT JOIN ps_feature_value fv ON fv.id_feature_value = fp.id_feature_value\n";
-  sql += "LEFT JOIN ps_feature_value_lang fvl ON fvl.id_feature_value = fv.id_feature_value AND fvl.id_lang = 1\n";
+  let sql = "SELECT\n" + sel.join(",\n") + "\nFROM ps_product AS p\n";
+  sql += "INNER JOIN ps_product_lang AS pl ON p.id_product = pl.id_product AND pl.id_lang = 1\n";
+  sql += "LEFT JOIN ps_manufacturer AS m ON p.id_manufacturer = m.id_manufacturer\n";
+  sql += "LEFT JOIN ps_stock_available AS stock ON stock.id_product = p.id_product AND stock.id_product_attribute = 0\n";
+  sql += "LEFT JOIN ps_category_product AS cp ON cp.id_product = p.id_product\n";
+  sql += "LEFT JOIN ps_category_lang AS cl ON cp.id_category = cl.id_category AND cl.id_lang = 1\n";
+  sql += "LEFT JOIN ps_order_detail AS detalle_pedido ON detalle_pedido.product_id = p.id_product\n";
+  sql += "LEFT JOIN ps_feature_product fp ON fp.id_product = p.id_product\n";
+  sql += "LEFT JOIN ps_feature_lang fl ON fp.id_feature = fl.id_feature AND fl.id_lang = 1\n";
+  sql += "LEFT JOIN ps_feature_value_lang fvl ON fp.id_feature_value = fvl.id_feature_value AND fvl.id_lang = 1\n";
 
   // === WHERE ===
   const where = [];
@@ -345,7 +344,7 @@ function sql_productos(){
   if(catEl && catEl.value){
     where.push(`EXISTS (
       SELECT 1 FROM ps_category_product cpx
-      WHERE cpx.id_product = productos.id_product
+      WHERE cpx.id_product = p.id_product
       AND cpx.id_category = ${parseInt(catEl.value,10)}
     )`);
   }
@@ -353,7 +352,7 @@ function sql_productos(){
   // Filtro: Marca
   const marcaEl = $("#pro_marca");
   if(marcaEl && marcaEl.value){
-    where.push(`productos.id_manufacturer = ${parseInt(marcaEl.value,10)}`);
+    where.push(`p.id_manufacturer = ${parseInt(marcaEl.value,10)}`);
   }
 
   // Filtro: Lista de IDs
@@ -361,22 +360,25 @@ function sql_productos(){
   if(idsVal){
     const ids = idsVal.split(/[\s,;]+/).map(x=>parseInt(x,10)).filter(x=>!isNaN(x));
     if(ids.length){
-      where.push(`productos.id_product IN (${ids.join(",")})`);
+      where.push(`p.id_product IN (${ids.join(",")})`);
     }
   }
 
   // Otros filtros
-  if($("#pro_activos")?.checked) where.push("productos.active = 1");
+  if($("#pro_activos")?.checked) where.push("p.active = 1");
   if($("#pro_stock_pos")?.checked) where.push("COALESCE(stock.quantity,0) > 0");
-  if($("#pro_fecha_desde")?.value) where.push(`productos.date_add >= '${$("#pro_fecha_desde").value}'`);
-  if($("#pro_fecha_hasta")?.value) where.push(`productos.date_add <= '${$("#pro_fecha_hasta").value}'`);
+  if($("#pro_fecha_desde")?.value) where.push(`p.date_add >= '${$("#pro_fecha_desde").value}'`);
+  if($("#pro_fecha_hasta")?.value) where.push(`p.date_add <= '${$("#pro_fecha_hasta").value}'`);
 
   if(where.length){
     sql += "WHERE\n  " + where.join("\n  AND ") + "\n";
   }
 
+  // === GROUP BY ===
+  sql += "GROUP BY p.id_product, pl.name, m.name\n";
+
   // === ORDER BY con fallback ===
-  const ordenCampo = $("#pro_orden_campo")?.value || "productos.id_product";
+  const ordenCampo = $("#pro_orden_campo")?.value || "p.id_product";
   const ordenDir   = $("#pro_orden_dir")?.value || "DESC";
   sql += `ORDER BY ${ordenCampo} ${ordenDir}\n`;
 
@@ -386,6 +388,7 @@ function sql_productos(){
 
   return sql;
 }
+
 
 
 
@@ -593,4 +596,4 @@ renderCampos();
 attachMain();
 updateSteps();
 
-//V2.7
+//V 1
