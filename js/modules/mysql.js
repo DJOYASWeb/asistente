@@ -309,85 +309,52 @@ function sql_clientes(){
 function sql_productos(){
   const sel = [];
   const has = id => $("#productos_"+id.replace(".","__"))?.checked;
-const catEl = $("#pro_categoria");
-if (catEl && catEl.value) {
-  addChip(cont, `Categoría: ${catEl.options[catEl.selectedIndex].text}`);
-}
-if(cat) where.push(`EXISTS (
-  SELECT 1 FROM ps_category_product cp 
-  WHERE cp.id_product = productos.id_product 
-  AND cp.id_category = ${parseInt(cat,10)}
-)`);
-
-const marcaEl = $("#pro_marca");
-if (marcaEl && marcaEl.value) {
-  addChip(cont, `Marca: ${marcaEl.options[marcaEl.selectedIndex].text}`);
-}
-if(marca) where.push(`productos.id_manufacturer = ${parseInt(marca,10)}`);
-
-
 
   sel.push("  productos.id_product AS id_producto");
   if(has("reference")) sel.push("  productos.reference AS sku");
+  if(has("nombre_producto")) sel.push("  pl.name AS nombre_producto");
+  if(has("marca")) sel.push("  productos.id_manufacturer AS marca");
+  if(has("caracteristicas")) sel.push("  productos.description_short AS caracteristicas");
+  if(has("categorias")) sel.push("  GROUP_CONCAT(DISTINCT cp.id_category) AS categorias");
+  if(has("categoria_principal")) sel.push("  productos.id_category_default AS categoria_principal");
   if(has("date_add"))  sel.push("  productos.date_add AS fecha_creacion");
   if(has("precio"))    sel.push("  ROUND(productos.price,0) AS precio");
   if(has("active"))    sel.push("  productos.active AS activo");
+  if(has("stock.quantity")) sel.push("  COALESCE(stock.quantity,0) AS stock_cantidad");
+  if(has("unidades_vendidas")) sel.push("  COALESCE(SUM(detalle_pedido.product_quantity),0) AS unidades_vendidas");
 
-  let joinStock = false;
-  if(has("stock.quantity") || $("#pro_stock_pos").checked){
-    joinStock = true;
-    if(has("stock.quantity")) sel.push("  COALESCE(stock.quantity,0) AS stock_cantidad");
-  }
-
-  let ventasSel = $("#pro_incluir_ventas").checked && ($("#pro_ventas_desde").value || $("#pro_ventas_hasta").value);
-  let joinVentas = false;
-  if(ventasSel || has("unidades_vendidas")){
-    joinVentas = true;
-    sel.push("  COALESCE(SUM(detalle_pedido.product_quantity),0) AS unidades_vendidas");
-  }
-
-  let sql = "SELECT\n" + (sel.length? sel.join(",\n"):"  productos.*") + "\nFROM ps_product AS productos\n";
-  if(joinStock) sql += "LEFT JOIN ps_stock_available AS stock ON stock.id_product = productos.id_product AND stock.id_product_attribute = 0\n";
-  if(joinVentas){
-    sql += "LEFT JOIN ps_order_detail AS detalle_pedido ON detalle_pedido.product_id = productos.id_product\n";
-    sql += "LEFT JOIN ps_orders AS pedidos ON pedidos.id_order = detalle_pedido.id_order\n";
-  }
+  let sql = "SELECT\n" + sel.join(",\n") + "\nFROM ps_product AS productos\n";
+  sql += "LEFT JOIN ps_product_lang AS pl ON pl.id_product = productos.id_product AND pl.id_lang = 1\n";
+  sql += "LEFT JOIN ps_stock_available AS stock ON stock.id_product = productos.id_product AND stock.id_product_attribute = 0\n";
+  sql += "LEFT JOIN ps_category_product AS cp ON cp.id_product = productos.id_product\n";
 
   const where = [];
-  if($("#pro_activos").checked) where.push("productos.active = 1");
-  if($("#pro_stock_pos").checked){
-    if(!joinStock) sql += "LEFT JOIN ps_stock_available AS stock ON stock.id_product = productos.id_product AND stock.id_product_attribute = 0\n";
-    where.push("COALESCE(stock.quantity,0) > 0");
-  }
-  if($("#pro_fecha_desde").value) where.push(`productos.date_add >= '${$("#pro_fecha_desde").value}'`);
-  if($("#pro_fecha_hasta").value) where.push(`productos.date_add <= '${$("#pro_fecha_hasta").value}'`);
 
-  const ids = textoALineaLista($("#pro_ids").value);
-  if(ids.length) where.push(`productos.id_product IN ${listaSqlIN(ids,false)}`);
-  const skus = textoALineaLista($("#pro_skus").value);
-  if(skus.length) where.push(`productos.reference IN ${listaSqlIN(skus,true)}`);
-
-  if($("#pro_incluir_ventas").checked && ($("#pro_ventas_desde").value || $("#pro_ventas_hasta").value)){
-    if(!joinVentas){
-      sql += "LEFT JOIN ps_order_detail AS detalle_pedido ON detalle_pedido.product_id = productos.id_product\n";
-      sql += "LEFT JOIN ps_orders AS pedidos ON pedidos.id_order = detalle_pedido.id_order\n";
-    }
-    if($("#pro_ventas_desde").value) where.push(`pedidos.date_add >= '${$("#pro_ventas_desde").value}'`);
-    if($("#pro_ventas_hasta").value) where.push(`pedidos.date_add <= '${$("#pro_ventas_hasta").value}'`);
+  // --- FILTROS ---
+  const cat = $("#pro_categoria")?.value;  // ✅ Definido
+  if(cat){
+    where.push(`EXISTS (SELECT 1 FROM ps_category_product cpx WHERE cpx.id_product = productos.id_product AND cpx.id_category = ${parseInt(cat,10)})`);
   }
+
+  const marca = $("#pro_marca")?.value;   // ✅ Definido
+  if(marca){
+    where.push(`productos.id_manufacturer = ${parseInt(marca,10)}`);
+  }
+
+  if($("#pro_activos")?.checked) where.push("productos.active = 1");
+  if($("#pro_stock_pos")?.checked) where.push("COALESCE(stock.quantity,0) > 0");
+  if($("#pro_fecha_desde")?.value) where.push(`productos.date_add >= '${$("#pro_fecha_desde").value}'`);
+  if($("#pro_fecha_hasta")?.value) where.push(`productos.date_add <= '${$("#pro_fecha_hasta").value}'`);
 
   if(where.length) sql += "WHERE\n  " + where.join("\n  AND ") + "\n";
-  if(joinVentas){
-    sql += "GROUP BY productos.id_product, productos.reference, productos.date_add, productos.price, productos.active";
-    if(joinStock) sql += ", stock.quantity";
-    sql += "\n";
-  }
 
   sql += `ORDER BY ${$("#pro_orden_campo").value} ${$("#pro_orden_dir").value}\n`;
-  const lim = $("#pro_limite").value.trim();
+  const lim = $("#pro_limite")?.value.trim();
   sql += lim ? `LIMIT ${Math.max(1,parseInt(lim,10))};` : `;`;
+
   return sql;
 }
+
 
 function sql_pedidos(){
   const has = id => $("#pedidos_"+id.replace(".","__"))?.checked;
@@ -593,4 +560,4 @@ renderCampos();
 attachMain();
 updateSteps();
 
-//V2.2
+//V2.3
