@@ -10,15 +10,20 @@ const CAMPOS = {
     {n:"cant_pedidos",  l:"Cantidad de Pedidos"},
     {n:"monto_total",   l:"Monto Total"}
   ],
-  productos: [
-    {n:"id_product",      l:"ID Producto"},
-    {n:"reference",       l:"Código de Producto"},
-    {n:"date_add",        l:"Fecha Creación"},
-    {n:"precio",          l:"Precio"},
-    {n:"active",          l:"Activo"},
-    {n:"stock.quantity",  l:"Cantidad"},
-    {n:"unidades_vendidas", l:"Unidades Vendidas"}
-  ],
+productos: [
+  {n:"id_product",      l:"id_producto"},
+  {n:"reference",       l:"sku"},
+  {n:"nombre_producto", l:"nombre_producto"},
+  {n:"marca",           l:"marca"},
+  {n:"caracteristicas", l:"caracteristicas"},
+  {n:"categorias",      l:"categorias"},
+  {n:"categoria_principal", l:"categoria_principal"},
+  {n:"date_add",        l:"fecha_creacion"},
+  {n:"precio",          l:"precio (entero)"},
+  {n:"active",          l:"activo"},
+  {n:"stock.quantity",  l:"stock_cantidad"},
+  {n:"unidades_vendidas", l:"unidades_vendidas (calc)"}
+],
   pedidos: [
     {n:"id_order",     l:"ID Pedido"},
     {n:"reference",    l:"Referencia"},
@@ -273,6 +278,17 @@ function sql_clientes(){
 function sql_productos(){
   const sel = [];
   const has = id => $("#productos_"+id.replace(".","__"))?.checked;
+const cat = $("#pro_categoria").value;
+if(cat) where.push(`EXISTS (
+  SELECT 1 FROM ps_category_product cp 
+  WHERE cp.id_product = productos.id_product 
+  AND cp.id_category = ${parseInt(cat,10)}
+)`);
+
+const marca = $("#pro_marca").value;
+if(marca) where.push(`productos.id_manufacturer = ${parseInt(marca,10)}`);
+
+
 
   sel.push("  productos.id_product AS id_producto");
   if(has("reference")) sel.push("  productos.reference AS sku");
@@ -539,3 +555,5 @@ function attachMain(){
 renderCampos();
 attachMain();
 updateSteps();
+
+//V2
