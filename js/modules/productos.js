@@ -1,13 +1,11 @@
+// productos.js v2.7
 $(document).ready(function () {
   let originalData = [];
   let filteredData = [];
   let colsMostrar = [];
   let colProcesar = null;
-  let html = '<thead><tr>';
 
-
-
-  // Mapeo completo categoría -> tipo y orden exacto según tu lista
+  // --- ORDEN DE CATEGORÍAS ---
   const tipoOrden = {
     "Joyas de plata por mayor": { tipo: "Principal", orden: 1 },
     "ENCHAPADO": { tipo: "Principal", orden: 2 },
@@ -37,7 +35,7 @@ $(document).ready(function () {
     "Tobilleras Enchapado": { tipo: "Categoría", orden: 26 },
     "Insumos Enchapados": { tipo: "Categoría", orden: 27 },
     "Sin valor": { tipo: "Categoría", orden: 28 },
-    // SubCategorías
+    // --- SubCategorías ---
     "Circón": { tipo: "SubCategoría", orden: 29 },
     "Anillos de Plata Lisa": { tipo: "SubCategoría", orden: 30 },
     "Anillo Circón": { tipo: "SubCategoría", orden: 31 },
@@ -98,7 +96,7 @@ $(document).ready(function () {
     "Cadena Veneciana": { tipo: "SubCategoría", orden: 86 }
   };
 
-  // Función para ordenar array de categorías segun orden definido
+  // --- HELPERS ---
   function ordenarCategorias(categorias) {
     return categorias.sort((a, b) => {
       const aInfo = tipoOrden[a] || { orden: 9999 };
@@ -107,251 +105,116 @@ $(document).ready(function () {
     });
   }
 
-  // Variables jQuery
-  const $fileInput = $('#excelFile');
-  const $colsMostrarDiv = $('#colsMostrar');
-  const $colsProcesarDiv = $('#colsProcesar');
-  const $btnProcesar = $('#btnProcesar');
-  const $progressBar = $('#progressBar');
-  const $progressBarFill = $progressBar.find('.progress-bar');
-  const $resultadoDiv = $('#resultadoDiv');
-  const $tablaResultado = $('#tablaResultado');
-  const $alertas = $('#alertas');
-  const $tableContainer = $('#tableContainer');
-
-  // Variables de estado
-
-  // Eventos fijos
-  $('#btnAgregarCategoria').on('click', () => {
-    const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
-    if (!nuevaCat || !nuevaCat.trim()) return;
-    agregarCategoria(nuevaCat.trim());
-  });
-
-  $('#btnVolver').on('click', () => {
-    $resultadoDiv.hide();
-    $('#columnSelector').show();
-    $tableContainer.show();
-    $btnProcesar.show();
-    $btnProcesar.prop('disabled', !(colsMostrar.length > 0 && colProcesar));
-    renderTablaMostrar();
-  });
-
-  $('#btnFinalizar').on('click', () => {
-    $resultadoDiv.hide();
-    $('#columnSelector').show();
-    $tableContainer.show();
-    $btnProcesar.show();
-    renderTablaMostrar();
-    showAlert('Cambios finalizados y aplicados correctamente.', 'success');
-  });
-
-  // Mostrar alertas
   function showAlert(message, type = 'warning') {
-    $alertas.text(message).removeClass('d-none alert-warning alert-danger alert-success')
-      .addClass('alert-' + type).show();
-    setTimeout(() => {
-      $alertas.fadeOut();
-    }, 5000);
+    $('#alertas')
+      .text(message)
+      .removeClass('d-none alert-warning alert-danger alert-success')
+      .addClass('alert-' + type)
+      .show();
+    setTimeout(() => $('#alertas').fadeOut(), 5000);
   }
 
-  // Leer excel
+  // --- LEER EXCEL ---
   function readExcel(file) {
     const reader = new FileReader();
     reader.onload = function (e) {
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type: 'array'});
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, {defval: ''});
-      if(jsonData.length === 0) {
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      if (jsonData.length === 0) {
         showAlert('El archivo Excel está vacío o no se pudo leer.', 'danger');
         return;
       }
+
       originalData = jsonData;
       filteredData = [...originalData];
       setupColumnSelectors(Object.keys(jsonData[0]));
       renderTablaMostrar();
-      $btnProcesar.prop('disabled', true);
+      $('#btnProcesar').prop('disabled', true);
     };
     reader.readAsArrayBuffer(file);
   }
 
-  // Selección de columnas
+  // --- COLUMNAS ---
   function setupColumnSelectors(columns) {
-    $colsMostrarDiv.empty();
-    $colsProcesarDiv.empty();
+    const $colsMostrarDiv = $('#colsMostrar').empty();
+    const $colsProcesarDiv = $('#colsProcesar').empty();
 
     columns.forEach(col => {
+      // Mostrar
       const idMostrar = 'mostrar_' + col.replace(/\W/g, '');
-      const checkbox = $(`<input type="checkbox" id="${idMostrar}" value="${col}" checked>`);
-      const label = $(`<label for="${idMostrar}"> ${col}</label><br>`);
-      $colsMostrarDiv.append(checkbox).append(label);
+      $colsMostrarDiv.append(`<input type="checkbox" id="${idMostrar}" value="${col}" checked>`);
+      $colsMostrarDiv.append(`<label for="${idMostrar}"> ${col}</label><br>`);
 
+      // Procesar
       const idProcesar = 'procesar_' + col.replace(/\W/g, '');
-      const radio = $(`<input type="radio" name="colProcesar" id="${idProcesar}" value="${col}">`);
-      const labelRadio = $(`<label for="${idProcesar}"> ${col}</label><br>`);
-      $colsProcesarDiv.append(radio).append(labelRadio);
+      $colsProcesarDiv.append(`<input type="radio" name="colProcesar" id="${idProcesar}" value="${col}">`);
+      $colsProcesarDiv.append(`<label for="${idProcesar}"> ${col}</label><br>`);
     });
 
-    // Eventos para actualizar estado
+    // Eventos
     $colsMostrarDiv.find('input[type=checkbox]').on('change', () => {
-      colsMostrar = $colsMostrarDiv.find('input[type=checkbox]:checked').map(function() {
-        return $(this).val();
-      }).get();
+      colsMostrar = $colsMostrarDiv.find(':checked').map(function () { return this.value; }).get();
       renderTablaMostrar();
       validateProcesarBtn();
     });
 
     $colsProcesarDiv.find('input[type=radio]').on('change', () => {
-      const val = $colsProcesarDiv.find('input[type=radio]:checked').val();
-      colProcesar = val || null;
+      colProcesar = $colsProcesarDiv.find(':checked').val() || null;
       validateProcesarBtn();
     });
 
-    colsMostrar = columns.slice();
+    colsMostrar = [...columns];
     colProcesar = null;
   }
 
-  // Validar botón procesar
   function validateProcesarBtn() {
-    $btnProcesar.prop('disabled', !(colsMostrar.length > 0 && colProcesar));
+    $('#btnProcesar').prop('disabled', !(colsMostrar.length > 0 && colProcesar));
   }
 
-function renderTablaMostrar() {
-  // Mostrar solo tabla principal ordenada para la visualización principal
-  if (filteredData.length === 0) {
-    $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
-  } else {
-    let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
-    colsMostrar.forEach(col => { html += `<th>${col}</th>`; });
+  // --- TABLAS ---
+  function renderTablaMostrar() {
+    const $tableContainer = $('#tableContainer');
+    if (filteredData.length === 0) {
+      $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
+      return;
+    }
+
+    let html = '<table class="table table-striped table-bordered"><thead><tr>';
+    colsMostrar.forEach(col => html += `<th>${col}</th>`);
     html += '</tr></thead><tbody>';
 
     filteredData.forEach(row => {
       html += '<tr>';
-      colsMostrar.forEach(col => {
-        html += `<td>${row[col] || ''}</td>`;
-      });
+      colsMostrar.forEach(col => html += `<td>${row[col] || ''}</td>`);
       html += '</tr>';
     });
 
     html += '</tbody></table>';
-
     $tableContainer.html(html).show();
-  }
-  // Aquí aseguramos que solo se muestre tabla principal
-  $resultadoDiv.hide();
-  $('#columnSelector').show();
-  $btnProcesar.show();
-}
 
-function mostrarPantallaResultado(resultado) {
-  // Oculta tabla principal para que no se vea duplicada
-  $tableContainer.hide().empty();
-  // Oculta selección y botón procesar
-  $('#columnSelector').hide();
-  $btnProcesar.hide();
-
-  // Mostrar solo contenedor resultado con tabla ordenada
-  $resultadoDiv.show();
-
-  const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
-  const allCategoriasSet = new Set();
-
-  resultado.forEach(r => {
-    r.partes.forEach(p => allCategoriasSet.add(p));
-  });
-
-  const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
-  const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
-
-  let html = '<thead><tr>';
-  colsMostrar.forEach(c => {
-    html += `<th>${c}</th>`;
-  });
-  categoriasUnicas.forEach(cat => {
-    html += `<th>${cat} <button class="btn btn-sm btn-danger btnEliminarCat" data-cat="${cat}" style="margin-left:5px;">Eliminar</button></th>`;
-  });
-  html += '</tr></thead><tbody>';
-
-  filteredData.forEach((row, idx) => {
-    html += '<tr>';
-    colsMostrar.forEach(c => {
-      html += `<td>${row[c] || ''}</td>`;
-    });
-    const categoriasFila = resultado[idx].partes;
-    categoriasUnicas.forEach(cat => {
-      html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
-    });
-    html += '</tr>';
-  });
-
-  html += '</tbody>';
-
-  $tablaResultado.html(html);
-
-  $('.btnEliminarCat').off('click').on('click', function () {
-    const catEliminar = $(this).data('cat');
-    eliminarCategoria(catEliminar);
-  });
-}
-
-
-  // Procesar división + ordenamiento
-  async function procesarDivision() {
-    $btnProcesar.prop('disabled', true);
-    $progressBar.show();
-    $progressBarFill.css('width', '0%').text('0%');
-
-    const total = filteredData.length;
-    const resultado = [];
-
-    for (let i = 0; i < total; i++) {
-      const fila = filteredData[i];
-      const valor = (fila[colProcesar] || '').toString();
-      let partes = valor.split(',').map(p => p.trim()).filter(p => p.length > 0);
-      partes = ordenarCategorias(partes);
-      resultado.push({
-        filaIndex: i,
-        partes
-      });
-
-      const porcentaje = Math.round(((i + 1) / total) * 100);
-      $progressBarFill.css('width', porcentaje + '%').text(porcentaje + '%');
-      await new Promise(r => setTimeout(r, 5));
-    }
-
-    $progressBar.hide();
-    mostrarPantallaResultado(resultado);
+    $('#resultadoDiv').hide();
+    $('#columnSelector').show();
+    $('#btnProcesar').show();
   }
 
-  // Mostrar resultado con botones eliminar y agregar distinguido
   function mostrarPantallaResultado(resultado) {
-      $tableContainer.hide().empty();  // Oculta y limpia la tabla principal desordenada
-  $('#columnSelector').hide();
-  $btnProcesar.hide();
-  $resultadoDiv.show();
-
+    $('#tableContainer').hide().empty();
     $('#columnSelector').hide();
-    $tableContainer.hide();
-    $btnProcesar.hide();
-
-    $resultadoDiv.show();
+    $('#btnProcesar').hide();
+    $('#resultadoDiv').show();
 
     const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
     const allCategoriasSet = new Set();
+    resultado.forEach(r => r.partes.forEach(p => allCategoriasSet.add(p)));
 
-    resultado.forEach(r => {
-      r.partes.forEach(p => allCategoriasSet.add(p));
-    });
-
-    const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
+    const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat));
     const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
 
-
-    colsMostrar.forEach(c => {
-      html += `<th>${c}</th>`;
-    });
+    let html = '<thead><tr>';
+    colsMostrar.forEach(c => html += `<th>${c}</th>`);
     categoriasUnicas.forEach(cat => {
       html += `<th>${cat} <button class="btn btn-sm btn-danger btnEliminarCat" data-cat="${cat}" style="margin-left:5px;">Eliminar</button></th>`;
     });
@@ -359,72 +222,109 @@ function mostrarPantallaResultado(resultado) {
 
     filteredData.forEach((row, idx) => {
       html += '<tr>';
-      colsMostrar.forEach(c => {
-        html += `<td>${row[c] || ''}</td>`;
-      });
+      colsMostrar.forEach(c => html += `<td>${row[c] || ''}</td>`);
       const categoriasFila = resultado[idx].partes;
-      categoriasUnicas.forEach(cat => {
-        html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
-      });
+      categoriasUnicas.forEach(cat => html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`);
       html += '</tr>';
     });
-    html += '</tbody>';
 
-    $tablaResultado.html(html);
+    html += '</tbody>';
+    $('#tablaResultado').html(html);
 
     $('.btnEliminarCat').off('click').on('click', function () {
-      const catEliminar = $(this).data('cat');
-      eliminarCategoria(catEliminar);
+      eliminarCategoria($(this).data('cat'));
     });
   }
 
-  // Generar resultado para recalcular tras agregar/eliminar
+  // --- PROCESAR ---
+  async function procesarDivision() {
+    $('#btnProcesar').prop('disabled', true);
+    $('#progressBar').show();
+    const $progressFill = $('#progressBar .progress-bar');
+
+    const total = filteredData.length;
+    const resultado = [];
+
+    for (let i = 0; i < total; i++) {
+      let partes = (filteredData[i][colProcesar] || '').toString().split(',')
+        .map(p => p.trim()).filter(Boolean);
+      partes = ordenarCategorias(partes);
+
+      resultado.push({ partes });
+
+      const porcentaje = Math.round(((i + 1) / total) * 100);
+      $progressFill.css('width', porcentaje + '%').text(porcentaje + '%');
+      await new Promise(r => setTimeout(r, 5));
+    }
+
+    $('#progressBar').hide();
+    mostrarPantallaResultado(resultado);
+  }
+
   function generarResultadoDesdeDatos() {
     return filteredData.map(row => {
-      let partes = (row[colProcesar] || '').toString().split(',').map(p => p.trim()).filter(p => p.length > 0);
-      partes = ordenarCategorias(partes);
-      return { partes };
+      let partes = (row[colProcesar] || '').toString().split(',')
+        .map(p => p.trim()).filter(Boolean);
+      return { partes: ordenarCategorias(partes) };
     });
   }
 
-  // Eliminar categoría
+  // --- CATEGORÍAS ---
   function eliminarCategoria(categoria) {
     filteredData.forEach(row => {
-      let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+      let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(Boolean);
       cats = cats.filter(c => c.toLowerCase() !== categoria.toLowerCase());
-      cats = ordenarCategorias(cats);
-      row[colProcesar] = cats.join(', ');
+      row[colProcesar] = ordenarCategorias(cats).join(', ');
     });
     mostrarPantallaResultado(generarResultadoDesdeDatos());
   }
 
-  // Agregar categoría
   function agregarCategoria(categoriaNueva) {
     filteredData.forEach(row => {
-      let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+      let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(Boolean);
       if (!cats.some(c => c.toLowerCase() === categoriaNueva.toLowerCase())) {
         cats.push(categoriaNueva);
-        cats = ordenarCategorias(cats);
-        row[colProcesar] = cats.join(', ');
+        row[colProcesar] = ordenarCategorias(cats).join(', ');
       }
     });
     mostrarPantallaResultado(generarResultadoDesdeDatos());
   }
 
-  // Eventos de entrada y botón procesar
-  $fileInput.on('change', e => {
+  // --- EVENTOS ---
+  $('#excelFile').on('change', e => {
     const file = e.target.files[0];
-    if (!file) return;
-    readExcel(file);
+    if (file) readExcel(file);
   });
 
-  $btnProcesar.on('click', () => {
+  $('#btnProcesar').on('click', () => {
     if (!colProcesar) {
       alert('Por favor selecciona una columna a procesar.');
       return;
     }
     procesarDivision();
   });
+
+  $('#btnAgregarCategoria').on('click', () => {
+    const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
+    if (nuevaCat && nuevaCat.trim()) agregarCategoria(nuevaCat.trim());
+  });
+
+  $('#btnVolver').on('click', () => {
+    $('#resultadoDiv').hide();
+    $('#columnSelector').show();
+    $('#tableContainer').show();
+    $('#btnProcesar').show().prop('disabled', !(colsMostrar.length > 0 && colProcesar));
+    renderTablaMostrar();
+  });
+
+  $('#btnFinalizar').on('click', () => {
+    $('#resultadoDiv').hide();
+    $('#columnSelector').show();
+    $('#tableContainer').show();
+    $('#btnProcesar').show();
+    renderTablaMostrar();
+    showAlert('Cambios finalizados y aplicados correctamente.', 'success');
+  });
 });
 
-//v. 2.6
+//v. 1
