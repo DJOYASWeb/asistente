@@ -218,25 +218,34 @@ $(document).ready(function () {
     $btnProcesar.prop('disabled', !(colsMostrar.length > 0 && colProcesar));
   }
 
-  // Mostrar tabla principal
-  function renderTablaMostrar() {
-    if (filteredData.length === 0) {
-      $tableContainer.html('<p>No hay datos para mostrar.</p>');
-      return;
-    }
-    let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
-    colsMostrar.forEach(col => { html += `<th>${col}</th>`; });
-    html += '</tr></thead><tbody>';
-    filteredData.forEach(row => {
-      html += '<tr>';
-      colsMostrar.forEach(col => {
-        html += `<td>${row[col] || ''}</td>`;
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-    $tableContainer.html(html);
+function renderTablaMostrar() {
+  if (filteredData.length === 0) {
+    $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
+    return;
   }
+
+  let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
+  colsMostrar.forEach(col => { html += `<th>${col}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  filteredData.forEach(row => {
+    html += '<tr>';
+    colsMostrar.forEach(col => {
+      html += `<td>${row[col] || ''}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+
+  $tableContainer.html(html).show();
+
+  // Asegura que las otras áreas estén ocultas cuando se muestra esta tabla
+  $resultadoDiv.hide();
+  $('#columnSelector').show();
+  $btnProcesar.show();
+}
+
 
   // Procesar división + ordenamiento
   async function procesarDivision() {
@@ -368,4 +377,4 @@ $(document).ready(function () {
   });
 });
 
-//v. 2.4
+//v. 2.5
