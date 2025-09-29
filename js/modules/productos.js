@@ -148,7 +148,6 @@ function mostrarPantallaResultado(resultado) {
 
   $resultadoDiv.show();
 
-  // Priorizar categorías principales primero
   const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
   const allCategoriasSet = new Set();
 
@@ -156,30 +155,13 @@ function mostrarPantallaResultado(resultado) {
     r.partes.forEach(p => allCategoriasSet.add(p));
   });
 
-  // Separar principales y resto
   const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
   const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
 
-  // Botón agregar categoría
-  const btnAgregar = $('<button class="btn btn-success mb-2">Agregar Categoría a todos</button>');
-  $resultadoDiv.prepend(btnAgregar);
+  // Botón 'Agregar Categoría'
+  const btnAgregarHtml = '<button id="btnAgregarCategoria" class="btn btn-success mb-2">Agregar Categoría a todos</button>';
+  $resultadoDiv.html(btnAgregarHtml + $resultadoDiv.html());
 
-  btnAgregar.on('click', () => {
-    const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
-    if (!nuevaCat || !nuevaCat.trim()) return;
-    // Agregar solo si no está ya
-    filteredData.forEach(row => {
-      let cats = (row['Categorías'] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
-      if (!cats.some(c => c.toLowerCase() === nuevaCat.toLowerCase())) {
-        cats.push(nuevaCat.trim());
-        row['Categorías'] = cats.join(', ');
-      }
-    });
-    // Recalcular resultado con la nueva categoría incluida
-    mostrarPantallaResultado(generarResultadoDesdeDatos());
-  });
-
-  // Construir cabecera con botón eliminar para categorías divididas
   let html = '<thead><tr>';
   colsMostrar.forEach(c => {
     html += `<th>${c}</th>`;
@@ -191,29 +173,33 @@ function mostrarPantallaResultado(resultado) {
 
   filteredData.forEach((row, idx) => {
     html += '<tr>';
-    // columnas a mostrar
     colsMostrar.forEach(c => {
       html += `<td>${row[c] || ''}</td>`;
     });
-
-    // columnas divididas: marcar con X si tiene la categoría
     const categoriasFila = resultado[idx].partes;
     categoriasUnicas.forEach(cat => {
       html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
     });
     html += '</tr>';
   });
-
   html += '</tbody>';
 
   $tablaResultado.html(html);
 
-  // Evento eliminar categoría por columna
-  $('.btnEliminarCat').on('click', function() {
+  // Asignar eventos click para eliminar categoría (botones rojos)
+  $('.btnEliminarCat').off('click').on('click', function() {
     const catEliminar = $(this).data('cat');
     eliminarCategoria(catEliminar);
   });
+
+  // Asignar evento click para agregar categoría (botón verde)
+  $('#btnAgregarCategoria').off('click').on('click', function() {
+    const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
+    if (!nuevaCat || !nuevaCat.trim()) return;
+    agregarCategoria(nuevaCat.trim());
+  });
 }
+
 
 // Genera resultado actualizado desde filteredData (para actualizar tras agregar categorías)
 function generarResultadoDesdeDatos() {
@@ -227,14 +213,23 @@ function generarResultadoDesdeDatos() {
 // Elimina categoría indicada de todas las filas y actualiza la vista
 function eliminarCategoria(categoria) {
   filteredData.forEach(row => {
-    let cats = (row['Categorías'] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+    let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
     cats = cats.filter(c => c.toLowerCase() !== categoria.toLowerCase());
-    row['Categorías'] = cats.join(', ');
+    row[colProcesar] = cats.join(', ');
   });
-  // Recalcular resultado y renderizar tabla resultado actualizada
   mostrarPantallaResultado(generarResultadoDesdeDatos());
 }
 
+function agregarCategoria(categoriaNueva) {
+  filteredData.forEach(row => {
+    let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+    if (!cats.some(c => c.toLowerCase() === categoriaNueva.toLowerCase())) {
+      cats.push(categoriaNueva);
+      row[colProcesar] = cats.join(', ');
+    }
+  });
+  mostrarPantallaResultado(generarResultadoDesdeDatos());
+}
 
   // Botón Volver reinicia la pantalla
   $('#btnVolver').on('click', () => {
@@ -279,4 +274,4 @@ $('#btnFinalizar').on('click', () => {
 });
 
 
-//v. 1.7
+//v. 1.8
