@@ -16,6 +16,32 @@ $(document).ready(function () {
   const $alertas = $('#alertas');
   const $tableContainer = $('#tableContainer');
 
+
+// Al inicio del documento, registro eventos fijos
+$('#btnAgregarCategoria').on('click', () => {
+  const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
+  if (!nuevaCat || !nuevaCat.trim()) return;
+  agregarCategoria(nuevaCat.trim());
+});
+
+$('#btnVolver').on('click', () => {
+  $resultadoDiv.hide();
+  $('#columnSelector').show();
+  $tableContainer.show();
+  $btnProcesar.show();
+  renderTablaMostrar();
+});
+
+$('#btnFinalizar').on('click', () => {
+  $resultadoDiv.hide();
+  $('#columnSelector').show();
+  $tableContainer.show();
+  $btnProcesar.show();
+  renderTablaMostrar();
+  showAlert('Cambios finalizados y aplicados correctamente.', 'success');
+});
+
+
   function showAlert(message, type = 'warning') {
     $alertas.text(message).removeClass('d-none alert-warning alert-danger alert-success')
       .addClass('alert-' + type).show();
@@ -158,10 +184,6 @@ function mostrarPantallaResultado(resultado) {
   const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
   const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
 
-  // Botón 'Agregar Categoría'
-  const btnAgregarHtml = '<button id="btnAgregarCategoria" class="btn btn-success mb-2">Agregar Categoría a todos</button>';
-  $resultadoDiv.html(btnAgregarHtml + $resultadoDiv.html());
-
   let html = '<thead><tr>';
   colsMostrar.forEach(c => {
     html += `<th>${c}</th>`;
@@ -182,23 +204,18 @@ function mostrarPantallaResultado(resultado) {
     });
     html += '</tr>';
   });
+
   html += '</tbody>';
 
-  $tablaResultado.html(html);
+  $('#tablaResultado').html(html);
 
-  // Asignar eventos click para eliminar categoría (botones rojos)
+  // Asignar evento eliminar categoría SOLO para botones recién creados
   $('.btnEliminarCat').off('click').on('click', function() {
     const catEliminar = $(this).data('cat');
     eliminarCategoria(catEliminar);
   });
-
-  // Asignar evento click para agregar categoría (botón verde)
-  $('#btnAgregarCategoria').off('click').on('click', function() {
-    const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
-    if (!nuevaCat || !nuevaCat.trim()) return;
-    agregarCategoria(nuevaCat.trim());
-  });
 }
+
 
 
 // Genera resultado actualizado desde filteredData (para actualizar tras agregar categorías)
@@ -274,4 +291,4 @@ $('#btnFinalizar').on('click', () => {
 });
 
 
-//v. 1.8
+//v. 2
