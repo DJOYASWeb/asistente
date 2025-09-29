@@ -262,4 +262,21 @@ function eliminarCategoria(categoria) {
 });
 
 
-//v. 1.6
+$('#btnFinalizar').on('click', () => {
+  // Guardar cambios en filteredData ya está actualizado con las modificaciones al eliminar/agregar categorias
+  // Si quieres, aquí puedes actualizar la estructura principal o exportar, o simplemente volver al modo selección mostrando la tabla principal actualizada
+
+  // Por ejemplo, ocultar resultado y mostrar selección + tabla principal actualizada
+  $resultadoDiv.hide();
+  $('#columnSelector').show();
+  $tableContainer.show();
+  $btnProcesar.show();
+
+  // Re-renderiza tabla principal con columnas a mostrar actualizadas
+  renderTablaMostrar();
+
+  showAlert('Cambios finalizados y aplicados correctamente.', 'success');
+});
+
+
+//v. 1.7
