@@ -1,3 +1,4 @@
+
 // productos.js
 $(document).ready(function () {
   let originalData = [];
@@ -69,10 +70,12 @@ $(document).ready(function () {
   function renderTable() {
     if (dataTableInstance) {
       dataTableInstance.destroy();
+      dataTableInstance = null;
     }
     if (filteredData.length === 0) {
       $tableContainer.html('<p>No hay datos para mostrar.</p>');
       $btnExport.addClass('d-none');
+      $('#btnDividirCategorias').remove();
       return;
     }
     const headers = selectedColumns;
@@ -98,6 +101,19 @@ $(document).ready(function () {
       ]
     });
     $btnExport.removeClass('d-none');
+
+    // Botón para dividir Categorías si está seleccionada la columna
+    if (selectedColumns.includes('Categorías')) {
+      if ($('#btnDividirCategorias').length === 0) { // evitar duplicados
+        $tableContainer.append('<button id="btnDividirCategorias" class="btn btn-info mt-3">Dividir Categorías</button>');
+        $('#btnDividirCategorias').on('click', () => {
+          dividirCategoriasYCargarTablaAux(filteredData);
+        });
+      }
+    } else {
+      $('#btnDividirCategorias').remove();
+      $('#tablaCategoriasAux').parent().remove();
+    }
   }
 
   function applyFilter() {
@@ -142,30 +158,87 @@ $(document).ready(function () {
     saveAs(blob, "productos_modificado.xlsx");
   }
 
-  // Busqueda/agregado/eliminacion masiva en Categorías
-  function editCategoriasMasivo() {
-    const buscarTxt = prompt("Ingrese texto a buscar en Categorías:");
-    if (!buscarTxt) return;
-    const elimSi = confirm(`¿Desea eliminar el texto "${buscarTxt}" de todas las Categorías? \n(Si: eliminar, No: agregar)`);
-    commitTableEdits();
-    filteredData.forEach(row => {
-      let cat = row['Categorías'] || '';
-      if (elimSi) {
-        // Eliminar texto (caso insensible)
-        const regex = new RegExp(buscarTxt, 'gi');
-        cat = cat.replace(regex, '').replace(/(,\s*){2,}/g, ', ').trim();
-        // Limpia comas dobles o espacios extras
-        cat = cat.replace(/(^,)|(,$)/g, '').trim();
-      } else {
-        // Agregar texto al final, si no existe ya
-        if (cat.toLowerCase().indexOf(buscarTxt.toLowerCase()) === -1) {
-          if (cat) cat += ', ';
-          cat += buscarTxt;
-        }
-      }
-      row['Categorías'] = cat;
+  // División y selección masiva de Categorías
+  function dividirCategoriasYCargarTablaAux(data, columnaCategorias = 'Categorías') {
+    // Extraer todas las categorías únicas para generar columnas
+    const categoriasSet = new Set();
+    data.forEach(row => {
+      const cats = (row[columnaCategorias] || '').split(',').map(c => c.trim()).filter(c => c != '');
+      cats.forEach(c => categoriasSet.add(c));
     });
+
+    const categoriasUnicas = Array.from(categoriasSet).sort();
+
+    // Crear estructura HTML para la tabla auxiliar con checkboxes para eliminar
+    let html = '<div class="mt-3"><p><strong>División y selección masiva de Categorías:</strong></p>';
+    html += '<table id="tablaCategoriasAux" class="table table-bordered table-sm">';
+    html += '<thead><tr><th>Producto (Nombre)</th>';
+
+    categoriasUnicas.forEach(cat => {
+      html += `<th>${cat}</th>`;
+    });
+
+    html += '</tr></thead><tbody>';
+
+    data.forEach(row => {
+      const cats = (row[columnaCategorias] || '').split(',').map(c => c.trim());
+      html += `<tr><td>${row['Nombre'] || ''}</td>`;
+      categoriasUnicas.forEach(cat => {
+        const tieneCat = cats.includes(cat);
+        html += `<td class="text-center">`;
+        if(tieneCat) {
+          html += `<input type="checkbox" class="elim-cat-check" data-producto="${row['Nombre'] || ''}" data-categoria="${cat}">`;
+        } else {
+          html += '';
+        }
+        html += `</td>`;
+      });
+      html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    html += `<button id="btnProcesarEliminacion" class="btn btn-danger mt-2">Procesar Eliminación de Categorías Seleccionadas</button>`;
+    html += '</div>';
+
+    // Añadir debajo de la tabla principal
+    $('#tableContainer').after(html);
+
+    $('#btnProcesarEliminacion').on('click', () => {
+      procesarEliminacionCategorias(data, categoriasUnicas);
+    });
+  }
+
+  // Procesar eliminación masiva en Categorías y actualizar tabla principal
+  function procesarEliminacionCategorias(data, categoriasUnicas) {
+    // Obtener categorías a eliminar por producto
+    const categoriasAEliminarPorProducto = {};
+
+    $('.elim-cat-check:checked').each(function() {
+      const producto = $(this).data('producto');
+      const categoria = $(this).data('categoria');
+      if (!categoriasAEliminarPorProducto[producto]) {
+        categoriasAEliminarPorProducto[producto] = new Set();
+      }
+      categoriasAEliminarPorProducto[producto].add(categoria);
+    });
+
+    // Actualizar data eliminando categorías seleccionadas
+    data.forEach(row => {
+      const nombre = row['Nombre'] || '';
+      let cats = (row['Categorías'] || '').split(',').map(c => c.trim()).filter(c => c !== '');
+      if (categoriasAEliminarPorProducto[nombre]) {
+        cats = cats.filter(cat => !categoriasAEliminarPorProducto[nombre].has(cat));
+      }
+      row['Categorías'] = cats.join(', ');
+    });
+
+    // Re-renderizar tabla principal con Categorías actualizadas
     renderTable();
+
+    // Remover tabla auxiliar y botón
+    $('#tablaCategoriasAux').parent().remove();
+
+    showAlert('Categorías eliminadas masivamente y tabla actualizada.', 'success');
   }
 
   // Eventos
@@ -183,11 +256,37 @@ $(document).ready(function () {
     exportExcel();
   });
 
-  // Añadimos botón para edición masiva categorías
+  // Botón extra para editar categorías masivamente (original)
   $columnSelector.append(`
     <button id="btnEditMasivo" class="btn btn-warning mt-3">Editar Categorías Masivamente</button>
   `);
   $('#btnEditMasivo').on('click', () => {
     editCategoriasMasivo();
   });
+
+  // Función original para edición masiva rápida por texto (deje para compatibilidad)
+  function editCategoriasMasivo() {
+    const buscarTxt = prompt("Ingrese texto a buscar en Categorías:");
+    if (!buscarTxt) return;
+    const elimSi = confirm(`¿Desea eliminar el texto "${buscarTxt}" de todas las Categorías? \n(Si: eliminar, No: agregar)`);
+    commitTableEdits();
+    filteredData.forEach(row => {
+      let cat = row['Categorías'] || '';
+      if (elimSi) {
+        const regex = new RegExp(buscarTxt, 'gi');
+        cat = cat.replace(regex, '').replace(/(,\s*){2,}/g, ', ').trim();
+        cat = cat.replace(/(^,)|(,$)/g, '').trim();
+      } else {
+        if (cat.toLowerCase().indexOf(buscarTxt.toLowerCase()) === -1) {
+          if (cat) cat += ', ';
+          cat += buscarTxt;
+        }
+      }
+      row['Categorías'] = cat;
+    });
+    renderTable();
+  }
 });
+
+
+//v.1
