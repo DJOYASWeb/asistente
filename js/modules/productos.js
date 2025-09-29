@@ -16,31 +16,30 @@ $(document).ready(function () {
   const $alertas = $('#alertas');
   const $tableContainer = $('#tableContainer');
 
+  // Al inicio del documento, registro eventos fijos
+  $('#btnAgregarCategoria').on('click', () => {
+    const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
+    if (!nuevaCat || !nuevaCat.trim()) return;
+    agregarCategoria(nuevaCat.trim());
+  });
 
-// Al inicio del documento, registro eventos fijos
-$('#btnAgregarCategoria').on('click', () => {
-  const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
-  if (!nuevaCat || !nuevaCat.trim()) return;
-  agregarCategoria(nuevaCat.trim());
-});
+  $('#btnVolver').on('click', () => {
+    $resultadoDiv.hide();
+    $('#columnSelector').show();
+    $tableContainer.show();
+    $btnProcesar.show();
+    $btnProcesar.prop('disabled', !(colsMostrar.length > 0 && colProcesar));
+    renderTablaMostrar();
+  });
 
-$('#btnVolver').on('click', () => {
-  $resultadoDiv.hide();
-  $('#columnSelector').show();
-  $tableContainer.show();
-  $btnProcesar.show();
-  renderTablaMostrar();
-});
-
-$('#btnFinalizar').on('click', () => {
-  $resultadoDiv.hide();
-  $('#columnSelector').show();
-  $tableContainer.show();
-  $btnProcesar.show();
-  renderTablaMostrar();
-  showAlert('Cambios finalizados y aplicados correctamente.', 'success');
-});
-
+  $('#btnFinalizar').on('click', () => {
+    $resultadoDiv.hide();
+    $('#columnSelector').show();
+    $tableContainer.show();
+    $btnProcesar.show();
+    renderTablaMostrar();
+    showAlert('Cambios finalizados y aplicados correctamente.', 'success');
+  });
 
   function showAlert(message, type = 'warning') {
     $alertas.text(message).removeClass('d-none alert-warning alert-danger alert-success')
@@ -167,95 +166,84 @@ $('#btnFinalizar').on('click', () => {
     mostrarPantallaResultado(resultado);
   }
 
-function mostrarPantallaResultado(resultado) {
-  $('#columnSelector').hide();
-  $tableContainer.hide();
-  $btnProcesar.hide();
+  function mostrarPantallaResultado(resultado) {
+    $('#columnSelector').hide();
+    $tableContainer.hide();
+    $btnProcesar.hide();
 
-  $resultadoDiv.show();
+    $resultadoDiv.show();
 
-  const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
-  const allCategoriasSet = new Set();
+    const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
+    const allCategoriasSet = new Set();
 
-  resultado.forEach(r => {
-    r.partes.forEach(p => allCategoriasSet.add(p));
-  });
+    resultado.forEach(r => {
+      r.partes.forEach(p => allCategoriasSet.add(p));
+    });
 
-  const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
-  const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
+    const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
+    const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
 
-  let html = '<thead><tr>';
-  colsMostrar.forEach(c => {
-    html += `<th>${c}</th>`;
-  });
-  categoriasUnicas.forEach(cat => {
-    html += `<th>${cat} <button class="btn btn-sm btn-danger btnEliminarCat" data-cat="${cat}" style="margin-left:5px;">Eliminar</button></th>`;
-  });
-  html += '</tr></thead><tbody>';
-
-  filteredData.forEach((row, idx) => {
-    html += '<tr>';
+    let html = '<thead><tr>';
     colsMostrar.forEach(c => {
-      html += `<td>${row[c] || ''}</td>`;
+      html += `<th>${c}</th>`;
     });
-    const categoriasFila = resultado[idx].partes;
     categoriasUnicas.forEach(cat => {
-      html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
+      html += `<th>${cat} <button class="btn btn-sm btn-danger btnEliminarCat" data-cat="${cat}" style="margin-left:5px;">Eliminar</button></th>`;
     });
-    html += '</tr>';
-  });
+    html += '</tr></thead><tbody>';
 
-  html += '</tbody>';
+    filteredData.forEach((row, idx) => {
+      html += '<tr>';
+      colsMostrar.forEach(c => {
+        html += `<td>${row[c] || ''}</td>`;
+      });
+      const categoriasFila = resultado[idx].partes;
+      categoriasUnicas.forEach(cat => {
+        html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
+      });
+      html += '</tr>';
+    });
 
-  $('#tablaResultado').html(html);
+    html += '</tbody>';
 
-  // Asignar evento eliminar categoría SOLO para botones recién creados
-  $('.btnEliminarCat').off('click').on('click', function() {
-    const catEliminar = $(this).data('cat');
-    eliminarCategoria(catEliminar);
-  });
-}
+    $tablaResultado.html(html);
 
+    // Asignar evento eliminar categoría SOLO para botones recién creados
+    $('.btnEliminarCat').off('click').on('click', function() {
+      const catEliminar = $(this).data('cat');
+      eliminarCategoria(catEliminar);
+    });
+  }
 
+  // Genera resultado actualizado desde filteredData (para actualizar tras agregar categorías)
+  function generarResultadoDesdeDatos() {
+    return filteredData.map(row => {
+      const valor = (row[colProcesar] || '').toString();
+      const partes = valor.split(',').map(p => p.trim()).filter(p => p.length > 0);
+      return { partes };
+    });
+  }
 
-// Genera resultado actualizado desde filteredData (para actualizar tras agregar categorías)
-function generarResultadoDesdeDatos() {
-  return filteredData.map(row => {
-    const valor = (row[colProcesar] || '').toString();
-    const partes = valor.split(',').map(p => p.trim()).filter(p => p.length > 0);
-    return { partes };
-  });
-}
-
-// Elimina categoría indicada de todas las filas y actualiza la vista
-function eliminarCategoria(categoria) {
-  filteredData.forEach(row => {
-    let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
-    cats = cats.filter(c => c.toLowerCase() !== categoria.toLowerCase());
-    row[colProcesar] = cats.join(', ');
-  });
-  mostrarPantallaResultado(generarResultadoDesdeDatos());
-}
-
-function agregarCategoria(categoriaNueva) {
-  filteredData.forEach(row => {
-    let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
-    if (!cats.some(c => c.toLowerCase() === categoriaNueva.toLowerCase())) {
-      cats.push(categoriaNueva);
+  // Elimina categoría indicada de todas las filas y actualiza la vista
+  function eliminarCategoria(categoria) {
+    filteredData.forEach(row => {
+      let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+      cats = cats.filter(c => c.toLowerCase() !== categoria.toLowerCase());
       row[colProcesar] = cats.join(', ');
-    }
-  });
-  mostrarPantallaResultado(generarResultadoDesdeDatos());
-}
+    });
+    mostrarPantallaResultado(generarResultadoDesdeDatos());
+  }
 
-  // Botón Volver reinicia la pantalla
-  $('#btnVolver').on('click', () => {
-    $resultadoDiv.hide();
-    $('#columnSelector').show();
-    $tableContainer.show();
-    $btnProcesar.show();
-    $btnProcesar.prop('disabled', !(colsMostrar.length > 0 && colProcesar));
-  });
+  function agregarCategoria(categoriaNueva) {
+    filteredData.forEach(row => {
+      let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
+      if (!cats.some(c => c.toLowerCase() === categoriaNueva.toLowerCase())) {
+        cats.push(categoriaNueva);
+        row[colProcesar] = cats.join(', ');
+      }
+    });
+    mostrarPantallaResultado(generarResultadoDesdeDatos());
+  }
 
   // Eventos
   $fileInput.on('change', e => {
@@ -274,21 +262,4 @@ function agregarCategoria(categoriaNueva) {
 });
 
 
-$('#btnFinalizar').on('click', () => {
-  // Guardar cambios en filteredData ya está actualizado con las modificaciones al eliminar/agregar categorias
-  // Si quieres, aquí puedes actualizar la estructura principal o exportar, o simplemente volver al modo selección mostrando la tabla principal actualizada
-
-  // Por ejemplo, ocultar resultado y mostrar selección + tabla principal actualizada
-  $resultadoDiv.hide();
-  $('#columnSelector').show();
-  $tableContainer.show();
-  $btnProcesar.show();
-
-  // Re-renderiza tabla principal con columnas a mostrar actualizadas
-  renderTablaMostrar();
-
-  showAlert('Cambios finalizados y aplicados correctamente.', 'success');
-});
-
-
-//v. 2
+//v. 2.1
