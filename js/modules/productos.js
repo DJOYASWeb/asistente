@@ -1,17 +1,18 @@
-
-// productos.js
 $(document).ready(function () {
   let originalData = [];
   let filteredData = [];
-  let selectedColumns = [];
-  let dataTableInstance = null;
-  
+  let colsMostrar = [];
+  let colProcesar = null;
+
+  // Referencias jQuery a contenedores y botones
   const $fileInput = $('#excelFile');
-  const $columnSelector = $('#columnSelector');
-  const $tableContainer = $('#tableContainer');
-  const $filterSection = $('#filterSection');
-  const $filterInput = $('#filterInput');
-  const $btnExport = $('#btnExport');
+  const $colsMostrarDiv = $('#colsMostrar');
+  const $colsProcesarDiv = $('#colsProcesar');
+  const $btnProcesar = $('#btnProcesar');
+  const $progressBar = $('#progressBar');
+  const $progressBarFill = $progressBar.find('.progress-bar');
+  const $resultadoDiv = $('#resultadoDiv');
+  const $tablaResultado = $('#tablaResultado');
   const $alertas = $('#alertas');
 
   function showAlert(message, type = 'warning') {
@@ -36,213 +37,163 @@ $(document).ready(function () {
       }
       originalData = jsonData;
       filteredData = [...originalData];
-      setupColumnSelector(Object.keys(jsonData[0]));
-      $filterSection.removeClass('d-none');
-      $btnExport.addClass('d-none');
-      renderTable();
+      setupColumnSelectors(Object.keys(jsonData[0]));
+      renderTablaMostrar();
+      $btnProcesar.prop('disabled', true);
     };
     reader.readAsArrayBuffer(file);
   }
 
-  function setupColumnSelector(columns) {
-    $columnSelector.empty();
-    $columnSelector.append('<p><strong>Selecciona columnas a mostrar:</strong></p>');
+  // Prepara checkboxes y radios para columnas
+  function setupColumnSelectors(columns) {
+    $colsMostrarDiv.empty();
+    $colsProcesarDiv.empty();
+
     columns.forEach(col => {
-      const id = 'col_' + col.replace(/\W/g, '');
-      const checkbox = $('<input>', {
-        type: 'checkbox',
-        id,
-        class: 'col-select',
-        checked: true,
-        value: col,
-      });
-      const label = $('<label>', {for: id, text: ' ' + col});
-      $columnSelector.append(checkbox).append(label).append('<br>');
+      // Checkbox para columnas a mostrar
+      const idMostrar = 'mostrar_' + col.replace(/\W/g, '');
+      const checkbox = $(`<input type="checkbox" id="${idMostrar}" value="${col}" checked>`);
+      const label = $(`<label for="${idMostrar}"> ${col}</label><br>`);
+      $colsMostrarDiv.append(checkbox).append(label);
 
-      checkbox.on('change', () => {
-        selectedColumns = $('.col-select:checked').map(function () {return this.value}).get();
-        renderTable();
-      });
+      // Radio para columna a procesar (solo uno)
+      const idProcesar = 'procesar_' + col.replace(/\W/g, '');
+      const radio = $(`<input type="radio" name="colProcesar" id="${idProcesar}" value="${col}">`);
+      const labelRadio = $(`<label for="${idProcesar}"> ${col}</label><br>`);
+      $colsProcesarDiv.append(radio).append(labelRadio);
     });
-    selectedColumns = [...columns];
-  }
 
-
-function renderTable() {
-  console.log('renderTable ejecutado'); // LOG para verificar ejecución
-
-  if (dataTableInstance) {
-    dataTableInstance.destroy();
-    dataTableInstance = null;
-  }
-  if (filteredData.length === 0) {
-    $tableContainer.html('<p>No hay datos para mostrar.</p>');
-    $btnExport.addClass('d-none');
-    $('#btnDividirCategorias').remove();
-    return;
-  }
-  const headers = selectedColumns;
-  let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
-  headers.forEach(h => { html += `<th>${h}</th>`; });
-  html += '</tr></thead><tbody>';
-  filteredData.forEach(row => {
-    html += '<tr>';
-    headers.forEach(h => {
-      html += `<td contenteditable="true" data-col="${h}">${row[h]}</td>`;
+    // Eventos para actualizar variables al cambiar selección
+    $colsMostrarDiv.find('input[type=checkbox]').on('change', () => {
+      colsMostrar = $colsMostrarDiv.find('input[type=checkbox]:checked').map(function() {
+        return $(this).val();
+      }).get();
+      renderTablaMostrar();
+      validateProcesarBtn();
     });
-    html += '</tr>';
-  });
-  html += '</tbody></table>';
-  $tableContainer.html(html);
 
-  dataTableInstance = $('#productosTable').DataTable({
-    lengthMenu: [10, 25, 50, 100],
-    pageLength: 25,
-    scrollX: true,
-    columnDefs: [
-      { targets: '_all', className: 'dt-head-center dt-body-center' }
-    ]
-  });
-  $btnExport.removeClass('d-none');
+    $colsProcesarDiv.find('input[type=radio]').on('change', () => {
+      const val = $colsProcesarDiv.find('input[type=radio]:checked').val();
+      colProcesar = val || null;
+      validateProcesarBtn();
+    });
 
-  // Crear botón si no existe
-  if ($('#btnDividirCategorias').length === 0) {
-    $tableContainer.append('<button id="btnDividirCategorias" class="btn btn-info mt-3">Dividir Categorías</button>');
+    // Inicializo variables
+    colsMostrar = columns.slice();
+    colProcesar = null;
   }
 
-  // Usar delegación para el click en botón dinámico
-  $tableContainer.off('click', '#btnDividirCategorias').on('click', '#btnDividirCategorias', () => {
-    dividirCategoriasYCargarTablaAux(filteredData);
-  });
-}
+  // Habilita boton Procesar si hay al menos una columna para mostrar y una para procesar
+  function validateProcesarBtn() {
+    $btnProcesar.prop('disabled', !(colsMostrar.length > 0 && colProcesar));
+  }
 
-
-
-
-  function applyFilter() {
-    const filterValue = $filterInput.val().toLowerCase();
-    if (!filterValue) {
-      filteredData = [...originalData];
-    } else {
-      filteredData = originalData.filter(row => {
-        const cat = (row['Categorías'] || '').toString().toLowerCase();
-        return cat.includes(filterValue);
-      });
+  // Renderiza tabla con columnas seleccionadas para mostrar
+  function renderTablaMostrar() {
+    if (filteredData.length === 0) {
+      $tableContainer.html('<p>No hay datos para mostrar.</p>');
+      return;
     }
-    renderTable();
-  }
 
-  function commitTableEdits() {
-    // Actualiza filteredData con las modificaciones hechas en celdas contenteditable
-    $('#productosTable tbody tr').each(function (rowIndex) {
-      const rowData = filteredData[rowIndex];
-      $(this).find('td').each(function () {
-        const col = $(this).data('col');
-        rowData[col] = $(this).text().trim();
+    let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
+    colsMostrar.forEach(col => { html += `<th>${col}</th>`; });
+    html += '</tr></thead><tbody>';
+    filteredData.forEach(row => {
+      html += '<tr>';
+      colsMostrar.forEach(col => {
+        html += `<td>${row[col] || ''}</td>`;
       });
+      html += '</tr>';
     });
+    html += '</tbody></table>';
+
+    $tableContainer.html(html);
   }
 
-  function exportExcel() {
-    commitTableEdits();
-    // Reconstruir los datos originales con cambios aplicados a fila filtradas
-    filteredData.forEach((row, index) => {
-      const originalIndex = originalData.findIndex(r => r.ID_Producto === row.ID_Producto);
-      if (originalIndex > -1) {
-        originalData[originalIndex] = {...row};
-      }
-    });
-    // Crear worksheet
-    const ws = XLSX.utils.json_to_sheet(originalData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Productos");
-    const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
-    const blob = new Blob([wbout], {type:"application/octet-stream"});
-    saveAs(blob, "productos_modificado.xlsx");
+  // Función para procesar columna seleccionada: dividir y mostrar resultado con barra progreso
+  async function procesarDivision() {
+    $btnProcesar.prop('disabled', true);
+    $progressBar.show();
+    $progressBarFill.css('width', '0%').text('0%');
+
+    // Dividir para cada fila la columna a procesar
+    const total = filteredData.length;
+    const resultado = [];
+
+    for(let i=0; i < total; i++) {
+      const fila = filteredData[i];
+      const valor = (fila[colProcesar] || '').toString();
+      const partes = valor.split(',').map(p => p.trim()).filter(p => p.length > 0);
+      resultado.push({
+        filaIndex: i,
+        partes
+      });
+
+      // Actualizar barra progreso
+      const porcentaje = Math.round(((i + 1) / total) * 100);
+      $progressBarFill.css('width', porcentaje + '%').text(porcentaje + '%');
+      await new Promise(r => setTimeout(r, 5)); // pequeña pausa para visualización fluida
+    }
+
+    $progressBar.hide();
+
+    mostrarPantallaResultado(resultado);
   }
 
-  // División y selección masiva de Categorías
-  function dividirCategoriasYCargarTablaAux(data, columnaCategorias = 'Categorías') {
-    // Extraer todas las categorías únicas para generar columnas
-    const categoriasSet = new Set();
-    data.forEach(row => {
-      const cats = (row[columnaCategorias] || '').split(',').map(c => c.trim()).filter(c => c != '');
-      cats.forEach(c => categoriasSet.add(c));
+  // Muestra pantalla Resultado con tabla final dividida
+  function mostrarPantallaResultado(resultado) {
+    $('#columnSelector').hide();
+    $tableContainer.hide();
+    $btnProcesar.hide();
+
+    $resultadoDiv.show();
+
+    // Construir cabecera resultado: columnas a mostrar + columnas divididas
+    const allCategoriasSet = new Set();
+
+    resultado.forEach(r => {
+      r.partes.forEach(p => allCategoriasSet.add(p));
     });
 
-    const categoriasUnicas = Array.from(categoriasSet).sort();
+    const categoriasUnicas = Array.from(allCategoriasSet);
 
-    // Crear estructura HTML para la tabla auxiliar con checkboxes para eliminar
-    let html = '<div class="mt-3"><p><strong>División y selección masiva de Categorías:</strong></p>';
-    html += '<table id="tablaCategoriasAux" class="table table-bordered table-sm">';
-    html += '<thead><tr><th>Producto (Nombre)</th>';
-
-    categoriasUnicas.forEach(cat => {
-      html += `<th>${cat}</th>`;
+    let html = '<thead><tr>';
+    colsMostrar.forEach(c => {
+      html += `<th>${c}</th>`;
     });
-
+    categoriasUnicas.forEach(c => {
+      html += `<th>${c}</th>`;
+    });
     html += '</tr></thead><tbody>';
 
-    data.forEach(row => {
-      const cats = (row[columnaCategorias] || '').split(',').map(c => c.trim());
-      html += `<tr><td>${row['Nombre'] || ''}</td>`;
+    filteredData.forEach((row, idx) => {
+      html += '<tr>';
+      // columnas a mostrar
+      colsMostrar.forEach(c => {
+        html += `<td>${row[c] || ''}</td>`;
+      });
+
+      // columnas divididas: marca con X si esa categoría pertenece a la fila
+      const categoriasFila = resultado[idx].partes;
       categoriasUnicas.forEach(cat => {
-        const tieneCat = cats.includes(cat);
-        html += `<td class="text-center">`;
-        if(tieneCat) {
-          html += `<input type="checkbox" class="elim-cat-check" data-producto="${row['Nombre'] || ''}" data-categoria="${cat}">`;
-        } else {
-          html += '';
-        }
-        html += `</td>`;
+        html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
       });
       html += '</tr>';
     });
 
-    html += '</tbody></table>';
-    html += `<button id="btnProcesarEliminacion" class="btn btn-danger mt-2">Procesar Eliminación de Categorías Seleccionadas</button>`;
-    html += '</div>';
+    html += '</tbody>';
 
-    // Añadir debajo de la tabla principal
-    $('#tableContainer').after(html);
-
-    $('#btnProcesarEliminacion').on('click', () => {
-      procesarEliminacionCategorias(data, categoriasUnicas);
-    });
+    $tablaResultado.html(html);
   }
 
-  // Procesar eliminación masiva en Categorías y actualizar tabla principal
-  function procesarEliminacionCategorias(data, categoriasUnicas) {
-    // Obtener categorías a eliminar por producto
-    const categoriasAEliminarPorProducto = {};
-
-    $('.elim-cat-check:checked').each(function() {
-      const producto = $(this).data('producto');
-      const categoria = $(this).data('categoria');
-      if (!categoriasAEliminarPorProducto[producto]) {
-        categoriasAEliminarPorProducto[producto] = new Set();
-      }
-      categoriasAEliminarPorProducto[producto].add(categoria);
-    });
-
-    // Actualizar data eliminando categorías seleccionadas
-    data.forEach(row => {
-      const nombre = row['Nombre'] || '';
-      let cats = (row['Categorías'] || '').split(',').map(c => c.trim()).filter(c => c !== '');
-      if (categoriasAEliminarPorProducto[nombre]) {
-        cats = cats.filter(cat => !categoriasAEliminarPorProducto[nombre].has(cat));
-      }
-      row['Categorías'] = cats.join(', ');
-    });
-
-    // Re-renderizar tabla principal con Categorías actualizadas
-    renderTable();
-
-    // Remover tabla auxiliar y botón
-    $('#tablaCategoriasAux').parent().remove();
-
-    showAlert('Categorías eliminadas masivamente y tabla actualizada.', 'success');
-  }
+  // Botón Volver reinicia la pantalla
+  $('#btnVolver').on('click', () => {
+    $resultadoDiv.hide();
+    $('#columnSelector').show();
+    $tableContainer.show();
+    $btnProcesar.show();
+    $btnProcesar.prop('disabled', !(colsMostrar.length > 0 && colProcesar));
+  });
 
   // Eventos
   $fileInput.on('change', e => {
@@ -251,45 +202,14 @@ function renderTable() {
     readExcel(file);
   });
 
-  $filterInput.on('input', () => {
-    applyFilter();
+  $btnProcesar.on('click', () => {
+    if (!colProcesar) {
+      alert('Por favor selecciona una columna a procesar.');
+      return;
+    }
+    procesarDivision();
   });
-
-  $btnExport.on('click', () => {
-    exportExcel();
-  });
-
-  // Botón extra para editar categorías masivamente (original)
-  $columnSelector.append(`
-    <button id="btnEditMasivo" class="btn btn-warning mt-3">Editar Categorías Masivamente</button>
-  `);
-  $('#btnEditMasivo').on('click', () => {
-    editCategoriasMasivo();
-  });
-
-  // Función original para edición masiva rápida por texto (deje para compatibilidad)
-  function editCategoriasMasivo() {
-    const buscarTxt = prompt("Ingrese texto a buscar en Categorías:");
-    if (!buscarTxt) return;
-    const elimSi = confirm(`¿Desea eliminar el texto "${buscarTxt}" de todas las Categorías? \n(Si: eliminar, No: agregar)`);
-    commitTableEdits();
-    filteredData.forEach(row => {
-      let cat = row['Categorías'] || '';
-      if (elimSi) {
-        const regex = new RegExp(buscarTxt, 'gi');
-        cat = cat.replace(regex, '').replace(/(,\s*){2,}/g, ', ').trim();
-        cat = cat.replace(/(^,)|(,$)/g, '').trim();
-      } else {
-        if (cat.toLowerCase().indexOf(buscarTxt.toLowerCase()) === -1) {
-          if (cat) cat += ', ';
-          cat += buscarTxt;
-        }
-      }
-      row['Categorías'] = cat;
-    });
-    renderTable();
-  }
 });
 
 
-//v. 1.2
+//v. 1.4

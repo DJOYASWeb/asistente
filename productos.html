@@ -69,7 +69,32 @@
 
         <div id="alertas" class="alert alert-warning d-none"></div>
 
-        <div id="columnSelector" class="my-3"></div>
+<div id="columnSelector" class="my-3">
+  <div>
+    <p><strong>Columnas a mostrar:</strong></p>
+    <div id="colsMostrar" class="mb-3"></div>
+  </div>
+  <div>
+    <p><strong>Columna a procesar (selección única):</strong></p>
+    <div id="colsProcesar"></div>
+  </div>
+  <button id="btnProcesar" class="btn btn-primary mt-3" disabled>Procesar</button>
+
+  <div id="progressBar" class="progress mt-3" style="height: 20px; display:none;">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+         role="progressbar" style="width: 0%;" 
+         aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
+</div>
+
+<div id="resultadoDiv" class="mt-4" style="display:none;">
+  <h4>Resultado:</h4>
+  <div class="table-responsive scroll-x">
+    <table id="tablaResultado" class="table table-bordered"></table>
+  </div>
+  <button id="btnVolver" class="btn btn-secondary mt-3">Volver</button>
+</div>
+
 
         <div id="filterSection" class="my-3 d-none">
           <label for="filterInput" class="form-label">Filtrar por Categoría:</label>
