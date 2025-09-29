@@ -344,6 +344,16 @@ function sql_productos(){
     )`);
   }
 
+  // Filtro: lista de IDs
+const idsVal = $("#pro_ids")?.value.trim();
+if(idsVal){
+  // normalizamos separadores (coma, salto de línea, espacio)
+  const ids = idsVal.split(/[\s,;]+/).map(x=>parseInt(x,10)).filter(x=>!isNaN(x));
+  if(ids.length){
+    where.push(`productos.id_product IN (${ids.join(",")})`);
+  }
+}
+
   // Filtro: Marca
   const marcaEl = $("#pro_marca");
   if(marcaEl && marcaEl.value){
@@ -577,4 +587,4 @@ renderCampos();
 attachMain();
 updateSteps();
 
-//V2.5
+//V2.6
