@@ -4,7 +4,107 @@ $(document).ready(function () {
   let colsMostrar = [];
   let colProcesar = null;
 
-  // Referencias jQuery a contenedores y botones
+  // Mapeo completo categoría -> tipo y orden exacto según tu lista
+  const tipoOrden = {
+    "Joyas de plata por mayor": { tipo: "Principal", orden: 1 },
+    "ENCHAPADO": { tipo: "Principal", orden: 2 },
+    "Accesorios": { tipo: "Principal", orden: 3 },
+    "Insumos": { tipo: "Categoría", orden: 4 },
+    "Anillos de Plata": { tipo: "Categoría", orden: 5 },
+    "Aros de Plata": { tipo: "Categoría", orden: 6 },
+    "Pulseras de Plata": { tipo: "Categoría", orden: 7 },
+    "Conjuntos de Plata": { tipo: "Categoría", orden: 8 },
+    "Colgantes de Plata": { tipo: "Categoría", orden: 9 },
+    "Cadenas de Plata": { tipo: "Categoría", orden: 10 },
+    "Infantil Plata": { tipo: "Categoría", orden: 11 },
+    "Collares de Plata": { tipo: "Categoría", orden: 12 },
+    "Tobilleras de Plata": { tipo: "Categoría", orden: 13 },
+    "Swarovski Elements": { tipo: "Categoría", orden: 14 },
+    "Hombre": { tipo: "Categoría", orden: 15 },
+    "Pack de Joyas": { tipo: "Categoría", orden: 16 },
+    "Insumos de Plata": { tipo: "Categoría", orden: 17 },
+    "Aros Enchapado": { tipo: "Categoría", orden: 18 },
+    "Anillos Enchapado": { tipo: "Categoría", orden: 19 },
+    "Pulseras Enchapado": { tipo: "Categoría", orden: 20 },
+    "Cadenas Enchapado": { tipo: "Categoría", orden: 21 },
+    "Colgantes Enchapado": { tipo: "Categoría", orden: 22 },
+    "Infantil enchapado": { tipo: "Categoría", orden: 23 },
+    "Collares Enchapado": { tipo: "Categoría", orden: 24 },
+    "Conjuntos Enchapado": { tipo: "Categoría", orden: 25 },
+    "Tobilleras Enchapado": { tipo: "Categoría", orden: 26 },
+    "Insumos Enchapados": { tipo: "Categoría", orden: 27 },
+    "Sin valor": { tipo: "Categoría", orden: 28 },
+    // SubCategorías
+    "Circón": { tipo: "SubCategoría", orden: 29 },
+    "Anillos de Plata Lisa": { tipo: "SubCategoría", orden: 30 },
+    "Anillo Circón": { tipo: "SubCategoría", orden: 31 },
+    "Anillo con Micro Circón": { tipo: "SubCategoría", orden: 32 },
+    "Anillo Lapidado": { tipo: "SubCategoría", orden: 33 },
+    "Anillo Marquesita": { tipo: "SubCategoría", orden: 34 },
+    "Anillo Plata con Oro": { tipo: "SubCategoría", orden: 35 },
+    "Anillo MIDI Falange": { tipo: "SubCategoría", orden: 36 },
+    "Anillos de Compromiso": { tipo: "SubCategoría", orden: 37 },
+    "Anillos de Hombres": { tipo: "SubCategoría", orden: 38 },
+    "Anillo Piedra Natural": { tipo: "SubCategoría", orden: 39 },
+    "Aros de Plata Largos": { tipo: "SubCategoría", orden: 40 },
+    "Aros Circón Largo": { tipo: "SubCategoría", orden: 41 },
+    "Aros Marquesita": { tipo: "SubCategoría", orden: 42 },
+    "Aros de Perla": { tipo: "SubCategoría", orden: 43 },
+    "Aros Lapidado": { tipo: "SubCategoría", orden: 44 },
+    "Aros Mapuches": { tipo: "SubCategoría", orden: 45 },
+    "Aros Swarovski Elements": { tipo: "SubCategoría", orden: 46 },
+    "Aro de Plata Pegados": { tipo: "SubCategoría", orden: 47 },
+    "Argollas": { tipo: "SubCategoría", orden: 48 },
+    "Argollas con Colgantes": { tipo: "SubCategoría", orden: 49 },
+    "Aro Circón Pegados": { tipo: "SubCategoría", orden: 50 },
+    "Aros Piedra Natural": { tipo: "SubCategoría", orden: 51 },
+    "Aros Trepadores y Cuff": { tipo: "SubCategoría", orden: 52 },
+    "Piercing": { tipo: "SubCategoría", orden: 53 },
+    "Pulsera de Hombre": { tipo: "SubCategoría", orden: 54 },
+    "Pulsera de Plata": { tipo: "SubCategoría", orden: 55 },
+    "Pulsera Macramé Hilo": { tipo: "SubCategoría", orden: 56 },
+    "Pulsera con Piedra": { tipo: "SubCategoría", orden: 57 },
+    "Pulsera con Circón": { tipo: "SubCategoría", orden: 58 },
+    "Colgante Piedra Natural": { tipo: "SubCategoría", orden: 59 },
+    "Colgante Circón": { tipo: "SubCategoría", orden: 60 },
+    "Colgantes Lapidado": { tipo: "SubCategoría", orden: 61 },
+    "Colgante Cruz": { tipo: "SubCategoría", orden: 62 },
+    "Colgantes Niño Niña": { tipo: "SubCategoría", orden: 63 },
+    "Colgantes de Placa": { tipo: "SubCategoría", orden: 64 },
+    "Colgante Plata Lisa": { tipo: "SubCategoría", orden: 65 },
+    "Colgante estilo Charms": { tipo: "SubCategoría", orden: 66 },
+    "Colgante de Perla": { tipo: "SubCategoría", orden: 67 },
+    "Collares de Piedra": { tipo: "SubCategoría", orden: 68 },
+    "Collares de Plata": { tipo: "SubCategoría", orden: 69 },
+    "Collares con Circón": { tipo: "SubCategoría", orden: 70 },
+    "Enchapado en Oro": { tipo: "SubCategoría", orden: 71 },
+    "Enchapado en Plata": { tipo: "SubCategoría", orden: 72 },
+    "Sin valor": { tipo: "SubCategoría", orden: 73 },
+    "Cadena Groumet": { tipo: "SubCategoría", orden: 74 },
+    "Cadena Cartier": { tipo: "SubCategoría", orden: 75 },
+    "Cadena Cinta": { tipo: "SubCategoría", orden: 76 },
+    "Cadena Esferas": { tipo: "SubCategoría", orden: 77 },
+    "Cadena Eslabón": { tipo: "SubCategoría", orden: 78 },
+    "Cadena Gucci": { tipo: "SubCategoría", orden: 79 },
+    "Cadena Rolo": { tipo: "SubCategoría", orden: 80 },
+    "Cadena Singapur": { tipo: "SubCategoría", orden: 81 },
+    "Cadena Topo": { tipo: "SubCategoría", orden: 82 },
+    "Cadena Topo con Esferas": { tipo: "SubCategoría", orden: 83 },
+    "Cadena Tourbillon": { tipo: "SubCategoría", orden: 84 },
+    "Cadena Valentino": { tipo: "SubCategoría", orden: 85 },
+    "Cadena Veneciana": { tipo: "SubCategoría", orden: 86 }
+  };
+
+  // Función para ordenar array de categorías segun orden definido
+  function ordenarCategorias(categorias) {
+    return categorias.sort((a, b) => {
+      const aInfo = tipoOrden[a] || { orden: 9999 };
+      const bInfo = tipoOrden[b] || { orden: 9999 };
+      return aInfo.orden - bInfo.orden;
+    });
+  }
+
+  // Variables jQuery
   const $fileInput = $('#excelFile');
   const $colsMostrarDiv = $('#colsMostrar');
   const $colsProcesarDiv = $('#colsProcesar');
@@ -16,7 +116,13 @@ $(document).ready(function () {
   const $alertas = $('#alertas');
   const $tableContainer = $('#tableContainer');
 
-  // Al inicio del documento, registro eventos fijos
+  // Variables de estado
+  let originalData = [];
+  let filteredData = [];
+  let colsMostrar = [];
+  let colProcesar = null;
+
+  // Eventos fijos
   $('#btnAgregarCategoria').on('click', () => {
     const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
     if (!nuevaCat || !nuevaCat.trim()) return;
@@ -41,6 +147,7 @@ $(document).ready(function () {
     showAlert('Cambios finalizados y aplicados correctamente.', 'success');
   });
 
+  // Mostrar alertas
   function showAlert(message, type = 'warning') {
     $alertas.text(message).removeClass('d-none alert-warning alert-danger alert-success')
       .addClass('alert-' + type).show();
@@ -49,6 +156,7 @@ $(document).ready(function () {
     }, 5000);
   }
 
+  // Leer excel
   function readExcel(file) {
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -70,26 +178,24 @@ $(document).ready(function () {
     reader.readAsArrayBuffer(file);
   }
 
-  // Prepara checkboxes y radios para columnas
+  // Selección de columnas
   function setupColumnSelectors(columns) {
     $colsMostrarDiv.empty();
     $colsProcesarDiv.empty();
 
     columns.forEach(col => {
-      // Checkbox para columnas a mostrar
       const idMostrar = 'mostrar_' + col.replace(/\W/g, '');
       const checkbox = $(`<input type="checkbox" id="${idMostrar}" value="${col}" checked>`);
       const label = $(`<label for="${idMostrar}"> ${col}</label><br>`);
       $colsMostrarDiv.append(checkbox).append(label);
 
-      // Radio para columna a procesar (solo uno)
       const idProcesar = 'procesar_' + col.replace(/\W/g, '');
       const radio = $(`<input type="radio" name="colProcesar" id="${idProcesar}" value="${col}">`);
       const labelRadio = $(`<label for="${idProcesar}"> ${col}</label><br>`);
       $colsProcesarDiv.append(radio).append(labelRadio);
     });
 
-    // Eventos para actualizar variables al cambiar selección
+    // Eventos para actualizar estado
     $colsMostrarDiv.find('input[type=checkbox]').on('change', () => {
       colsMostrar = $colsMostrarDiv.find('input[type=checkbox]:checked').map(function() {
         return $(this).val();
@@ -104,23 +210,21 @@ $(document).ready(function () {
       validateProcesarBtn();
     });
 
-    // Inicializo variables
     colsMostrar = columns.slice();
     colProcesar = null;
   }
 
-  // Habilita boton Procesar si hay al menos una columna para mostrar y una para procesar
+  // Validar botón procesar
   function validateProcesarBtn() {
     $btnProcesar.prop('disabled', !(colsMostrar.length > 0 && colProcesar));
   }
 
-  // Renderiza tabla con columnas seleccionadas para mostrar
+  // Mostrar tabla principal
   function renderTablaMostrar() {
     if (filteredData.length === 0) {
       $tableContainer.html('<p>No hay datos para mostrar.</p>');
       return;
     }
-
     let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
     colsMostrar.forEach(col => { html += `<th>${col}</th>`; });
     html += '</tr></thead><tbody>';
@@ -132,40 +236,38 @@ $(document).ready(function () {
       html += '</tr>';
     });
     html += '</tbody></table>';
-
     $tableContainer.html(html);
   }
 
-  // Función para procesar columna seleccionada: dividir y mostrar resultado con barra progreso
+  // Procesar división + ordenamiento
   async function procesarDivision() {
     $btnProcesar.prop('disabled', true);
     $progressBar.show();
     $progressBarFill.css('width', '0%').text('0%');
 
-    // Dividir para cada fila la columna a procesar
     const total = filteredData.length;
     const resultado = [];
 
-    for(let i=0; i < total; i++) {
+    for (let i = 0; i < total; i++) {
       const fila = filteredData[i];
       const valor = (fila[colProcesar] || '').toString();
-      const partes = valor.split(',').map(p => p.trim()).filter(p => p.length > 0);
+      let partes = valor.split(',').map(p => p.trim()).filter(p => p.length > 0);
+      partes = ordenarCategorias(partes);
       resultado.push({
         filaIndex: i,
         partes
       });
 
-      // Actualizar barra progreso
       const porcentaje = Math.round(((i + 1) / total) * 100);
       $progressBarFill.css('width', porcentaje + '%').text(porcentaje + '%');
-      await new Promise(r => setTimeout(r, 5)); // pequeña pausa para visualización fluida
+      await new Promise(r => setTimeout(r, 5));
     }
 
     $progressBar.hide();
-
     mostrarPantallaResultado(resultado);
   }
 
+  // Mostrar resultado con botones eliminar y agregar distinguido
   function mostrarPantallaResultado(resultado) {
     $('#columnSelector').hide();
     $tableContainer.hide();
@@ -203,49 +305,50 @@ $(document).ready(function () {
       });
       html += '</tr>';
     });
-
     html += '</tbody>';
 
     $tablaResultado.html(html);
 
-    // Asignar evento eliminar categoría SOLO para botones recién creados
-    $('.btnEliminarCat').off('click').on('click', function() {
+    $('.btnEliminarCat').off('click').on('click', function () {
       const catEliminar = $(this).data('cat');
       eliminarCategoria(catEliminar);
     });
   }
 
-  // Genera resultado actualizado desde filteredData (para actualizar tras agregar categorías)
+  // Generar resultado para recalcular tras agregar/eliminar
   function generarResultadoDesdeDatos() {
     return filteredData.map(row => {
-      const valor = (row[colProcesar] || '').toString();
-      const partes = valor.split(',').map(p => p.trim()).filter(p => p.length > 0);
+      let partes = (row[colProcesar] || '').toString().split(',').map(p => p.trim()).filter(p => p.length > 0);
+      partes = ordenarCategorias(partes);
       return { partes };
     });
   }
 
-  // Elimina categoría indicada de todas las filas y actualiza la vista
+  // Eliminar categoría
   function eliminarCategoria(categoria) {
     filteredData.forEach(row => {
       let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
       cats = cats.filter(c => c.toLowerCase() !== categoria.toLowerCase());
+      cats = ordenarCategorias(cats);
       row[colProcesar] = cats.join(', ');
     });
     mostrarPantallaResultado(generarResultadoDesdeDatos());
   }
 
+  // Agregar categoría
   function agregarCategoria(categoriaNueva) {
     filteredData.forEach(row => {
       let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(c => c.length > 0);
       if (!cats.some(c => c.toLowerCase() === categoriaNueva.toLowerCase())) {
         cats.push(categoriaNueva);
+        cats = ordenarCategorias(cats);
         row[colProcesar] = cats.join(', ');
       }
     });
     mostrarPantallaResultado(generarResultadoDesdeDatos());
   }
 
-  // Eventos
+  // Eventos de entrada y botón procesar
   $fileInput.on('change', e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -261,5 +364,4 @@ $(document).ready(function () {
   });
 });
 
-
-//v. 2.1
+//v. 2.2
