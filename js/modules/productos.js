@@ -219,31 +219,81 @@ $(document).ready(function () {
   }
 
 function renderTablaMostrar() {
+  // Mostrar solo tabla principal ordenada para la visualización principal
   if (filteredData.length === 0) {
     $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
-    return;
-  }
+  } else {
+    let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
+    colsMostrar.forEach(col => { html += `<th>${col}</th>`; });
+    html += '</tr></thead><tbody>';
 
-  let html = '<table id="productosTable" class="table table-striped table-bordered"><thead><tr>';
-  colsMostrar.forEach(col => { html += `<th>${col}</th>`; });
+    filteredData.forEach(row => {
+      html += '<tr>';
+      colsMostrar.forEach(col => {
+        html += `<td>${row[col] || ''}</td>`;
+      });
+      html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+
+    $tableContainer.html(html).show();
+  }
+  // Aquí aseguramos que solo se muestre tabla principal
+  $resultadoDiv.hide();
+  $('#columnSelector').show();
+  $btnProcesar.show();
+}
+
+function mostrarPantallaResultado(resultado) {
+  // Oculta tabla principal para que no se vea duplicada
+  $tableContainer.hide().empty();
+  // Oculta selección y botón procesar
+  $('#columnSelector').hide();
+  $btnProcesar.hide();
+
+  // Mostrar solo contenedor resultado con tabla ordenada
+  $resultadoDiv.show();
+
+  const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
+  const allCategoriasSet = new Set();
+
+  resultado.forEach(r => {
+    r.partes.forEach(p => allCategoriasSet.add(p));
+  });
+
+  const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
+  const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
+
+  let html = '<thead><tr>';
+  colsMostrar.forEach(c => {
+    html += `<th>${c}</th>`;
+  });
+  categoriasUnicas.forEach(cat => {
+    html += `<th>${cat} <button class="btn btn-sm btn-danger btnEliminarCat" data-cat="${cat}" style="margin-left:5px;">Eliminar</button></th>`;
+  });
   html += '</tr></thead><tbody>';
 
-  filteredData.forEach(row => {
+  filteredData.forEach((row, idx) => {
     html += '<tr>';
-    colsMostrar.forEach(col => {
-      html += `<td>${row[col] || ''}</td>`;
+    colsMostrar.forEach(c => {
+      html += `<td>${row[c] || ''}</td>`;
+    });
+    const categoriasFila = resultado[idx].partes;
+    categoriasUnicas.forEach(cat => {
+      html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`;
     });
     html += '</tr>';
   });
 
-  html += '</tbody></table>';
+  html += '</tbody>';
 
-  $tableContainer.html(html).show();
+  $tablaResultado.html(html);
 
-  // Asegura que las otras áreas estén ocultas cuando se muestra esta tabla
-  $resultadoDiv.hide();
-  $('#columnSelector').show();
-  $btnProcesar.show();
+  $('.btnEliminarCat').off('click').on('click', function () {
+    const catEliminar = $(this).data('cat');
+    eliminarCategoria(catEliminar);
+  });
 }
 
 
@@ -377,4 +427,4 @@ function renderTablaMostrar() {
   });
 });
 
-//v. 2.5
+//v. 2.6
