@@ -3,6 +3,9 @@ $(document).ready(function () {
   let filteredData = [];
   let colsMostrar = [];
   let colProcesar = null;
+  let html = '<thead><tr>';
+
+
 
   // Mapeo completo categoría -> tipo y orden exacto según tu lista
   const tipoOrden = {
@@ -117,10 +120,6 @@ $(document).ready(function () {
   const $tableContainer = $('#tableContainer');
 
   // Variables de estado
-  let originalData = [];
-  let filteredData = [];
-  let colsMostrar = [];
-  let colProcesar = null;
 
   // Eventos fijos
   $('#btnAgregarCategoria').on('click', () => {
@@ -285,7 +284,7 @@ $(document).ready(function () {
     const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat)).sort();
     const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
 
-    let html = '<thead><tr>';
+
     colsMostrar.forEach(c => {
       html += `<th>${c}</th>`;
     });
@@ -364,4 +363,4 @@ $(document).ready(function () {
   });
 });
 
-//v. 2.2
+//v. 2.3
