@@ -1,11 +1,29 @@
-// productos.js v2.7
+// productos.js v2.9
 $(document).ready(function () {
+  // --------- ESTADO ---------
   let originalData = [];
   let filteredData = [];
   let colsMostrar = [];
   let colProcesar = null;
 
-  // --- ORDEN DE CATEGORÍAS ---
+  // --------- SELECTORES CACHÉ ---------
+  const $fileInput = $('#excelFile');
+  const $colsMostrarDiv = $('#colsMostrar');
+  const $colsProcesarDiv = $('#colsProcesar');
+  const $btnProcesar = $('#btnProcesar');
+  const $progressBar = $('#progressBar');
+  const $progressFill = $('#progressBar .progress-bar');
+  const $resultadoDiv = $('#resultadoDiv');
+  const $tablaResultado = $('#tablaResultado');
+  const $alertas = $('#alertas');
+  const $tableContainer = $('#tableContainer');
+
+  const $btnAgregarCategoria = $('#btnAgregarCategoria');
+  const $btnOrdenarCategorias = $('#btnOrdenarCategorias');
+  const $btnVolver = $('#btnVolver');
+  const $btnFinalizar = $('#btnFinalizar');
+
+  // --------- ORDEN DE CATEGORÍAS ---------
   const tipoOrden = {
     "Joyas de plata por mayor": { tipo: "Principal", orden: 1 },
     "ENCHAPADO": { tipo: "Principal", orden: 2 },
@@ -35,7 +53,7 @@ $(document).ready(function () {
     "Tobilleras Enchapado": { tipo: "Categoría", orden: 26 },
     "Insumos Enchapados": { tipo: "Categoría", orden: 27 },
     "Sin valor": { tipo: "Categoría", orden: 28 },
-    // --- SubCategorías ---
+    // SubCategorías
     "Circón": { tipo: "SubCategoría", orden: 29 },
     "Anillos de Plata Lisa": { tipo: "SubCategoría", orden: 30 },
     "Anillo Circón": { tipo: "SubCategoría", orden: 31 },
@@ -96,7 +114,7 @@ $(document).ready(function () {
     "Cadena Veneciana": { tipo: "SubCategoría", orden: 86 }
   };
 
-  // --- HELPERS ---
+  // --------- HELPERS ---------
   function ordenarCategorias(categorias) {
     return categorias.sort((a, b) => {
       const aInfo = tipoOrden[a] || { orden: 9999 };
@@ -106,15 +124,22 @@ $(document).ready(function () {
   }
 
   function showAlert(message, type = 'warning') {
-    $('#alertas')
+    $alertas
       .text(message)
       .removeClass('d-none alert-warning alert-danger alert-success')
       .addClass('alert-' + type)
       .show();
-    setTimeout(() => $('#alertas').fadeOut(), 5000);
+    setTimeout(() => $alertas.fadeOut(), 4000);
   }
 
-  // --- LEER EXCEL ---
+  function updateActionsState() {
+    const disabled = !(colsMostrar.length > 0 && colProcesar);
+    $btnProcesar.prop('disabled', disabled);
+    $btnAgregarCategoria.prop('disabled', disabled);
+    $btnOrdenarCategorias.prop('disabled', disabled);
+  }
+
+  // --------- LEER EXCEL ---------
   function readExcel(file) {
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -132,23 +157,21 @@ $(document).ready(function () {
       filteredData = [...originalData];
       setupColumnSelectors(Object.keys(jsonData[0]));
       renderTablaMostrar();
-      $('#btnProcesar').prop('disabled', true);
+      updateActionsState();
     };
     reader.readAsArrayBuffer(file);
   }
 
-  // --- COLUMNAS ---
+  // --------- COLUMNAS ---------
   function setupColumnSelectors(columns) {
-    const $colsMostrarDiv = $('#colsMostrar').empty();
-    const $colsProcesarDiv = $('#colsProcesar').empty();
+    $colsMostrarDiv.empty();
+    $colsProcesarDiv.empty();
 
     columns.forEach(col => {
-      // Mostrar
       const idMostrar = 'mostrar_' + col.replace(/\W/g, '');
       $colsMostrarDiv.append(`<input type="checkbox" id="${idMostrar}" value="${col}" checked>`);
       $colsMostrarDiv.append(`<label for="${idMostrar}"> ${col}</label><br>`);
 
-      // Procesar
       const idProcesar = 'procesar_' + col.replace(/\W/g, '');
       $colsProcesarDiv.append(`<input type="radio" name="colProcesar" id="${idProcesar}" value="${col}">`);
       $colsProcesarDiv.append(`<label for="${idProcesar}"> ${col}</label><br>`);
@@ -156,27 +179,24 @@ $(document).ready(function () {
 
     // Eventos
     $colsMostrarDiv.find('input[type=checkbox]').on('change', () => {
-      colsMostrar = $colsMostrarDiv.find(':checked').map(function () { return this.value; }).get();
+      colsMostrar = $colsMostrarDiv.find('input[type=checkbox]:checked')
+        .map(function () { return this.value; })
+        .get();
       renderTablaMostrar();
-      validateProcesarBtn();
+      updateActionsState();
     });
 
     $colsProcesarDiv.find('input[type=radio]').on('change', () => {
-      colProcesar = $colsProcesarDiv.find(':checked').val() || null;
-      validateProcesarBtn();
+      colProcesar = $colsProcesarDiv.find('input[type=radio]:checked').val() || null;
+      updateActionsState();
     });
 
     colsMostrar = [...columns];
     colProcesar = null;
   }
 
-  function validateProcesarBtn() {
-    $('#btnProcesar').prop('disabled', !(colsMostrar.length > 0 && colProcesar));
-  }
-
-  // --- TABLAS ---
+  // --------- TABLAS ---------
   function renderTablaMostrar() {
-    const $tableContainer = $('#tableContainer');
     if (filteredData.length === 0) {
       $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
       return;
@@ -195,23 +215,30 @@ $(document).ready(function () {
     html += '</tbody></table>';
     $tableContainer.html(html).show();
 
-    $('#resultadoDiv').hide();
+    $resultadoDiv.hide();
     $('#columnSelector').show();
-    $('#btnProcesar').show();
+    $btnProcesar.show();
   }
 
   function mostrarPantallaResultado(resultado) {
-    $('#tableContainer').hide().empty();
+    $tableContainer.hide().empty();
     $('#columnSelector').hide();
-    $('#btnProcesar').hide();
-    $('#resultadoDiv').show();
+    $btnProcesar.hide();
+    $resultadoDiv.show();
 
     const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
     const allCategoriasSet = new Set();
     resultado.forEach(r => r.partes.forEach(p => allCategoriasSet.add(p)));
 
-    const restoCategorias = Array.from(allCategoriasSet).filter(cat => !categoriasPrincipales.includes(cat));
-    const categoriasUnicas = [...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)), ...restoCategorias];
+    const restoCategorias = Array
+      .from(allCategoriasSet)
+      .filter(cat => !categoriasPrincipales.includes(cat))
+      .sort();
+
+    const categoriasUnicas = [
+      ...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)),
+      ...restoCategorias
+    ];
 
     let html = '<thead><tr>';
     colsMostrar.forEach(c => html += `<th>${c}</th>`);
@@ -229,27 +256,35 @@ $(document).ready(function () {
     });
 
     html += '</tbody>';
-    $('#tablaResultado').html(html);
+    $tablaResultado.html(html);
 
     $('.btnEliminarCat').off('click').on('click', function () {
       eliminarCategoria($(this).data('cat'));
     });
   }
 
-  // --- PROCESAR ---
+  // --------- PROCESAR ---------
   async function procesarDivision() {
-    $('#btnProcesar').prop('disabled', true);
-    $('#progressBar').show();
-    const $progressFill = $('#progressBar .progress-bar');
+    if (!colProcesar) {
+      showAlert('Por favor selecciona una columna a procesar.', 'danger');
+      return;
+    }
+
+    $btnProcesar.prop('disabled', true);
+    $progressBar.show();
+    $progressFill.css('width', '0%').text('0%');
 
     const total = filteredData.length;
     const resultado = [];
 
     for (let i = 0; i < total; i++) {
-      let partes = (filteredData[i][colProcesar] || '').toString().split(',')
-        .map(p => p.trim()).filter(Boolean);
-      partes = ordenarCategorias(partes);
+      let partes = (filteredData[i][colProcesar] || '')
+        .toString()
+        .split(',')
+        .map(p => p.trim())
+        .filter(Boolean);
 
+      partes = ordenarCategorias(partes);
       resultado.push({ partes });
 
       const porcentaje = Math.round(((i + 1) / total) * 100);
@@ -257,22 +292,29 @@ $(document).ready(function () {
       await new Promise(r => setTimeout(r, 5));
     }
 
-    $('#progressBar').hide();
+    $progressBar.hide();
     mostrarPantallaResultado(resultado);
   }
 
   function generarResultadoDesdeDatos() {
     return filteredData.map(row => {
-      let partes = (row[colProcesar] || '').toString().split(',')
-        .map(p => p.trim()).filter(Boolean);
+      let partes = (row[colProcesar] || '')
+        .toString()
+        .split(',')
+        .map(p => p.trim())
+        .filter(Boolean);
       return { partes: ordenarCategorias(partes) };
     });
   }
 
-  // --- CATEGORÍAS ---
+  // --------- CATEGORÍAS (acciones) ---------
   function eliminarCategoria(categoria) {
+    if (!colProcesar) return;
     filteredData.forEach(row => {
-      let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(Boolean);
+      let cats = (row[colProcesar] || '')
+        .split(',')
+        .map(c => c.trim())
+        .filter(Boolean);
       cats = cats.filter(c => c.toLowerCase() !== categoria.toLowerCase());
       row[colProcesar] = ordenarCategorias(cats).join(', ');
     });
@@ -280,8 +322,12 @@ $(document).ready(function () {
   }
 
   function agregarCategoria(categoriaNueva) {
+    if (!colProcesar) return;
     filteredData.forEach(row => {
-      let cats = (row[colProcesar] || '').split(',').map(c => c.trim()).filter(Boolean);
+      let cats = (row[colProcesar] || '')
+        .split(',')
+        .map(c => c.trim())
+        .filter(Boolean);
       if (!cats.some(c => c.toLowerCase() === categoriaNueva.toLowerCase())) {
         cats.push(categoriaNueva);
         row[colProcesar] = ordenarCategorias(cats).join(', ');
@@ -290,59 +336,60 @@ $(document).ready(function () {
     mostrarPantallaResultado(generarResultadoDesdeDatos());
   }
 
-  // --- EVENTOS ---
-  $('#excelFile').on('change', e => {
+  function ordenarTodasLasCategorias() {
+    if (!colProcesar) {
+      showAlert('Selecciona primero la columna a procesar.', 'danger');
+      return;
+    }
+    filteredData.forEach(row => {
+      let cats = (row[colProcesar] || '')
+        .split(',')
+        .map(c => c.trim())
+        .filter(Boolean);
+      row[colProcesar] = ordenarCategorias(cats).join(', ');
+    });
+    mostrarPantallaResultado(generarResultadoDesdeDatos());
+    showAlert('Todas las categorías fueron ordenadas correctamente.', 'success');
+  }
+
+  // --------- EVENTOS ---------
+  $fileInput.on('change', e => {
     const file = e.target.files[0];
     if (file) readExcel(file);
   });
 
-  $('#btnProcesar').on('click', () => {
-    if (!colProcesar) {
-      alert('Por favor selecciona una columna a procesar.');
-      return;
-    }
+  $btnProcesar.on('click', () => {
     procesarDivision();
   });
 
-  $('#btnAgregarCategoria').on('click', () => {
+  $btnAgregarCategoria.on('click', () => {
     const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
     if (nuevaCat && nuevaCat.trim()) agregarCategoria(nuevaCat.trim());
   });
 
-  $('#btnVolver').on('click', () => {
-    $('#resultadoDiv').hide();
-    $('#columnSelector').show();
-    $('#tableContainer').show();
-    $('#btnProcesar').show().prop('disabled', !(colsMostrar.length > 0 && colProcesar));
-    renderTablaMostrar();
+  $btnOrdenarCategorias.on('click', () => {
+    ordenarTodasLasCategorias();
   });
 
-  $('#btnFinalizar').on('click', () => {
-    $('#resultadoDiv').hide();
+  $btnVolver.on('click', () => {
+    $resultadoDiv.hide();
     $('#columnSelector').show();
-    $('#tableContainer').show();
-    $('#btnProcesar').show();
+    $tableContainer.show();
+    $btnProcesar.show();
+    renderTablaMostrar();
+    updateActionsState();
+  });
+
+  $btnFinalizar.on('click', () => {
+    $resultadoDiv.hide();
+    $('#columnSelector').show();
+    $tableContainer.show();
+    $btnProcesar.show();
     renderTablaMostrar();
     showAlert('Cambios finalizados y aplicados correctamente.', 'success');
+    updateActionsState();
   });
 });
 
-// --- ORDENAR TODAS LAS CATEGORÍAS ---
-function ordenarTodasLasCategorias() {
-  filteredData.forEach(row => {
-    let cats = (row[colProcesar] || '').split(',')
-      .map(c => c.trim())
-      .filter(Boolean);
-    row[colProcesar] = ordenarCategorias(cats).join(', ');
-  });
-  mostrarPantallaResultado(generarResultadoDesdeDatos());
-}
 
-// --- EVENTOS ---
-$('#btnOrdenarCategorias').on('click', () => {
-  ordenarTodasLasCategorias();
-  showAlert('Todas las categorías fueron ordenadas correctamente.', 'success');
-});
-
-
-//v. 1.2
+//v. 1.3
