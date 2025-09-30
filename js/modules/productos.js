@@ -141,85 +141,45 @@ $(document).ready(function () {
 
   // --------- LEER EXCEL ---------
 function readExcel(file) {
-  const reader = new FileReader();
-
-  // Detectamos extensión
   const fileName = file.name.toLowerCase();
   const isCSV = fileName.endsWith(".csv");
+  const reader = new FileReader();
 
   reader.onload = function (e) {
-    let jsonData = [];
+    let fileData = isCSV ? e.target.result : new Uint8Array(e.target.result);
 
-if (isCSV) {
-  // --- Caso CSV ---
-  const csvText = e.target.result;
+    // 🚀 Enviar al worker
+    const worker = new Worker("js/modules/excelWorker.js");
+    worker.postMessage({ fileData, isCSV });
 
-  // 🔥 Forzamos separador en punto y coma
-  const workbook = XLSX.read(csvText, { 
-    type: "string", 
-    raw: false, 
-    codepage: 65001,
-    FS: ";"  // 👉 Forzamos separador en ";"
-  });
-
-  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-  jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-}
-else {
-      // --- Caso XLSX/XLS ---
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array", codepage: 65001 });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-    }
-
-    // --- Fix de acentos/ñ ---
-    jsonData = jsonData.map(row => {
-      const fixedRow = {};
-      for (const key in row) {
-        if (typeof row[key] === "string") {
-          fixedRow[key] = row[key]
-            .normalize("NFC")
-            .replace(/Ã¡/g, "á")
-            .replace(/Ã©/g, "é")
-            .replace(/Ã­/g, "í")
-            .replace(/Ã³/g, "ó")
-            .replace(/Ãº/g, "ú")
-            .replace(/Ã±/g, "ñ")
-            .replace(/Ã/g, "Á")
-            .replace(/Ã‰/g, "É")
-            .replace(/Ã/g, "Í")
-            .replace(/Ã“/g, "Ó")
-            .replace(/Ãš/g, "Ú")
-            .replace(/Ã‘/g, "Ñ");
-        } else {
-          fixedRow[key] = row[key];
-        }
+    worker.onmessage = function (msg) {
+      if (!msg.data.success) {
+        showAlert("Error procesando archivo: " + msg.data.error, "danger");
+        return;
       }
-      return fixedRow;
-    });
 
-    // --- Validación ---
-    if (jsonData.length === 0) {
-      showAlert("El archivo está vacío o no se pudo leer.", "danger");
-      return;
-    }
+      const jsonData = msg.data.data;
+      if (jsonData.length === 0) {
+        showAlert("El archivo está vacío o no se pudo leer.", "danger");
+        return;
+      }
 
-    // --- Cargar en la app ---
-    originalData = jsonData;
-    filteredData = [...originalData];
-    setupColumnSelectors(Object.keys(jsonData[0]));
-    renderTablaMostrar();
-    updateActionsState();
+      // Cargar en la app
+      originalData = jsonData;
+      filteredData = [...originalData];
+      setupColumnSelectors(Object.keys(jsonData[0]));
+      renderTablaMostrar();
+      updateActionsState();
+    };
   };
 
-  // Leemos distinto según el formato
   if (isCSV) {
     reader.readAsText(file, "UTF-8");
   } else {
     reader.readAsArrayBuffer(file);
   }
 }
+
 
 
 
@@ -453,4 +413,4 @@ else {
 });
 
 
-//v. 1.6
+//v. 1.7
