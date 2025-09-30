@@ -140,27 +140,54 @@ $(document).ready(function () {
   }
 
   // --------- LEER EXCEL ---------
-  function readExcel(file) {
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+function readExcel(file) {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array', codepage: 65001 }); // fuerza UTF-8
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    let jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
-      if (jsonData.length === 0) {
-        showAlert('El archivo Excel está vacío o no se pudo leer.', 'danger');
-        return;
+    // 🔥 Fix: normalizar strings para evitar "Ã³" en lugar de "ó"
+    jsonData = jsonData.map(row => {
+      const fixedRow = {};
+      for (const key in row) {
+        if (typeof row[key] === "string") {
+          fixedRow[key] = row[key]
+            .normalize("NFC") // normaliza acentos
+            .replace(/Ã¡/g, "á")
+            .replace(/Ã©/g, "é")
+            .replace(/Ã­/g, "í")
+            .replace(/Ã³/g, "ó")
+            .replace(/Ãº/g, "ú")
+            .replace(/Ã±/g, "ñ")
+            .replace(/Ã/g, "Á")
+            .replace(/Ã‰/g, "É")
+            .replace(/Ã/g, "Í")
+            .replace(/Ã“/g, "Ó")
+            .replace(/Ãš/g, "Ú")
+            .replace(/Ã‘/g, "Ñ");
+        } else {
+          fixedRow[key] = row[key];
+        }
       }
+      return fixedRow;
+    });
 
-      originalData = jsonData;
-      filteredData = [...originalData];
-      setupColumnSelectors(Object.keys(jsonData[0]));
-      renderTablaMostrar();
-      updateActionsState();
-    };
-    reader.readAsArrayBuffer(file);
-  }
+    if (jsonData.length === 0) {
+      showAlert('El archivo Excel está vacío o no se pudo leer.', 'danger');
+      return;
+    }
+
+    originalData = jsonData;
+    filteredData = [...originalData];
+    setupColumnSelectors(Object.keys(jsonData[0]));
+    renderTablaMostrar();
+    updateActionsState();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 
   // --------- COLUMNAS ---------
   function setupColumnSelectors(columns) {
@@ -392,4 +419,4 @@ $(document).ready(function () {
 });
 
 
-//v. 1.3
+//v. 1.4
