@@ -142,19 +142,37 @@ $(document).ready(function () {
   // --------- LEER EXCEL ---------
 function readExcel(file) {
   const reader = new FileReader();
-  reader.onload = function (e) {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type: 'array', codepage: 65001 }); // fuerza UTF-8
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    let jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
-    // 🔥 Fix: normalizar strings para evitar "Ã³" en lugar de "ó"
+  // Detectamos extensión
+  const fileName = file.name.toLowerCase();
+  const isCSV = fileName.endsWith(".csv");
+
+  reader.onload = function (e) {
+    let jsonData = [];
+
+    if (isCSV) {
+      // --- Caso CSV ---
+      const csvText = e.target.result;
+
+      // 🔥 Usamos utilidades de XLSX para parsear CSV
+      const workbook = XLSX.read(csvText, { type: "string", raw: false, codepage: 65001 });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+    } else {
+      // --- Caso XLSX/XLS ---
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array", codepage: 65001 });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+    }
+
+    // --- Fix de acentos/ñ ---
     jsonData = jsonData.map(row => {
       const fixedRow = {};
       for (const key in row) {
         if (typeof row[key] === "string") {
           fixedRow[key] = row[key]
-            .normalize("NFC") // normaliza acentos
+            .normalize("NFC")
             .replace(/Ã¡/g, "á")
             .replace(/Ã©/g, "é")
             .replace(/Ã­/g, "í")
@@ -174,19 +192,28 @@ function readExcel(file) {
       return fixedRow;
     });
 
+    // --- Validación ---
     if (jsonData.length === 0) {
-      showAlert('El archivo Excel está vacío o no se pudo leer.', 'danger');
+      showAlert("El archivo está vacío o no se pudo leer.", "danger");
       return;
     }
 
+    // --- Cargar en la app ---
     originalData = jsonData;
     filteredData = [...originalData];
     setupColumnSelectors(Object.keys(jsonData[0]));
     renderTablaMostrar();
     updateActionsState();
   };
-  reader.readAsArrayBuffer(file);
+
+  // Leemos distinto según el formato
+  if (isCSV) {
+    reader.readAsText(file, "UTF-8");
+  } else {
+    reader.readAsArrayBuffer(file);
+  }
 }
+
 
 
   // --------- COLUMNAS ---------
@@ -419,4 +446,4 @@ function readExcel(file) {
 });
 
 
-//v. 1.4
+//v. 1.5
