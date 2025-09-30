@@ -150,15 +150,22 @@ function readExcel(file) {
   reader.onload = function (e) {
     let jsonData = [];
 
-    if (isCSV) {
-      // --- Caso CSV ---
-      const csvText = e.target.result;
+if (isCSV) {
+  // --- Caso CSV ---
+  const csvText = e.target.result;
 
-      // 🔥 Usamos utilidades de XLSX para parsear CSV
-      const workbook = XLSX.read(csvText, { type: "string", raw: false, codepage: 65001 });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-    } else {
+  // 🔥 Forzamos separador en punto y coma
+  const workbook = XLSX.read(csvText, { 
+    type: "string", 
+    raw: false, 
+    codepage: 65001,
+    FS: ";"  // 👉 Forzamos separador en ";"
+  });
+
+  const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+  jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+}
+else {
       // --- Caso XLSX/XLS ---
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array", codepage: 65001 });
@@ -446,4 +453,4 @@ function readExcel(file) {
 });
 
 
-//v. 1.5
+//v. 1.6
