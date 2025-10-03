@@ -545,49 +545,24 @@ async function loadCotizacionesFromFirestore(){
 
 
 // 👉 Reemplaza COMPLETO el searchProductos actual por este:
-async function searchProductos(query){
-  const q = (query||"").trim();
-  if (!q) return []; // no dispares sin término
-
-  const token = (localStorage.getItem("djq_token") || "").trim();
-  const url   = "https://distribuidoradejoyas.cl/modules/ps_products_export/products_ws_live.php"
-              + "?q=" + encodeURIComponent(q)
-              + "&limit=12";
+async function searchProductos(query) {
+  const q = (query || "").trim();
+  if (!q) return [];
 
   try {
-    const r = await fetch(url, {
-      method: "GET",
+    const resp = await fetch(`https://distribuidoradejoyas.cl/modules/ps_products_export/products_ws_live.php?q=${encodeURIComponent(q)}&limit=12`, {
       headers: {
-        "X-Auth-Token": token
-      },
-      credentials: "include" // permite cookies si el server las usa
-    });
-
-    if (!r.ok) {
-      if (r.status === 401) {
-        mostrarNotificacion("No autorizado: revisa el token en Configuración.", "error");
-      } else if (r.status === 429) {
-        mostrarNotificacion("Demasiadas consultas. Intenta en unos segundos.", "alerta");
-      } else {
-        mostrarNotificacion("No se pudo consultar productos (WS).", "error");
+        "X-Auth-Token": "exportacionDJOYAS2025productos.web" // tu token plano
       }
-      return [];
-    }
-
-    const data = await r.json(); // [{id,name,reference,price,image,stock,active}]
-    // Adaptamos al formato de tu editor:
-    return (data || []).map(p => ({
-      sku:    p.reference || "",
-      nombre: p.name || "",
-      precio: Number(p.price || 0),
-      stock:  Number(p.stock || 0),
-      img:    p.image || ""
-    }));
-  } catch (e) {
-    mostrarNotificacion("Error de red consultando productos (WS).", "error");
+    });
+    if (!resp.ok) throw new Error("Error " + resp.status);
+    return await resp.json();
+  } catch (err) {
+    console.error("Error en searchProductos:", err);
     return [];
   }
 }
+
 
 
 
@@ -1266,4 +1241,4 @@ if (notas.length) {
 
 
 
-//v1.2
+//v1.3
