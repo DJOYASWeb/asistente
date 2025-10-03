@@ -544,25 +544,34 @@ async function loadCotizacionesFromFirestore(){
   ];
 
 
-// 👉 Reemplaza COMPLETO el searchProductos actual por este:
 async function searchProductos(query) {
   const q = (query || "").trim();
   if (!q) return [];
 
   try {
-    const resp = await fetch(`https://distribuidoradejoyas.cl/modules/ps_products_export/products_ws_live.php?q=${encodeURIComponent(q)}&limit=12`, {
-      headers: {
-        "X-Auth-Token": "exportacionDJOYAS2025productos.web" // tu token plano
-      }
-    });
+    const resp = await fetch(`/modules/ps_products_export/productos_proxy.php?q=${encodeURIComponent(q)}&limit=12`);
     if (!resp.ok) throw new Error("Error " + resp.status);
-    return await resp.json();
+
+    const data = await resp.json();
+
+    // Ajustar según estructura devuelta por proxy
+    // Si PrestaShop devuelve products -> product, adaptamos
+    if (data.products && data.products.product) {
+      return data.products.product.map(p => ({
+        sku: p.reference || "",
+        nombre: p.name?.[0]?.value || "Sin nombre",
+        precio: parseInt(p.price || 0, 10),
+        stock: p.stock_availables?.[0]?.quantity || 0,
+        img: "", // puedes cargar imágenes con otra consulta si quieres
+      }));
+    }
+
+    return [];
   } catch (err) {
     console.error("Error en searchProductos:", err);
     return [];
   }
 }
-
 
 
 
@@ -1241,4 +1250,4 @@ if (notas.length) {
 
 
 
-//v1.3
+//v1.4
