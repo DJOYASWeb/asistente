@@ -544,61 +544,50 @@ async function loadCotizacionesFromFirestore(){
   ];
 
 
-// —— Productos: BÚSQUEDA usando endpoint live (y fallback) ——————————
+// 👉 Reemplaza COMPLETO el searchProductos actual por este:
 async function searchProductos(query){
-  const q = (query || "").trim();
+  const q = (query||"").trim();
+  if (!q) return []; // no dispares sin término
 
-  // Sin texto: mantenemos el comportamiento anterior (muestra 10 demos)
-  if (!q) return SAMPLE_PRODUCTS.slice(0, 10);
+  const token = (localStorage.getItem("djq_token") || "").trim();
+  const url   = "https://distribuidoradejoyas.cl/modules/ps_products_export/products_ws_live.php"
+              + "?q=" + encodeURIComponent(q)
+              + "&limit=12";
 
-  // Evita llamadas con 1 solo carácter (el server pide >=2)
-  if (q.length < 2) {
-    try { mostrarNotificacion("Escribe al menos 2 caracteres para buscar", "alerta"); } catch {}
-    return [];
-  }
-
-  // Intento live contra el endpoint
   try {
-    const token = LIVE_SEARCH.getToken();
-    if (!token) {
-      try { mostrarNotificacion("Falta el token de catálogo. Ingresa el token en Configuración.", "alerta"); } catch {}
+    const r = await fetch(url, {
+      method: "GET",
+      headers: {
+        "X-Auth-Token": token
+      },
+      credentials: "include" // permite cookies si el server las usa
+    });
+
+    if (!r.ok) {
+      if (r.status === 401) {
+        mostrarNotificacion("No autorizado: revisa el token en Configuración.", "error");
+      } else if (r.status === 429) {
+        mostrarNotificacion("Demasiadas consultas. Intenta en unos segundos.", "alerta");
+      } else {
+        mostrarNotificacion("No se pudo consultar productos (WS).", "error");
+      }
       return [];
     }
 
-    const url = `${LIVE_SEARCH.endpoint}?q=${encodeURIComponent(q)}&limit=10`;
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { "X-Auth-Token": token }
-    });
-
-    if (!res.ok) {
-      // 401 = token inválido, 429 = rate limit, 500 = server, etc.
-      throw new Error(`HTTP ${res.status}`);
-    }
-
-    const data = await res.json();
-    // Mapeo al formato que usa tu UI de productos
-    const list = (Array.isArray(data) ? data : []).map(r => ({
-      sku: r.reference || "",
-      nombre: r.name || "",
-      precio: Number(r.price || 0),
-      stock: Number(r.stock || 0),
-      img: r.image || "https://via.placeholder.com/400x400?text=Producto",
-      id_product: r.id
+    const data = await r.json(); // [{id,name,reference,price,image,stock,active}]
+    // Adaptamos al formato de tu editor:
+    return (data || []).map(p => ({
+      sku:    p.reference || "",
+      nombre: p.name || "",
+      precio: Number(p.price || 0),
+      stock:  Number(p.stock || 0),
+      img:    p.image || ""
     }));
-
-    return list.slice(0, 10); // 2 filas × 5 tarjetas
-
   } catch (e) {
-    // Fallback suave para no dejar vacía la UI
-    try { mostrarNotificacion("No se pudo consultar el catálogo en vivo. Mostrando resultados de ejemplo.", "alerta"); } catch {}
-    const qlc = q.toLowerCase();
-    return SAMPLE_PRODUCTS
-      .filter(p => p.sku.toLowerCase().includes(qlc) || p.nombre.toLowerCase().includes(qlc))
-      .slice(0, 10);
+    mostrarNotificacion("Error de red consultando productos (WS).", "error");
+    return [];
   }
 }
-
 
 
 
@@ -1277,4 +1266,4 @@ if (notas.length) {
 
 
 
-//v1
+//v1.2
