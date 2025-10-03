@@ -552,26 +552,13 @@ async function searchProductos(query) {
     const resp = await fetch(`/modules/ps_products_export/productos_proxy.php?q=${encodeURIComponent(q)}&limit=12`);
     if (!resp.ok) throw new Error("Error " + resp.status);
 
-    const data = await resp.json();
-
-    // Ajustar según estructura devuelta por proxy
-    // Si PrestaShop devuelve products -> product, adaptamos
-    if (data.products && data.products.product) {
-      return data.products.product.map(p => ({
-        sku: p.reference || "",
-        nombre: p.name?.[0]?.value || "Sin nombre",
-        precio: parseInt(p.price || 0, 10),
-        stock: p.stock_availables?.[0]?.quantity || 0,
-        img: "", // puedes cargar imágenes con otra consulta si quieres
-      }));
-    }
-
-    return [];
+    return await resp.json(); // ya viene listo con {sku, nombre, precio, stock, img}
   } catch (err) {
     console.error("Error en searchProductos:", err);
     return [];
   }
 }
+
 
 
 
@@ -1250,4 +1237,4 @@ if (notas.length) {
 
 
 
-//v1.4
+//v1.5
