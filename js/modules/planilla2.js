@@ -28,6 +28,22 @@ function esAnillo(row) {
   return tipo.includes("anillo") && combi !== "midi";
 }
 
+function esColganteLetra(row) {
+  const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().toLowerCase();
+  if (!tipo.includes("colgante")) return false;
+
+  const comb = (row["producto_combinacion"] || row["producto_combinación"] || "").toString().trim();
+  const codigo = extraerCodigo(row);
+
+  // a) si la columna producto_combinacion trae una sola letra A-Z
+  if (/^[A-Z]$/i.test(comb)) return true;
+
+  // b) si el SKU termina en una letra A-Z (PCLCC10055200A)
+  if (/[A-Z]$/i.test(codigo)) return true;
+
+  return false;
+}
+
 
 function ultimosDosDigitosDeCodigo(codigo) {
   const s = String(codigo ?? "");
@@ -932,27 +948,21 @@ function filtrarCombinaciones(tipo) {
 function mostrarProductosNuevos() {
   tipoSeleccionado = "nuevo";
 
-  // Base: todos los productos cargados (originales + con combinaciones)
   const todos = [...datosOriginales, ...datosCombinaciones];
 
-  // Separar por tipo
+  // 1) separar tipos especiales
   const anillos = todos.filter(esAnillo);
-  const colgantesLetras = todos.filter(row => {
-    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toLowerCase();
-    const combinaciones = (row["Combinaciones"] || "").trim();
-    return tipo.includes("colgante") && /^[a-zA-Z,\s]+$/.test(combinaciones);
-  });
+  const colgantesLetra = todos.filter(esColganteLetra);
 
-  const noAnillosNiColgantes = todos.filter(row => !esAnillo(row) && !colgantesLetras.includes(row));
+  // 2) el resto (no anillos y no colgantes de letra)
+  const otros = todos.filter(row => !anillos.includes(row) && !colgantesLetra.includes(row));
 
-  // Agrupar anillos en “padres”
+  // 3) agrupar en padres (…000) anillos + colgantes de letra
   const anillosPadres = agruparAnillosComoPadres(anillos);
+  const colgantesPadres = agruparAnillosComoPadres(colgantesLetra);
 
-  // Agrupar colgantes de letra en “padres” (mismo método adaptado)
-  const colgantesPadres = agruparAnillosComoPadres(colgantesLetras);
-
-  // Para la vista: todos los no-anillos/colgantes + ambos grupos de padres
-  datosFiltrados = [...noAnillosNiColgantes, ...anillosPadres, ...colgantesPadres];
+  // 4) vista: solo padres y el resto de productos
+  datosFiltrados = [...otros, ...anillosPadres, ...colgantesPadres];
 
   renderTablaConOrden(datosFiltrados);
 }
@@ -982,6 +992,7 @@ function mostrarProductosReposicion() {
 
 /** ---------- COMBINACIONES (tabla especial) ---------- **/
 
+
 function mostrarTablaCombinacionesCantidad() {
   tipoSeleccionado = "combinacion_cantidades";
   const tablaDiv = document.getElementById("tablaPreview");
@@ -991,21 +1002,15 @@ function mostrarTablaCombinacionesCantidad() {
   const resultado = [];
 
   todos.forEach(row => {
-    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toLowerCase();
-    const combinaciones = (row["Combinaciones"] || "").toString().trim();
-    if (!combinaciones) return;
-
+    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().toLowerCase();
     const idProducto = asNumericId(row["prestashop_id"]);
-    const codigo = (row["codigo_producto"] || row["Código"] || "").toString().trim();
+    const codigo = extraerCodigo(row);
+    const cantidad = row["cantidad"] ?? 0;
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
-    const cantidad = row["cantidad"] ?? 0;
 
-    const esAnillo = tipo.includes("anillo");
-    const esColganteLetra = tipo.includes("colgante") && /^[a-zA-Z,\s]+$/.test(combinaciones);
-
-    // Procesar combinaciones de anillos
-    if (esAnillo) {
+    // --- ANILLOS (como ya lo hacías) ---
+    if (esAnillo(row)) {
       const valueNum = ultimosDosDigitosDeCodigo(codigo);
       if (!valueNum) return;
 
@@ -1017,21 +1022,31 @@ function mostrarTablaCombinacionesCantidad() {
         "Cantidad": cantidad,
         "Precio S/ IVA": precioSinIVA
       });
+      return;
     }
 
-    // Procesar combinaciones de colgantes (A-Z)
-    else if (esColganteLetra) {
-      const letras = combinaciones.split(",").map(v => v.trim()).filter(Boolean);
-      letras.forEach((letra, idx) => {
-        resultado.push({
-          "ID": idProducto,
-          "Attribute (Name:Type:Position)*": "Letras:select:0",
-          "Value (Value:Position)*": `${letra.toUpperCase()}:${idx}`,
-          "Referencia": `${codigo}${letra.toUpperCase()}`,
-          "Cantidad": cantidad,
-          "Precio S/ IVA": precioSinIVA
-        });
+    // --- COLGANTES CON LETRA (A…Z) ---
+    if (esColganteLetra(row)) {
+      // letra desde columna producto_combinacion o desde el final del SKU
+      let letra = (row["producto_combinacion"] || row["producto_combinación"] || "").toString().trim().toUpperCase();
+      if (!/^[A-Z]$/.test(letra)) {
+        const m = codigo.match(/([A-Z])$/i);
+        letra = m ? m[1].toUpperCase() : "";
+      }
+      if (!letra) return;
+
+      // posición A:0, B:1, ...
+      const pos = letra.charCodeAt(0) - "A".charCodeAt(0);
+
+      resultado.push({
+        "ID": idProducto,
+        "Attribute (Name:Type:Position)*": "Letras:select:0",
+        "Value (Value:Position)*": `${letra}:${pos}`,
+        "Referencia": `${codigo}`,
+        "Cantidad": cantidad,
+        "Precio S/ IVA": precioSinIVA
       });
+      return;
     }
   });
 
@@ -1042,11 +1057,13 @@ function mostrarTablaCombinacionesCantidad() {
     return;
   }
 
+  // Guardar dataset de exportación y mostrar previa (como ya haces)
   datosCombinacionCantidades = resultado;
+
+  // Para la vista previa en pantalla, mostramos la lista de líneas de combinación
   renderTablaConOrden(resultado);
   procesarBtn.classList.remove("d-none");
 }
-
 
 
 
@@ -1410,4 +1427,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.4
+//V 1.5
