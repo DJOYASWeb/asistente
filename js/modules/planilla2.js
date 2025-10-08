@@ -1009,7 +1009,7 @@ function mostrarTablaCombinacionesCantidad() {
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
-    // --- ANILLOS (como ya lo hacías) ---
+    // --- ANILLOS ---
     if (esAnillo(row)) {
       const valueNum = ultimosDosDigitosDeCodigo(codigo);
       if (!valueNum) return;
@@ -1025,9 +1025,9 @@ function mostrarTablaCombinacionesCantidad() {
       return;
     }
 
-    // --- COLGANTES CON LETRA (A…Z) ---
+    // --- COLGANTES CON LETRAS (A–Z) ---
     if (esColganteLetra(row)) {
-      // letra desde columna producto_combinacion o desde el final del SKU
+      // letra desde columna o desde el final del código
       let letra = (row["producto_combinacion"] || row["producto_combinación"] || "").toString().trim().toUpperCase();
       if (!/^[A-Z]$/.test(letra)) {
         const m = codigo.match(/([A-Z])$/i);
@@ -1035,14 +1035,13 @@ function mostrarTablaCombinacionesCantidad() {
       }
       if (!letra) return;
 
-      // posición A:0, B:1, ...
       const pos = letra.charCodeAt(0) - "A".charCodeAt(0);
 
       resultado.push({
         "ID": idProducto,
         "Attribute (Name:Type:Position)*": "Letras:select:0",
         "Value (Value:Position)*": `${letra}:${pos}`,
-        "Referencia": `${codigo}`,
+        "Referencia": codigo,
         "Cantidad": cantidad,
         "Precio S/ IVA": precioSinIVA
       });
@@ -1050,6 +1049,7 @@ function mostrarTablaCombinacionesCantidad() {
     }
   });
 
+  // --- SIN RESULTADOS ---
   if (!resultado.length) {
     tablaDiv.innerHTML = `<p class='text-muted'>No se encontraron combinaciones válidas (anillos o colgantes de letra).</p>`;
     procesarBtn.classList.add("d-none");
@@ -1057,13 +1057,46 @@ function mostrarTablaCombinacionesCantidad() {
     return;
   }
 
-  // Guardar dataset de exportación y mostrar previa (como ya haces)
+  // --- GUARDAR Y MOSTRAR TABLA PREVIA ---
   datosCombinacionCantidades = resultado;
 
-  // Para la vista previa en pantalla, mostramos la lista de líneas de combinación
-  renderTablaConOrden(resultado);
+  // 🟢 Renderizado de tabla de previsualización corregido
+  const encabezados = [
+    "ID",
+    "Attribute (Name:Type:Position)*",
+    "Value (Value:Position)*",
+    "Referencia",
+    "Cantidad",
+    "Precio S/ IVA"
+  ];
+
+  const html = `
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <strong>Mostrando ${resultado.length} combinaciones generadas</strong>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm align-middle mb-3">
+        <thead class="table-light">
+          <tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr>
+        </thead>
+        <tbody>
+          ${resultado.map(r => `
+            <tr>
+              <td>${r["ID"] ?? ""}</td>
+              <td>${r["Attribute (Name:Type:Position)*"] ?? ""}</td>
+              <td>${r["Value (Value:Position)*"] ?? ""}</td>
+              <td>${r["Referencia"] ?? ""}</td>
+              <td>${r["Cantidad"] ?? ""}</td>
+              <td>${r["Precio S/ IVA"] ?? ""}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+
+  tablaDiv.innerHTML = html;
   procesarBtn.classList.remove("d-none");
 }
+
 
 
 
@@ -1427,4 +1460,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.5
+//V 1.6
