@@ -977,46 +977,67 @@ function mostrarTablaCombinacionesCantidad() {
   const tablaDiv = document.getElementById("tablaPreview");
   const procesarBtn = document.getElementById("botonProcesar");
 
-  // 1) Tomar TODOS los productos (originales + con combinaciones) que sean Anillos/Anillo
   const todos = [...datosOriginales, ...datosCombinaciones];
-  const anillos = todos.filter(esAnillo);
-
-  if (!anillos.length) {
-    tablaDiv.innerHTML = `<p class='text-muted'>No hay productos de tipo Anillo/Anillos.</p>`;
-    procesarBtn.classList.add("d-none");
-    datosCombinacionCantidades = [];
-    return;
-  }
-
-  // 2) Mostrar en la vista previa esos productos (independiente de que tengan "Combinaciones")
-  datosFiltrados = anillos;
-  renderTablaConOrden(datosFiltrados);
-  procesarBtn.classList.remove("d-none");
-
-  // 3) Preparar el dataset de EXPORTACIÓN según tu mapeo (NO desde "Combinaciones")
   const resultado = [];
-  anillos.forEach(row => {
-    const codigo = row["codigo_producto"] || row["Código"] || "";
-    const valueNum = ultimosDosDigitosDeCodigo(codigo); // ej. "20"
-    if (!valueNum) return; // si no hay 1–2 dígitos al final, omitimos
 
+  todos.forEach(row => {
+    const categoria = (row["Categoría principal"] || "").toString().trim();
+    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().trim();
+    const combinaciones = (row["Combinaciones"] || "").toString().trim();
     const idProducto = asNumericId(row["prestashop_id"]);
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
-    const cantidad = row["cantidad"] ?? 0;
 
-    resultado.push({
-      "ID": idProducto,
-      "Attribute (Name:Type:Position)*": "Número:radio:0",
-      "Value (Value:Position)*": `${valueNum}:0`,
-      "Referencia": codigo,
-      "Cantidad": cantidad,
-      "Precio S/ IVA": precioSinIVA
+    // Detectar tipo de combinación
+    const esAnillo = tipo.toLowerCase().includes("anillo");
+    const esColganteLetra = tipo.toLowerCase().includes("colgante") && /^[a-zA-Z,\s]+$/.test(combinaciones);
+
+    if (!combinaciones || (!esAnillo && !esColganteLetra)) return;
+
+    const valores = combinaciones.split(",").map(v => v.trim()).filter(Boolean);
+    valores.forEach((valor, i) => {
+      const codigo = (row["codigo_producto"] || row["Código"] || "").toString().trim();
+
+      // ANILLOS
+      if (esAnillo) {
+        const valueNum = ultimosDosDigitosDeCodigo(codigo);
+        if (!valueNum) return;
+        resultado.push({
+          "ID": idProducto,
+          "Attribute (Name:Type:Position)*": "Número:radio:0",
+          "Value (Value:Position)*": `${valueNum}:0`,
+          "Referencia": codigo,
+          "Cantidad": row["cantidad"] ?? 0,
+          "Precio S/ IVA": precioSinIVA
+        });
+      }
+
+      // COLGANTES DE LETRA
+      else if (esColganteLetra && /^[A-Z]$/i.test(valor)) {
+        resultado.push({
+          "ID": idProducto,
+          "Attribute (Name:Type:Position)*": "Letras:select:0",
+          "Value (Value:Position)*": `${valor.toUpperCase()}:${i}`,
+          "Referencia": `${codigo}${valor.toUpperCase()}`,
+          "Cantidad": row["cantidad"] ?? 0,
+          "Precio S/ IVA": precioSinIVA
+        });
+      }
     });
   });
 
-  datosCombinacionCantidades = resultado; // <- el modal y la exportación usarán esto en esta vista
+  if (!resultado.length) {
+    tablaDiv.innerHTML = `<p class='text-muted'>No se encontraron combinaciones válidas (anillos o colgantes de letra).</p>`;
+    procesarBtn.classList.add("d-none");
+    return;
+  }
+
+  // Mostrar tabla previa
+  datosCombinacionCantidades = resultado;
+  renderTablaConOrden(resultado);
+  procesarBtn.classList.remove("d-none");
 }
+
 
 
 // === ZIP FOTOS: eventos ===
@@ -1379,4 +1400,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.2
+//V 1.3
