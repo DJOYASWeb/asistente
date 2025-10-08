@@ -935,18 +935,28 @@ function mostrarProductosNuevos() {
   // Base: todos los productos cargados (originales + con combinaciones)
   const todos = [...datosOriginales, ...datosCombinaciones];
 
-  // Separar anillos y no anillos
+  // Separar por tipo
   const anillos = todos.filter(esAnillo);
-  const noAnillos = todos.filter(row => !esAnillo(row));
+  const colgantesLetras = todos.filter(row => {
+    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toLowerCase();
+    const combinaciones = (row["Combinaciones"] || "").trim();
+    return tipo.includes("colgante") && /^[a-zA-Z,\s]+$/.test(combinaciones);
+  });
 
-  // Agrupar anillos en "padres" con ...000 y stock 0
+  const noAnillosNiColgantes = todos.filter(row => !esAnillo(row) && !colgantesLetras.includes(row));
+
+  // Agrupar anillos en “padres”
   const anillosPadres = agruparAnillosComoPadres(anillos);
 
-  // Para la vista: no-anillos tal cual + padres agrupados de anillos
-  datosFiltrados = [...noAnillos, ...anillosPadres];
+  // Agrupar colgantes de letra en “padres” (mismo método adaptado)
+  const colgantesPadres = agruparAnillosComoPadres(colgantesLetras);
+
+  // Para la vista: todos los no-anillos/colgantes + ambos grupos de padres
+  datosFiltrados = [...noAnillosNiColgantes, ...anillosPadres, ...colgantesPadres];
 
   renderTablaConOrden(datosFiltrados);
 }
+
 
 function mostrarProductosReposicion() {
   tipoSeleccionado = "reposicion";
@@ -981,62 +991,62 @@ function mostrarTablaCombinacionesCantidad() {
   const resultado = [];
 
   todos.forEach(row => {
-    const categoria = (row["Categoría principal"] || "").toString().trim();
-    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().trim();
+    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toLowerCase();
     const combinaciones = (row["Combinaciones"] || "").toString().trim();
+    if (!combinaciones) return;
+
     const idProducto = asNumericId(row["prestashop_id"]);
+    const codigo = (row["codigo_producto"] || row["Código"] || "").toString().trim();
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
+    const cantidad = row["cantidad"] ?? 0;
 
-    // Detectar tipo de combinación
-    const esAnillo = tipo.toLowerCase().includes("anillo");
-    const esColganteLetra = tipo.toLowerCase().includes("colgante") && /^[a-zA-Z,\s]+$/.test(combinaciones);
+    const esAnillo = tipo.includes("anillo");
+    const esColganteLetra = tipo.includes("colgante") && /^[a-zA-Z,\s]+$/.test(combinaciones);
 
-    if (!combinaciones || (!esAnillo && !esColganteLetra)) return;
+    // Procesar combinaciones de anillos
+    if (esAnillo) {
+      const valueNum = ultimosDosDigitosDeCodigo(codigo);
+      if (!valueNum) return;
 
-    const valores = combinaciones.split(",").map(v => v.trim()).filter(Boolean);
-    valores.forEach((valor, i) => {
-      const codigo = (row["codigo_producto"] || row["Código"] || "").toString().trim();
+      resultado.push({
+        "ID": idProducto,
+        "Attribute (Name:Type:Position)*": "Número:radio:0",
+        "Value (Value:Position)*": `${valueNum}:0`,
+        "Referencia": codigo,
+        "Cantidad": cantidad,
+        "Precio S/ IVA": precioSinIVA
+      });
+    }
 
-      // ANILLOS
-      if (esAnillo) {
-        const valueNum = ultimosDosDigitosDeCodigo(codigo);
-        if (!valueNum) return;
-        resultado.push({
-          "ID": idProducto,
-          "Attribute (Name:Type:Position)*": "Número:radio:0",
-          "Value (Value:Position)*": `${valueNum}:0`,
-          "Referencia": codigo,
-          "Cantidad": row["cantidad"] ?? 0,
-          "Precio S/ IVA": precioSinIVA
-        });
-      }
-
-      // COLGANTES DE LETRA
-      else if (esColganteLetra && /^[A-Z]$/i.test(valor)) {
+    // Procesar combinaciones de colgantes (A-Z)
+    else if (esColganteLetra) {
+      const letras = combinaciones.split(",").map(v => v.trim()).filter(Boolean);
+      letras.forEach((letra, idx) => {
         resultado.push({
           "ID": idProducto,
           "Attribute (Name:Type:Position)*": "Letras:select:0",
-          "Value (Value:Position)*": `${valor.toUpperCase()}:${i}`,
-          "Referencia": `${codigo}${valor.toUpperCase()}`,
-          "Cantidad": row["cantidad"] ?? 0,
+          "Value (Value:Position)*": `${letra.toUpperCase()}:${idx}`,
+          "Referencia": `${codigo}${letra.toUpperCase()}`,
+          "Cantidad": cantidad,
           "Precio S/ IVA": precioSinIVA
         });
-      }
-    });
+      });
+    }
   });
 
   if (!resultado.length) {
     tablaDiv.innerHTML = `<p class='text-muted'>No se encontraron combinaciones válidas (anillos o colgantes de letra).</p>`;
     procesarBtn.classList.add("d-none");
+    datosCombinacionCantidades = [];
     return;
   }
 
-  // Mostrar tabla previa
   datosCombinacionCantidades = resultado;
   renderTablaConOrden(resultado);
   procesarBtn.classList.remove("d-none");
 }
+
 
 
 
@@ -1400,4 +1410,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.3
+//V 1.4
