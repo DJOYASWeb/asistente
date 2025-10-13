@@ -30,7 +30,7 @@ function esAnillo(row) {
 }
 
 function esColganteLetra(row) {
-  const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().toLowerCase();
+  const tipo = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
   if (!tipo.includes("colgante")) return false;
 
   const comb = (row["PRODUCTO COMBINACION"] || row["producto_combinación"] || "").toString().trim();
