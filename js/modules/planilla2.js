@@ -515,55 +515,74 @@ const datos = filas.map(fila => {
 
     const errores = [];
 
-    // Clasificación en nuevos, reposición y con combinaciones
-    datos.forEach(row => {
-      const salida = (row["Salida"] || "").toString().trim();
-      const combinacion = (
-        row["Combinaciones"] ||
-         row["PRODUCTO COMBINACION"] ||       
-        "").toString().trim();
-      const sku = (row["codigo_producto"] || row["Código"] || row["CODIGO PRODUCTO"] || "SKU no definido").toString().trim();
-      const categoria = (row["Categoría principal"] || "").toString().trim();
 
-      // Validar combinaciones vacías solo en ciertos tipos de anillos
-      const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
-      if (esAnilloConValidacion && "Combinaciones" in row && combinacion === "") {
-        errores.push(`${sku} - combinaciones vacías (${categoria})`);
-        return;
-      }
+datos.forEach(row => {
+  const salida = (row["Salida"] || "").toString().trim();
+  const combinacion = (
+    row["Combinaciones"] ||
+    row["PRODUCTO COMBINACION"] ||
+    row["producto_combinacion"] ||
+    ""
+  ).toString().trim();
 
-      const tieneCombinacion = combinacion !== "";
+  const sku = (
+    row["codigo_producto"] ||
+    row["CODIGO PRODUCTO"] ||
+    row["Código"] ||
+    "SKU no definido"
+  ).toString().trim();
 
-      if (tieneCombinacion) {
-        const combinaciones = combinacion.split(",");
-        let errorDetectado = false;
+  const categoria = (row["Categoría principal"] || "").toString().trim();
 
-        combinaciones.forEach(c => {
-          const valor = c.trim();
-          const regex = /^#\d+-\d+$/; // formato #NUM-CANT (1+ dígitos)
-          if (!regex.test(valor)) {
-            errores.push(`${sku} - ${valor}`);
-            errorDetectado = true;
-          }
-        });
+  const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
-        if (errorDetectado) return;
+  if (esAnilloConValidacion && "Combinaciones" in row && combinacion === "") {
+    errores.push(`${sku} - combinaciones vacías (${categoria})`);
+    return;
+  }
 
-        // ❌ Excluir si producto_combinacion = "Midi"
-        const combiTipo = (row["producto_combinacion"] || "").toString().trim().toLowerCase();
-        if (combiTipo === "midi") return;
+  const tieneCombinacion = combinacion !== "";
 
-row["CANTIDAD"] = row["CANTIDAD"] || 0;
-        datosCombinaciones.push(row);
+  if (tieneCombinacion) {
+    const combinaciones = combinacion.split(",");
+    let errorDetectado = false;
 
-      } else if (salida === "Reposición") {
-        datosReposicion.push(row);
-
-      } else {
-        datosOriginales.push(row);
+    combinaciones.forEach(c => {
+      const valor = c.trim();
+      const regex = /^#\d+-\d+$/;
+      if (!regex.test(valor)) {
+        errores.push(`${sku} - ${valor}`);
+        errorDetectado = true;
       }
     });
+
+    if (errorDetectado) return;
+
+    // ❌ Excluir si producto_combinacion = "Midi"
+    const combiTipo = (
+      row["producto_combinacion"] ||
+      row["PRODUCTO COMBINACION"] ||
+      ""
+    ).toString().trim().toLowerCase();
+    if (combiTipo === "midi") return;
+
+    // ✅ Corrección del error
+row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
+
+
+    datosCombinaciones.push(row);
+
+  } else if (salida === "Reposición") {
+    datosReposicion.push(row);
+  } else {
+    datosOriginales.push(row);
+  }
+});
+
+
+
+
 
     // Mostrar errores acumulados si hay
     if (errores.length > 0) {
@@ -626,11 +645,11 @@ function construirCaracteristicas(row) {
 
   const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
-  const modelo     = getField(["modelo", "Modelo","MODELO PRODUCTO"], "modelo");
-  const material   = getField(["producto_material","PRODUCTO MATERIAL"], "material");
-  const estilo     = getField(["procucto_estilo", "producto_estilo","PRODUCTO ESTILO"], "estilo");
-  const dimension  = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones","DIMENSION"], "dimension");
-  const peso       = getField(["peso", "Peso","PESO"], "peso");
+const modelo = getField(["modelo", "Modelo", "MODELO PRODUCTO"], "modelo");
+const material = getField(["producto_material", "PRODUCTO MATERIAL", "ID PRODUCTO MATERIAL"], "material");
+const estilo = getField(["producto_estilo", "PRODUCTO ESTILO", "ID PRODUCTO ESTILO"], "estilo");
+const dimension = getField(["dimension", "DIMENSION", "Dimensión"], "dimension");
+const peso = getField(["peso", "PESO"], "peso");
 
   const partes = [];
   if (modelo)    partes.push(`Modelo: ${modelo}`);
@@ -724,39 +743,45 @@ function parsePrecioConIVA(valor) {
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     // Nuevos nombres confirmados (con fallback a antiguos si aplica)
-   const idProducto = asNumericId(row["prestashop_id" || row["PRESTASHOP ID"] ]);
-    const codigo = row["codigo_producto"] || row["CODIGO PRODUCTO"] || row["Código"] || "";
-    const nombre = row["nombre_producto"] || row["NOMBRE PRODUCTO"] || row["Nombre Producto"] || "";
-const cantidad = esAnillo(row) ? 0 : (row["Combinaciones"] ? 0 : (row["cantidad"] || row["CANTIDAD"]  ?? row["WEB"] ?? 0));
-    const resumen = row["descripcion_resumen"] ?? row["DESCRIPCION RESUMEN"] ?? row["Resumen"] ?? "";
-    const descripcionRaw = row["descripcion_extensa"] ?? row["DESCRIPCION EXTENSA"] ?? row["Descripción"] ?? "";
+    const idProducto = asNumericId(row["PRESTASHOP ID"] || row["prestashop_id"]);
+    const codigo = row["CODIGO PRODUCTO"] || row["codigo_producto"] || row["Código"] || "";
+    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
+    const cantidad = esAnillo(row)
+      ? 0
+      : (row["Combinaciones"] ? 0 : (row["CANTIDAD"] || row["cantidad"] || row["WEB"] || 0));
+    const resumen = row["DESCRIPCION RESUMEN"] || row["descripcion_resumen"] || row["Resumen"] || "";
+    const descripcionRaw = row["DESCRIPCION EXTENSA"] || row["descripcion_extensa"] || row["Descripción"] || "";
     const descripcion = formatearDescripcionHTML(descripcionRaw);
 
+    // Precio: tomar desde 'PRECIO PRESTASHOP' (con IVA)
+    const precioConIVA = parsePrecioConIVA(row["PRECIO PRESTASHOP"] || row["precio_prestashop"]);
+    const precioSinIVA = precioConIVA === null
+      ? "0.00"
+      : (precioConIVA / 1.19).toFixed(2).replace(",", ".");
 
-    
-    // Precio: tomar desde 'precio_prestashop' (con IVA) y calcular sin IVA (19%)
-    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
-const precioSinIVA = precioConIVA === null 
-  ? "0.00" 
-  : (precioConIVA / 1.19).toFixed(2).replace(',', '.');
+    // Imagen: si tienes FOTO LINK INDIVIDUAL, úsalo
+    const foto =
+      row["FOTO LINK INDIVIDUAL"] ||
+      (codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "");
 
     return {
       "ID": idProducto || "",
-      "Activo (0/1)": 0, // confirmado
+      "Activo (0/1)": 0,
       "Nombre": nombre,
       "Categorias": construirCategorias(row),
       "Precio S/IVA": precioSinIVA,
-      "Regla de Impuesto": 2, // confirmado
+      "Regla de Impuesto": 2,
       "Código Referencia SKU": codigo,
-      "Marca": "DJOYAS", // confirmado
+      "Marca": "DJOYAS",
       "Cantidad": cantidad,
       "Resumen": resumen,
       "Descripción": descripcion,
-      "Image URLs (x,y,z...)": codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "",
+      "Image URLs (x,y,z...)": foto,
       "Caracteristicas": construirCaracteristicas(row)
     };
   });
 }
+
 
 /** ---------- RENDER DE TABLAS (respeta ordenColumnasVista) ---------- **/
 
@@ -1465,4 +1490,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.2
+//V 2.3
