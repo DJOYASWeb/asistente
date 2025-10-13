@@ -801,10 +801,11 @@ function parsePrecioConIVA(valor) {
   return isNaN(n) ? null : n;
 }
 
+
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     const idProducto = asNumericId(row["PRESTASHOP ID"] || row["prestashop_id"]);
-    const codigo = row["CODIGO PRODUCTO"] || row["codigo_producto"] || row["Código"] || "";
+    const codigo = extraerCodigo(row); // <- usar helper para unificar lectura del código
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
     const cantidad = esAnillo(row)
       ? 0
@@ -818,10 +819,8 @@ function transformarDatosParaExportar(datos) {
       ? "0.00"
       : (precioConIVA / 1.19).toFixed(2).replace(",", ".");
 
-    const foto =
-      row["FOTO LINK INDIVIDUAL"] ||
-      row["Foto Link Individual"] ||
-      (codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "");
+    // ✅ SIEMPRE construir la URL desde el código (ignorar FOTO LINK INDIVIDUAL)
+    const foto = codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "";
 
     return {
       "ID": idProducto || "",
@@ -1567,4 +1566,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.7
+//V 3.8
