@@ -825,21 +825,26 @@ function parsePrecioConIVA(valor) {
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     const idProducto = asNumericId(row["PRESTASHOP ID"] || row["prestashop_id"]);
-    const codigo = extraerCodigo(row); // <- usar helper para unificar lectura del código
+    const codigo = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
-    const cantidad = esAnillo(row)
-      ? 0
-      : (row["Combinaciones"] ? 0 : (row["CANTIDAD"] || row["cantidad"] || row["WEB"] || 0));
+
+    // ✅ si es padre (...000) → cantidad 0
+    let cantidad;
+    if (String(codigo || "").endsWith("000")) {
+      cantidad = 0;
+    } else {
+      cantidad = esAnillo(row)
+        ? 0
+        : (row["Combinaciones"] ? 0 : (row["CANTIDAD"] || row["cantidad"] || row["WEB"] || 0));
+    }
+
     const resumen = row["DESCRIPCION RESUMEN"] || row["descripcion_resumen"] || row["Resumen"] || "";
     const descripcionRaw = row["DESCRIPCION EXTENSA"] || row["descripcion_extensa"] || row["Descripción"] || "";
     const descripcion = formatearDescripcionHTML(descripcionRaw);
 
     const precioConIVA = parsePrecioConIVA(row["PRECIO PRESTASHOP"] || row["precio_prestashop"]);
-    const precioSinIVA = precioConIVA === null
-      ? "0.00"
-      : (precioConIVA / 1.19).toFixed(2).replace(",", ".");
+    const precioSinIVA = precioConIVA === null ? "0.00" : (precioConIVA / 1.19).toFixed(2).replace(",", ".");
 
-    // ✅ SIEMPRE construir la URL desde el código (ignorar FOTO LINK INDIVIDUAL)
     const foto = codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "";
 
     return {
@@ -958,6 +963,58 @@ function inyectarPadresEnDataset(datos) {
   const datosSinPadresPrevios = datos.filter(r => !codPadres.has(extraerCodigo(r)));
 
   return [...datosSinPadresPrevios, ...padres];
+}
+
+
+function esCodigoPadre(c) {
+  return /000$/.test(String(c || ""));
+}
+
+function crearPadreDesdeHijo(row) {
+  const codigoHijo = extraerCodigo(row);
+  const pref = prefijoPadre(codigoHijo);
+  const base = { ...row };
+
+  const codigoPadre = `${pref}000`;
+  base["codigo_producto"] = codigoPadre;
+  base["CODIGO PRODUCTO"] = codigoPadre; // por si tu Excel usa esta columna
+  base["prestashop_id"] = "";
+  base["Combinaciones"] = "";
+  base["producto_combinacion"] = "";
+  base["Cantidad"] = 0;
+  base["cantidad"] = 0;
+
+  return base;
+}
+
+function agregarPadresSiFaltan(datos) {
+  const porPrefijo = new Map();
+
+  datos.forEach(r => {
+    const cod = extraerCodigo(r);
+    if (!cod) return;
+    const pref = prefijoPadre(cod);
+    if (!pref) return;
+    if (!porPrefijo.has(pref)) porPrefijo.set(pref, []);
+    porPrefijo.get(pref).push(r);
+  });
+
+  const padresExistentes = new Set(
+    datos
+      .map(r => extraerCodigo(r))
+      .filter(c => c && esCodigoPadre(c))
+  );
+
+  const nuevosPadres = [];
+  porPrefijo.forEach((arr, pref) => {
+    const tieneHijos = arr.some(r => !esCodigoPadre(extraerCodigo(r)));
+    const codPadre = `${pref}000`;
+    if (tieneHijos && !padresExistentes.has(codPadre)) {
+      nuevosPadres.push(crearPadreDesdeHijo(arr[0]));
+    }
+  });
+
+  return nuevosPadres.length ? [...datos, ...nuevosPadres] : datos;
 }
 
 
@@ -1607,4 +1664,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V5.3
+//V5.4
