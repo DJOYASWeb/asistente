@@ -374,13 +374,14 @@ async function descargarFotosComoZip(_ctx, concurrencia = 4) {
     progressEl.textContent = 'Preparando…'; 
   }
 
-  // 🔥 Tomamos siempre las variables globales reales
-  const filas = Array.isArray(window.datosFiltrados) && window.datosFiltrados.length
-    ? window.datosFiltrados
-    : [
-        ...(Array.isArray(window.datosOriginales) ? window.datosOriginales : []),
-        ...(Array.isArray(window.datosCombinaciones) ? window.datosCombinaciones : [])
-      ];
+  // 🔥 Usar SIEMPRE las variables globales reales
+  const filas = (
+    (Array.isArray(window.datosFiltrados) && window.datosFiltrados.length && window.datosFiltrados) ||
+    [
+      ...(Array.isArray(window.datosOriginales) ? window.datosOriginales : []),
+      ...(Array.isArray(window.datosCombinaciones) ? window.datosCombinaciones : [])
+    ]
+  );
 
   console.log("[ZIP] Filas obtenidas:", filas.length);
 
@@ -391,10 +392,7 @@ async function descargarFotosComoZip(_ctx, concurrencia = 4) {
     const codigo = extraerCodigo(row);
     const rawUrl = extraerUrlFoto(row);
     if (!codigo) continue;
-    if (!rawUrl) { 
-      faltantesSinUrl++; 
-      continue; 
-    }
+    if (!rawUrl) { faltantesSinUrl++; continue; }
     const url = normalizarUrlDrive(rawUrl);
     lista.push({ codigo, url });
   }
@@ -406,7 +404,7 @@ async function descargarFotosComoZip(_ctx, concurrencia = 4) {
     return;
   }
 
-  const usados = new Map(); // control de duplicados
+  const usados = new Map();
   const zip = new JSZip();
   let exitosas = 0;
 
@@ -455,7 +453,6 @@ async function descargarFotosComoZip(_ctx, concurrencia = 4) {
   console.warn(msg);
   alert(msg);
 }
-
 
 
 
@@ -1560,4 +1557,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.8
+//V 2.9
