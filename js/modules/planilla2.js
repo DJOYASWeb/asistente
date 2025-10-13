@@ -102,11 +102,13 @@ function agruparAnillosComoPadres(anillos) {
 
 
 function asNumericId(value) {
-  const s = String(value ?? "").trim();
+  if (value === null || value === undefined) return "";
+  const s = String(value).trim();
   if (!s) return "";
-  const n = Number(s);
-  return Number.isFinite(n) ? s : "";
+  const n = parseInt(s, 10);
+  return Number.isNaN(n) ? "" : n.toString();
 }
+
 
 function firstNonEmpty(row, keys) {
   for (const k of keys) {
@@ -147,8 +149,11 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
 
 // Extrae URL de foto contemplando variantes del header (¡incluye el espacio!)
 function extraerUrlFoto(row) {
-  let url = row?.['foto_link_individual '];         // exacto con espacio final
-  if (!url) url = row?.['foto_link_individual'];    // sin espacio
+  let url =
+    row?.['foto_link_individual '] ||
+    row?.['foto_link_individual'] ||
+    row?.['FOTO LINK INDIVIDUAL'] ||
+    row?.['Foto Link Individual'];
   if (!url) {
     const k = detectarColumnaQueIncluye(row, 'foto_link_individual');
     if (k) url = row[k];
@@ -646,10 +651,21 @@ function construirCaracteristicas(row) {
   const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
 const modelo = getField(["modelo", "Modelo", "MODELO PRODUCTO"], "modelo");
-const material = getField(["producto_material", "PRODUCTO MATERIAL", "ID PRODUCTO MATERIAL"], "material");
-const estilo = getField(["producto_estilo", "PRODUCTO ESTILO", "ID PRODUCTO ESTILO"], "estilo");
-const dimension = getField(["dimension", "DIMENSION", "Dimensión"], "dimension");
+const material = getField([
+  "producto_material",
+  "PRODUCTO MATERIAL",
+  "ID PRODUCTO MATERIAL"
+], "material");
+const estilo = getField([
+  "producto_estilo",
+  "PRODUCTO ESTILO",
+  "ID PRODUCTO ESTILO"
+], "estilo");
+const dimension = getField([
+  "dimension", "DIMENSION", "Dimensión", "Dimensiones"
+], "dimension");
 const peso = getField(["peso", "PESO"], "peso");
+
 
   const partes = [];
   if (modelo)    partes.push(`Modelo: ${modelo}`);
@@ -742,7 +758,6 @@ function parsePrecioConIVA(valor) {
 
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
-    // Nuevos nombres confirmados (con fallback a antiguos si aplica)
     const idProducto = asNumericId(row["PRESTASHOP ID"] || row["prestashop_id"]);
     const codigo = row["CODIGO PRODUCTO"] || row["codigo_producto"] || row["Código"] || "";
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
@@ -753,15 +768,14 @@ function transformarDatosParaExportar(datos) {
     const descripcionRaw = row["DESCRIPCION EXTENSA"] || row["descripcion_extensa"] || row["Descripción"] || "";
     const descripcion = formatearDescripcionHTML(descripcionRaw);
 
-    // Precio: tomar desde 'PRECIO PRESTASHOP' (con IVA)
     const precioConIVA = parsePrecioConIVA(row["PRECIO PRESTASHOP"] || row["precio_prestashop"]);
     const precioSinIVA = precioConIVA === null
       ? "0.00"
       : (precioConIVA / 1.19).toFixed(2).replace(",", ".");
 
-    // Imagen: si tienes FOTO LINK INDIVIDUAL, úsalo
     const foto =
       row["FOTO LINK INDIVIDUAL"] ||
+      row["Foto Link Individual"] ||
       (codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "");
 
     return {
@@ -1490,4 +1504,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.3
+//V 2.4
