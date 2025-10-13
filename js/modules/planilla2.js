@@ -1035,7 +1035,7 @@ function mostrarTablaCombinacionesCantidad() {
     const tipo = (row["producto_tipo"] || row["procucto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
     const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
     const codigo = extraerCodigo(row);
-    const cantidad = row["cantidad"] || row["CANTIDAD"] ?? 0;
+const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"] );
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
