@@ -554,7 +554,7 @@ const datos = filas.map(fila => {
         const combiTipo = (row["producto_combinacion"] || "").toString().trim().toLowerCase();
         if (combiTipo === "midi") return;
 
-        row["Cantidad"] || row["CANTIDAD"] = 0;
+row["CANTIDAD"] = row["CANTIDAD"] || 0;
         datosCombinaciones.push(row);
 
       } else if (salida === "Reposición") {
@@ -1465,4 +1465,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.1
+//V 2.2
