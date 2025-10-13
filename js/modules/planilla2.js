@@ -167,10 +167,13 @@ function extraerUrlFoto(row) {
 
 // Código de producto con fallback
 function extraerCodigo(row) {
-  let codigo = row?.['codigo_producto'];
-  if (!codigo) codigo = row?.['Código'];
-  return (typeof codigo === 'string' ? codigo.trim() : `${codigo ?? ''}`) || '';
+  const posibles = ["codigo_producto", "CODIGO PRODUCTO", "Código", "CODIGO_PRODUCTO"];
+  for (const key of posibles) {
+    if (row[key]) return row[key].toString().trim();
+  }
+  return "";
 }
+
 
 // ¿Es “producto nuevo”? (heurística segura)
 function esProductoNuevo(row) {
@@ -1567,4 +1570,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.9
+//V 4
