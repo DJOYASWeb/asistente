@@ -367,11 +367,23 @@ async function procesaConConcurrencia(items, handler, concurrency = 4, onProgres
 
 
 // === ZIP FOTOS: acción principal ===
-async function descargarFotosComoZip(ctx, concurrencia = 4) {
+async function descargarFotosComoZip(_ctx, concurrencia = 4) {
   const progressEl = document.getElementById('zipProgress');
-  if (progressEl) { progressEl.style.display = 'inline'; progressEl.textContent = 'Preparando…'; }
+  if (progressEl) { 
+    progressEl.style.display = 'inline'; 
+    progressEl.textContent = 'Preparando…'; 
+  }
 
-  const filas = obtenerFilasActivas(ctx);
+  // 🔥 Tomamos siempre las variables globales reales
+  const filas = Array.isArray(window.datosFiltrados) && window.datosFiltrados.length
+    ? window.datosFiltrados
+    : [
+        ...(Array.isArray(window.datosOriginales) ? window.datosOriginales : []),
+        ...(Array.isArray(window.datosCombinaciones) ? window.datosCombinaciones : [])
+      ];
+
+  console.log("[ZIP] Filas obtenidas:", filas.length);
+
   const lista = [];
   let faltantesSinUrl = 0;
 
@@ -379,7 +391,10 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
     const codigo = extraerCodigo(row);
     const rawUrl = extraerUrlFoto(row);
     if (!codigo) continue;
-    if (!rawUrl) { faltantesSinUrl++; continue; }
+    if (!rawUrl) { 
+      faltantesSinUrl++; 
+      continue; 
+    }
     const url = normalizarUrlDrive(rawUrl);
     lista.push({ codigo, url });
   }
@@ -387,6 +402,7 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
   if (!lista.length) {
     if (progressEl) progressEl.style.display = 'none';
     alert('No se encontraron fotos para descargar en las filas activas.');
+    console.warn('[ZIP] Ninguna URL detectada. filas:', filas.length, 'faltantes:', faltantesSinUrl);
     return;
   }
 
@@ -397,12 +413,11 @@ async function descargarFotosComoZip(ctx, concurrencia = 4) {
   const resultados = await procesaConConcurrencia(
     lista,
     async (item) => {
-      const finalUrl = item.url;
-      const resp = await fetch(finalUrl, { credentials: 'omit' });
+      const resp = await fetch(item.url, { credentials: 'omit' });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const blob = await resp.blob();
 
-      const ext = deducirExtension({ response: resp, finalUrl });
+      const ext = deducirExtension({ response: resp, finalUrl: item.url });
       const base = safeName(item.codigo);
       const n = (usados.get(base) || 0) + 1;
       usados.set(base, n);
@@ -1540,4 +1555,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.6
+//V 2.7
