@@ -90,7 +90,7 @@ function agruparAnillosComoPadres(anillos) {
   grupos.forEach((miembros, key) => {
     const base = { ...miembros[0] };
     const codigoPadre = `${key}000`;
-    base["codigo_producto"] = codigoPadre;
+    base["CODIGO PRODUCTO"] = codigoPadre;
 
     // ✅ stock 0 en ambas variantes
     base["Cantidad"] = 0;
@@ -1664,4 +1664,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V5.5
+//V5.6
