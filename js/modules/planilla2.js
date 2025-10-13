@@ -1321,6 +1321,15 @@ document.addEventListener('click', async (e) => {
   }
 
   console.log('[zip] click botón ZIP');
+
+  // 🔥 Aseguramos que los datos estén accesibles
+  console.log('[zip] Debug variables globales:', {
+    datosFiltrados: window.datosFiltrados?.length || 0,
+    datosOriginales: window.datosOriginales?.length || 0,
+    datosCombinaciones: window.datosCombinaciones?.length || 0,
+    tipoSeleccionado: window.tipoSeleccionado
+  });
+
   try {
     if (typeof JSZip === 'undefined') {
       alert('Falta JSZip. Verifica que el CDN esté cargado.');
@@ -1330,12 +1339,8 @@ document.addEventListener('click', async (e) => {
     zipDescargando = true;
     btn.disabled = true;
 
-    await descargarFotosComoZip({
-      tipoSeleccionado,
-      datosFiltrados,
-      datosOriginales,
-      datosCombinaciones
-    }, 4);
+    // ✅ Llamada directa sin pasar objeto intermedio (usa globales reales)
+    await descargarFotosComoZip({}, 4);
   } catch (err) {
     console.error('[zip] No se pudo iniciar/completar la descarga ZIP:', err);
     alert('No se pudo iniciar/completar la descarga. Revisa la consola para más detalles.');
@@ -1555,4 +1560,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.7
+//V 2.8
