@@ -582,7 +582,6 @@ datos.forEach(row => {
   }
 
   const tieneCombinacion = combinacion !== "";
-
 if (tieneCombinacion) {
   const combinaciones = combinacion.split(",");
   let errorDetectado = false;
@@ -590,8 +589,7 @@ if (tieneCombinacion) {
   combinaciones.forEach(c => {
     const valor = c.trim();
 
-    // ✅ acepta formatos:
-    // #10-12, 10-12, Numeración 19, Numeracion 10, 19, etc.
+    // ✅ acepta formatos: #10-12, 10-12, Numeración 19, Numeracion 10, 19, etc.
     const regex = /^#?\d+(-\d+)?$/i;
     const regexNumeracion = /^numeraci[oó]n\s*\d+$/i;
 
@@ -609,17 +607,18 @@ if (tieneCombinacion) {
     row["PRODUCTO COMBINACION"] ||
     ""
   ).toString().trim().toLowerCase();
+
   if (combiTipo === "midi") return;
 
+  // ✅ si todo está bien, lo agregamos al array
   row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
   datosCombinaciones.push(row);
-}
 
-  } else if (salida === "Reposición") {
-    datosReposicion.push(row);
-  } else {
-    datosOriginales.push(row);
-  }
+} else if (salida === "Reposición") {
+  datosReposicion.push(row);
+} else {
+  datosOriginales.push(row);
+}
 });
 
 
@@ -1573,4 +1572,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 4.3
+//V 4.9
