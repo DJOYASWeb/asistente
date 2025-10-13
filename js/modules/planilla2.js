@@ -78,7 +78,7 @@ function crearCodigoPadre(codigo) {
 function agruparAnillosComoPadres(anillos) {
   const grupos = new Map(); // key = prefijo (sin los últimos 3)
   anillos.forEach(row => {
-    const codigo = row["codigo_producto"] || row["Código"] || "";
+const codigo = extraerCodigo(row);
     const key = prefijoPadre(codigo);
     if (!key) return;
     if (!grupos.has(key)) grupos.set(key, []);
@@ -1570,4 +1570,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 4
+//V 4.1
