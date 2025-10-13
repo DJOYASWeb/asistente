@@ -581,6 +581,78 @@ const datos = filas.map(fila => {
 }
 
 
+// 🧩 NORMALIZADOR DE COLUMNAS
+function normalizarColumnasFila(fila) {
+  const normalizado = {};
+  for (const key in fila) {
+    if (!Object.hasOwn(fila, key)) continue;
+    const k = key.trim().toLowerCase();
+
+    switch (k) {
+      case "producto material":
+        normalizado["producto_material"] = fila[key];
+        break;
+      case "producto tipo":
+        normalizado["producto_tipo"] = fila[key];
+        break;
+      case "producto subtipo":
+        normalizado["producto_subtipo"] = fila[key];
+        break;
+      case "nombre producto":
+        normalizado["nombre_producto"] = fila[key];
+        break;
+      case "modelo producto":
+        normalizado["modelo_producto"] = fila[key];
+        break;
+      case "precio prestashop":
+        normalizado["precio_prestashop"] = fila[key];
+        break;
+      case "producto estilo":
+        normalizado["producto_estilo"] = fila[key];
+        break;
+      case "cantidad":
+        normalizado["cantidad"] = fila[key];
+        break;
+      case "ocasion":
+        normalizado["ocasion"] = fila[key];
+        break;
+      case "dimension":
+        normalizado["dimension"] = fila[key];
+        break;
+      case "peso":
+        normalizado["peso"] = fila[key];
+        break;
+      case "descripcion resumen":
+        normalizado["descripcion_resumen"] = fila[key];
+        break;
+      case "descripcion extensa":
+        normalizado["descripcion_extensa"] = fila[key];
+        break;
+      case "foto link individual":
+        normalizado["foto_link_individual"] = fila[key];
+        break;
+      default:
+        normalizado[k] = fila[key];
+        break;
+    }
+  }
+  return normalizado;
+}
+
+// 🧩 APLICA LA NORMALIZACIÓN AUTOMÁTICAMENTE DESPUÉS DE LEER EL ARCHIVO
+function aplicarNormalizacion(datos) {
+  return datos.map(fila => normalizarColumnasFila(fila));
+}
+
+// 🧩 Ejemplo de integración con la carga del Excel o CSV
+// (asegúrate de tener esto justo después de leer las filas con XLSX o PapaParse)
+if (Array.isArray(datosOriginales)) {
+  datosOriginales = aplicarNormalizacion(datosOriginales);
+}
+if (Array.isArray(datosCombinaciones)) {
+  datosCombinaciones = aplicarNormalizacion(datosCombinaciones);
+}
+
 
 
 // --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
@@ -1460,4 +1532,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.6
+//V 1.7
