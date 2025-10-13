@@ -583,34 +583,37 @@ datos.forEach(row => {
 
   const tieneCombinacion = combinacion !== "";
 
-  if (tieneCombinacion) {
-    const combinaciones = combinacion.split(",");
-    let errorDetectado = false;
+if (tieneCombinacion) {
+  const combinaciones = combinacion.split(",");
+  let errorDetectado = false;
 
-    combinaciones.forEach(c => {
-      const valor = c.trim();
-      const regex = /^#\d+-\d+$/;
-      if (!regex.test(valor)) {
-        errores.push(`${sku} - ${valor}`);
-        errorDetectado = true;
-      }
-    });
+  combinaciones.forEach(c => {
+    const valor = c.trim();
 
-    if (errorDetectado) return;
+    // ✅ acepta formatos:
+    // #10-12, 10-12, Numeración 19, Numeracion 10, 19, etc.
+    const regex = /^#?\d+(-\d+)?$/i;
+    const regexNumeracion = /^numeraci[oó]n\s*\d+$/i;
 
-    // ❌ Excluir si producto_combinacion = "Midi"
-    const combiTipo = (
-            row["PRODUCTO COMBINACION"] ||
-      row["producto_combinacion"] ||
-      ""
-    ).toString().trim().toLowerCase();
-    if (combiTipo === "midi") return;
+    if (!regex.test(valor) && !regexNumeracion.test(valor)) {
+      errores.push(`${sku} - ${valor}`);
+      errorDetectado = true;
+    }
+  });
 
-    // ✅ Corrección del error
-row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
+  if (errorDetectado) return;
 
+  // ❌ excluir si producto_combinacion = "midi"
+  const combiTipo = (
+    row["producto_combinacion"] ||
+    row["PRODUCTO COMBINACION"] ||
+    ""
+  ).toString().trim().toLowerCase();
+  if (combiTipo === "midi") return;
 
-    datosCombinaciones.push(row);
+  row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
+  datosCombinaciones.push(row);
+}
 
   } else if (salida === "Reposición") {
     datosReposicion.push(row);
@@ -1570,4 +1573,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 4.2
+//V 4.3
