@@ -554,7 +554,6 @@ const datos = filas.map(fila => {
 
     const errores = [];
 
-
 datos.forEach(row => {
   const salida = (row["Salida"] || "").toString().trim();
   const combinacion = (
@@ -575,21 +574,28 @@ datos.forEach(row => {
 
   const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
-  // ⚠️ Si es un anillo y tiene campo combinaciones vacío → marcar error
-  if (esAnilloConValidacion && "Combinaciones" in row && combinacion === "") {
+  // ⚠️ Si es un anillo y el campo combinaciones está vacío → error
+  if (esAnilloConValidacion && combinacion === "") {
     errores.push(`${sku} - combinaciones vacías (${categoria})`);
     return;
   }
 
-  // 🟢 SOLO validar si realmente hay combinaciones
-  if (combinacion !== "") {
+  // 🟢 Determinar si el campo de combinación tiene realmente algo útil
+  const combiValida =
+    combinacion !== "" &&
+    combinacion.toLowerCase() !== "sin valor" &&
+    combinacion.toLowerCase() !== "null" &&
+    combinacion.toLowerCase() !== "ninguno";
+
+  // 🧩 Si hay combinación válida → procesar
+  if (combiValida) {
     const combinaciones = combinacion.split(",");
     let errorDetectado = false;
 
     combinaciones.forEach(c => {
       const valor = c.trim();
 
-      // acepta #10-12, 10-12, Numeración 19, numeracion 10, 19, etc.
+      // Acepta: #10-12, 10-12, Numeración 19, numeracion 10, 19, etc.
       const regex = /^#?\d+(-\d+)?$/i;
       const regexNumeracion = /^numeraci[oó]n\s*\d+$/i;
 
@@ -1572,4 +1578,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 4.9
+//V5
