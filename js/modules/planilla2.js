@@ -629,7 +629,7 @@ function construirCaracteristicas(row) {
   const modelo     = getField(["modelo", "Modelo","MODELO PRODUCTO"], "modelo");
   const material   = getField(["producto_material","PRODUCTO MATERIAL"], "material");
   const estilo     = getField(["procucto_estilo", "producto_estilo","PRODUCTO ESTILO"], "estilo");
-  const dimension  = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"."DIMENSION"], "dimension");
+  const dimension  = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones","DIMENSION"], "dimension");
   const peso       = getField(["peso", "Peso","PESO"], "peso");
 
   const partes = [];
@@ -1465,4 +1465,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.8
+//V 1.9
