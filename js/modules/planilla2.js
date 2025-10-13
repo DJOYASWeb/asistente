@@ -1312,19 +1312,24 @@ document.addEventListener('click', async (e) => {
   const btn = e.target.closest('#' + BTN_ID);
   if (!btn) return;
 
-  if (zipDescargando) {
+  if (window.zipDescargando) {
     console.warn('[zip] Descarga en curso; se ignora click adicional.');
     return;
   }
 
   console.log('[zip] click botón ZIP');
 
-  // 🔥 Aseguramos que los datos estén accesibles
-  console.log('[zip] Debug variables globales:', {
-    datosFiltrados: window.datosFiltrados?.length || 0,
-    datosOriginales: window.datosOriginales?.length || 0,
-    datosCombinaciones: window.datosCombinaciones?.length || 0,
-    tipoSeleccionado: window.tipoSeleccionado
+  // 🔥 Forzar acceso global explícito
+  const tipoSel = window.tipoSeleccionado;
+  const datosFilt = window.datosFiltrados || [];
+  const datosOrig = window.datosOriginales || [];
+  const datosComb = window.datosCombinaciones || [];
+
+  console.log('[zip] Debug variables globales (forzadas):', {
+    datosFiltrados: datosFilt.length,
+    datosOriginales: datosOrig.length,
+    datosCombinaciones: datosComb.length,
+    tipoSeleccionado: tipoSel
   });
 
   try {
@@ -1333,19 +1338,25 @@ document.addEventListener('click', async (e) => {
       return;
     }
 
-    zipDescargando = true;
+    window.zipDescargando = true;
     btn.disabled = true;
 
-    // ✅ Llamada directa sin pasar objeto intermedio (usa globales reales)
-    await descargarFotosComoZip({}, 4);
+    // ✅ Pasamos las referencias globales manualmente
+    await descargarFotosComoZip({
+      tipoSeleccionado: tipoSel,
+      datosFiltrados: datosFilt,
+      datosOriginales: datosOrig,
+      datosCombinaciones: datosComb
+    }, 4);
   } catch (err) {
     console.error('[zip] No se pudo iniciar/completar la descarga ZIP:', err);
     alert('No se pudo iniciar/completar la descarga. Revisa la consola para más detalles.');
   } finally {
-    zipDescargando = false;
+    window.zipDescargando = false;
     btn.disabled = false;
   }
 });
+
 
 })();
 
@@ -1557,4 +1568,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.9
+//V 3
