@@ -555,12 +555,11 @@ const datos = filas.map(fila => {
     const errores = [];
 
 
-
 datos.forEach(row => {
   const salida = (row["Salida"] || "").toString().trim();
   const combinacion = (
-    row["PRODUCTO COMBINACION"] ||
     row["Combinaciones"] ||
+    row["PRODUCTO COMBINACION"] ||
     row["producto_combinacion"] ||
     ""
   ).toString().trim();
@@ -576,52 +575,53 @@ datos.forEach(row => {
 
   const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
+  // ⚠️ Si es un anillo y tiene campo combinaciones vacío → marcar error
   if (esAnilloConValidacion && "Combinaciones" in row && combinacion === "") {
     errores.push(`${sku} - combinaciones vacías (${categoria})`);
     return;
   }
 
-  const tieneCombinacion = combinacion !== "";
-if (tieneCombinacion) {
-  const combinaciones = combinacion.split(",");
-  let errorDetectado = false;
+  // 🟢 SOLO validar si realmente hay combinaciones
+  if (combinacion !== "") {
+    const combinaciones = combinacion.split(",");
+    let errorDetectado = false;
 
-  combinaciones.forEach(c => {
-    const valor = c.trim();
+    combinaciones.forEach(c => {
+      const valor = c.trim();
 
-    // ✅ acepta formatos: #10-12, 10-12, Numeración 19, Numeracion 10, 19, etc.
-    const regex = /^#?\d+(-\d+)?$/i;
-    const regexNumeracion = /^numeraci[oó]n\s*\d+$/i;
+      // acepta #10-12, 10-12, Numeración 19, numeracion 10, 19, etc.
+      const regex = /^#?\d+(-\d+)?$/i;
+      const regexNumeracion = /^numeraci[oó]n\s*\d+$/i;
 
-    if (!regex.test(valor) && !regexNumeracion.test(valor)) {
-      errores.push(`${sku} - ${valor}`);
-      errorDetectado = true;
-    }
-  });
+      if (!regex.test(valor) && !regexNumeracion.test(valor)) {
+        errores.push(`${sku} - ${valor}`);
+        errorDetectado = true;
+      }
+    });
 
-  if (errorDetectado) return;
+    if (errorDetectado) return;
 
-  // ❌ excluir si producto_combinacion = "midi"
-  const combiTipo = (
-    row["producto_combinacion"] ||
-    row["PRODUCTO COMBINACION"] ||
-    ""
-  ).toString().trim().toLowerCase();
+    // ❌ Excluir si producto_combinacion = "midi"
+    const combiTipo = (
+      row["producto_combinacion"] ||
+      row["PRODUCTO COMBINACION"] ||
+      ""
+    ).toString().trim().toLowerCase();
+    if (combiTipo === "midi") return;
 
-  if (combiTipo === "midi") return;
+    // ✅ Registrar como combinación válida
+    row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
+    datosCombinaciones.push(row);
 
-  // ✅ si todo está bien, lo agregamos al array
-  row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
-  datosCombinaciones.push(row);
+  } else if (salida === "Reposición") {
+    // 🔹 Producto de reposición sin combinaciones
+    datosReposicion.push(row);
 
-} else if (salida === "Reposición") {
-  datosReposicion.push(row);
-} else {
-  datosOriginales.push(row);
-}
+  } else {
+    // 🔹 Producto nuevo sin combinaciones
+    datosOriginales.push(row);
+  }
 });
-
-
 
 
 
