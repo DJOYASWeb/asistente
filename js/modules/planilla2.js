@@ -763,13 +763,13 @@ function construirCategorias(row) {
     return "";
   };
 
-  // 🔹 Buscar con todas las variantes conocidas
+  // 🔹 Buscar en todas las variantes posibles
   const categoriaPrincipal = getVal("Categoría principal", "categoria_principal", "CATEGORIA PRINCIPAL");
   const tipo = getVal("producto_tipo", "PRODUCTO TIPO", "procucto_tipo", "PRODUCTO_TIPO");
   const subtipo = getVal("producto_subtipo", "PRODUCTO SUBTIPO", "procucto_subtipo", "PRODUCTO_SUBTIPO");
 
-  // 🔹 Orden jerárquico lógico
-  const categorias = [categoriaPrincipal, tipo, subtipo, material, estilo]
+  // 🔹 Orden jerárquico
+  const categorias = [categoriaPrincipal, tipo, subtipo]
     .filter(v => v && v.toLowerCase() !== "sin valor");
 
   // 🔹 Eliminar duplicados (ignorando mayúsculas/minúsculas)
@@ -783,9 +783,10 @@ function construirCategorias(row) {
     }
   }
 
-  // 🔹 Devuelve separadas por coma (o puedes cambiar por "/")
+  // 🔹 Devuelve separadas por coma (puedes usar "/" si prefieres jerarquía)
   return unicas.join(", ");
 }
+
 
 
 
@@ -1566,4 +1567,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.8
+//V 3.9
