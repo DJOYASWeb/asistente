@@ -554,7 +554,7 @@ const datos = filas.map(fila => {
         const combiTipo = (row["producto_combinacion"] || "").toString().trim().toLowerCase();
         if (combiTipo === "midi") return;
 
-        row["Cantidad"] = 0;
+        row["Cantidad"] || row["CANTIDAD"] = 0;
         datosCombinaciones.push(row);
 
       } else if (salida === "Reposición") {
@@ -727,7 +727,7 @@ function transformarDatosParaExportar(datos) {
    const idProducto = asNumericId(row["prestashop_id" || row["PRESTASHOP ID"] ]);
     const codigo = row["codigo_producto"] || row["CODIGO PRODUCTO"] || row["Código"] || "";
     const nombre = row["nombre_producto"] || row["NOMBRE PRODUCTO"] || row["Nombre Producto"] || "";
-const cantidad = esAnillo(row) ? 0 : (row["Combinaciones"] ? 0 : (row["cantidad"] ?? row["WEB"] ?? 0));
+const cantidad = esAnillo(row) ? 0 : (row["Combinaciones"] ? 0 : (row["cantidad"] || row["CANTIDAD"]  ?? row["WEB"] ?? 0));
     const resumen = row["descripcion_resumen"] ?? row["DESCRIPCION RESUMEN"] ?? row["Resumen"] ?? "";
     const descripcionRaw = row["descripcion_extensa"] ?? row["DESCRIPCION EXTENSA"] ?? row["Descripción"] ?? "";
     const descripcion = formatearDescripcionHTML(descripcionRaw);
@@ -735,7 +735,7 @@ const cantidad = esAnillo(row) ? 0 : (row["Combinaciones"] ? 0 : (row["cantidad"
 
     
     // Precio: tomar desde 'precio_prestashop' (con IVA) y calcular sin IVA (19%)
-    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
+    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
 const precioSinIVA = precioConIVA === null 
   ? "0.00" 
   : (precioConIVA / 1.19).toFixed(2).replace(',', '.');
@@ -1007,11 +1007,11 @@ function mostrarTablaCombinacionesCantidad() {
   const resultado = [];
 
   todos.forEach(row => {
-    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().toLowerCase();
-    const idProducto = asNumericId(row["prestashop_id"]);
+    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
+    const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
     const codigo = extraerCodigo(row);
-    const cantidad = row["cantidad"] ?? 0;
-    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"]);
+    const cantidad = row["cantidad"] || row["CANTIDAD"] ?? 0;
+    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"] );
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
     // --- ANILLOS ---
@@ -1465,4 +1465,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.0
+//V 2.1
