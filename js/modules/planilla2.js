@@ -160,14 +160,23 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
 function extraerUrlFoto(row) {
   if (!row || typeof row !== "object") return "";
 
-  const url = row["FOTO LINK INDIVIDUAL"];
+  // Intento directo
+  let url = row["FOTO LINK INDIVIDUAL"];
 
-  if (typeof url === "string") {
-    return url.trim();
+  // Si no se encuentra, buscar una clave que "parezca" igual (ignorando espacios invisibles)
+  if (!url) {
+    const claves = Object.keys(row);
+    const keyMatch = claves.find(k => 
+      k.replace(/\s+/g, "").toUpperCase() === "FOTOLINKINDIVIDUAL"
+    );
+    if (keyMatch) url = row[keyMatch];
   }
 
+  // Limpiar resultado
+  if (typeof url === "string") return url.trim();
   return "";
 }
+
 
 
 // Código de producto con fallback
@@ -1543,4 +1552,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.3
+//V 3.4
