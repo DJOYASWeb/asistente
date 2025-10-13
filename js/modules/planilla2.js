@@ -468,6 +468,7 @@ const datos = filas.map(fila => {
       // Buscar material (con typo y sin typo)
       const materialRaw = (
         row["producto_material"] ||
+        row["PRODUCTO MATERIAL"] ||
         row["procucto_material"] ||
         ""
       ).toString().trim().toLowerCase();
@@ -486,6 +487,7 @@ const datos = filas.map(fila => {
       if (!categoria) {
         const tipoRaw = (
           row["producto_tipo"] ||
+          row["PRODUCTO TIPO"] ||
           row["procucto_tipo"] ||
           ""
         ).toString().trim().toLowerCase();
@@ -516,8 +518,11 @@ const datos = filas.map(fila => {
     // Clasificación en nuevos, reposición y con combinaciones
     datos.forEach(row => {
       const salida = (row["Salida"] || "").toString().trim();
-      const combinacion = (row["Combinaciones"] || "").toString().trim();
-      const sku = (row["codigo_producto"] || row["Código"] || "SKU no definido").toString().trim();
+      const combinacion = (
+        row["Combinaciones"] ||
+         row["PRODUCTO COMBINACION"] ||       
+        "").toString().trim();
+      const sku = (row["codigo_producto"] || row["Código"] || row["CODIGO PRODUCTO"] || "SKU no definido").toString().trim();
       const categoria = (row["Categoría principal"] || "").toString().trim();
 
       // Validar combinaciones vacías solo en ciertos tipos de anillos
@@ -581,78 +586,6 @@ const datos = filas.map(fila => {
 }
 
 
-// 🧩 NORMALIZADOR DE COLUMNAS
-function normalizarColumnasFila(fila) {
-  const normalizado = {};
-  for (const key in fila) {
-    if (!Object.hasOwn(fila, key)) continue;
-    const k = key.trim().toLowerCase();
-
-    switch (k) {
-      case "producto material":
-        normalizado["producto_material"] = fila[key];
-        break;
-      case "producto tipo":
-        normalizado["producto_tipo"] = fila[key];
-        break;
-      case "producto subtipo":
-        normalizado["producto_subtipo"] = fila[key];
-        break;
-      case "nombre producto":
-        normalizado["nombre_producto"] = fila[key];
-        break;
-      case "modelo producto":
-        normalizado["modelo_producto"] = fila[key];
-        break;
-      case "precio prestashop":
-        normalizado["precio_prestashop"] = fila[key];
-        break;
-      case "producto estilo":
-        normalizado["producto_estilo"] = fila[key];
-        break;
-      case "cantidad":
-        normalizado["cantidad"] = fila[key];
-        break;
-      case "ocasion":
-        normalizado["ocasion"] = fila[key];
-        break;
-      case "dimension":
-        normalizado["dimension"] = fila[key];
-        break;
-      case "peso":
-        normalizado["peso"] = fila[key];
-        break;
-      case "descripcion resumen":
-        normalizado["descripcion_resumen"] = fila[key];
-        break;
-      case "descripcion extensa":
-        normalizado["descripcion_extensa"] = fila[key];
-        break;
-      case "foto link individual":
-        normalizado["foto_link_individual"] = fila[key];
-        break;
-      default:
-        normalizado[k] = fila[key];
-        break;
-    }
-  }
-  return normalizado;
-}
-
-// 🧩 APLICA LA NORMALIZACIÓN AUTOMÁTICAMENTE DESPUÉS DE LEER EL ARCHIVO
-function aplicarNormalizacion(datos) {
-  return datos.map(fila => normalizarColumnasFila(fila));
-}
-
-// 🧩 Ejemplo de integración con la carga del Excel o CSV
-// (asegúrate de tener esto justo después de leer las filas con XLSX o PapaParse)
-if (Array.isArray(datosOriginales)) {
-  datosOriginales = aplicarNormalizacion(datosOriginales);
-}
-if (Array.isArray(datosCombinaciones)) {
-  datosCombinaciones = aplicarNormalizacion(datosCombinaciones);
-}
-
 
 
 // --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
@@ -693,11 +626,11 @@ function construirCaracteristicas(row) {
 
   const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
-  const modelo     = getField(["modelo", "Modelo"], "modelo");
-  const material   = getField(["producto_material"], "material");
-  const estilo     = getField(["procucto_estilo", "producto_estilo"], "estilo");
-  const dimension  = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"], "dimension");
-  const peso       = getField(["peso", "Peso"], "peso");
+  const modelo     = getField(["modelo", "Modelo","MODELO PRODUCTO"], "modelo");
+  const material   = getField(["producto_material","PRODUCTO MATERIAL"], "material");
+  const estilo     = getField(["procucto_estilo", "producto_estilo","PRODUCTO ESTILO"], "estilo");
+  const dimension  = getField(["dimension", "dimensiones", "Dimensión", "Dimensiones"."DIMENSION"], "dimension");
+  const peso       = getField(["peso", "Peso","PESO"], "peso");
 
   const partes = [];
   if (modelo)    partes.push(`Modelo: ${modelo}`);
@@ -1532,4 +1465,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.7
+//V 1.8
