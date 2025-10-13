@@ -753,27 +753,43 @@ const peso = getField(["peso", "PESO"], "peso");
 
 // --- Categorías a exportar (con los nuevos nombres confirmados) ---
 function construirCategorias(row) {
-  const categoriaPrincipal = (row["Categoría principal"] || "").toString().trim();
-  const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().trim();
-  const subtipo = (row["producto_subtipo"] || row["procucto_subtipo"] || "").toString().trim();
+  const getVal = (...keys) => {
+    for (const k of keys) {
+      if (row[k] !== undefined && row[k] !== null) {
+        const v = row[k].toString().trim();
+        if (v && v.toLowerCase() !== "sin valor") return v;
+      }
+    }
+    return "";
+  };
 
-  const partes = [];
+  // 🔹 Buscar con todas las variantes conocidas
+  const categoriaPrincipal = getVal("Categoría principal", "categoria_principal", "CATEGORIA PRINCIPAL");
+  const tipo = getVal("producto_tipo", "PRODUCTO TIPO", "procucto_tipo", "PRODUCTO_TIPO");
+  const subtipo = getVal("producto_subtipo", "PRODUCTO SUBTIPO", "procucto_subtipo", "PRODUCTO_SUBTIPO");
+  const material = getVal("producto_material", "PRODUCTO MATERIAL", "procucto_material", "PRODUCTO_MATERIAL");
+  const estilo = getVal("producto_estilo", "PRODUCTO ESTILO", "procucto_estilo", "PRODUCTO_ESTILO");
 
-  if (categoriaPrincipal && categoriaPrincipal.toLowerCase() !== "sin valor") {
-    partes.push(categoriaPrincipal);
+  // 🔹 Orden jerárquico lógico
+  const categorias = [categoriaPrincipal, tipo, subtipo, material, estilo]
+    .filter(v => v && v.toLowerCase() !== "sin valor");
+
+  // 🔹 Eliminar duplicados (ignorando mayúsculas/minúsculas)
+  const unicas = [];
+  const vistos = new Set();
+  for (const c of categorias) {
+    const norm = c.toLowerCase();
+    if (!vistos.has(norm)) {
+      vistos.add(norm);
+      unicas.push(c);
+    }
   }
 
-  if (tipo && tipo.toLowerCase() !== "sin valor") {
-    partes.push(tipo);
-  }
-
-  // 👉 solo agregamos subtipo si no es ENCHAPADO
-  if (categoriaPrincipal !== "ENCHAPADO" && subtipo && subtipo.toLowerCase() !== "sin valor") {
-    partes.push(subtipo);
-  }
-
-  return partes.join(", ");
+  // 🔹 Devuelve separadas por coma (o puedes cambiar por "/")
+  return unicas.join(", ");
 }
+
+
 
 // --- Precio ---
 function parsePrecioConIVA(valor) {
