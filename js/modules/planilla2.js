@@ -767,8 +767,6 @@ function construirCategorias(row) {
   const categoriaPrincipal = getVal("Categoría principal", "categoria_principal", "CATEGORIA PRINCIPAL");
   const tipo = getVal("producto_tipo", "PRODUCTO TIPO", "procucto_tipo", "PRODUCTO_TIPO");
   const subtipo = getVal("producto_subtipo", "PRODUCTO SUBTIPO", "procucto_subtipo", "PRODUCTO_SUBTIPO");
-  const material = getVal("producto_material", "PRODUCTO MATERIAL", "procucto_material", "PRODUCTO_MATERIAL");
-  const estilo = getVal("producto_estilo", "PRODUCTO ESTILO", "procucto_estilo", "PRODUCTO_ESTILO");
 
   // 🔹 Orden jerárquico lógico
   const categorias = [categoriaPrincipal, tipo, subtipo, material, estilo]
@@ -1569,4 +1567,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.6
+//V 3.7
