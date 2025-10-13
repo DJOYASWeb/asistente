@@ -22,7 +22,7 @@ function normalizarTexto(valor) {
 }
 
 function esAnillo(row) {
-  const tipo = (row["procucto_tipo"] || row["producto_tipo"] || "").toString().toLowerCase();
+  const tipo = (row["procucto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
   const combi = (row["PRODUCTO COMBINACION"] || "").toString().trim().toLowerCase();
 
   // Es anillo solo si dice "anillo" y no es Midi
@@ -1664,4 +1664,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V5.4
+//V5.5
