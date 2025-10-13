@@ -158,32 +158,15 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
 
 // Extrae URL de foto contemplando variantes del header (¡incluye el espacio!)
 function extraerUrlFoto(row) {
-  if (!row || typeof row !== 'object') return '';
+  if (!row || typeof row !== "object") return "";
 
-  // Buscar con distintas variantes posibles
-  let url =
-    row['FOTO LINK INDIVIDUAL'] ||
-    row['Foto Link Individual'] ||
-    row['foto_link_individual'] ||
-    row['foto_link_individual '] || // con espacio final
-    row['foto'] ||
-    row['imagen'] ||
-    row['IMG'] ||
-    row['Image'] ||
-    null;
+  const url = row["FOTO LINK INDIVIDUAL"];
 
-  // Si aún no encuentra, buscar por coincidencia parcial (por si viene con espacios o mayúsculas raras)
-  if (!url) {
-    const k = detectarColumnaQueIncluye(row, 'foto');
-    if (k) url = row[k];
-  }
-
-  // Normalizar valor final
-  if (typeof url === 'string') {
+  if (typeof url === "string") {
     return url.trim();
   }
 
-  return '';
+  return "";
 }
 
 
@@ -1560,4 +1543,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.2
+//V 3.3
