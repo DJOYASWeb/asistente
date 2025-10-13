@@ -1,11 +1,12 @@
 // js/modules/planilla.js
 
-let zipDescargando = false;
-let datosOriginales = [];
-let datosCombinaciones = [];
-let datosReposicion = [];
-let datosFiltrados = [];
-let datosCombinacionCantidades = [];
+window.zipDescargando = false;
+window.datosOriginales = [];
+window.datosCombinaciones = [];
+window.datosReposicion = [];
+window.datosFiltrados = [];
+window.datosCombinacionCantidades = [];
+window.tipoSeleccionado = "todo";
 
 // Orden de columnas para la vista (encabezados de Fila A + "Categoría principal" al final)
 let ordenColumnasVista = [];
@@ -1319,7 +1320,7 @@ document.addEventListener('click', async (e) => {
 
   console.log('[zip] click botón ZIP');
 
-  // 🔥 Forzar acceso global explícito
+  // ✅ Acceso a variables globales reales
   const tipoSel = window.tipoSeleccionado;
   const datosFilt = window.datosFiltrados || [];
   const datosOrig = window.datosOriginales || [];
@@ -1341,13 +1342,14 @@ document.addEventListener('click', async (e) => {
     window.zipDescargando = true;
     btn.disabled = true;
 
-    // ✅ Pasamos las referencias globales manualmente
+    // 🔥 Usamos los datos reales del window
     await descargarFotosComoZip({
       tipoSeleccionado: tipoSel,
       datosFiltrados: datosFilt,
       datosOriginales: datosOrig,
       datosCombinaciones: datosComb
     }, 4);
+
   } catch (err) {
     console.error('[zip] No se pudo iniciar/completar la descarga ZIP:', err);
     alert('No se pudo iniciar/completar la descarga. Revisa la consola para más detalles.');
@@ -1356,6 +1358,7 @@ document.addEventListener('click', async (e) => {
     btn.disabled = false;
   }
 });
+
 
 
 })();
@@ -1568,4 +1571,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3
+//V 3.1
