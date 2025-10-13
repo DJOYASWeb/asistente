@@ -76,38 +76,37 @@ function crearCodigoPadre(codigo) {
  * - Limpia prestashop_id (para que ID salga vacío al exportar)
  */
 function agruparAnillosComoPadres(anillos) {
-  const grupos = new Map();
+  const grupos = new Map(); // key = prefijo (sin los últimos 3)
 
   anillos.forEach(row => {
-    // 🔹 ahora reconoce todas las variantes del nombre de columna
-    const codigo =
-      row["codigo_producto"] ||
-      row["CODIGO PRODUCTO"] ||
-      row["Código"] ||
-      row["CODIGO_PRODUCTO"] ||
-      "";
-
+    const codigo = extraerCodigo(row);    // ✅ robusto
     const key = prefijoPadre(codigo);
     if (!key) return;
-
     if (!grupos.has(key)) grupos.set(key, []);
     grupos.get(key).push(row);
   });
 
   const padres = [];
-
   grupos.forEach((miembros, key) => {
     const base = { ...miembros[0] };
     const codigoPadre = `${key}000`;
     base["codigo_producto"] = codigoPadre;
+
+    // ✅ stock 0 en ambas variantes
     base["Cantidad"] = 0;
     base["cantidad"] = 0;
+
+    // limpiar ID/combinaciones en el padre
     base["prestashop_id"] = "";
+    if ("Combinaciones" in base) base["Combinaciones"] = "";
+    if ("producto_combinacion" in base) base["producto_combinacion"] = "";
+
     padres.push(base);
   });
 
   return padres;
 }
+
 
 
 
@@ -947,6 +946,22 @@ function exportarXLSX(tipo, datos) {
   XLSX.writeFile(wb, nombre);
 }
 
+function inyectarPadresEnDataset(datos) {
+  const anillos = datos.filter(esAnillo);
+  const colgantesLetra = datos.filter(esColganteLetra);
+  const padres = agruparAnillosComoPadres([...anillos, ...colgantesLetra]);
+
+  if (!padres.length) return datos;
+
+  // Evitar duplicados si ya existen filas con ...000
+  const codPadres = new Set(padres.map(r => extraerCodigo(r)));
+  const datosSinPadresPrevios = datos.filter(r => !codPadres.has(extraerCodigo(r)));
+
+  return [...datosSinPadresPrevios, ...padres];
+}
+
+
+
 function prepararModal() {
   const modalBody = document.getElementById("columnasFinales");
 
@@ -973,11 +988,16 @@ function prepararModal() {
     return;
   }
 
-  // caso normal: transformar y previsualizar TODO lo cargado
-  if (!Array.isArray(datosFiltrados) || datosFiltrados.length === 0) {
-    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
-  }
-  const transformados = transformarDatosParaExportar(datosFiltrados);
+// caso normal: transformar y previsualizar TODO lo cargado
+let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
+  ? datosFiltrados
+  : [...datosOriginales, ...datosCombinaciones];
+
+// ✅ inyectar padres (...000) antes de exportar/preview
+dataset = inyectarPadresEnDataset(dataset);
+
+const transformados = transformarDatosParaExportar(dataset);
+
 
   const columnas = Object.keys(transformados[0] || {});
   let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm align-middle"><thead><tr>`;
@@ -1587,4 +1607,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V5.2
+//V5.3
