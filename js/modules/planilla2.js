@@ -149,17 +149,45 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
 
 // Extrae URL de foto contemplando variantes del header (¡incluye el espacio!)
 function extraerUrlFoto(row) {
-  let url =
-    row?.['foto_link_individual '] ||
-    row?.['foto_link_individual'] ||
-    row?.['FOTO LINK INDIVIDUAL'] ||
-    row?.['Foto Link Individual'];
-  if (!url) {
-    const k = detectarColumnaQueIncluye(row, 'foto_link_individual');
-    if (k) url = row[k];
+  if (!row || typeof row !== 'object') return '';
+
+  // Posibles nombres de la columna en distintos Excel
+  const posibles = [
+    'FOTO LINK INDIVIDUAL',
+    'Foto Link Individual',
+    'foto_link_individual',
+    'foto_link_individual ',
+    'foto link individual',
+    'FOTO_LINK_INDIVIDUAL'
+  ];
+
+  let url = '';
+
+  // 1️⃣ Buscar coincidencia exacta
+  for (const k of posibles) {
+    if (row[k]) {
+      url = row[k];
+      break;
+    }
   }
-  return (typeof url === 'string' ? url.trim() : '') || '';
+
+  // 2️⃣ Buscar coincidencia parcial (por si tiene espacios raros o acentos)
+  if (!url) {
+    const key = detectarColumnaQueIncluye(row, 'foto');
+    if (key) url = row[key];
+  }
+
+  // 3️⃣ Normalizar
+  if (typeof url === 'string') url = url.trim();
+
+  // 4️⃣ Si es Google Drive, convertir a link directo
+  if (url) {
+    url = normalizarUrlDrive(url);
+  }
+
+  return url || '';
 }
+
 
 // Código de producto con fallback
 function extraerCodigo(row) {
@@ -1504,4 +1532,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.4
+//V 2.5
