@@ -1569,4 +1569,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.5f
+//V 3.6
