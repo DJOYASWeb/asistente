@@ -137,13 +137,21 @@ function detectarColumnaQueIncluye(row, textoBuscado) {
 
 // Toma dataset activo según reglas acordadas
 function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones }) {
-  if (tipoSeleccionado === 'combinacion_cantidades') {
-    return Array.isArray(datosFiltrados) && datosFiltrados.length ? datosFiltrados : [];
+  // ✅ Prioridad: datos filtrados (si hay algo)
+  if (Array.isArray(datosFiltrados) && datosFiltrados.length > 0) {
+    return datosFiltrados;
   }
-  if (Array.isArray(datosFiltrados) && datosFiltrados.length) return datosFiltrados;
+
+  // ✅ Combinar todo si no hay filtrado activo
   const base = [];
-  if (Array.isArray(datosOriginales)) base.push(...datosOriginales);
-  if (Array.isArray(datosCombinaciones)) base.push(...datosCombinaciones);
+  if (Array.isArray(datosOriginales) && datosOriginales.length) base.push(...datosOriginales);
+  if (Array.isArray(datosCombinaciones) && datosCombinaciones.length) base.push(...datosCombinaciones);
+
+  // ✅ Fallback final: intenta tomar las globales directas
+  if (base.length === 0 && Array.isArray(window.datosFiltrados) && window.datosFiltrados.length) {
+    return window.datosFiltrados;
+  }
+
   return base;
 }
 
@@ -1532,4 +1540,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.5
+//V 2.6
