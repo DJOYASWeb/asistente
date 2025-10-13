@@ -724,12 +724,12 @@ function parsePrecioConIVA(valor) {
 function transformarDatosParaExportar(datos) {
   return datos.map(row => {
     // Nuevos nombres confirmados (con fallback a antiguos si aplica)
-   const idProducto = asNumericId(row["prestashop_id"]);
-    const codigo = row["codigo_producto"] || row["Código"] || "";
-    const nombre = row["nombre_producto"] || row["Nombre Producto"] || "";
+   const idProducto = asNumericId(row["prestashop_id" || row["PRESTASHOP ID"] ]);
+    const codigo = row["codigo_producto"] || row["CODIGO PRODUCTO"] || row["Código"] || "";
+    const nombre = row["nombre_producto"] || row["NOMBRE PRODUCTO"] || row["Nombre Producto"] || "";
 const cantidad = esAnillo(row) ? 0 : (row["Combinaciones"] ? 0 : (row["cantidad"] ?? row["WEB"] ?? 0));
-    const resumen = row["descripcion_resumen"] ?? row["Resumen"] ?? "";
-    const descripcionRaw = row["descripcion_extensa"] ?? row["Descripción"] ?? "";
+    const resumen = row["descripcion_resumen"] ?? row["DESCRIPCION RESUMEN"] ?? row["Resumen"] ?? "";
+    const descripcionRaw = row["descripcion_extensa"] ?? row["DESCRIPCION EXTENSA"] ?? row["Descripción"] ?? "";
     const descripcion = formatearDescripcionHTML(descripcionRaw);
 
 
@@ -1465,4 +1465,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.9
+//V 2.0
