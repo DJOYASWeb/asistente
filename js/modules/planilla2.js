@@ -76,30 +76,39 @@ function crearCodigoPadre(codigo) {
  * - Limpia prestashop_id (para que ID salga vacío al exportar)
  */
 function agruparAnillosComoPadres(anillos) {
-  const grupos = new Map(); // key = prefijo (sin los últimos 3)
+  const grupos = new Map();
+
   anillos.forEach(row => {
-const codigo = extraerCodigo(row);
+    // 🔹 ahora reconoce todas las variantes del nombre de columna
+    const codigo =
+      row["codigo_producto"] ||
+      row["CODIGO PRODUCTO"] ||
+      row["Código"] ||
+      row["CODIGO_PRODUCTO"] ||
+      "";
+
     const key = prefijoPadre(codigo);
     if (!key) return;
+
     if (!grupos.has(key)) grupos.set(key, []);
     grupos.get(key).push(row);
   });
 
   const padres = [];
+
   grupos.forEach((miembros, key) => {
     const base = { ...miembros[0] };
     const codigoPadre = `${key}000`;
-    base["CODIGO PRODUCTO"] = codigoPadre;
-    base["Cantidad"] = 0;              // para la vista previa
-    base["cantidad"] = 0;              // para el export
-    base["prestashop_id"] = "";        // ID vacío (nuevo padre)
-    // opcional: quitar combinaciones en el padre
-    // base["Combinaciones"] = "";
+    base["codigo_producto"] = codigoPadre;
+    base["Cantidad"] = 0;
+    base["cantidad"] = 0;
+    base["prestashop_id"] = "";
     padres.push(base);
   });
 
   return padres;
 }
+
 
 
 function asNumericId(value) {
@@ -1578,4 +1587,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V5
+//V5.2
