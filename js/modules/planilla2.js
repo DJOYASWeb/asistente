@@ -160,41 +160,30 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
 function extraerUrlFoto(row) {
   if (!row || typeof row !== 'object') return '';
 
-  // Posibles nombres de la columna en distintos Excel
-  const posibles = [
-    'FOTO LINK INDIVIDUAL',
-    'Foto Link Individual',
-    'foto_link_individual',
-    'foto_link_individual ',
-    'foto link individual',
-    'FOTO_LINK_INDIVIDUAL'
-  ];
+  // Buscar con distintas variantes posibles
+  let url =
+    row['FOTO LINK INDIVIDUAL'] ||
+    row['Foto Link Individual'] ||
+    row['foto_link_individual'] ||
+    row['foto_link_individual '] || // con espacio final
+    row['foto'] ||
+    row['imagen'] ||
+    row['IMG'] ||
+    row['Image'] ||
+    null;
 
-  let url = '';
-
-  // 1️⃣ Buscar coincidencia exacta
-  for (const k of posibles) {
-    if (row[k]) {
-      url = row[k];
-      break;
-    }
-  }
-
-  // 2️⃣ Buscar coincidencia parcial (por si tiene espacios raros o acentos)
+  // Si aún no encuentra, buscar por coincidencia parcial (por si viene con espacios o mayúsculas raras)
   if (!url) {
-    const key = detectarColumnaQueIncluye(row, 'foto');
-    if (key) url = row[key];
+    const k = detectarColumnaQueIncluye(row, 'foto');
+    if (k) url = row[k];
   }
 
-  // 3️⃣ Normalizar
-  if (typeof url === 'string') url = url.trim();
-
-  // 4️⃣ Si es Google Drive, convertir a link directo
-  if (url) {
-    url = normalizarUrlDrive(url);
+  // Normalizar valor final
+  if (typeof url === 'string') {
+    return url.trim();
   }
 
-  return url || '';
+  return '';
 }
 
 
@@ -1571,4 +1560,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.1
+//V 3.2
