@@ -159,22 +159,8 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
 // Extrae URL de foto contemplando variantes del header (¡incluye el espacio!)
 function extraerUrlFoto(row) {
   if (!row || typeof row !== "object") return "";
-
-  // Intento directo
-  let url = row["FOTO LINK INDIVIDUAL"];
-
-  // Si no se encuentra, buscar una clave que "parezca" igual (ignorando espacios invisibles)
-  if (!url) {
-    const claves = Object.keys(row);
-    const keyMatch = claves.find(k => 
-      k.replace(/\s+/g, "").toUpperCase() === "FOTOLINKINDIVIDUAL"
-    );
-    if (keyMatch) url = row[keyMatch];
-  }
-
-  // Limpiar resultado
-  if (typeof url === "string") return url.trim();
-  return "";
+  const url = row["FOTO LINK INDIVIDUAL"];
+  return typeof url === "string" ? url.trim() : "";
 }
 
 
@@ -349,55 +335,67 @@ async function procesaConConcurrencia(items, handler, concurrency = 4, onProgres
 
 
 // === ZIP FOTOS: acción principal ===
-async function descargarFotosComoZip(_ctx, concurrencia = 4) {
-  const progressEl = document.getElementById('zipProgress');
-  if (progressEl) { 
-    progressEl.style.display = 'inline'; 
-    progressEl.textContent = 'Preparando…'; 
+async function descargarFotosComoZip(_ctx = {}, concurrencia = 4) {
+  const progressEl = document.getElementById("zipProgress");
+  if (progressEl) {
+    progressEl.style.display = "inline";
+    progressEl.textContent = "Preparando…";
   }
 
-  // 🔥 Usar SIEMPRE las variables globales reales
-  const filas = (
-    (Array.isArray(window.datosFiltrados) && window.datosFiltrados.length && window.datosFiltrados) ||
-    [
-      ...(Array.isArray(window.datosOriginales) ? window.datosOriginales : []),
-      ...(Array.isArray(window.datosCombinaciones) ? window.datosCombinaciones : [])
-    ]
-  );
+  // 🟢 Forzar uso de los datos actualmente visibles (datosFiltrados)
+  const filas =
+    (Array.isArray(window.datosFiltrados) && window.datosFiltrados.length
+      ? window.datosFiltrados
+      : (Array.isArray(window.datosOriginales) && window.datosOriginales.length
+          ? window.datosOriginales
+          : (Array.isArray(window.datosCombinaciones) && window.datosCombinaciones.length
+              ? window.datosCombinaciones
+              : [])));
 
   console.log("[ZIP] Filas obtenidas:", filas.length);
+  console.log("[ZIP] Ejemplo FOTO LINK INDIVIDUAL:", filas[0]?.["FOTO LINK INDIVIDUAL"]);
 
   const lista = [];
   let faltantesSinUrl = 0;
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
-    const rawUrl = extraerUrlFoto(row);
+    const rawUrl = extraerUrlFoto(row); // debe devolver la URL de 'FOTO LINK INDIVIDUAL'
+
     if (!codigo) continue;
-    if (!rawUrl) { faltantesSinUrl++; continue; }
+    if (!rawUrl) {
+      faltantesSinUrl++;
+      continue;
+    }
+
     const url = normalizarUrlDrive(rawUrl);
     lista.push({ codigo, url });
   }
 
+  // ⚠️ Si no hay URLs válidas
   if (!lista.length) {
-    if (progressEl) progressEl.style.display = 'none';
-    alert('No se encontraron fotos para descargar en las filas activas.');
-    console.warn('[ZIP] Ninguna URL detectada. filas:', filas.length, 'faltantes:', faltantesSinUrl);
+    if (progressEl) progressEl.style.display = "none";
+    alert("No se encontraron fotos para descargar en las filas activas.");
+    console.warn("[ZIP] Ninguna URL detectada. filas:", filas.length, "faltantes:", faltantesSinUrl);
     return;
   }
 
+  // 🧩 Evitar duplicados
   const usados = new Map();
   const zip = new JSZip();
   let exitosas = 0;
 
+  console.log("[ZIP] Iniciando descarga de", lista.length, "archivos…");
+
   const resultados = await procesaConConcurrencia(
     lista,
     async (item) => {
-      const resp = await fetch(item.url, { credentials: 'omit' });
+      const finalUrl = item.url;
+      const resp = await fetch(finalUrl, { credentials: "omit" });
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const blob = await resp.blob();
 
-      const ext = deducirExtension({ response: resp, finalUrl: item.url });
+      const ext = deducirExtension({ response: resp, finalUrl });
       const base = safeName(item.codigo);
       const n = (usados.get(base) || 0) + 1;
       usados.set(base, n);
@@ -407,27 +405,32 @@ async function descargarFotosComoZip(_ctx, concurrencia = 4) {
       exitosas++;
     },
     concurrencia,
-    (done, total) => { if (progressEl) progressEl.textContent = `Descargando ${done}/${total}…`; }
+    (done, total) => {
+      if (progressEl) progressEl.textContent = `Descargando ${done}/${total}…`;
+    }
   );
 
   const fallidas = resultados.filter(r => !r || !r.ok).length;
 
-  if (progressEl) progressEl.textContent = 'Empaquetando…';
-  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  if (progressEl) progressEl.textContent = "Empaquetando…";
+  const zipBlob = await zip.generateAsync({ type: "blob" });
   const nombreZip = `fotos_${fechaDDMMYY()}.zip`;
 
-  if (typeof saveAs === 'function') {
+  if (typeof saveAs === "function") {
     saveAs(zipBlob, nombreZip);
   } else {
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = URL.createObjectURL(zipBlob);
     a.download = nombreZip;
     document.body.appendChild(a);
     a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    setTimeout(() => {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 0);
   }
 
-  if (progressEl) progressEl.style.display = 'none';
+  if (progressEl) progressEl.style.display = "none";
 
   const totalIntentadas = lista.length;
   const total = totalIntentadas + faltantesSinUrl;
@@ -435,8 +438,6 @@ async function descargarFotosComoZip(_ctx, concurrencia = 4) {
   console.warn(msg);
   alert(msg);
 }
-
-
 
 
 let tipoSeleccionado = "nuevo";
@@ -1552,4 +1553,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 3.4
+//V 3.5f
