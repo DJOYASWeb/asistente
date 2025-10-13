@@ -23,7 +23,7 @@ function normalizarTexto(valor) {
 
 function esAnillo(row) {
   const tipo = (row["procucto_tipo"] || row["producto_tipo"] || "").toString().toLowerCase();
-  const combi = (row["producto_combinacion"] || "").toString().trim().toLowerCase();
+  const combi = (row["PRODUCTO COMBINACION"] || "").toString().trim().toLowerCase();
 
   // Es anillo solo si dice "anillo" y no es Midi
   return tipo.includes("anillo") && combi !== "midi";
@@ -33,7 +33,7 @@ function esColganteLetra(row) {
   const tipo = (row["producto_tipo"] || row["procucto_tipo"] || "").toString().toLowerCase();
   if (!tipo.includes("colgante")) return false;
 
-  const comb = (row["producto_combinacion"] || row["producto_combinación"] || "").toString().trim();
+  const comb = (row["PRODUCTO COMBINACION"] || row["producto_combinación"] || "").toString().trim();
   const codigo = extraerCodigo(row);
 
   // a) si la columna producto_combinacion trae una sola letra A-Z
@@ -559,8 +559,8 @@ const datos = filas.map(fila => {
 datos.forEach(row => {
   const salida = (row["Salida"] || "").toString().trim();
   const combinacion = (
-    row["Combinaciones"] ||
     row["PRODUCTO COMBINACION"] ||
+    row["Combinaciones"] ||
     row["producto_combinacion"] ||
     ""
   ).toString().trim();
@@ -600,8 +600,8 @@ datos.forEach(row => {
 
     // ❌ Excluir si producto_combinacion = "Midi"
     const combiTipo = (
+            row["PRODUCTO COMBINACION"] ||
       row["producto_combinacion"] ||
-      row["PRODUCTO COMBINACION"] ||
       ""
     ).toString().trim().toLowerCase();
     if (combiTipo === "midi") return;
@@ -1120,7 +1120,7 @@ const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
     // --- COLGANTES CON LETRAS (A–Z) ---
     if (esColganteLetra(row)) {
       // letra desde columna o desde el final del código
-      let letra = (row["producto_combinacion"] || row["producto_combinación"] || "").toString().trim().toUpperCase();
+      let letra = (row["producto_combinacion"] || row["PRODUCTO COMBINACION"] || "").toString().trim().toUpperCase();
       if (!/^[A-Z]$/.test(letra)) {
         const m = codigo.match(/([A-Z])$/i);
         letra = m ? m[1].toUpperCase() : "";
@@ -1570,4 +1570,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 4.1
+//V 4.2
