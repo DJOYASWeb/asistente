@@ -828,15 +828,20 @@ function transformarDatosParaExportar(datos) {
     const codigo = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
 
-    // ✅ si es padre (...000) → cantidad 0
-    let cantidad;
-    if (String(codigo || "").endsWith("000")) {
-      cantidad = 0;
-    } else {
-      cantidad = esAnillo(row)
-        ? 0
-        : (row["Combinaciones"] ? 0 : (row["CANTIDAD"] || row["cantidad"] || row["WEB"] || 0));
-    }
+// ✅ CANTIDAD LÓGICA CORREGIDA
+let cantidad = row["CANTIDAD"] || row["cantidad"] || row["WEB"] || 0;
+const codigoStr = String(codigo || "");
+
+// Si el producto es un "padre" (termina en ...000) → stock 0
+if (codigoStr.endsWith("000")) {
+  cantidad = 0;
+} else {
+  // Si es un producto con combinaciones, dejamos su stock original
+  // Si NO tiene combinaciones, también se mantiene igual
+  // Solo los padres deben quedar en 0
+  cantidad = cantidad || 0; // asegura número
+}
+
 
     const resumen = row["DESCRIPCION RESUMEN"] || row["descripcion_resumen"] || row["Resumen"] || "";
     const descripcionRaw = row["DESCRIPCION EXTENSA"] || row["descripcion_extensa"] || row["Descripción"] || "";
@@ -1659,4 +1664,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1
+//V 1.2
