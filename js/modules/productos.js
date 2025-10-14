@@ -217,29 +217,36 @@ function readExcel(file) {
   }
 
   // --------- TABLAS ---------
-  function renderTablaMostrar() {
-    if (filteredData.length === 0) {
-      $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
-      return;
-    }
-
-    let html = '<table class="table table-striped table-bordered"><thead><tr>';
-    colsMostrar.forEach(col => html += `<th>${col}</th>`);
-    html += '</tr></thead><tbody>';
-
-    filteredData.forEach(row => {
-      html += '<tr>';
-      colsMostrar.forEach(col => html += `<td>${row[col] || ''}</td>`);
-      html += '</tr>';
-    });
-
-    html += '</tbody></table>';
-    $tableContainer.html(html).show();
-
-    $resultadoDiv.hide();
-    $('#columnSelector').show();
-    $btnProcesar.show();
+function renderTablaMostrar() {
+  if (filteredData.length === 0) {
+    $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
+    return;
   }
+
+  // 🔹 Solo mostramos las primeras 10 filas
+  const previewLimit = 10;
+  const previewData = filteredData.slice(0, previewLimit);
+
+  let html = `<p class="text-muted">Mostrando solo las primeras ${previewLimit} filas de ${filteredData.length} productos cargados.</p>`;
+  html += '<table class="table table-striped table-bordered"><thead><tr>';
+
+  colsMostrar.forEach(col => (html += `<th>${col}</th>`));
+  html += '</tr></thead><tbody>';
+
+  previewData.forEach(row => {
+    html += '<tr>';
+    colsMostrar.forEach(col => (html += `<td>${row[col] || ''}</td>`));
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  $tableContainer.html(html).show();
+
+  $resultadoDiv.hide();
+  $('#columnSelector').show();
+  $btnProcesar.show();
+}
+
 
   function mostrarPantallaResultado(resultado) {
     $tableContainer.hide().empty();
@@ -413,4 +420,4 @@ function readExcel(file) {
 });
 
 
-//v. 1.7
+//v. 2
