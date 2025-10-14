@@ -1154,27 +1154,22 @@ function mostrarProductosNuevos() {
 }
 
 
-function mostrarProductosReposicion() {
-  tipoSeleccionado = "reposicion";
-  datosFiltrados = [];
+function mostrarProductosConID() {
+  tipoSeleccionado = "reposicion_id";
 
-  // Productos reposición sin combinaciones
-  datosReposicion.forEach(row => {
-    datosFiltrados.push({ ...row });
+  // Combina todos los productos cargados
+  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
+
+  // Filtra solo los que tienen PRESTASHOP ID (o prestashop_id)
+  datosFiltrados = todos.filter(row => {
+    const id = row["PRESTASHOP ID"] || row["prestashop_id"];
+    return id && id.toString().trim() !== "";
   });
 
-  // Productos reposición con combinaciones (cantidad = 0)
-  datosCombinaciones.forEach(row => {
-    const salida = (row["Salida"] || "").trim();
-    if (salida === "Reposición") {
-      const nuevo = { ...row };
-      nuevo["Cantidad"] = 0;
-      datosFiltrados.push(nuevo);
-    }
-  });
-
-  mostrarTablaFiltrada(datosFiltrados);
+  // Renderiza la tabla igual que los otros botones
+  renderTablaConOrden(datosFiltrados);
 }
+
 
 /** ---------- COMBINACIONES (tabla especial) ---------- **/
 
@@ -1664,4 +1659,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V5.6
+//V 1
