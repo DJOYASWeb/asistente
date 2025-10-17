@@ -839,23 +839,31 @@ function transformarDatosParaExportar(datos) {
     const codigo = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
 
-    // ✅ STOCK (protegido)
-    // 1. Si existe el campo _stock_original, se usa siempre.
-    // 2. Si no existe, intenta con las columnas normales.
-    let cantidad = 0;
-    if (row.hasOwnProperty("_stock_original")) {
-      cantidad = Number(row["_stock_original"]) || 0;
-    } else {
-      cantidad = Number(row["cantidad"] || row["CANTIDAD"] || row["WEB"] || 0);
-    }
+    // 🧮 Detectar si tiene combinaciones
+    const combinacionRaw = (
+      row["Combinaciones"] ||
+      row["PRODUCTO COMBINACION"] ||
+      row["producto_combinacion"] ||
+      ""
+    ).toString().trim().toLowerCase();
 
-    // ✅ Si es un padre (...000), fuerza stock 0
-    const codigoStr = String(codigo || "");
-    if (codigoStr.endsWith("000")) {
-      cantidad = 0;
-    }
+    // 🧾 Obtener stock original
+    const stockOriginal = Number(
+      row["_stock_original"] ??
+      row["cantidad"] ??
+      row["CANTIDAD"] ??
+      0
+    );
 
-    // ✅ Mantiene stock original para todo lo demás (aros, collares, etc.)
+    // ✅ Si tiene combinaciones → stock 0
+    // ✅ Si NO tiene combinaciones o dice "sin valor", "null", etc. → mantener stock original
+    const sinCombinacion =
+      combinacionRaw === "" ||
+      combinacionRaw === "null" ||
+      combinacionRaw === "sin valor" ||
+      combinacionRaw === "ninguno";
+
+    const cantidad = sinCombinacion ? stockOriginal : 0;
 
     const resumen =
       row["DESCRIPCION RESUMEN"] ||
@@ -892,14 +900,15 @@ function transformarDatosParaExportar(datos) {
       "Regla de Impuesto": 2,
       "Código Referencia SKU": codigo,
       "Marca": "DJOYAS",
-      "Cantidad": cantidad, // ✅ cantidad final correcta
+      "Cantidad": cantidad, // ✅ correcto según tenga o no combinaciones
       "Resumen": resumen,
       "Descripción": descripcion,
       "Image URLs (x,y,z...)": foto,
-      "Caracteristicas": construirCaracteristicas(row),
+      "Caracteristicas": construirCaracteristicas(row)
     };
   });
 }
+
 
 
 
@@ -1700,4 +1709,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.5
+//V 1.6
