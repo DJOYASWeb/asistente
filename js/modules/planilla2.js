@@ -839,29 +839,49 @@ function transformarDatosParaExportar(datos) {
     const codigo = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
 
-/// ✅ CANTIDAD FINAL (con stock original protegido)
-let cantidad = row["_stock_original"] ?? row["cantidad"] ?? row["CANTIDAD"] ?? 0;
+    // ✅ STOCK (protegido)
+    // 1. Si existe el campo _stock_original, se usa siempre.
+    // 2. Si no existe, intenta con las columnas normales.
+    let cantidad = 0;
+    if (row.hasOwnProperty("_stock_original")) {
+      cantidad = Number(row["_stock_original"]) || 0;
+    } else {
+      cantidad = Number(row["cantidad"] || row["CANTIDAD"] || row["WEB"] || 0);
+    }
 
-// Si es padre (...000) → stock 0
-const codigoStr = String(codigo || "");
-if (codigoStr.endsWith("000")) {
-  cantidad = 0;
-} else {
-  // Si es un producto con combinaciones, dejamos su stock original
-  // Si NO tiene combinaciones, también se mantiene igual
-  // Solo los padres deben quedar en 0
-  cantidad = cantidad || 0; // asegura número
-}
+    // ✅ Si es un padre (...000), fuerza stock 0
+    const codigoStr = String(codigo || "");
+    if (codigoStr.endsWith("000")) {
+      cantidad = 0;
+    }
 
+    // ✅ Mantiene stock original para todo lo demás (aros, collares, etc.)
 
-    const resumen = row["DESCRIPCION RESUMEN"] || row["descripcion_resumen"] || row["Resumen"] || "";
-    const descripcionRaw = row["DESCRIPCION EXTENSA"] || row["descripcion_extensa"] || row["Descripción"] || "";
+    const resumen =
+      row["DESCRIPCION RESUMEN"] ||
+      row["descripcion_resumen"] ||
+      row["Resumen"] ||
+      "";
+
+    const descripcionRaw =
+      row["DESCRIPCION EXTENSA"] ||
+      row["descripcion_extensa"] ||
+      row["Descripción"] ||
+      "";
+
     const descripcion = formatearDescripcionHTML(descripcionRaw);
 
-    const precioConIVA = parsePrecioConIVA(row["PRECIO PRESTASHOP"] || row["precio_prestashop"]);
-    const precioSinIVA = precioConIVA === null ? "0.00" : (precioConIVA / 1.19).toFixed(2).replace(",", ".");
+    const precioConIVA = parsePrecioConIVA(
+      row["PRECIO PRESTASHOP"] || row["precio_prestashop"]
+    );
+    const precioSinIVA =
+      precioConIVA === null
+        ? "0.00"
+        : (precioConIVA / 1.19).toFixed(2).replace(",", ".");
 
-    const foto = codigo ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg` : "";
+    const foto = codigo
+      ? `https://distribuidoradejoyas.cl/img/prod/${codigo}.jpg`
+      : "";
 
     return {
       "ID": idProducto || "",
@@ -872,14 +892,15 @@ if (codigoStr.endsWith("000")) {
       "Regla de Impuesto": 2,
       "Código Referencia SKU": codigo,
       "Marca": "DJOYAS",
-      "Cantidad": cantidad,
+      "Cantidad": cantidad, // ✅ cantidad final correcta
       "Resumen": resumen,
       "Descripción": descripcion,
       "Image URLs (x,y,z...)": foto,
-      "Caracteristicas": construirCaracteristicas(row)
+      "Caracteristicas": construirCaracteristicas(row),
     };
   });
 }
+
 
 
 /** ---------- RENDER DE TABLAS (respeta ordenColumnasVista) ---------- **/
