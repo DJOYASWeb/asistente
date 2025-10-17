@@ -1089,12 +1089,16 @@ function procesarExportacion() {
     return;
   }
 
-  // exportar TODO
-  if (!Array.isArray(datosFiltrados) || datosFiltrados.length === 0) {
-    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
-  }
-  exportarXLSX("todo", datosFiltrados);
+  // exportar TODO (inyectar padres para que el XLSX tenga los ...000)
+  let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
+    ? datosFiltrados
+    : [...datosOriginales, ...datosCombinaciones];
+
+  dataset = inyectarPadresEnDataset(dataset);
+
+  exportarXLSX("todo", dataset);
 }
+
 
 
 function exportarXLSXPersonalizado(nombre, datos) {
@@ -1664,4 +1668,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.2
+//V 1.3
