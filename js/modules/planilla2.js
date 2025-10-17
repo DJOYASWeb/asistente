@@ -499,20 +499,30 @@ function leerExcelDesdeFilaA(file) {
     const filas = todasLasFilas.slice(1);
 
     // Construir objetos respetando los encabezados tal cual vienen
-const datos = filas.map(fila => {
-  const obj = {};
-  headers.forEach((col, i) => {
-    let valor = fila[i] ?? "";
+    const datos = filas.map(fila => {
+      const obj = {};
+      headers.forEach((col, i) => {
+        let valor = fila[i] ?? "";
 
-    // 🚫 Si trae "NULL" (cualquier combinación de mayúsculas/minúsculas) → vacío
-    if (typeof valor === "string" && valor.trim().toUpperCase() === "NULL") {
-      valor = "";
-    }
+        // 🚫 Si trae "NULL" (cualquier combinación de mayúsculas/minúsculas) → vacío
+        if (typeof valor === "string" && valor.trim().toUpperCase() === "NULL") {
+          valor = "";
+        }
 
-    obj[col || `Columna${i}`] = valor;
-  });
-  return obj;
-});
+        obj[col || `Columna${i}`] = valor;
+      });
+
+      // ✅ GUARDAR STOCK ORIGINAL DESDE YA (campo protegido)
+      if (obj["Cantidad"] !== undefined || obj["CANTIDAD"] !== undefined) {
+        const stockOriginal = obj["Cantidad"] || obj["CANTIDAD"] || 0;
+        obj["_stock_original"] = Number(stockOriginal);
+      } else {
+        obj["_stock_original"] = 0;
+      }
+
+      return obj;
+    });
+
     // --- Generar "Categoría principal" ---
     datos.forEach(row => {
       // Buscar material (con typo y sin typo)
@@ -565,82 +575,80 @@ const datos = filas.map(fila => {
 
     const errores = [];
 
-datos.forEach(row => {
-  const salida = (row["Salida"] || "").toString().trim();
-  const combinacion = (
-    row["Combinaciones"] ||
-    row["PRODUCTO COMBINACION"] ||
-    row["producto_combinacion"] ||
-    ""
-  ).toString().trim();
+    datos.forEach(row => {
+      const salida = (row["Salida"] || "").toString().trim();
+      const combinacion = (
+        row["Combinaciones"] ||
+        row["PRODUCTO COMBINACION"] ||
+        row["producto_combinacion"] ||
+        ""
+      ).toString().trim();
 
-  const sku = (
-    row["codigo_producto"] ||
-    row["CODIGO PRODUCTO"] ||
-    row["Código"] ||
-    "SKU no definido"
-  ).toString().trim();
+      const sku = (
+        row["codigo_producto"] ||
+        row["CODIGO PRODUCTO"] ||
+        row["Código"] ||
+        "SKU no definido"
+      ).toString().trim();
 
-  const categoria = (row["Categoría principal"] || "").toString().trim();
+      const categoria = (row["Categoría principal"] || "").toString().trim();
 
-  const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
+      const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
-  // ⚠️ Si es un anillo y el campo combinaciones está vacío → error
-  if (esAnilloConValidacion && combinacion === "") {
-    errores.push(`${sku} - combinaciones vacías (${categoria})`);
-    return;
-  }
+      // ⚠️ Si es un anillo y el campo combinaciones está vacío → error
+      if (esAnilloConValidacion && combinacion === "") {
+        errores.push(`${sku} - combinaciones vacías (${categoria})`);
+        return;
+      }
 
-  // 🟢 Determinar si el campo de combinación tiene realmente algo útil
-  const combiValida =
-    combinacion !== "" &&
-    combinacion.toLowerCase() !== "sin valor" &&
-    combinacion.toLowerCase() !== "null" &&
-    combinacion.toLowerCase() !== "ninguno";
+      // 🟢 Determinar si el campo de combinación tiene realmente algo útil
+      const combiValida =
+        combinacion !== "" &&
+        combinacion.toLowerCase() !== "sin valor" &&
+        combinacion.toLowerCase() !== "null" &&
+        combinacion.toLowerCase() !== "ninguno";
 
-  // 🧩 Si hay combinación válida → procesar
-  if (combiValida) {
-    const combinaciones = combinacion.split(",");
-    let errorDetectado = false;
+      // 🧩 Si hay combinación válida → procesar
+      if (combiValida) {
+        const combinaciones = combinacion.split(",");
+        let errorDetectado = false;
 
-    combinaciones.forEach(c => {
-      const valor = c.trim();
+        combinaciones.forEach(c => {
+          const valor = c.trim();
 
-      // Acepta: #10-12, 10-12, Numeración 19, numeracion 10, 19, etc.
-      const regex = /^#?\d+(-\d+)?$/i;
-      const regexNumeracion = /^numeraci[oó]n\s*\d+$/i;
+          // Acepta: #10-12, 10-12, Numeración 19, numeracion 10, 19, etc.
+          const regex = /^#?\d+(-\d+)?$/i;
+          const regexNumeracion = /^numeraci[oó]n\s*\d+$/i;
 
-      if (!regex.test(valor) && !regexNumeracion.test(valor)) {
-        errores.push(`${sku} - ${valor}`);
-        errorDetectado = true;
+          if (!regex.test(valor) && !regexNumeracion.test(valor)) {
+            errores.push(`${sku} - ${valor}`);
+            errorDetectado = true;
+          }
+        });
+
+        if (errorDetectado) return;
+
+        // ❌ Excluir si producto_combinacion = "midi"
+        const combiTipo = (
+          row["producto_combinacion"] ||
+          row["PRODUCTO COMBINACION"] ||
+          ""
+        ).toString().trim().toLowerCase();
+        if (combiTipo === "midi") return;
+
+        // ✅ Registrar como combinación válida
+        row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
+        datosCombinaciones.push(row);
+
+      } else if (salida === "Reposición") {
+        // 🔹 Producto de reposición sin combinaciones
+        datosReposicion.push(row);
+
+      } else {
+        // 🔹 Producto nuevo sin combinaciones
+        datosOriginales.push(row);
       }
     });
-
-    if (errorDetectado) return;
-
-    // ❌ Excluir si producto_combinacion = "midi"
-    const combiTipo = (
-      row["producto_combinacion"] ||
-      row["PRODUCTO COMBINACION"] ||
-      ""
-    ).toString().trim().toLowerCase();
-    if (combiTipo === "midi") return;
-
-    // ✅ Registrar como combinación válida
-    row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
-    datosCombinaciones.push(row);
-
-  } else if (salida === "Reposición") {
-    // 🔹 Producto de reposición sin combinaciones
-    datosReposicion.push(row);
-
-  } else {
-    // 🔹 Producto nuevo sin combinaciones
-    datosOriginales.push(row);
-  }
-});
-
-
 
     // Mostrar errores acumulados si hay
     if (errores.length > 0) {
@@ -831,11 +839,11 @@ function transformarDatosParaExportar(datos) {
     const codigo = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
 
-// ✅ CANTIDAD LÓGICA CORREGIDA
-let cantidad = row["CANTIDAD"] || row["cantidad"] || row["WEB"] || 0;
-const codigoStr = String(codigo || "");
+/// ✅ CANTIDAD FINAL (con stock original protegido)
+let cantidad = row["_stock_original"] ?? row["cantidad"] ?? row["CANTIDAD"] ?? 0;
 
-// Si el producto es un "padre" (termina en ...000) → stock 0
+// Si es padre (...000) → stock 0
+const codigoStr = String(codigo || "");
 if (codigoStr.endsWith("000")) {
   cantidad = 0;
 } else {
@@ -1671,4 +1679,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.4
+//V 1.5
