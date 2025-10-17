@@ -75,11 +75,11 @@ function crearCodigoPadre(codigo) {
  * - Fuerza cantidad = 0
  * - Limpia prestashop_id (para que ID salga vacío al exportar)
  */
-function agruparAnillosComoPadres(anillos) {
+function agruparAnillosComoPadres(productos) {
   const grupos = new Map(); // key = prefijo (sin los últimos 3)
 
-  anillos.forEach(row => {
-    const codigo = extraerCodigo(row);    // ✅ robusto
+  productos.forEach(row => {
+    const codigo = extraerCodigo(row);
     const key = prefijoPadre(codigo);
     if (!key) return;
     if (!grupos.has(key)) grupos.set(key, []);
@@ -88,24 +88,27 @@ function agruparAnillosComoPadres(anillos) {
 
   const padres = [];
   grupos.forEach((miembros, key) => {
-    const base = { ...miembros[0] };
+    const base = JSON.parse(JSON.stringify(miembros[0])); // ✅ CLON PROFUNDO
     const codigoPadre = `${key}000`;
-    base["CODIGO PRODUCTO"] = codigoPadre;
 
-    // ✅ stock 0 en ambas variantes
+    base["CODIGO PRODUCTO"] = codigoPadre;
+    base["codigo_producto"] = codigoPadre;
+
+    // ✅ stock 0 solo en el padre, no altera los hijos
     base["Cantidad"] = 0;
     base["cantidad"] = 0;
 
-    // limpiar ID/combinaciones en el padre
+    // limpiar campos que no deben heredarse
     base["prestashop_id"] = "";
-    if ("Combinaciones" in base) base["Combinaciones"] = "";
-    if ("producto_combinacion" in base) base["producto_combinacion"] = "";
+    base["Combinaciones"] = "";
+    base["producto_combinacion"] = "";
 
     padres.push(base);
   });
 
   return padres;
 }
+
 
 
 
@@ -1668,4 +1671,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.3
+//V 1.4
