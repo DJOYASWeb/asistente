@@ -59,6 +59,13 @@ const addProgressItem = (name) => {
         return;
       }
 
+        topBar.style.display = 'flex';
+  globalProgressBar.style.width = '0%';
+  globalProgressText.textContent = 'Iniciando compresión...';
+  downloadAllBtn.disabled = true;
+  downloadAllBtn.style.opacity = '0.6';
+  downloadAllBtn.style.cursor = 'not-allowed';
+
       logContainer.innerHTML = '';
       const zipFile = fileInput.files[0];
       const zipData = await zipFile.arrayBuffer();
@@ -137,6 +144,9 @@ const progressPercent = Math.round((done / entries.length) * 100);
 globalProgressBar.style.width = progressPercent + '%';
 globalProgressText.textContent = `Procesando... ${progressPercent}% (${done}/${entries.length})`;
 
+// 🔹 fuerza al navegador a repintar antes de seguir
+await new Promise(r => setTimeout(r, 50));
+
 
 const resultBlob = await newZip.generateAsync({ type: 'blob' });
 const url = URL.createObjectURL(resultBlob);
@@ -164,4 +174,3 @@ downloadAllBtn.onclick = () => {
 
 
     //v 1.9
-    
