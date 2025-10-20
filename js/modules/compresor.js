@@ -138,15 +138,14 @@ link.download = name;
 
         done++;
 
-      }
-
-const progressPercent = Math.round((done / entries.length) * 100);
+        const progressPercent = Math.round((done / entries.length) * 100);
 globalProgressBar.style.width = progressPercent + '%';
 globalProgressText.textContent = `Procesando... ${progressPercent}% (${done}/${entries.length})`;
 
 // 🔹 fuerza al navegador a repintar antes de seguir
 await new Promise(r => setTimeout(r, 50));
 
+      }
 
 const resultBlob = await newZip.generateAsync({ type: 'blob' });
 const url = URL.createObjectURL(resultBlob);
@@ -173,4 +172,4 @@ downloadAllBtn.onclick = () => {
     };
 
 
-    //v 2
+    //v 2.1
