@@ -1,16 +1,27 @@
   const logContainer = document.getElementById('progressContainer');
 
-    const addProgressItem = (name) => {
-      const div = document.createElement('div');
-      div.className = 'image-item';
-      div.innerHTML = `
-        <span class="image-name">${name}</span>
-        <div class="bar"><div class="fill"></div></div>
-        <span class="status">Pendiente</span>
-      `;
-      logContainer.appendChild(div);
-      return div;
-    };
+const addProgressItem = (name) => {
+  const row = document.createElement('div');
+  row.className = 'image-item';
+  row.innerHTML = `
+    <div class="thumb"><img></div>
+    <div class="info">
+      <div class="name">${name}</div>
+      <div class="meta"></div>
+    </div>
+    <div class="result">
+      <div class="reduction"></div>
+      <div class="final-size"></div>
+    </div>
+    <div class="status-cell">
+      <span class="status">Procesando...</span><br>
+      <a class="download-link" href="#" style="display:none;">Descargar</a>
+    </div>
+  `;
+  logContainer.appendChild(row);
+  return row;
+};
+
 
     // ✅ Nueva función: no cambia resolución
     function compressImageSameResolution(blob, quality = 0.6) {
@@ -65,19 +76,42 @@
             const blob = new Blob([arr]);
             status.textContent = 'Comprimiendo...';
 
-            // ✅ misma resolución, menor calidad
+const originalSize = blob.size;
 let quality = 0.8;
 let compressed;
 do {
   compressed = await compressImageSameResolution(blob, quality);
   if (compressed.size <= 150 * 1024 || quality <= 0.1) break;
-  quality -= 0.1; // baja la calidad de 0.8 → 0.7 → 0.6 ... hasta 0.1
+  quality -= 0.1;
 } while (true);
 
-            newZip.file(name, compressed);
+const finalSize = compressed.size;
+const reduction = 100 - ((finalSize / originalSize) * 100);
+newZip.file(name, compressed);
 
-            fill.style.width = '100%';
-            status.textContent = '✅ Listo';
+// actualizar vista
+const imgEl = item.querySelector('img');
+imgEl.src = URL.createObjectURL(compressed);
+
+item.querySelector('.meta').textContent =
+  `${(originalSize / 1024).toFixed(1)} KB → ${(finalSize / 1024).toFixed(1)} KB`;
+
+item.querySelector('.reduction').textContent =
+  `${reduction.toFixed(1)}% menos`;
+
+item.querySelector('.final-size').textContent =
+  `Final: ${(finalSize / 1024).toFixed(1)} KB`;
+
+const statusEl = item.querySelector('.status');
+statusEl.textContent = 'Listo';
+statusEl.classList.add('ready');
+
+const link = item.querySelector('.download-link');
+link.style.display = 'inline';
+link.href = URL.createObjectURL(compressed);
+link.download = name;
+
+
           } catch (err) {
             console.error(`Error en ${name}:`, err);
             fill.style.background = '#dc3545';
