@@ -1,4 +1,4 @@
-   const logContainer = document.getElementById('progressContainer');
+  const logContainer = document.getElementById('progressContainer');
 
     const addProgressItem = (name) => {
       const div = document.createElement('div');
@@ -12,17 +12,14 @@
       return div;
     };
 
-    function compressImageBlob(blob, maxWidth = 1920, quality = 0.7) {
+    // ✅ Nueva función: no cambia resolución
+    function compressImageSameResolution(blob, quality = 0.6) {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          let { width, height } = img;
-          // Escalar si es necesario
-          if (width > maxWidth) {
-            height = (maxWidth / width) * height;
-            width = maxWidth;
-          }
+          const width = img.width;
+          const height = img.height;
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
@@ -66,10 +63,10 @@
           try {
             const arr = await entry.async('arraybuffer');
             const blob = new Blob([arr]);
-            status.textContent = 'Procesando...';
+            status.textContent = 'Comprimiendo...';
 
-            // Comprimir con canvas
-            const compressed = await compressImageBlob(blob, 1920, 0.7);
+            // ✅ misma resolución, menor calidad
+            const compressed = await compressImageSameResolution(blob, 0.6);
             newZip.file(name, compressed);
 
             fill.style.width = '100%';
@@ -101,5 +98,6 @@
       summary.textContent = `🎉 Listo: ${done} archivos procesados.`;
       logContainer.appendChild(summary);
     };
-    
-    //v 1.4
+
+
+    //v 1.5
