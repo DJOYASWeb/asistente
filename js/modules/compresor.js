@@ -33,15 +33,16 @@
         const item = addProgressItem(name);
 
         if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(name)) {
-          const blob = await entry.async('blob');
+const blob = await entry.async('arraybuffer');
+const imageBlob = new Blob([blob], { type: 'image/jpeg' });
           const fill = item.querySelector('.fill');
           const status = item.querySelector('.status');
 
           try {
             status.textContent = 'Comprimiendo...';
-            const compressed = await imageCompression(blob, {
+const compressed = await imageCompression(imageBlob, {
               maxSizeMB: 0.1, // 100 KB
-              maxWidthOrHeight: 1920,
+              maxWidthOrHeight: 2000,
               useWebWorker: true,
               initialQuality: 0.7
             });
