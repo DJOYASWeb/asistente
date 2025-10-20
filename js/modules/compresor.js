@@ -1,4 +1,4 @@
-    const logContainer = document.getElementById('progressContainer');
+   const logContainer = document.getElementById('progressContainer');
 
     const addProgressItem = (name) => {
       const div = document.createElement('div');
@@ -11,6 +11,35 @@
       logContainer.appendChild(div);
       return div;
     };
+
+    function compressImageBlob(blob, maxWidth = 1920, quality = 0.7) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let { width, height } = img;
+          // Escalar si es necesario
+          if (width > maxWidth) {
+            height = (maxWidth / width) * height;
+            width = maxWidth;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (compressedBlob) => {
+              if (compressedBlob) resolve(compressedBlob);
+              else reject(new Error('No se pudo generar el blob'));
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = () => reject(new Error('Error al cargar imagen'));
+        img.src = URL.createObjectURL(blob);
+      });
+    }
 
     document.getElementById('processBtn').onclick = async () => {
       const fileInput = document.getElementById('zipInput');
@@ -26,47 +55,41 @@
       const newZip = new JSZip();
 
       const entries = Object.entries(jszip.files);
-      const total = entries.length;
       let done = 0;
 
       for (const [name, entry] of entries) {
         const item = addProgressItem(name);
+        const fill = item.querySelector('.fill');
+        const status = item.querySelector('.status');
 
         if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(name)) {
-const blob = await entry.async('arraybuffer');
-const imageBlob = new Blob([blob], { type: 'image/jpeg' });
-          const fill = item.querySelector('.fill');
-          const status = item.querySelector('.status');
-
           try {
-            status.textContent = 'Comprimiendo...';
-const compressed = await imageCompression(imageBlob, {
-              maxSizeMB: 0.1, // 100 KB
-              maxWidthOrHeight: 2000,
-              useWebWorker: true,
-              initialQuality: 0.7
-            });
+            const arr = await entry.async('arraybuffer');
+            const blob = new Blob([arr]);
+            status.textContent = 'Procesando...';
 
+            // Comprimir con canvas
+            const compressed = await compressImageBlob(blob, 1920, 0.7);
             newZip.file(name, compressed);
+
             fill.style.width = '100%';
             status.textContent = '✅ Listo';
-          } catch (e) {
+          } catch (err) {
+            console.error(`Error en ${name}:`, err);
             fill.style.background = '#dc3545';
             fill.style.width = '100%';
             status.textContent = '⚠️ Error';
           }
         } else if (!entry.dir) {
-          // No es imagen → copiar igual
-          const blob = await entry.async('blob');
-          newZip.file(name, blob);
-          item.querySelector('.fill').style.width = '100%';
-          item.querySelector('.status').textContent = 'Sin cambio';
+          const arr = await entry.async('arraybuffer');
+          newZip.file(name, new Blob([arr]));
+          fill.style.width = '100%';
+          status.textContent = 'Sin cambio';
         }
 
         done++;
       }
 
-      // Generar ZIP final
       const resultBlob = await newZip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(resultBlob);
       const a = document.createElement('a');
@@ -78,5 +101,5 @@ const compressed = await imageCompression(imageBlob, {
       summary.textContent = `🎉 Listo: ${done} archivos procesados.`;
       logContainer.appendChild(summary);
     };
-
-    //v 1.2
+    
+    //v 1.4

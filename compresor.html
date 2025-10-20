@@ -12,6 +12,64 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 </head>
 
+  <style>
+
+    h1 { margin-bottom: 15px; color: #333; }
+    input, button {
+      padding: 10px;
+      font-size: 15px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
+    .progress-container {
+      margin-top: 20px;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .image-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .image-name {
+      flex: 1;
+      font-size: 14px;
+      color: #333;
+    }
+    .bar {
+      height: 8px;
+      background: #eee;
+      width: 40%;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0 10px;
+    }
+    .fill {
+      height: 100%;
+      background: #28a745;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .status {
+      font-size: 13px;
+      color: #555;
+      width: 90px;
+      text-align: right;
+    }
+  </style>
+
+
 <body class="protegido" data-theme="light">
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
@@ -68,9 +126,9 @@
     <!-- TAB CONSTRUCTOR -->
     <div id="constructor" class="tab-section">
       <div class="container ios-card mb-5">
-        <h1>Compresor de Calida de Imagen</h1>
+  <h1>Compresor de Imágenes ZIP (Canvas)</h1>
 
-        <input type="file" id="zipInput" accept=".zip">
+  <input type="file" id="zipInput" accept=".zip">
   <button id="processBtn">Procesar ZIP</button>
 
   <div id="progressContainer" class="progress-container"></div>
