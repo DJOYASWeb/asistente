@@ -156,11 +156,6 @@ downloadAllBtn.onclick = () => {
   a.click();
 };
 
-// 🔹 (opcional) si aún quieres la descarga automática, puedes dejar estas líneas
-const a = document.createElement('a');
-a.href = url;
-a.download = 'imagenes_comprimidas.zip';
-a.click();
 
       const summary = document.createElement('p');
       summary.textContent = `🎉 Listo: ${done} archivos procesados.`;
@@ -168,4 +163,5 @@ a.click();
     };
 
 
-    //v 1.8
+    //v 1.9
+    
