@@ -141,4 +141,4 @@ link.download = name;
     };
 
 
-    //v 1.6
+    //v 1.7
