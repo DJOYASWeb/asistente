@@ -66,7 +66,14 @@
             status.textContent = 'Comprimiendo...';
 
             // ✅ misma resolución, menor calidad
-            const compressed = await compressImageSameResolution(blob, 0.6);
+let quality = 0.8;
+let compressed;
+do {
+  compressed = await compressImageSameResolution(blob, quality);
+  if (compressed.size <= 150 * 1024 || quality <= 0.1) break;
+  quality -= 0.1; // baja la calidad de 0.8 → 0.7 → 0.6 ... hasta 0.1
+} while (true);
+
             newZip.file(name, compressed);
 
             fill.style.width = '100%';
@@ -100,4 +107,4 @@
     };
 
 
-    //v 1.5
+    //v 1.6
