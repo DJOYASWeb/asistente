@@ -1,4 +1,7 @@
   const logContainer = document.getElementById('progressContainer');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+const globalProgressBar = document.getElementById('globalProgressBar');
+const globalProgressText = document.getElementById('globalProgressText');
 
 const addProgressItem = (name) => {
   const row = document.createElement('div');
@@ -125,15 +128,39 @@ link.download = name;
           status.textContent = 'Sin cambio';
         }
 
+
         done++;
+
       }
 
-      const resultBlob = await newZip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(resultBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'imagenes_comprimidas.zip';
-      a.click();
+const progressPercent = Math.round((done / entries.length) * 100);
+globalProgressBar.style.width = progressPercent + '%';
+globalProgressText.textContent = `Procesando... ${progressPercent}% (${done}/${entries.length})`;
+
+
+const resultBlob = await newZip.generateAsync({ type: 'blob' });
+const url = URL.createObjectURL(resultBlob);
+
+// ✅ (PUNTO 4) — actualiza barra y habilita el botón “Descargar todo”
+globalProgressBar.style.width = '100%';
+globalProgressText.textContent = `✅ Proceso completado (${entries.length} imágenes)`;
+
+// habilitar botón
+downloadAllBtn.disabled = false;
+downloadAllBtn.style.opacity = '1';
+downloadAllBtn.style.cursor = 'pointer';
+downloadAllBtn.onclick = () => {
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'imagenes_comprimidas.zip';
+  a.click();
+};
+
+// 🔹 (opcional) si aún quieres la descarga automática, puedes dejar estas líneas
+const a = document.createElement('a');
+a.href = url;
+a.download = 'imagenes_comprimidas.zip';
+a.click();
 
       const summary = document.createElement('p');
       summary.textContent = `🎉 Listo: ${done} archivos procesados.`;
@@ -141,4 +168,4 @@ link.download = name;
     };
 
 
-    //v 1.7
+    //v 1.8

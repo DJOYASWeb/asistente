@@ -129,6 +129,31 @@
   <input type="file" id="zipInput" accept=".zip">
   <button id="processBtn">Procesar ZIP</button>
 
+
+  <div id="topBar" style="
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#fff;
+  border:1px solid #ddd;
+  padding:10px 15px;
+  border-radius:8px;
+  margin-bottom:15px;
+">
+  <div style="flex:1; margin-right:15px;">
+    <div id="globalProgressText" style="font-size:14px; color:#555;">Esperando archivo...</div>
+    <div style="background:#eee; height:10px; border-radius:5px; overflow:hidden;">
+      <div id="globalProgressBar" style="background:#007bff; width:0%; height:100%; transition:width 0.3s;"></div>
+    </div>
+  </div>
+  <button id="downloadAllBtn" disabled
+    style="background:#007bff;color:white;border:none;border-radius:5px;padding:8px 15px;cursor:not-allowed;opacity:0.6;">
+    Descargar todo
+  </button>
+</div>
+
+
+
   <div id="progressContainer" class="progress-container"></div>
 
 
