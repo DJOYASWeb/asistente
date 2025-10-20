@@ -79,4 +79,4 @@ const compressed = await imageCompression(imageBlob, {
       logContainer.appendChild(summary);
     };
 
-    //v 1
+    //v 1.2
