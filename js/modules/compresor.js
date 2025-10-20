@@ -173,4 +173,4 @@ downloadAllBtn.onclick = () => {
     };
 
 
-    //v 1.9
+    //v 2
