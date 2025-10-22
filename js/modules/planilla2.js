@@ -673,7 +673,6 @@ function leerExcelDesdeFilaA(file) {
 
 
 
-// --- Características (misma lógica, soportando nombres nuevos y antiguos como fallback) ---
 // --- Características (con manejo especial de Dimensión) ---
 function construirCaracteristicas(row) {
   const getField = (preferKeys, includeText) => {
@@ -683,85 +682,58 @@ function construirCaracteristicas(row) {
     return k ? (row[k] ?? "").toString().trim() : "";
   };
 
-  // Helpers para DIMENSIÓN
   const limpiarSeparadores = (s) => s.replace(/\s*:\s*/g, " ").replace(/\s+/g, " ").trim();
+  const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
   const normalizarEtiquetaYValor = (texto, etiquetaPorDefecto = "") => {
     let t = limpiarSeparadores(texto);
-
-    // Quitar "de Alargue" si aparece
     t = t.replace(/\s*de\s*alargue\b/i, "").trim();
 
-    // Si ya viene con etiqueta conocida, la respetamos
     const mEtiquetaPrimero = t.match(/^(largo|ancho|alto|di[aá]metro|circunferencia|alargue)\b\s*(.*)$/i);
     if (mEtiquetaPrimero) {
       const etiqueta = mEtiquetaPrimero[1];
       const valor = mEtiquetaPrimero[2].trim();
       return `${capitalizar(etiqueta)} ${valor}`;
     }
-
-    // Si viene solo el valor, aplicamos etiqueta por defecto (si existe)
-    if (etiquetaPorDefecto) {
-      return `${etiquetaPorDefecto} ${t}`;
-    }
-
-    // Sin etiqueta conocida ni por defecto → devolver como está, solo normalizado
+    if (etiquetaPorDefecto) return `${etiquetaPorDefecto} ${t}`;
     return t;
   };
 
-  const capitalizar = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-
-const modelo = getField(["modelo", "Modelo", "MODELO PRODUCTO"], "modelo");
-const material = getField([
-  "producto_material",
-  "PRODUCTO MATERIAL",
-  "ID PRODUCTO MATERIAL"
-], "material");
-const estilo = getField([
-  "producto_estilo",
-  "PRODUCTO ESTILO",
-  "ID PRODUCTO ESTILO"
-], "estilo");
-const dimension = getField([
-  "dimension", "DIMENSION", "Dimensión", "Dimensiones"
-], "dimension");
-const peso = getField(["peso", "PESO"], "peso");
-
+  const modelo = getField(["modelo", "Modelo", "MODELO PRODUCTO"], "modelo");
+  const material = getField(["producto_material", "PRODUCTO MATERIAL", "ID PRODUCTO MATERIAL"], "material");
+  const estilo = getField(["producto_estilo", "PRODUCTO ESTILO", "ID PRODUCTO ESTILO"], "estilo");
+  const dimension = getField(["dimension", "DIMENSION", "Dimensión", "Dimensiones"], "dimension");
+  const peso = getField(["peso", "PESO"], "peso");
+  const tipoProducto = getField(["producto_tipo", "PRODUCTO TIPO", "procucto_tipo"], "tipo");
 
   const partes = [];
-  if (modelo)    partes.push(`Modelo: ${modelo}`);
 
-  // ⬇️ DIMENSIÓN (sin "=" y con soporte para "X cm + Y cm de Alargue")
+  if (modelo) partes.push(`Modelo: ${modelo}`);
+
+  // 💎 NUEVO: tipo de producto
+  if (tipoProducto) partes.push(`Tipo de producto: ${tipoProducto}`);
+
+  // ⬇️ Dimensión
   if (dimension) {
     String(dimension)
       .split(",")
       .map(p => p.trim())
       .filter(Boolean)
       .forEach(part => {
-        // Caso especial con "+"
         if (part.includes("+")) {
           const trozos = part.split("+").map(x => x.trim());
-
-          if (trozos[0]) {
-            const largoFmt = normalizarEtiquetaYValor(trozos[0], "Largo");
-            partes.push(`Dimensión: ${largoFmt}`);
-          }
-          if (trozos[1]) {
-            const alargueFmt = normalizarEtiquetaYValor(trozos[1], "Alargue");
-            partes.push(`Dimensión: ${alargueFmt}`);
-          }
-          return;
+          if (trozos[0]) partes.push(`Dimensión: ${normalizarEtiquetaYValor(trozos[0], "Largo")}`);
+          if (trozos[1]) partes.push(`Dimensión: ${normalizarEtiquetaYValor(trozos[1], "Alargue")}`);
+        } else {
+          const ajustado = normalizarEtiquetaYValor(part);
+          partes.push(`Dimensión: ${ajustado}`);
         }
-
-        // Caso normal: reemplazar ":" por espacio y nunca usar "="
-        const ajustado = normalizarEtiquetaYValor(part);
-        partes.push(`Dimensión: ${ajustado}`);
       });
   }
 
-  if (peso)      partes.push(`Peso: ${peso}`);
-  if (material)  partes.push(`Material: ${material}`);
-  if (estilo)    partes.push(`Estilo: ${estilo}`);
+  if (peso) partes.push(`Peso: ${peso}`);
+  if (material) partes.push(`Material: ${material}`);
+  if (estilo) partes.push(`Estilo: ${estilo}`);
 
   const ocasionRaw =
     firstNonEmpty(row, ["ocasion", "Ocasión"]) ||
@@ -777,6 +749,7 @@ const peso = getField(["peso", "PESO"], "peso");
 
   return partes.join(", ");
 }
+
 
 
 
@@ -1709,4 +1682,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 1.6
+//V 2
