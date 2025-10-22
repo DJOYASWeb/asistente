@@ -732,7 +732,28 @@ function construirCaracteristicas(row) {
   }
 
   if (peso) partes.push(`Peso: ${peso}`);
-  if (material) partes.push(`Material: ${material}`);
+if (material) {
+  let mat = material.trim().toLowerCase();
+  const nombreProd = (row["nombre_producto"] || row["NOMBRE PRODUCTO"] || "").toLowerCase();
+
+  // 💎 Normalización inteligente
+  if (mat === "plata") {
+    mat = "Plata 925";
+  } else if (mat === "enchape" || mat === "enchapado") {
+    if (nombreProd.includes("oro")) {
+      mat = "Enchapado en Oro";
+    } else if (nombreProd.includes("plata")) {
+      mat = "Enchapado en Plata";
+    } else {
+      mat = "Enchapado";
+    }
+  } else {
+    // Capitalizar primera letra por consistencia
+    mat = mat.charAt(0).toUpperCase() + mat.slice(1);
+  }
+
+  partes.push(`Material base: ${mat}`);
+}
   if (estilo) partes.push(`Estilo: ${estilo}`);
 
   const ocasionRaw =
@@ -1682,4 +1703,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2
+//V 2.1
