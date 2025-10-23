@@ -110,20 +110,22 @@
   </div>
 </div>
 
-<!-- MODAL DE AJUSTES (CORREGIDO) -->
-<div class="modal fade" id="modalAjustes" tabindex="-1" aria-labelledby="modalAjustesLabel" aria-hidden="true" style="z-index: 2000;">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalAjustesLabel">Categorías asociadas a productos</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+<!-- MODAL DE AJUSTES (SISTEMA DJOYAS) -->
+<div id="modalAjustes" class="alinear" style="display:none;">
+  <div class="ios-modal">
+    <div class="ios-modal-header">
+      <h3 class="ios-modal-title">Categorías asociadas a productos</h3>
+      <button class="cerrar-ios" onclick="closeModalAjustes()">×</button>
+    </div>
+
+    <div class="ios-modal-body">
+      <div id="contenedorCategorias" 
+           style="display:flex; flex-wrap:wrap; gap:8px; max-height:60vh; overflow-y:auto; padding:10px;">
       </div>
-      <div class="modal-body">
-        <div id="contenedorCategorias" class="d-flex flex-wrap gap-2 w-100"></div>
-      </div>
-      <div class="modal-footer">
-        <button id="btnAplicarAjustes" class="btn btn-primary">Aplicar Ajustes</button>
-      </div>
+    </div>
+
+    <div class="ios-modal-footer">
+      <button id="btnAplicarAjustes" class="btn btn-primary">Aplicar Ajustes</button>
     </div>
   </div>
 </div>
