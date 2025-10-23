@@ -251,8 +251,7 @@ function mostrarPantallaResultadoSimplificada(limit) {
       $(this).toggleClass('btn-outline-danger').toggleClass('btn-outline-secondary');
     });
 
-    const modal = new bootstrap.Modal(document.getElementById('modalAjustes'));
-    modal.show();
+openModalAjustes();
   });
 
   // --------- APLICAR AJUSTES ---------
@@ -275,8 +274,7 @@ function mostrarPantallaResultadoSimplificada(limit) {
     });
 
     showAlert(`Se eliminaron ${eliminadas.length} categorías seleccionadas.`, 'success');
-    const modal = bootstrap.Modal.getInstance(document.getElementById('modalAjustes'));
-    modal.hide();
+closeModalAjustes();
   });
 
   // --------- EXPORTAR EXCEL ---------
@@ -314,5 +312,12 @@ function mostrarPantallaResultadoSimplificada(limit) {
   $btnProcesar.on('click', () => procesarDivision());
 });
 
+function openModalAjustes() {
+  document.getElementById('modalAjustes').style.display = 'flex';
+}
 
-//v. 1.2
+function closeModalAjustes() {
+  document.getElementById('modalAjustes').style.display = 'none';
+}
+
+//v. 1.3
