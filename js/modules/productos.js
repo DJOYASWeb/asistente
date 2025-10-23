@@ -98,7 +98,6 @@ function showAlert(message, type = 'info') {
         originalData = jsonData;
         filteredData = [...originalData];
         setupColumnSelectors(Object.keys(jsonData[0]));
-        renderTablaPreview();
         updateActionsState();
       };
     };
@@ -139,50 +138,21 @@ function showAlert(message, type = 'info') {
     colProcesar = null;
   }
 
-  // --------- PREVIEW ---------
-  function renderTablaPreview() {
-    if (filteredData.length === 0) {
-      $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
-      return;
-    }
-
-    const previewLimit = 10;
-    const previewData = filteredData.slice(0, previewLimit);
-
-    let html = `<p class="text-muted">Mostrando solo las primeras ${previewLimit} filas de ${filteredData.length} productos cargados.</p>`;
-    html += '<table class="table table-striped table-bordered"><thead><tr>';
-    colsMostrar.forEach(col => (html += `<th>${col}</th>`));
-    html += '</tr></thead><tbody>';
-
-    previewData.forEach(row => {
-      html += '<tr>';
-      colsMostrar.forEach(col => (html += `<td>${row[col] || ''}</td>`));
-      html += '</tr>';
-    });
-
-    html += '</tbody></table>';
-    $tableContainer.html(html).show();
-
-    $resultadoDiv.hide();
-    $('#columnSelector').show();
-    $btnProcesar.show();
-  }
-
   // --------- PROCESAR Y SIMPLIFICAR ---------
 async function procesarDivision() {
   if (!colProcesar) {
-    showAlert('Por favor selecciona una columna a procesar.', 'danger');
+    mostrarNotificacion('Por favor selecciona una columna a procesar.', 'error');
     return;
   }
 
-  // 🔹 ocultamos input de carga y tabla previa
+  // 🔹 Ocultar todo lo anterior
   $('#excelFile').closest('.formulario').hide();
   $('#columnSelector').hide();
   $tableContainer.hide();
   $progressBar.show();
   $progressFill.css('width', '0%').text('0%');
 
-  // 🔹 procesamos solo primeras 10 filas como vista previa
+  // 🔹 Procesamos solo los primeros 10 productos
   const limit = 10;
   const total = Math.min(filteredData.length, limit);
   const resultado = [];
@@ -202,20 +172,45 @@ async function procesarDivision() {
 
   $progressBar.hide();
 
-  // guardamos categorías procesadas en cada fila
+  // Guardamos categorías procesadas
   filteredData.slice(0, total).forEach((row, i) => {
     row.__categoriasProcesadas = resultado[i].partes;
   });
 
-  // 🔹 mostramos la nueva pantalla simplificada
+  // 🔹 Mostrar solo en la segunda pantalla
   mostrarPantallaResultadoSimplificada(total);
 }
 
 
+
 function mostrarPantallaResultadoSimplificada(limit) {
   $resultadoDiv.show();
-  showAlert(`Se procesaron ${limit} productos de vista previa. Usa los botones para aplicar ajustes.`, 'success');
+  $resultadoDiv.find('#mensajeProcesado').remove(); // limpia mensaje previo si lo hay
+
+  let html = `
+    <div id="mensajeProcesado" class="alert alert-light">
+      Se procesaron ${limit} productos de vista previa. Usa los botones para aplicar ajustes.
+    </div>
+    <div class="table-responsive mt-3">
+      <table class="table table-bordered table-sm">
+        <thead><tr>`;
+
+  colsMostrar.forEach(c => { html += `<th>${c}</th>`; });
+  html += `</tr></thead><tbody>`;
+
+  filteredData.slice(0, limit).forEach(row => {
+    html += '<tr>';
+    colsMostrar.forEach(c => { html += `<td>${row[c] || ''}</td>`; });
+    html += '</tr>';
+  });
+
+  html += `</tbody></table></div>`;
+
+  $resultadoDiv.append(html);
+
+  mostrarNotificacion('Vista previa generada correctamente.', 'exito');
 }
+
 
 
   // --------- ORDENAR CATEGORÍAS ---------
@@ -320,4 +315,4 @@ function closeModalAjustes() {
   document.getElementById('modalAjustes').style.display = 'none';
 }
 
-//v. 1.4
+//v. 1.5
