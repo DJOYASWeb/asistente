@@ -184,13 +184,22 @@ async function procesarDivision() {
 
 
 function mostrarPantallaResultadoSimplificada(limit) {
-  $resultadoDiv.show();
-  $resultadoDiv.find('#mensajeProcesado').remove(); // limpia mensaje previo si lo hay
+  // Limpiamos pantalla y mostramos resultado
+  $resultadoDiv.show().html('');
 
+  // 🔹 Encabezado
   let html = `
-    <div id="mensajeProcesado" class="alert alert-light">
-      Se procesaron ${limit} productos de vista previa. Usa los botones para aplicar ajustes.
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
+      <button id="btnAjustes" class="btn btn-secondary">Ajustes</button>
+      <button id="btnVolver" class="btn btn-outline-secondary ms-auto">Volver atrás</button>
+      <button id="btnExportar" class="btn btn-primary">Exportar Excel</button>
     </div>
+
+    <div id="mensajeProcesado" class="alert alert-light">
+      Se procesaron ${limit} productos de vista previa. Usa los botones para aplicar ajustes o exportar el archivo.
+    </div>
+
     <div class="table-responsive mt-3">
       <table class="table table-bordered table-sm">
         <thead><tr>`;
@@ -206,9 +215,41 @@ function mostrarPantallaResultadoSimplificada(limit) {
 
   html += `</tbody></table></div>`;
 
-  $resultadoDiv.append(html);
+  $resultadoDiv.html(html);
 
+  // 🔹 Notificación de confirmación
   mostrarNotificacion('Vista previa generada correctamente.', 'exito');
+
+  // --- EVENTOS DE BOTONES ---
+  $('#btnVolver').on('click', () => {
+    $resultadoDiv.hide();
+    $('#excelFile').closest('.formulario').show();
+    $('#columnSelector').show();
+    $tableContainer.hide();
+    mostrarNotificacion('Has vuelto al inicio.', 'alerta');
+  });
+
+  $('#btnExportar').on('click', () => {
+    if (!filteredData || filteredData.length === 0) {
+      mostrarNotificacion('No hay datos para exportar.', 'error');
+      return;
+    }
+
+    try {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(filteredData);
+      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+
+      const fecha = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
+
+      XLSX.writeFile(wb, nombreArchivo);
+      mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
+    } catch (err) {
+      console.error(err);
+      mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
+    }
+  });
 }
 
 
@@ -315,4 +356,4 @@ function closeModalAjustes() {
   document.getElementById('modalAjustes').style.display = 'none';
 }
 
-//v. 1.5
+//v. 1.6
