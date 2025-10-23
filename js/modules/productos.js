@@ -114,6 +114,7 @@ $(document).ready(function () {
     "Cadena Veneciana": { tipo: "SubCategoría", orden: 86 }
   };
 
+ 
   // --------- HELPERS ---------
   function ordenarCategorias(categorias) {
     return categorias.sort((a, b) => {
@@ -139,49 +140,40 @@ $(document).ready(function () {
     $btnOrdenarCategorias.prop('disabled', disabled);
   }
 
-  // --------- LEER EXCEL ---------
-function readExcel(file) {
-  const fileName = file.name.toLowerCase();
-  const isCSV = fileName.endsWith(".csv");
-  const reader = new FileReader();
+  // --------- LEER EXCEL/CSV (con Worker) ---------
+  function readExcel(file) {
+    const fileName = file.name.toLowerCase();
+    const isCSV = fileName.endsWith(".csv");
+    const reader = new FileReader();
 
-  reader.onload = function (e) {
-    let fileData = isCSV ? e.target.result : new Uint8Array(e.target.result);
+    reader.onload = function (e) {
+      let fileData = isCSV ? e.target.result : new Uint8Array(e.target.result);
+      const worker = new Worker("js/modules/excelWorker.js");
+      worker.postMessage({ fileData, isCSV });
 
-    // 🚀 Enviar al worker
-    const worker = new Worker("js/modules/excelWorker.js");
-    worker.postMessage({ fileData, isCSV });
+      worker.onmessage = function (msg) {
+        if (!msg.data.success) {
+          showAlert("Error procesando archivo: " + msg.data.error, "danger");
+          return;
+        }
 
-    worker.onmessage = function (msg) {
-      if (!msg.data.success) {
-        showAlert("Error procesando archivo: " + msg.data.error, "danger");
-        return;
-      }
+        const jsonData = msg.data.data;
+        if (jsonData.length === 0) {
+          showAlert("El archivo está vacío o no se pudo leer.", "danger");
+          return;
+        }
 
-      const jsonData = msg.data.data;
-      if (jsonData.length === 0) {
-        showAlert("El archivo está vacío o no se pudo leer.", "danger");
-        return;
-      }
-
-      // Cargar en la app
-      originalData = jsonData;
-      filteredData = [...originalData];
-      setupColumnSelectors(Object.keys(jsonData[0]));
-      renderTablaMostrar();
-      updateActionsState();
+        originalData = jsonData;
+        filteredData = [...originalData];
+        setupColumnSelectors(Object.keys(jsonData[0]));
+        renderTablaMostrar();
+        updateActionsState();
+      };
     };
-  };
 
-  if (isCSV) {
-    reader.readAsText(file, "UTF-8");
-  } else {
-    reader.readAsArrayBuffer(file);
+    if (isCSV) reader.readAsText(file, "UTF-8");
+    else reader.readAsArrayBuffer(file);
   }
-}
-
-
-
 
   // --------- COLUMNAS ---------
   function setupColumnSelectors(columns) {
@@ -198,7 +190,6 @@ function readExcel(file) {
       $colsProcesarDiv.append(`<label for="${idProcesar}"> ${col}</label><br>`);
     });
 
-    // Eventos
     $colsMostrarDiv.find('input[type=checkbox]').on('change', () => {
       colsMostrar = $colsMostrarDiv.find('input[type=checkbox]:checked')
         .map(function () { return this.value; })
@@ -216,113 +207,57 @@ function readExcel(file) {
     colProcesar = null;
   }
 
+  // --------- TABLAS (solo preview 10 filas) ---------
+  function renderTablaMostrar() {
+    if (filteredData.length === 0) {
+      $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
+      return;
+    }
 
-  // --- EXPORTAR EXCEL ---
-$('#btnExportar').on('click', () => {
-  if (!filteredData || filteredData.length === 0) {
-    showAlert('No hay datos para exportar.', 'danger');
-    return;
-  }
+    const previewLimit = 10;
+    const previewData = filteredData.slice(0, previewLimit);
 
-  try {
-    // Creamos un nuevo workbook
-    const wb = XLSX.utils.book_new();
-
-    // Convertimos el arreglo JSON actual en hoja
-    const ws = XLSX.utils.json_to_sheet(filteredData);
-
-    // La añadimos al libro
-    XLSX.utils.book_append_sheet(wb, ws, 'Productos');
-
-    // Generamos archivo Excel
-    const fecha = new Date().toISOString().split('T')[0];
-    const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
-
-    XLSX.writeFile(wb, nombreArchivo);
-
-    showAlert('Archivo Excel exportado correctamente.', 'success');
-  } catch (err) {
-    console.error(err);
-    showAlert('Error al exportar el archivo Excel.', 'danger');
-  }
-});
-
-
-
-  // --------- TABLAS ---------
-function renderTablaMostrar() {
-  if (filteredData.length === 0) {
-    $tableContainer.html('<p>No hay datos para mostrar.</p>').show();
-    return;
-  }
-
-  // 🔹 Solo mostramos las primeras 10 filas
-  const previewLimit = 10;
-  const previewData = filteredData.slice(0, previewLimit);
-
-  let html = `<p class="text-muted">Mostrando solo las primeras ${previewLimit} filas de ${filteredData.length} productos cargados.</p>`;
-  html += '<table class="table table-striped table-bordered"><thead><tr>';
-
-  colsMostrar.forEach(col => (html += `<th>${col}</th>`));
-  html += '</tr></thead><tbody>';
-
-  previewData.forEach(row => {
-    html += '<tr>';
-    colsMostrar.forEach(col => (html += `<td>${row[col] || ''}</td>`));
-    html += '</tr>';
-  });
-
-  html += '</tbody></table>';
-  $tableContainer.html(html).show();
-
-  $resultadoDiv.hide();
-  $('#columnSelector').show();
-  $btnProcesar.show();
-}
-
-
-  function mostrarPantallaResultado(resultado) {
-    $tableContainer.hide().empty();
-    $('#columnSelector').hide();
-    $btnProcesar.hide();
-    $resultadoDiv.show();
-
-    const categoriasPrincipales = ['Joyas de plata por mayor', 'ENCHAPADO'];
-    const allCategoriasSet = new Set();
-    resultado.forEach(r => r.partes.forEach(p => allCategoriasSet.add(p)));
-
-    const restoCategorias = Array
-      .from(allCategoriasSet)
-      .filter(cat => !categoriasPrincipales.includes(cat))
-      .sort();
-
-    const categoriasUnicas = [
-      ...categoriasPrincipales.filter(cat => allCategoriasSet.has(cat)),
-      ...restoCategorias
-    ];
-
-    let html = '<thead><tr>';
-    colsMostrar.forEach(c => html += `<th>${c}</th>`);
-    categoriasUnicas.forEach(cat => {
-      html += `<th>${cat} <button class="btn btn-sm btn-danger btnEliminarCat" data-cat="${cat}" style="margin-left:5px;">Eliminar</button></th>`;
-    });
+    let html = `<p class="text-muted">Mostrando solo las primeras ${previewLimit} filas de ${filteredData.length} productos cargados.</p>`;
+    html += '<table class="table table-striped table-bordered"><thead><tr>';
+    colsMostrar.forEach(col => (html += `<th>${col}</th>`));
     html += '</tr></thead><tbody>';
 
-    filteredData.forEach((row, idx) => {
+    previewData.forEach(row => {
       html += '<tr>';
-      colsMostrar.forEach(c => html += `<td>${row[c] || ''}</td>`);
-      const categoriasFila = resultado[idx].partes;
-      categoriasUnicas.forEach(cat => html += `<td>${categoriasFila.includes(cat) ? 'X' : ''}</td>`);
+      colsMostrar.forEach(col => (html += `<td>${row[col] || ''}</td>`));
       html += '</tr>';
     });
 
-    html += '</tbody>';
-    $tablaResultado.html(html);
+    html += '</tbody></table>';
+    $tableContainer.html(html).show();
 
-    $('.btnEliminarCat').off('click').on('click', function () {
-      eliminarCategoria($(this).data('cat'));
-    });
+    $resultadoDiv.hide();
+    $('#columnSelector').show();
+    $btnProcesar.show();
   }
+
+  // --------- EXPORTAR EXCEL ---------
+  $('#btnExportar').on('click', () => {
+    if (!filteredData || filteredData.length === 0) {
+      showAlert('No hay datos para exportar.', 'danger');
+      return;
+    }
+
+    try {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(filteredData);
+      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+
+      const fecha = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
+
+      XLSX.writeFile(wb, nombreArchivo);
+      showAlert('Archivo Excel exportado correctamente.', 'success');
+    } catch (err) {
+      console.error(err);
+      showAlert('Error al exportar el archivo Excel.', 'danger');
+    }
+  });
 
   // --------- PROCESAR ---------
   async function procesarDivision() {
@@ -357,6 +292,7 @@ function renderTablaMostrar() {
     mostrarPantallaResultado(resultado);
   }
 
+  // --------- CATEGORÍAS ---------
   function generarResultadoDesdeDatos() {
     return filteredData.map(row => {
       let partes = (row[colProcesar] || '')
@@ -368,7 +304,6 @@ function renderTablaMostrar() {
     });
   }
 
-  // --------- CATEGORÍAS (acciones) ---------
   function eliminarCategoria(categoria) {
     if (!colProcesar) return;
     filteredData.forEach(row => {
@@ -416,22 +351,19 @@ function renderTablaMostrar() {
   // --------- EVENTOS ---------
   $fileInput.on('change', e => {
     const file = e.target.files[0];
-    if (file) readExcel(file);
+    if (file) {
+      // 🔹 Ocultamos botón exportar si se carga nuevo archivo
+      $btnExportar.addClass('d-none');
+      readExcel(file);
+    }
   });
 
-  $btnProcesar.on('click', () => {
-    procesarDivision();
-  });
-
+  $btnProcesar.on('click', () => procesarDivision());
   $btnAgregarCategoria.on('click', () => {
     const nuevaCat = prompt('Ingrese la categoría que desea agregar a todos:');
     if (nuevaCat && nuevaCat.trim()) agregarCategoria(nuevaCat.trim());
   });
-
-  $btnOrdenarCategorias.on('click', () => {
-    ordenarTodasLasCategorias();
-  });
-
+  $btnOrdenarCategorias.on('click', () => ordenarTodasLasCategorias());
   $btnVolver.on('click', () => {
     $resultadoDiv.hide();
     $('#columnSelector').show();
@@ -441,16 +373,19 @@ function renderTablaMostrar() {
     updateActionsState();
   });
 
+  // 🔹 FINALIZAR Y MOSTRAR BOTÓN EXPORTAR
   $btnFinalizar.on('click', () => {
     $resultadoDiv.hide();
     $('#columnSelector').show();
     $tableContainer.show();
     $btnProcesar.show();
     renderTablaMostrar();
-    showAlert('Cambios finalizados y aplicados correctamente.', 'success');
+
+    $btnExportar.removeClass('d-none'); // 👈 mostrar exportar
+    showAlert('Cambios finalizados y aplicados correctamente. Ya puedes exportar el archivo.', 'success');
     updateActionsState();
   });
 });
 
 
-//v. 1
+//v. 3
