@@ -752,7 +752,7 @@ if (material) {
     mat = mat.charAt(0).toUpperCase() + mat.slice(1);
   }
 
-  partes.push(`Material base: ${mat}`);
+  partes.push(`Material: ${mat}`);
 }
   if (estilo) partes.push(`Estilo: ${estilo}`);
 
