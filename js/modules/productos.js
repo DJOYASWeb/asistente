@@ -216,6 +216,39 @@ function readExcel(file) {
     colProcesar = null;
   }
 
+
+  // --- EXPORTAR EXCEL ---
+$('#btnExportar').on('click', () => {
+  if (!filteredData || filteredData.length === 0) {
+    showAlert('No hay datos para exportar.', 'danger');
+    return;
+  }
+
+  try {
+    // Creamos un nuevo workbook
+    const wb = XLSX.utils.book_new();
+
+    // Convertimos el arreglo JSON actual en hoja
+    const ws = XLSX.utils.json_to_sheet(filteredData);
+
+    // La añadimos al libro
+    XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+
+    // Generamos archivo Excel
+    const fecha = new Date().toISOString().split('T')[0];
+    const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
+
+    XLSX.writeFile(wb, nombreArchivo);
+
+    showAlert('Archivo Excel exportado correctamente.', 'success');
+  } catch (err) {
+    console.error(err);
+    showAlert('Error al exportar el archivo Excel.', 'danger');
+  }
+});
+
+
+
   // --------- TABLAS ---------
 function renderTablaMostrar() {
   if (filteredData.length === 0) {
@@ -420,4 +453,4 @@ function renderTablaMostrar() {
 });
 
 
-//v. 2
+//v. 1
