@@ -59,14 +59,13 @@ $(document).ready(function () {
     });
   }
 
-  function showAlert(message, type = 'warning') {
-    $alertas
-      .text(message)
-      .removeClass('d-none alert-warning alert-danger alert-success')
-      .addClass('alert-' + type)
-      .show();
-    setTimeout(() => $alertas.fadeOut(), 4000);
-  }
+function showAlert(message, type = 'info') {
+  // Adaptar el tipo al sistema de notificaciones DJOYAS
+  let estado = 'exito';
+  if (type === 'danger' || type === 'error') estado = 'error';
+  if (type === 'warning' || type === 'alert') estado = 'alerta';
+  mostrarNotificacion(message, estado);
+}
 
   function updateActionsState() {
     const disabled = !(colsMostrar.length > 0 && colProcesar);
@@ -293,11 +292,12 @@ closeModalAjustes();
       const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
 
       XLSX.writeFile(wb, nombreArchivo);
-      showAlert('Archivo Excel exportado correctamente.', 'success');
-    } catch (err) {
-      console.error(err);
-      showAlert('Error al exportar el archivo Excel.', 'danger');
-    }
+
+  mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
+  } catch (err) {
+    console.error(err);
+    mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
+  }
   });
 
   // --------- EVENTOS ---------
@@ -320,4 +320,4 @@ function closeModalAjustes() {
   document.getElementById('modalAjustes').style.display = 'none';
 }
 
-//v. 1.3
+//v. 1.4
