@@ -170,46 +170,54 @@ $(document).ready(function () {
   }
 
   // --------- PROCESAR Y SIMPLIFICAR ---------
-  async function procesarDivision() {
-    if (!colProcesar) {
-      showAlert('Por favor selecciona una columna a procesar.', 'danger');
-      return;
-    }
-
-    $btnProcesar.prop('disabled', true);
-    $progressBar.show();
-    $progressFill.css('width', '0%').text('0%');
-
-    const total = filteredData.length;
-    const resultado = [];
-
-    for (let i = 0; i < total; i++) {
-      let partes = (filteredData[i][colProcesar] || '')
-        .toString()
-        .split(',')
-        .map(p => p.trim())
-        .filter(Boolean);
-      partes = ordenarCategorias(partes);
-      resultado.push({ partes });
-      const porcentaje = Math.round(((i + 1) / total) * 100);
-      $progressFill.css('width', porcentaje + '%').text(porcentaje + '%');
-      await new Promise(r => setTimeout(r, 5));
-    }
-
-    $progressBar.hide();
-
-    filteredData.forEach((row, i) => {
-      row.__categoriasProcesadas = resultado[i].partes;
-    });
-
-    mostrarPantallaResultadoSimplificada();
+async function procesarDivision() {
+  if (!colProcesar) {
+    showAlert('Por favor selecciona una columna a procesar.', 'danger');
+    return;
   }
 
-  function mostrarPantallaResultadoSimplificada() {
-    $('#columnSelector').hide();
-    $tableContainer.hide();
-    $resultadoDiv.show();
+  // 🔹 ocultamos input de carga y tabla previa
+  $('#excelFile').closest('.formulario').hide();
+  $('#columnSelector').hide();
+  $tableContainer.hide();
+  $progressBar.show();
+  $progressFill.css('width', '0%').text('0%');
+
+  // 🔹 procesamos solo primeras 10 filas como vista previa
+  const limit = 10;
+  const total = Math.min(filteredData.length, limit);
+  const resultado = [];
+
+  for (let i = 0; i < total; i++) {
+    let partes = (filteredData[i][colProcesar] || '')
+      .toString()
+      .split(',')
+      .map(p => p.trim())
+      .filter(Boolean);
+    partes = ordenarCategorias(partes);
+    resultado.push({ partes });
+    const porcentaje = Math.round(((i + 1) / total) * 100);
+    $progressFill.css('width', porcentaje + '%').text(porcentaje + '%');
+    await new Promise(r => setTimeout(r, 5));
   }
+
+  $progressBar.hide();
+
+  // guardamos categorías procesadas en cada fila
+  filteredData.slice(0, total).forEach((row, i) => {
+    row.__categoriasProcesadas = resultado[i].partes;
+  });
+
+  // 🔹 mostramos la nueva pantalla simplificada
+  mostrarPantallaResultadoSimplificada(total);
+}
+
+
+function mostrarPantallaResultadoSimplificada(limit) {
+  $resultadoDiv.show();
+  showAlert(`Se procesaron ${limit} productos de vista previa. Usa los botones para aplicar ajustes.`, 'success');
+}
+
 
   // --------- ORDENAR CATEGORÍAS ---------
   $('#btnOrdenarCategorias').on('click', () => {
@@ -307,4 +315,4 @@ $(document).ready(function () {
 });
 
 
-//v. 1
+//v. 1.2
