@@ -145,26 +145,32 @@ async function procesarDivision() {
     return;
   }
 
-  // 🔹 Ocultar todo lo anterior
+  // 🔹 Ocultamos las secciones anteriores
   $('#excelFile').closest('.formulario').hide();
   $('#columnSelector').hide();
   $tableContainer.hide();
   $progressBar.show();
   $progressFill.css('width', '0%').text('0%');
 
-  // 🔹 Procesamos solo los primeros 10 productos
   const limit = 10;
   const total = Math.min(filteredData.length, limit);
   const resultado = [];
 
   for (let i = 0; i < total; i++) {
-    let partes = (filteredData[i][colProcesar] || '')
-      .toString()
-      .split(',')
-      .map(p => p.trim())
-      .filter(Boolean);
-    partes = ordenarCategorias(partes);
-    resultado.push({ partes });
+    let valor = (filteredData[i][colProcesar] || '').toString().trim();
+
+    // 🔸 Detectar separador por coma y limpiar
+    let partes = valor.split(',').map(p => p.trim()).filter(Boolean);
+
+    // 🔸 Convertir pares tipo "Campo: Valor" en objeto clave-valor
+    const pares = {};
+    partes.forEach(p => {
+      const [campo, val] = p.split(':').map(x => x?.trim());
+      if (campo && val) pares[campo] = val;
+    });
+
+    resultado.push({ original: valor, partes, pares });
+
     const porcentaje = Math.round(((i + 1) / total) * 100);
     $progressFill.css('width', porcentaje + '%').text(porcentaje + '%');
     await new Promise(r => setTimeout(r, 5));
@@ -172,13 +178,86 @@ async function procesarDivision() {
 
   $progressBar.hide();
 
-  // Guardamos categorías procesadas
+  // Guardamos en cada fila para exportación futura
   filteredData.slice(0, total).forEach((row, i) => {
-    row.__categoriasProcesadas = resultado[i].partes;
+    row.__procesado = resultado[i];
   });
 
-  // 🔹 Mostrar solo en la segunda pantalla
-  mostrarPantallaResultadoSimplificada(total);
+  mostrarPantallaResultadoAvanzada(resultado, total);
+}
+
+
+function mostrarPantallaResultadoAvanzada(resultado, limit) {
+  $resultadoDiv.show().html('');
+
+  let html = `
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
+      <button id="btnAjustes" class="btn btn-secondary">Ajustes</button>
+      <button id="btnVolver" class="btn btn-outline-secondary ms-auto">Volver atrás</button>
+      <button id="btnExportar" class="btn btn-primary">Exportar Excel</button>
+    </div>
+
+    <div id="mensajeProcesado" class="alert alert-light">
+      Se procesaron ${limit} productos de vista previa. Si el contenido contiene pares tipo <strong>"Campo: Valor"</strong>, fueron separados automáticamente.
+    </div>
+
+    <div class="table-responsive mt-3">
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>${colProcesar}</th>
+            <th>Valores detectados</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+  resultado.forEach((item, i) => {
+    html += `<tr><td>${i + 1}</td><td>${item.original}</td><td>`;
+    if (Object.keys(item.pares).length > 0) {
+      for (const [clave, valor] of Object.entries(item.pares)) {
+        html += `<div><strong>${clave}:</strong> ${valor}</div>`;
+      }
+    } else {
+      html += item.partes.join(', ');
+    }
+    html += `</td></tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  $resultadoDiv.html(html);
+
+  mostrarNotificacion('Procesamiento avanzado completado.', 'exito');
+
+  // --- BOTONES ---
+  $('#btnVolver').on('click', () => {
+    $resultadoDiv.hide();
+    $('#excelFile').closest('.formulario').show();
+    $('#columnSelector').show();
+    mostrarNotificacion('Has vuelto al inicio.', 'alerta');
+  });
+
+  $('#btnExportar').on('click', () => {
+    if (!filteredData || filteredData.length === 0) {
+      mostrarNotificacion('No hay datos para exportar.', 'error');
+      return;
+    }
+
+    try {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(filteredData);
+      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
+
+      const fecha = new Date().toISOString().split('T')[0];
+      const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
+      XLSX.writeFile(wb, nombreArchivo);
+      mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
+    } catch (err) {
+      console.error(err);
+      mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
+    }
+  });
 }
 
 
