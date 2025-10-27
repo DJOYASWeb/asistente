@@ -435,4 +435,4 @@ function closeModalAjustes() {
   document.getElementById('modalAjustes').style.display = 'none';
 }
 
-//v. 1.6
+//v. 1.7
