@@ -5,6 +5,7 @@ $(document).ready(function () {
   let filteredData = [];
   let colsMostrar = [];
   let colProcesar = null;
+  let allColumns = []; 
 
   // --------- SELECTORES ---------
   const $fileInput = $('#excelFile');
@@ -108,6 +109,7 @@ function showAlert(message, type = 'info') {
 
   // --------- COLUMNAS ---------
   function setupColumnSelectors(columns) {
+    allColumns = [...columns];
     $colsMostrarDiv.empty();
     $colsProcesarDiv.empty();
 
@@ -359,52 +361,54 @@ function mostrarPantallaResultadoSimplificada(limit) {
     showAlert('Categorías ordenadas correctamente.', 'success');
   });
 
-  // --------- AJUSTES (MODAL) ---------
-  $('#btnAjustes').on('click', () => {
-    const allCats = new Set();
-    filteredData.forEach(r => (r.__categoriasProcesadas || []).forEach(c => allCats.add(c)));
 
-    const $contenedor = $('#contenedorCategorias');
-    $contenedor.empty();
 
-    Array.from(allCats).sort().forEach(cat => {
-      const btn = $(`
-        <button class="btn btn-outline-secondary btn-sm categoria-btn" data-cat="${cat}">
-          ${cat} <i class="fa-solid fa-xmark"></i>
-        </button>
-      `);
-      $contenedor.append(btn);
-    });
+  // --------- AJUSTES (GESTIÓN DE COLUMNAS) ---------
+$('#btnAjustes').on('click', () => {
+  const $contenedor = $('#contenedorCategorias');
+  $contenedor.empty();
 
-    $('.categoria-btn').on('click', function () {
-      $(this).toggleClass('btn-outline-danger').toggleClass('btn-outline-secondary');
-    });
-
-openModalAjustes();
+  // 🔹 Mostrar todas las columnas con check según colsMostrar
+  allColumns.forEach(col => {
+    const checked = colsMostrar.includes(col) ? 'checked' : '';
+    const label = $(`
+      <label class="d-flex align-items-center gap-2" style="width:48%;">
+        <input type="checkbox" class="chk-columna" value="${col}" ${checked}>
+        ${col}
+      </label>
+    `);
+    $contenedor.append(label);
   });
 
-  // --------- APLICAR AJUSTES ---------
-  $('#btnAplicarAjustes').on('click', () => {
-    const eliminadas = [];
-    $('.categoria-btn.btn-outline-danger').each(function () {
-      eliminadas.push($(this).data('cat'));
-    });
+  openModalAjustes();
+});
 
-    if (eliminadas.length === 0) {
-      showAlert('No seleccionaste ninguna categoría para eliminar.', 'warning');
-      return;
-    }
-
-    filteredData.forEach(row => {
-      let cats = row.__categoriasProcesadas || [];
-      cats = cats.filter(c => !eliminadas.includes(c));
-      row[colProcesar] = cats.join(', ');
-      row.__categoriasProcesadas = cats;
-    });
-
-    showAlert(`Se eliminaron ${eliminadas.length} categorías seleccionadas.`, 'success');
-closeModalAjustes();
+// --------- APLICAR AJUSTES (COLUMNA VISIBLES) ---------
+$('#btnAplicarAjustes').on('click', () => {
+  const seleccionadas = [];
+  $('.chk-columna:checked').each(function () {
+    seleccionadas.push($(this).val());
   });
+
+  if (seleccionadas.length === 0) {
+    mostrarNotificacion('Debes dejar al menos una columna visible.', 'alerta');
+    return;
+  }
+
+  colsMostrar = [...seleccionadas];
+  closeModalAjustes();
+
+  mostrarNotificacion('Columnas actualizadas correctamente.', 'exito');
+
+  // 🔹 Recargar la vista previa con las nuevas columnas
+  mostrarPantallaResultadoAvanzada(
+    filteredData.slice(0, 10).map(row => row.__procesado || {}),
+    10
+  );
+});
+
+
+
 
   // --------- EXPORTAR EXCEL ---------
   $('#btnExportar').on('click', () => {
@@ -450,4 +454,4 @@ function closeModalAjustes() {
   document.getElementById('modalAjustes').style.display = 'none';
 }
 
-//v. 1.8
+//v. 2
