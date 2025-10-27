@@ -190,6 +190,7 @@ async function procesarDivision() {
 function mostrarPantallaResultadoAvanzada(resultado, limit) {
   $resultadoDiv.show().html('');
 
+  // 🔹 Estructura superior con botones
   let html = `
     <div class="d-flex flex-wrap gap-2 mb-3">
       <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
@@ -199,36 +200,49 @@ function mostrarPantallaResultadoAvanzada(resultado, limit) {
     </div>
 
     <div id="mensajeProcesado" class="alert alert-light">
-      Se procesaron ${limit} productos de vista previa. Si el contenido contiene pares tipo <strong>"Campo: Valor"</strong>, fueron separados automáticamente.
+      Se procesaron ${limit} productos de vista previa. Vista limitada a las columnas seleccionadas.
     </div>
 
     <div class="table-responsive mt-3">
       <table class="table table-bordered table-sm">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>${colProcesar}</th>
-            <th>Valores detectados</th>
-          </tr>
-        </thead>
-        <tbody>`;
+        <thead><tr>`;
 
-  resultado.forEach((item, i) => {
-    html += `<tr><td>${i + 1}</td><td>${item.original}</td><td>`;
-    if (Object.keys(item.pares).length > 0) {
-      for (const [clave, valor] of Object.entries(item.pares)) {
-        html += `<div><strong>${clave}:</strong> ${valor}</div>`;
+  // 🔹 Mostrar las columnas seleccionadas por el usuario
+  colsMostrar.forEach(col => {
+    html += `<th>${col}</th>`;
+  });
+
+  html += `</tr></thead><tbody>`;
+
+  // 🔹 Renderizar los primeros “limit” productos
+  filteredData.slice(0, limit).forEach((row, i) => {
+    html += '<tr>';
+
+    colsMostrar.forEach(col => {
+      let valorCelda = row[col] || '';
+
+      // Si esta es la columna procesada, mostrar pares detectados
+      if (col === colProcesar) {
+        const procesado = resultado[i];
+        if (procesado && Object.keys(procesado.pares).length > 0) {
+          let detalles = '';
+          for (const [campo, val] of Object.entries(procesado.pares)) {
+            detalles += `<div><strong>${campo}:</strong> ${val}</div>`;
+          }
+          valorCelda = detalles;
+        }
       }
-    } else {
-      html += item.partes.join(', ');
-    }
-    html += `</td></tr>`;
+
+      html += `<td>${valorCelda}</td>`;
+    });
+
+    html += '</tr>';
   });
 
   html += `</tbody></table></div>`;
   $resultadoDiv.html(html);
 
-  mostrarNotificacion('Procesamiento avanzado completado.', 'exito');
+  mostrarNotificacion('Vista previa generada con tus columnas seleccionadas.', 'exito');
 
   // --- BOTONES ---
   $('#btnVolver').on('click', () => {
@@ -259,6 +273,7 @@ function mostrarPantallaResultadoAvanzada(resultado, limit) {
     }
   });
 }
+
 
 
 
@@ -435,4 +450,4 @@ function closeModalAjustes() {
   document.getElementById('modalAjustes').style.display = 'none';
 }
 
-//v. 1.7
+//v. 1.8
