@@ -1763,22 +1763,22 @@ function agregarCategoriaAdicional() {
 
 // === FUNCIÓN NUEVA: PROCESAR IMÁGENES Y MOSTRAR VISTA ===
 async function procesarImagenes() {
-  // 🔹 Ocultar elementos de la vista principal
+  // 🔹 Ocultar vista principal
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
-
-  // 🔹 NUEVO: ocultar también la barra de botones
   const barraBotones = document.getElementById("botonesTipo");
   if (barraBotones) barraBotones.classList.add("d-none");
+  const formulario = document.querySelector(".formulario");
+  if (formulario) formulario.classList.add("d-none");
 
-  // Mostrar la vista de imágenes
+  // 🔹 Mostrar contenedor de imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   vista.classList.remove("d-none");
   contenedor.innerHTML = `<p class="text-muted">Procesando imágenes...</p>`;
 
-  // 🧩 Tomamos las filas activas según tu lógica actual
+  // 🧩 Obtener filas
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -1787,13 +1787,20 @@ async function procesarImagenes() {
   });
 
   const lista = [];
+  const errores = [];
+  let livianas = 0;
+  let pesadas = 0;
+
   for (const row of filas) {
     const codigo = extraerCodigo(row);
     const rawUrl = extraerUrlFoto(row);
-    if (codigo && rawUrl) {
-      const url = normalizarUrlDrive(rawUrl);
-      lista.push({ codigo, url });
+    if (!codigo || !rawUrl) {
+      errores.push(codigo || "(sin código)");
+      continue;
     }
+
+    const url = normalizarUrlDrive(rawUrl);
+    lista.push({ codigo, url });
   }
 
   if (!lista.length) {
@@ -1801,21 +1808,72 @@ async function procesarImagenes() {
     return;
   }
 
-  // 🖼️ Renderizar galería de imágenes
+  // 🖼️ Renderizar imágenes y calcular peso
   contenedor.innerHTML = "";
-  lista.forEach(({ codigo, url }) => {
+  for (const { codigo, url } of lista) {
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-3 col-lg-2";
     col.innerHTML = `
       <div class="card shadow-sm h-100">
         <img src="${url}" class="card-img-top" alt="${codigo}" 
-             onerror="this.src='https://via.placeholder.com/200x200?text=No+Image';">
+             onerror="registrarErrorImagen('${codigo}', this)">
         <div class="card-body p-2 text-center">
           <small class="text-muted">${codigo}</small>
         </div>
       </div>`;
     contenedor.appendChild(col);
-  });
+
+    // Verificamos el tamaño (si CORS lo permite)
+    try {
+      const resp = await fetch(url, { method: "HEAD" });
+      const size = resp.headers.get("content-length");
+      if (size) {
+        const kb = parseInt(size) / 1024;
+        if (kb < 100) livianas++;
+        else pesadas++;
+      }
+    } catch {
+      // algunos links fallan por CORS
+    }
+  }
+
+  // 🔹 Actualizar resumen
+  document.getElementById("cantProcesadas").textContent = lista.length;
+  document.getElementById("cantLivianas").textContent = livianas;
+  document.getElementById("cantPesadas").textContent = pesadas;
+
+  if (errores.length) {
+    document.getElementById("cantErrores").textContent = errores.length;
+    document.getElementById("erroresLinea").classList.remove("d-none");
+    window.erroresImagenes = errores;
+  } else {
+    document.getElementById("erroresLinea").classList.add("d-none");
+  }
+}
+
+function registrarErrorImagen(codigo, img) {
+  img.src = "https://via.placeholder.com/200x200?text=Error";
+  if (!window.erroresImagenes) window.erroresImagenes = [];
+  if (!window.erroresImagenes.includes(codigo)) window.erroresImagenes.push(codigo);
+  document.getElementById("cantErrores").textContent = window.erroresImagenes.length;
+  document.getElementById("erroresLinea").classList.remove("d-none");
+}
+
+function abrirModalErrores() {
+  const listaUl = document.getElementById("listaErrores");
+  listaUl.innerHTML = "";
+  if (window.erroresImagenes && window.erroresImagenes.length) {
+    window.erroresImagenes.forEach(codigo => {
+      const li = document.createElement("li");
+      li.className = "list-group-item";
+      li.textContent = codigo;
+      listaUl.appendChild(li);
+    });
+  } else {
+    listaUl.innerHTML = `<li class="list-group-item text-muted">No hay errores registrados</li>`;
+  }
+  const modal = new bootstrap.Modal(document.getElementById("modalErrores"));
+  modal.show();
 }
 
 
@@ -1825,10 +1883,11 @@ function volverAVistaPrincipal() {
   document.getElementById("tablaPreview").classList.remove("d-none");
   document.getElementById("botonProcesar").classList.remove("d-none");
   document.getElementById("botonProcesarImagenes").classList.remove("d-none");
-
-  // 🔹 Volver a mostrar la barra de botones
   const barraBotones = document.getElementById("botonesTipo");
   if (barraBotones) barraBotones.classList.remove("d-none");
+  const formulario = document.querySelector(".formulario");
+  if (formulario) formulario.classList.remove("d-none");
 }
 
-//V 3.6
+
+//V 3.7
