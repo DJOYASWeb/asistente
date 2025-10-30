@@ -1758,6 +1758,67 @@ function agregarCategoriaAdicional() {
 }
 
 
+// === FUNCIÓN NUEVA: PROCESAR IMÁGENES Y MOSTRAR VISTA ===
+async function procesarImagenes() {
+  // Oculta la tabla principal
+  document.getElementById("tablaPreview").classList.add("d-none");
+  document.getElementById("botonProcesar").classList.add("d-none");
+  document.getElementById("botonProcesarImagenes").classList.add("d-none");
+
+  // Muestra el contenedor de imágenes
+  const vista = document.getElementById("vistaImagenes");
+  const contenedor = document.getElementById("contenedorImagenes");
+  vista.classList.remove("d-none");
+  contenedor.innerHTML = `<p class="text-muted">Procesando imágenes...</p>`;
+
+  // 🧩 Tomamos las filas activas según tu lógica actual
+  const filas = obtenerFilasActivas({
+    tipoSeleccionado,
+    datosFiltrados,
+    datosOriginales,
+    datosCombinaciones
+  });
+
+  const lista = [];
+  for (const row of filas) {
+    const codigo = extraerCodigo(row);
+    const rawUrl = extraerUrlFoto(row);
+    if (codigo && rawUrl) {
+      const url = normalizarUrlDrive(rawUrl);
+      lista.push({ codigo, url });
+    }
+  }
+
+  if (!lista.length) {
+    contenedor.innerHTML = `<p class="text-danger">No se encontraron imágenes para mostrar.</p>`;
+    return;
+  }
+
+  // 🖼️ Renderizar galería de imágenes
+  contenedor.innerHTML = "";
+  lista.forEach(({ codigo, url }) => {
+    const col = document.createElement("div");
+    col.className = "col-6 col-sm-4 col-md-3 col-lg-2";
+    col.innerHTML = `
+      <div class="card shadow-sm h-100">
+        <img src="${url}" class="card-img-top" alt="${codigo}" 
+             onerror="this.src='https://via.placeholder.com/200x200?text=No+Image';">
+        <div class="card-body p-2 text-center">
+          <small class="text-muted">${codigo}</small>
+        </div>
+      </div>`;
+    contenedor.appendChild(col);
+  });
+}
 
 
-//V 3.3
+// === FUNCIÓN NUEVA: VOLVER A LA PLANILLA ===
+function volverAVistaPrincipal() {
+  document.getElementById("vistaImagenes").classList.add("d-none");
+  document.getElementById("tablaPreview").classList.remove("d-none");
+  document.getElementById("botonProcesar").classList.remove("d-none");
+  document.getElementById("botonProcesarImagenes").classList.remove("d-none");
+}
+
+
+//V 3.4
