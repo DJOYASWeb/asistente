@@ -253,14 +253,10 @@ function normalizarUrlDrive(url) {
   const id = driveIdFromUrl(url);
   if (!id) return url; // No es Drive: se usa tal cual
 
-  if (window.DRIVE_API_KEY) {
-    // Endpoint oficial con CORS para contenido público
-    return `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${encodeURIComponent(window.DRIVE_API_KEY)}`;
-  }
-
-  // Fallback (puede fallar por CORS/403)
+  // 🔄 Siempre usar la versión pública (sin API key)
   return `https://drive.google.com/uc?export=download&id=${id}`;
 }
+
 
 // Extensión por Content-Type
 function extPorContentType(ct) {
@@ -1763,4 +1759,4 @@ function agregarCategoriaAdicional() {
 
 
 
-//V 3.1
+//V 3.2
