@@ -816,6 +816,11 @@ if (categoriaPrincipal.toUpperCase() === "ENCHAPADO") {
     }
   }
 }
+// ➕ Agregar Categoría Adicional (si existe)
+const categoriaAdicional = (row["Categoría Adicional"] || "").toString().trim();
+if (categoriaAdicional) {
+  unicas.push(categoriaAdicional);
+}
 
   // 🔹 Devuelve separadas por coma (puedes usar "/" si prefieres jerarquía)
   return unicas.join(", ");
@@ -1711,33 +1716,36 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
   return bloques.map(b => `<p>${b}</p>`).join("");
 }
 
-// === AGREGAR COLUMNA DE CATEGORÍA ADICIONAL ===
+
+// === AGREGAR CATEGORÍA ADICIONAL (columna fija "Categoría Adicional") ===
 
 function abrirModalAgregarCategoria() {
   const input = document.getElementById("nuevaCategoria");
-  if (input) input.value = "";
+  if (input) input.value = ""; // limpia el input antes de abrir el modal
 }
 
-function agregarColumnaCategoria() {
+function agregarCategoriaAdicional() {
   const input = document.getElementById("nuevaCategoria");
   if (!input) return;
 
-  const nombreColumna = input.value.trim();
-  if (!nombreColumna) {
-    alert("Por favor ingresa un nombre para la nueva categoría.");
+  const nuevaCat = input.value.trim();
+  if (!nuevaCat) {
+    alert("Por favor ingresa una categoría antes de continuar.");
     return;
   }
 
-  // Añadimos la nueva columna a cada conjunto de datos
+  const nombreColumna = "Categoría Adicional";
+
+  // Afectar todos los conjuntos principales
   const conjuntos = [window.datosOriginales, window.datosCombinaciones, window.datosReposicion];
   conjuntos.forEach(lista => {
     if (!Array.isArray(lista)) return;
     lista.forEach(row => {
-      row[nombreColumna] = "1"; // o "" si prefieres dejarla vacía
+      row[nombreColumna] = nuevaCat;
     });
   });
 
-  // Actualizar orden de columnas para mostrar la nueva
+  // Añadir la nueva columna al orden de columnas de la vista si no está
   if (!ordenColumnasVista.includes(nombreColumna)) {
     ordenColumnasVista.push(nombreColumna);
   }
@@ -1746,11 +1754,13 @@ function agregarColumnaCategoria() {
   const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarCategoria"));
   if (modal) modal.hide();
 
-  // Refrescar la tabla actual
+  // Refrescar la tabla visible
   renderTablaConOrden(window.datosFiltrados);
 
-  alert(`Columna "${nombreColumna}" agregada correctamente a toda la planilla ✅`);
+  alert(`Categoría "${nuevaCat}" agregada correctamente a toda la planilla ✅`);
 }
 
 
-//V 2.6
+
+
+//V 3
