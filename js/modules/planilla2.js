@@ -1339,7 +1339,6 @@ function mostrarTablaCombinacionesCantidad() {
 
   window.datosCombinacionCantidades = resultado;
 
-  // --- Construir tabla ---
   const contenedor = document.getElementById("tablaCombinacionesContenido");
   const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA", "Cantidad ingresada"];
 
@@ -1359,8 +1358,14 @@ function mostrarTablaCombinacionesCantidad() {
       </tr>`;
   });
 
-  html += `</tbody></table>`;
+  html += `</tbody></table>
+    <div class="text-center mt-4">
+      <button class="btn btn-success px-4" onclick="procesarCombinacionesFinal()">Procesar</button>
+    </div>
+    <div id="resultadoProcesado" class="mt-4"></div>`;
+
   contenedor.innerHTML = html;
+
 }
 
 
@@ -1477,6 +1482,79 @@ function guardarCantidadIngresada(index) {
   if (instancia) instancia.hide();
 }
 
+function procesarCombinacionesFinal() {
+  const datos = window.datosCombinacionCantidades || [];
+  if (!datos.length) {
+    alert("No hay datos para procesar.");
+    return;
+  }
+
+  const resultado = [];
+
+  datos.forEach(prod => {
+    const idManual = prod["ID manual"] || prod["ID"];
+    const precio = prod["Precio S/ IVA"] || 0;
+    const baseCodigo = prod["Referencia"] || "";
+    const detalle = Array.isArray(prod["Detalle"]) ? prod["Detalle"] : [];
+
+    detalle.forEach(d => {
+      const combinacion = (d.numeracion || "").trim();
+      const cantidad = d.cantidad || 0;
+      if (!combinacion) return;
+
+      // armar referencia reemplazando los últimos dígitos (3 o más ceros) con la combinación
+      const referencia = baseCodigo.replace(/0+$/, combinacion.padStart(3, "0"));
+
+      resultado.push({
+        "ID": idManual,
+        "Attribute (Name:Type:Position)*": "Número:radio:0",
+        "Value (Value:Position)*": `${combinacion}:0`,
+        "Referencia": referencia,
+        "Cantidad": cantidad,
+        "Precio S/ IVA": precio
+      });
+    });
+  });
+
+  if (!resultado.length) {
+    document.getElementById("resultadoProcesado").innerHTML = `
+      <p class="text-muted text-center">No hay combinaciones válidas para procesar.</p>`;
+    return;
+  }
+
+  // Renderizar la tabla final
+  const encabezados = [
+    "ID",
+    "Attribute (Name:Type:Position)*",
+    "Value (Value:Position)*",
+    "Referencia",
+    "Cantidad",
+    "Precio S/ IVA"
+  ];
+
+  let html = `<h6 class="text-center mb-3">Resultado procesado (${resultado.length} filas)</h6>`;
+  html += `<div class="table-responsive"><table class="table table-bordered table-sm align-middle">
+    <thead class="table-light"><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
+
+  resultado.forEach(r => {
+    html += `<tr>
+      <td>${r["ID"]}</td>
+      <td>${r["Attribute (Name:Type:Position)*"]}</td>
+      <td>${r["Value (Value:Position)*"]}</td>
+      <td>${r["Referencia"]}</td>
+      <td>${r["Cantidad"]}</td>
+      <td>${r["Precio S/ IVA"]}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+
+  const contenedor = document.getElementById("resultadoProcesado");
+  contenedor.innerHTML = html;
+
+  // Guardar también el resultado en memoria por si se quiere exportar
+  window.resultadoCombinacionesProcesado = resultado;
+}
 
 
 function agregarFilaNumeracion() {
@@ -2170,4 +2248,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1.9
+//V 2
