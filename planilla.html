@@ -86,7 +86,6 @@
 <div id="tablaPreview" class="table-responsive mb-3"></div>
 
 <!-- === VISTA DE IMÁGENES PROCESADAS === -->
-<!-- === VISTA DE IMÁGENES PROCESADAS === -->
 <div id="vistaImagenes" class="d-none mt-3">
 
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -96,7 +95,7 @@
     </button>
   </div>
 
-  <!-- 🔹 RESUMEN ESTADÍSTICO -->
+  <!-- 🔹 RESUMEN -->
   <div id="resumenImagenes" class="border rounded p-3 mb-4 bg-light">
     <p><strong>Cantidad de imágenes procesadas:</strong> <span id="cantProcesadas">0</span></p>
     <p id="erroresLinea" class="d-none">
@@ -108,22 +107,12 @@
     <p><strong>Reducir peso (&gt; 100 KB):</strong> <span id="cantPesadas">0</span></p>
   </div>
 
-  <!-- 🔹 CONTENEDOR DE IMÁGENES -->
-  <div id="contenedorImagenes" class="row g-3"></div>
-</div>
+  <!-- 🔹 CONTENEDOR DE PREVISUALIZACIÓN (solo 6 imágenes) -->
+  <div id="contenedorImagenes" class="row g-3 mb-3"></div>
 
-<!-- 🔸 MODAL DE ERRORES -->
-<div class="modal fade" id="modalErrores" tabindex="-1" aria-labelledby="modalErroresLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalErroresLabel">Códigos con error</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <ul id="listaErrores" class="list-group list-group-flush"></ul>
-      </div>
-    </div>
+  <!-- 🔹 BOTÓN COMPRIMIR -->
+  <div class="text-center mb-4">
+    <button class="btn btn-success" id="btnComprimir" onclick="comprimirImagenes()">Comprimir imágenes</button>
   </div>
 </div>
 

@@ -1772,7 +1772,7 @@ async function procesarImagenes() {
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.add("d-none");
 
-  // 🔹 Mostrar contenedor de imágenes
+  // 🔹 Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   vista.classList.remove("d-none");
@@ -1798,21 +1798,23 @@ async function procesarImagenes() {
       errores.push(codigo || "(sin código)");
       continue;
     }
-
     const url = normalizarUrlDrive(rawUrl);
     lista.push({ codigo, url });
   }
+
+  // Guardar globalmente
+  window.imagenesProcesadas = lista;
 
   if (!lista.length) {
     contenedor.innerHTML = `<p class="text-danger">No se encontraron imágenes para mostrar.</p>`;
     return;
   }
 
-  // 🖼️ Renderizar imágenes y calcular peso
+  // Mostrar solo las primeras 6
   contenedor.innerHTML = "";
-  for (const { codigo, url } of lista) {
+  lista.slice(0, 6).forEach(({ codigo, url }) => {
     const col = document.createElement("div");
-    col.className = "col-6 col-sm-4 col-md-3 col-lg-2";
+    col.className = "col-6 col-sm-4 col-md-2";
     col.innerHTML = `
       <div class="card shadow-sm h-100">
         <img src="${url}" class="card-img-top" alt="${codigo}" 
@@ -1822,8 +1824,10 @@ async function procesarImagenes() {
         </div>
       </div>`;
     contenedor.appendChild(col);
+  });
 
-    // Verificamos el tamaño (si CORS lo permite)
+  // Calcular pesos
+  for (const { url } of lista) {
     try {
       const resp = await fetch(url, { method: "HEAD" });
       const size = resp.headers.get("content-length");
@@ -1832,12 +1836,10 @@ async function procesarImagenes() {
         if (kb < 100) livianas++;
         else pesadas++;
       }
-    } catch {
-      // algunos links fallan por CORS
-    }
+    } catch {}
   }
 
-  // 🔹 Actualizar resumen
+  // Actualizar resumen
   document.getElementById("cantProcesadas").textContent = lista.length;
   document.getElementById("cantLivianas").textContent = livianas;
   document.getElementById("cantPesadas").textContent = pesadas;
@@ -1850,6 +1852,7 @@ async function procesarImagenes() {
     document.getElementById("erroresLinea").classList.add("d-none");
   }
 }
+
 
 function registrarErrorImagen(codigo, img) {
   img.src = "https://via.placeholder.com/200x200?text=Error";
@@ -1887,6 +1890,70 @@ function volverAVistaPrincipal() {
   if (barraBotones) barraBotones.classList.remove("d-none");
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.remove("d-none");
+}
+
+async function comprimirImagenes() {
+  if (!window.imagenesProcesadas?.length) {
+    alert("No hay imágenes procesadas.");
+    return;
+  }
+
+  const zip = new JSZip();
+  let livianas = 0, pesadas = 0;
+
+  for (const { codigo, url } of window.imagenesProcesadas) {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+
+      // Si la imagen es menor a 100 KB, se agrega tal cual
+      if (blob.size <= 100 * 1024) {
+        zip.file(`${codigo}.jpg`, blob);
+        livianas++;
+      } else {
+        // Si es mayor, se comprime
+        const comprimido = await comprimirBlob(blob, 120);
+        zip.file(`${codigo}.jpg`, comprimido);
+        pesadas++;
+      }
+    } catch (err) {
+      console.warn(`Error con ${codigo}:`, err);
+    }
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  saveAs(zipBlob, "imagenes_comprimidas.zip");
+
+  alert(`ZIP generado ✅
+Livianas: ${livianas}
+Comprimidas: ${pesadas}`);
+}
+
+
+async function comprimirBlob(blob, maxKB = 120) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = function () {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      let calidad = 0.92;
+      let resultado;
+
+      do {
+        resultado = canvas.toDataURL("image/jpeg", calidad);
+        calidad -= 0.05;
+      } while (resultado.length / 1024 > maxKB && calidad > 0.1);
+
+      fetch(resultado)
+        .then(res => res.blob())
+        .then(resolve);
+    };
+    img.src = URL.createObjectURL(blob);
+  });
 }
 
 
