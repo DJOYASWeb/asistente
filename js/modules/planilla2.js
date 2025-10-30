@@ -1263,8 +1263,6 @@ function mostrarProductosConID() {
 }
 
 
-/** ---------- COMBINACIONES (tabla especial) ---------- **/
-
 // ** ---------- COMBINACIONES (tabla especial) ---------- **
 function mostrarTablaCombinacionesCantidad() {
   tipoSeleccionado = "combinacion_cantidades";
@@ -1276,9 +1274,13 @@ function mostrarTablaCombinacionesCantidad() {
   const botonesTipo = document.getElementById("botonesTipo");
   if (botonesTipo) botonesTipo.classList.add("d-none");
 
-  const tablaDiv = document.getElementById("tablaPreview");
   const procesarBtn = document.getElementById("botonProcesar");
   if (procesarBtn) procesarBtn.classList.add("d-none");
+
+  const procesarImagenesBtn = document.getElementById("botonProcesarImagenes");
+  if (procesarImagenesBtn) procesarImagenesBtn.classList.add("d-none");
+
+  const tablaDiv = document.getElementById("tablaPreview");
 
   // 🔹 Crear contenedor principal de vista combinaciones
   let vista = document.getElementById("vistaCombinaciones");
@@ -1306,78 +1308,112 @@ function mostrarTablaCombinacionesCantidad() {
   const resultado = [];
 
   todos.forEach(row => {
-    const tipo = (row["producto_tipo"] || row["procucto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
     const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
     const codigo = extraerCodigo(row);
+    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
+    const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
     const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
-    // --- ANILLOS ---
-    if (esAnillo(row)) {
-      const valueNum = ultimosDosDigitosDeCodigo(codigo);
-      if (!valueNum) return;
-
-      resultado.push({
-        "ID": idProducto,
-        "Atributo": "Número",
-        "Valor": valueNum,
-        "Referencia": codigo,
-        "Cantidad": cantidad,
-        "Precio S/ IVA": precioSinIVA
-      });
-      return;
-    }
-
-    // --- COLGANTES CON LETRAS ---
-    if (esColganteLetra(row)) {
-      let letra = (row["producto_combinacion"] || row["PRODUCTO COMBINACION"] || "").toString().trim().toUpperCase();
-      if (!/^[A-Z]$/.test(letra)) {
-        const m = codigo.match(/([A-Z])$/i);
-        letra = m ? m[1].toUpperCase() : "";
-      }
-      if (!letra) return;
-
-      resultado.push({
-        "ID": idProducto,
-        "Atributo": "Letra",
-        "Valor": letra,
-        "Referencia": codigo,
-        "Cantidad": cantidad,
-        "Precio S/ IVA": precioSinIVA
-      });
-      return;
-    }
+    resultado.push({
+      "ID": idProducto,
+      "Nombre": nombre,
+      "Referencia": codigo,
+      "Combinaciones": combinaciones,
+      "Cantidad": cantidad,
+      "Precio S/ IVA": precioSinIVA
+    });
   });
 
-  // --- Mostrar tabla dentro de la nueva vista ---
   const contenedor = document.getElementById("tablaCombinacionesContenido");
 
   if (!resultado.length) {
-    contenedor.innerHTML = `<p class='text-muted'>No se encontraron combinaciones válidas (anillos o colgantes de letra).</p>`;
+    contenedor.innerHTML = `<p class='text-muted'>No se encontraron combinaciones válidas.</p>`;
     return;
   }
 
-  const encabezados = ["ID", "Atributo", "Valor", "Referencia", "Cantidad", "Precio S/ IVA"];
-  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
-  encabezados.forEach(h => html += `<th>${h}</th>`);
-  html += `</tr></thead><tbody>`;
-  resultado.forEach(r => {
-    html += `<tr>
-      <td>${r["ID"] ?? ""}</td>
-      <td>${r["Atributo"] ?? ""}</td>
-      <td>${r["Valor"] ?? ""}</td>
-      <td>${r["Referencia"] ?? ""}</td>
-      <td>${r["Cantidad"] ?? ""}</td>
-      <td>${r["Precio S/ IVA"] ?? ""}</td>
-    </tr>`;
-  });
-  html += `</tbody></table>`;
+  const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA"];
+  let html = `<table class="table table-bordered table-sm align-middle" id="tablaCombinaciones">
+    <thead><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
 
+  resultado.forEach(r => {
+    html += `
+      <tr onclick="abrirModalDetalleProducto('${r["Referencia"]}', ${r["Cantidad"]})" style="cursor:pointer;">
+        <td>${r["ID"] ?? ""}</td>
+        <td>${r["Nombre"] ?? ""}</td>
+        <td>${r["Referencia"] ?? ""}</td>
+        <td>${r["Combinaciones"] ?? ""}</td>
+        <td>${r["Cantidad"] ?? ""}</td>
+        <td>${r["Precio S/ IVA"] ?? ""}</td>
+      </tr>`;
+  });
+
+  html += `</tbody></table>`;
   contenedor.innerHTML = html;
 
-  // Guardar dataset para exportación si lo necesitas después
+  // Guardar dataset global
   window.datosCombinacionCantidades = resultado;
+}
+
+function abrirModalDetalleProducto(codigo, cantidad) {
+  // Si el modal no existe aún, crearlo dinámicamente
+  let modal = document.getElementById("modalDetalleProducto");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.className = "modal fade";
+    modal.id = "modalDetalleProducto";
+    modal.tabIndex = -1;
+    modal.innerHTML = `
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Detalle del producto</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="modalDetalleBody"></div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // Construir el contenido dinámico
+  const body = modal.querySelector("#modalDetalleBody");
+  body.innerHTML = `
+    <h6 class="mb-3 text-primary">SKU: ${codigo}</h6>
+    <table class="table table-bordered table-sm align-middle">
+      <thead class="table-light">
+        <tr><th>Numeración</th><th>Cantidad</th></tr>
+      </thead>
+      <tbody id="tablaNumeraciones">
+        ${Array.from({ length: 3 }).map(() => `
+          <tr>
+            <td><input type="text" class="form-control form-control-sm" placeholder="Ej: #10-12"></td>
+            <td><input type="number" class="form-control form-control-sm" min="0" value="0"></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    <div class="text-center">
+      <button class="btn btn-link text-decoration-none" onclick="agregarFilaNumeracion()">+ Agregar fila</button>
+    </div>
+  `;
+
+  // Mostrar modal
+  const modalInst = new bootstrap.Modal(modal);
+  modalInst.show();
+}
+
+function agregarFilaNumeracion() {
+  const tbody = document.getElementById("tablaNumeraciones");
+  if (!tbody) return;
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="text" class="form-control form-control-sm" placeholder="Ej: #10-12"></td>
+    <td><input type="number" class="form-control form-control-sm" min="0" value="0"></td>
+  `;
+  tbody.appendChild(tr);
 }
 
 
@@ -2060,4 +2096,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1.6
+//V 1.7
