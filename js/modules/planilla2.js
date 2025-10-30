@@ -1360,7 +1360,7 @@ function mostrarTablaCombinacionesCantidad() {
 
   html += `</tbody></table>
     <div class="text-center mt-4">
-      <button class="btn btn-success px-4" onclick="procesarCombinacionesFinal()">Procesar</button>
+     <button class="btn btn-success px-4" onclick="procesarCombinacionesFinal()">Procesar</button>
     </div>
     <div id="resultadoProcesado" class="mt-4"></div>`;
 
@@ -2247,5 +2247,120 @@ async function comprimirBlob(blob, maxKB = 120) {
   });
 }
 
+// === PROCESAR COMBINACIONES Y MOSTRAR MODAL ===
+function procesarCombinacionesFinal() {
+  const datos = window.datosCombinacionCantidades || [];
+  if (!datos.length) {
+    alert("No hay datos para procesar.");
+    return;
+  }
 
-//V 2
+  const resultado = [];
+
+  datos.forEach(prod => {
+    const idManual = prod["ID manual"] || prod["ID"] || "";
+    const precio = prod["Precio S/ IVA"] || 0;
+    const baseCodigo = prod["Referencia"] || "";
+    const detalle = Array.isArray(prod["Detalle"]) ? prod["Detalle"] : [];
+
+    detalle.forEach(d => {
+      const combinacion = (d.numeracion || "").trim();
+      const cantidad = d.cantidad || 0;
+      if (!combinacion) return;
+
+      // generar código reemplazando los últimos ceros por la combinación
+      const referencia = baseCodigo.replace(/0+$/, combinacion.padStart(3, "0"));
+
+      resultado.push({
+        "ID": idManual,
+        "Attribute (Name:Type:Position)*": "Número:radio:0",
+        "Value (Value:Position)*": `${combinacion}:0`,
+        "Referencia": referencia,
+        "Cantidad": cantidad,
+        "Precio S/ IVA": precio
+      });
+    });
+  });
+
+  if (!resultado.length) {
+    alert("No hay combinaciones válidas para procesar.");
+    return;
+  }
+
+  // guardar en memoria por si se exporta luego
+  window.resultadoCombinacionesProcesado = resultado;
+
+  // abrir modal de previsualización
+  abrirModalPrevisualizacionProcesado(resultado);
+}
+
+// === MOSTRAR MODAL DE PREVISUALIZACIÓN Y EXPORTAR ===
+function abrirModalPrevisualizacionProcesado(resultado) {
+  // crear modal si no existe
+  let modal = document.getElementById("modalProcesarCombinaciones");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.className = "modal fade";
+    modal.id = "modalProcesarCombinaciones";
+    modal.tabIndex = -1;
+    modal.innerHTML = `
+      <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Previsualización combinaciones procesadas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="bodyProcesarCombinaciones" style="max-height:70vh;overflow:auto;"></div>
+          <div class="modal-footer">
+            <button class="btn btn-success" onclick="exportarCombinacionesProcesadas()">Exportar</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const body = modal.querySelector("#bodyProcesarCombinaciones");
+
+  // generar tabla para previsualizar
+  const encabezados = [
+    "ID",
+    "Attribute (Name:Type:Position)*",
+    "Value (Value:Position)*",
+    "Referencia",
+    "Cantidad",
+    "Precio S/ IVA"
+  ];
+
+  let html = `<div style="overflow-x:auto"><table class="table table-bordered table-sm align-middle">
+    <thead class="table-light"><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
+
+  resultado.forEach(r => {
+    html += `<tr>
+      <td>${r["ID"]}</td>
+      <td>${r["Attribute (Name:Type:Position)*"]}</td>
+      <td>${r["Value (Value:Position)*"]}</td>
+      <td>${r["Referencia"]}</td>
+      <td>${r["Cantidad"]}</td>
+      <td>${r["Precio S/ IVA"]}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+  body.innerHTML = html;
+
+  const modalInst = new bootstrap.Modal(modal);
+  modalInst.show();
+}
+
+// === EXPORTAR A EXCEL ===
+function exportarCombinacionesProcesadas() {
+  if (!window.resultadoCombinacionesProcesado?.length) {
+    alert("No hay datos procesados para exportar.");
+    return;
+  }
+  exportarXLSXPersonalizado("combinacion_cantidades", window.resultadoCombinacionesProcesado);
+}
+
+
+//V 2.1
