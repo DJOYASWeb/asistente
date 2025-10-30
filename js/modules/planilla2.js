@@ -250,12 +250,32 @@ function driveIdFromUrl(url) {
 // Usa Google Drive API (CORS OK) cuando haya API key
 function normalizarUrlDrive(url) {
   if (!url) return '';
-  const id = driveIdFromUrl(url);
-  if (!id) return url;
 
-  // ✅ Proxy gratuito que habilita CORS
-  return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
+  // Limpieza de espacios o comillas
+  url = url.trim().replace(/^"|"$/g, '');
+
+  // Si es un enlace directo (HTTP/HTTPS que no sea de Google Drive)
+  if (url.startsWith("http") && !url.includes("drive.google.com")) {
+    // 🔹 Usa proxy solo si el servidor no envía CORS
+    if (url.includes("distribuidoradejoyas.cl")) {
+      // servidor propio: puede ir directo
+      return url;
+    } else {
+      // otros dominios externos: pasar por proxy CORS
+      return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    }
+  }
+
+  // Si es Google Drive → extraer ID
+  const id = driveIdFromUrl(url);
+  if (id) {
+    return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
+  }
+
+  // Si no coincide con nada, devuelve la URL tal cual
+  return url;
 }
+
 
 
 
@@ -1998,4 +2018,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1.2
+//V 1.3
