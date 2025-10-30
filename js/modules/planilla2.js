@@ -811,6 +811,15 @@ function construirCategorias(row) {
       unicas.push(c);
     }
   }
+// 🧹 Si tiene ENCHAPADO como categoría principal, quitar "Enchapado en Oro" y "Enchapado en Plata"
+if (categoriaPrincipal.toUpperCase() === "ENCHAPADO") {
+  for (let i = unicas.length - 1; i >= 0; i--) {
+    const cat = unicas[i].toLowerCase();
+    if (cat.includes("enchapado en oro") || cat.includes("enchapado en plata")) {
+      unicas.splice(i, 1);
+    }
+  }
+}
 
   // 🔹 Devuelve separadas por coma (puedes usar "/" si prefieres jerarquía)
   return unicas.join(", ");
@@ -1708,4 +1717,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.2
+//V 2.3
