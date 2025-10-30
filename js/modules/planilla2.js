@@ -251,11 +251,12 @@ function driveIdFromUrl(url) {
 function normalizarUrlDrive(url) {
   if (!url) return '';
   const id = driveIdFromUrl(url);
-  if (!id) return url; // No es Drive: se usa tal cual
+  if (!id) return url;
 
-  // 🔄 Siempre usar la versión pública (sin API key)
-  return `https://drive.google.com/uc?export=download&id=${id}`;
+  // ✅ Proxy gratuito que habilita CORS
+  return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
 }
+
 
 
 // Extensión por Content-Type
@@ -1759,4 +1760,4 @@ function agregarCategoriaAdicional() {
 
 
 
-//V 3.2
+//V 3.3
