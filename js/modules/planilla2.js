@@ -1775,8 +1775,15 @@ async function procesarImagenes() {
   // 🔹 Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
+  const barra = document.getElementById("barraProgreso");
+  const estado = document.getElementById("estadoProgreso");
+  const btnComprimir = document.getElementById("btnComprimir");
   vista.classList.remove("d-none");
-  contenedor.innerHTML = `<p class="text-muted">Procesando imágenes...</p>`;
+  contenedor.innerHTML = "";
+  barra.style.width = "0%";
+  barra.textContent = "0%";
+  estado.textContent = "Procesando imágenes...";
+  btnComprimir.classList.add("d-none");
 
   // 🧩 Obtener filas
   const filas = obtenerFilasActivas({
@@ -1802,22 +1809,21 @@ async function procesarImagenes() {
     lista.push({ codigo, url });
   }
 
-  // Guardar globalmente
   window.imagenesProcesadas = lista;
 
   if (!lista.length) {
-    contenedor.innerHTML = `<p class="text-danger">No se encontraron imágenes para mostrar.</p>`;
+    contenedor.innerHTML = `<p class="text-danger">No se encontraron imágenes.</p>`;
+    estado.textContent = "No hay imágenes para mostrar.";
     return;
   }
 
-  // Mostrar solo las primeras 6
-  contenedor.innerHTML = "";
+  // 🖼️ Renderizar solo 6 imágenes
   lista.slice(0, 6).forEach(({ codigo, url }) => {
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-2";
     col.innerHTML = `
       <div class="card shadow-sm h-100">
-        <img src="${url}" class="card-img-top" alt="${codigo}" 
+        <img src="${url}" class="card-img-top" alt="${codigo}"
              onerror="registrarErrorImagen('${codigo}', this)">
         <div class="card-body p-2 text-center">
           <small class="text-muted">${codigo}</small>
@@ -1826,7 +1832,10 @@ async function procesarImagenes() {
     contenedor.appendChild(col);
   });
 
-  // Calcular pesos
+  // 🔹 Barra de progreso
+  let completadas = 0;
+  const total = lista.length;
+
   for (const { url } of lista) {
     try {
       const resp = await fetch(url, { method: "HEAD" });
@@ -1837,7 +1846,16 @@ async function procesarImagenes() {
         else pesadas++;
       }
     } catch {}
+    completadas++;
+    const progreso = Math.round((completadas / total) * 100);
+    barra.style.width = progreso + "%";
+    barra.textContent = progreso + "%";
   }
+
+  // ✅ Fin del proceso
+  barra.classList.remove("progress-bar-animated");
+  barra.classList.add("bg-success");
+  estado.textContent = "✅ Listo, imágenes cargadas.";
 
   // Actualizar resumen
   document.getElementById("cantProcesadas").textContent = lista.length;
@@ -1851,7 +1869,11 @@ async function procesarImagenes() {
   } else {
     document.getElementById("erroresLinea").classList.add("d-none");
   }
+
+  // Mostrar botón de comprimir
+  btnComprimir.classList.remove("d-none");
 }
+
 
 
 function registrarErrorImagen(codigo, img) {
@@ -1893,25 +1915,34 @@ function volverAVistaPrincipal() {
 }
 
 async function comprimirImagenes() {
+  const barra = document.getElementById("barraProgreso");
+  const estado = document.getElementById("estadoProgreso");
+  const btnComprimir = document.getElementById("btnComprimir");
+
   if (!window.imagenesProcesadas?.length) {
     alert("No hay imágenes procesadas.");
     return;
   }
 
+  btnComprimir.disabled = true;
+  barra.classList.remove("bg-success");
+  barra.classList.add("progress-bar-animated");
+  estado.textContent = "Comprimiendo imágenes...";
+
   const zip = new JSZip();
   let livianas = 0, pesadas = 0;
+  const total = window.imagenesProcesadas.length;
+  let completadas = 0;
 
   for (const { codigo, url } of window.imagenesProcesadas) {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
 
-      // Si la imagen es menor a 100 KB, se agrega tal cual
       if (blob.size <= 100 * 1024) {
         zip.file(`${codigo}.jpg`, blob);
         livianas++;
       } else {
-        // Si es mayor, se comprime
         const comprimido = await comprimirBlob(blob, 120);
         zip.file(`${codigo}.jpg`, comprimido);
         pesadas++;
@@ -1919,15 +1950,25 @@ async function comprimirImagenes() {
     } catch (err) {
       console.warn(`Error con ${codigo}:`, err);
     }
+
+    completadas++;
+    const progreso = Math.round((completadas / total) * 100);
+    barra.style.width = progreso + "%";
+    barra.textContent = progreso + "%";
   }
 
   const zipBlob = await zip.generateAsync({ type: "blob" });
-  saveAs(zipBlob, "imagenes_comprimidas.zip");
+  saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
 
-  alert(`ZIP generado ✅
-Livianas: ${livianas}
-Comprimidas: ${pesadas}`);
+  barra.classList.remove("progress-bar-animated");
+  barra.classList.add("bg-success");
+  barra.style.width = "100%";
+  barra.textContent = "100%";
+  estado.textContent = "✅ Archivo ZIP generado correctamente.";
+
+  btnComprimir.disabled = false;
 }
+
 
 
 async function comprimirBlob(blob, maxKB = 120) {
@@ -1957,4 +1998,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1
+//V 1.2

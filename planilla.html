@@ -105,16 +105,40 @@
     </p>
     <p><strong>Peso reducido (&lt; 100 KB):</strong> <span id="cantLivianas">0</span></p>
     <p><strong>Reducir peso (&gt; 100 KB):</strong> <span id="cantPesadas">0</span></p>
+
+    <!-- 🔹 BARRA DE PROGRESO -->
+    <div class="progress mt-3" style="height: 20px;">
+      <div id="barraProgreso" class="progress-bar progress-bar-striped progress-bar-animated" 
+           role="progressbar" style="width: 0%">0%</div>
+    </div>
+
+    <p id="estadoProgreso" class="mt-2 text-muted">Procesando imágenes...</p>
   </div>
 
-  <!-- 🔹 CONTENEDOR DE PREVISUALIZACIÓN (solo 6 imágenes) -->
+  <!-- 🔹 CONTENEDOR DE IMÁGENES (solo 6) -->
   <div id="contenedorImagenes" class="row g-3 mb-3"></div>
 
-  <!-- 🔹 BOTÓN COMPRIMIR -->
+  <!-- 🔹 BOTÓN COMPRIMIR (oculto hasta que termine el proceso) -->
   <div class="text-center mb-4">
-    <button class="btn btn-success" id="btnComprimir" onclick="comprimirImagenes()">Comprimir imágenes</button>
+    <button class="btn btn-success d-none" id="btnComprimir" onclick="comprimirImagenes()">Comprimir imágenes</button>
   </div>
 </div>
+
+<!-- 🔸 MODAL DE ERRORES -->
+<div class="modal fade" id="modalErrores" tabindex="-1" aria-labelledby="modalErroresLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalErroresLabel">Códigos con error</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <ul id="listaErrores" class="list-group list-group-flush"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
 
