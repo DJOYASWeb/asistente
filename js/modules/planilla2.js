@@ -1711,52 +1711,46 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
   return bloques.map(b => `<p>${b}</p>`).join("");
 }
 
-// === AGREGAR CATEGORÍA A TODA LA PLANILLA ===
+// === AGREGAR COLUMNA DE CATEGORÍA ADICIONAL ===
 
 function abrirModalAgregarCategoria() {
   const input = document.getElementById("nuevaCategoria");
-  if (input) input.value = ""; // limpiar campo antes de abrir
+  if (input) input.value = "";
 }
 
-function agregarCategoriaATodos() {
+function agregarColumnaCategoria() {
   const input = document.getElementById("nuevaCategoria");
   if (!input) return;
 
-  const nuevaCat = input.value.trim();
-  if (!nuevaCat) {
-    alert("Por favor ingresa un nombre de categoría antes de continuar.");
+  const nombreColumna = input.value.trim();
+  if (!nombreColumna) {
+    alert("Por favor ingresa un nombre para la nueva categoría.");
     return;
   }
 
-  // Afectar todos los datasets principales
+  // Añadimos la nueva columna a cada conjunto de datos
   const conjuntos = [window.datosOriginales, window.datosCombinaciones, window.datosReposicion];
   conjuntos.forEach(lista => {
     if (!Array.isArray(lista)) return;
     lista.forEach(row => {
-      const catActual = (row["Categoría principal"] || "").toString().trim();
-      if (catActual) {
-        // Si ya tiene la categoría, no la duplicamos
-        const partes = catActual.split(",").map(c => c.trim().toLowerCase());
-        if (!partes.includes(nuevaCat.toLowerCase())) {
-          row["Categoría principal"] = catActual + ", " + nuevaCat;
-        }
-      } else {
-        row["Categoría principal"] = nuevaCat;
-      }
+      row[nombreColumna] = "1"; // o "" si prefieres dejarla vacía
     });
   });
 
-  alert(`Categoría "${nuevaCat}" agregada a todos los productos ✅`);
+  // Actualizar orden de columnas para mostrar la nueva
+  if (!ordenColumnasVista.includes(nombreColumna)) {
+    ordenColumnasVista.push(nombreColumna);
+  }
 
-  // Cerrar modal (si Bootstrap está activo)
+  // Cerrar el modal
   const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarCategoria"));
   if (modal) modal.hide();
 
-  // Refrescar tabla actual
-  if (Array.isArray(window.datosFiltrados) && window.datosFiltrados.length > 0) {
-    renderTablaConOrden(window.datosFiltrados);
-  }
+  // Refrescar la tabla actual
+  renderTablaConOrden(window.datosFiltrados);
+
+  alert(`Columna "${nombreColumna}" agregada correctamente a toda la planilla ✅`);
 }
 
 
-//V 2.5
+//V 2.6
