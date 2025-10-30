@@ -1711,6 +1711,52 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
   return bloques.map(b => `<p>${b}</p>`).join("");
 }
 
+// === AGREGAR CATEGORÍA A TODA LA PLANILLA ===
+
+function abrirModalAgregarCategoria() {
+  const input = document.getElementById("nuevaCategoria");
+  if (input) input.value = ""; // limpiar campo antes de abrir
+}
+
+function agregarCategoriaATodos() {
+  const input = document.getElementById("nuevaCategoria");
+  if (!input) return;
+
+  const nuevaCat = input.value.trim();
+  if (!nuevaCat) {
+    alert("Por favor ingresa un nombre de categoría antes de continuar.");
+    return;
+  }
+
+  // Afectar todos los datasets principales
+  const conjuntos = [window.datosOriginales, window.datosCombinaciones, window.datosReposicion];
+  conjuntos.forEach(lista => {
+    if (!Array.isArray(lista)) return;
+    lista.forEach(row => {
+      const catActual = (row["Categoría principal"] || "").toString().trim();
+      if (catActual) {
+        // Si ya tiene la categoría, no la duplicamos
+        const partes = catActual.split(",").map(c => c.trim().toLowerCase());
+        if (!partes.includes(nuevaCat.toLowerCase())) {
+          row["Categoría principal"] = catActual + ", " + nuevaCat;
+        }
+      } else {
+        row["Categoría principal"] = nuevaCat;
+      }
+    });
+  });
+
+  alert(`Categoría "${nuevaCat}" agregada a todos los productos ✅`);
+
+  // Cerrar modal (si Bootstrap está activo)
+  const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarCategoria"));
+  if (modal) modal.hide();
+
+  // Refrescar tabla actual
+  if (Array.isArray(window.datosFiltrados) && window.datosFiltrados.length > 0) {
+    renderTablaConOrden(window.datosFiltrados);
+  }
+}
 
 
-//V 2.4
+//V 2.5

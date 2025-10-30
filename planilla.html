@@ -79,9 +79,8 @@
 <button class="btn btn-outline-dark me-2" onclick="mostrarProductosNuevos()">Productos nuevos</button>
 <button class="btn btn-outline-dark me-2" onclick="mostrarProductosConID()">Reposición</button>
 <button class="btn btn-outline-dark me-2" onclick="mostrarTablaCombinacionesCantidad()">Combinación cantidades</button>
-<button class="btn btn-outline-dark me-2" onclick="abrirModalIngresarID()" data-bs-toggle="modal" data-bs-target="#modalIngresarID">
-  Ingresar ID
-</button>
+<button class="btn btn-outline-dark me-2" onclick="abrirModalIngresarID()" data-bs-toggle="modal" data-bs-target="#modalIngresarID">Ingresar ID</button>
+<button class="btn btn-outline-dark me-2" onclick="abrirModalAgregarCategoria()" data-bs-toggle="modal" data-bs-target="#modalAgregarCategoria">Agregar categoría</button>
 </div>
 
 <div id="tablaPreview" class="table-responsive mb-3"></div>
@@ -126,6 +125,28 @@
     </div>
   </div>
 </div>  
+
+
+<!-- Modal: Agregar categoría -->
+<div class="modal fade" id="modalAgregarCategoria" tabindex="-1" aria-labelledby="modalAgregarCategoriaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAgregarCategoriaLabel">Agregar categoría adicional</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <label for="nuevaCategoria" class="form-label">Nombre de la nueva categoría:</label>
+        <input type="text" id="nuevaCategoria" class="form-control" placeholder="Ej: Nueva Colección 2025">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="agregarCategoriaATodos()">Agregar a todos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
 <!-- Modal de Confirmación y Columnas -->
