@@ -262,9 +262,9 @@ function normalizarUrlDrive(url) {
       // Si termina en una extensión de imagen (jpg, jpeg, png, webp, gif)
       if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
         // Servidor propio (por ejemplo distribuidoradejoyas.cl): ir directo
-        if (u.host.includes("distribuidoradejoyas.cl")) {
-          return url;
-        }
+if (u.host.includes("distribuidoradejoyas.cl")) {
+  return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+}
         // Otros dominios externos → pasar por proxy CORS
         return `https://corsproxy.io/?${encodeURIComponent(url)}`;
       }
@@ -2031,4 +2031,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1.4
+//V 1.5
