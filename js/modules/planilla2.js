@@ -1263,6 +1263,7 @@ function mostrarProductosConID() {
 }
 
 
+
 // ** ---------- COMBINACIONES (tabla especial) ---------- **
 function mostrarTablaCombinacionesCantidad() {
   tipoSeleccionado = "combinacion_cantidades";
@@ -1322,42 +1323,39 @@ function mostrarTablaCombinacionesCantidad() {
       "Referencia": codigo,
       "Combinaciones": combinaciones,
       "Cantidad": cantidad,
-      "Precio S/ IVA": precioSinIVA
+      "Precio S/ IVA": precioSinIVA,
+      "Cantidad ingresada": 0 // 🆕 nueva columna
     });
   });
 
+  window.datosCombinacionCantidades = resultado; // guardar global
+
+  // --- Construir tabla ---
   const contenedor = document.getElementById("tablaCombinacionesContenido");
+  const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA", "Cantidad ingresada"];
 
-  if (!resultado.length) {
-    contenedor.innerHTML = `<p class='text-muted'>No se encontraron combinaciones válidas.</p>`;
-    return;
-  }
-
-  const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA"];
   let html = `<table class="table table-bordered table-sm align-middle" id="tablaCombinaciones">
     <thead><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
 
-  resultado.forEach(r => {
+  resultado.forEach((r, idx) => {
     html += `
-      <tr onclick="abrirModalDetalleProducto('${r["Referencia"]}', ${r["Cantidad"]})" style="cursor:pointer;">
+      <tr id="fila-${r["Referencia"]}" onclick="abrirModalDetalleProducto('${r["Referencia"]}', ${idx})" style="cursor:pointer;">
         <td>${r["ID"] ?? ""}</td>
         <td>${r["Nombre"] ?? ""}</td>
         <td>${r["Referencia"] ?? ""}</td>
         <td>${r["Combinaciones"] ?? ""}</td>
         <td>${r["Cantidad"] ?? ""}</td>
         <td>${r["Precio S/ IVA"] ?? ""}</td>
+        <td class="cantidad-ingresada">0</td>
       </tr>`;
   });
 
   html += `</tbody></table>`;
   contenedor.innerHTML = html;
-
-  // Guardar dataset global
-  window.datosCombinacionCantidades = resultado;
 }
 
-function abrirModalDetalleProducto(codigo, cantidad) {
-  // Si el modal no existe aún, crearlo dinámicamente
+
+function abrirModalDetalleProducto(codigo, index) {
   let modal = document.getElementById("modalDetalleProducto");
   if (!modal) {
     modal = document.createElement("div");
@@ -1372,13 +1370,16 @@ function abrirModalDetalleProducto(codigo, cantidad) {
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" id="modalDetalleBody"></div>
+          <div class="modal-footer">
+            <button class="btn btn-outline-success btn-sm" onclick="guardarCantidadIngresada(${index})">Guardar</button>
+          </div>
         </div>
       </div>
     `;
     document.body.appendChild(modal);
   }
 
-  // Construir el contenido dinámico
+  // Construir contenido del modal
   const body = modal.querySelector("#modalDetalleBody");
   body.innerHTML = `
     <h6 class="mb-3 text-primary">SKU: ${codigo}</h6>
@@ -1390,7 +1391,7 @@ function abrirModalDetalleProducto(codigo, cantidad) {
         ${Array.from({ length: 3 }).map(() => `
           <tr>
             <td><input type="text" class="form-control form-control-sm" placeholder="Ej: #10-12"></td>
-            <td><input type="number" class="form-control form-control-sm" min="0" value="0"></td>
+            <td><input type="number" class="form-control form-control-sm cantidad-input" min="0" value="0"></td>
           </tr>
         `).join("")}
       </tbody>
@@ -1400,10 +1401,43 @@ function abrirModalDetalleProducto(codigo, cantidad) {
     </div>
   `;
 
-  // Mostrar modal
+  // Guardar el SKU activo en dataset
+  modal.dataset.codigo = codigo;
+  modal.dataset.index = index;
+
   const modalInst = new bootstrap.Modal(modal);
   modalInst.show();
 }
+
+function guardarCantidadIngresada(index) {
+  const modal = document.getElementById("modalDetalleProducto");
+  if (!modal) return;
+
+  const inputs = modal.querySelectorAll(".cantidad-input");
+  let suma = 0;
+  inputs.forEach(inp => {
+    const val = parseFloat(inp.value) || 0;
+    suma += val;
+  });
+
+  // Actualizar dataset global
+  if (window.datosCombinacionCantidades && window.datosCombinacionCantidades[index]) {
+    window.datosCombinacionCantidades[index]["Cantidad ingresada"] = suma;
+  }
+
+  // Actualizar en tabla visible
+  const codigo = modal.dataset.codigo;
+  const fila = document.getElementById(`fila-${codigo}`);
+  if (fila) {
+    const celda = fila.querySelector(".cantidad-ingresada");
+    if (celda) celda.textContent = suma;
+  }
+
+  // Cerrar modal
+  const instancia = bootstrap.Modal.getInstance(modal);
+  if (instancia) instancia.hide();
+}
+
 
 function agregarFilaNumeracion() {
   const tbody = document.getElementById("tablaNumeraciones");
@@ -2096,4 +2130,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1.7
+//V 1.8
