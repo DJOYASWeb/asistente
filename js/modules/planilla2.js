@@ -1264,6 +1264,7 @@ function mostrarProductosConID() {
 
 
 
+
 // ** ---------- COMBINACIONES (tabla especial) ---------- **
 function mostrarTablaCombinacionesCantidad() {
   tipoSeleccionado = "combinacion_cantidades";
@@ -1308,14 +1309,20 @@ function mostrarTablaCombinacionesCantidad() {
   const todos = [...datosOriginales, ...datosCombinaciones];
   const resultado = [];
 
+  // 🔹 Intentar cargar datos guardados
+  const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
+
   todos.forEach(row => {
-    const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
     const codigo = extraerCodigo(row);
+    const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
     const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
     const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
+
+    // Si hay datos guardados, los aplicamos
+    const dataPrev = guardados[codigo] || {};
 
     resultado.push({
       "ID": idProducto,
@@ -1324,11 +1331,13 @@ function mostrarTablaCombinacionesCantidad() {
       "Combinaciones": combinaciones,
       "Cantidad": cantidad,
       "Precio S/ IVA": precioSinIVA,
-      "Cantidad ingresada": 0 // 🆕 nueva columna
+      "Cantidad ingresada": dataPrev.cantidadIngresada || 0,
+      "ID manual": dataPrev.idManual || "",
+      "Detalle": dataPrev.detalle || [] // array de numeraciones guardadas
     });
   });
 
-  window.datosCombinacionCantidades = resultado; // guardar global
+  window.datosCombinacionCantidades = resultado;
 
   // --- Construir tabla ---
   const contenedor = document.getElementById("tablaCombinacionesContenido");
@@ -1346,13 +1355,14 @@ function mostrarTablaCombinacionesCantidad() {
         <td>${r["Combinaciones"] ?? ""}</td>
         <td>${r["Cantidad"] ?? ""}</td>
         <td>${r["Precio S/ IVA"] ?? ""}</td>
-        <td class="cantidad-ingresada">0</td>
+        <td class="cantidad-ingresada">${r["Cantidad ingresada"]}</td>
       </tr>`;
   });
 
   html += `</tbody></table>`;
   contenedor.innerHTML = html;
 }
+
 
 
 function abrirModalDetalleProducto(codigo, index) {
@@ -1379,21 +1389,32 @@ function abrirModalDetalleProducto(codigo, index) {
     document.body.appendChild(modal);
   }
 
-  // Construir contenido del modal
+  const producto = window.datosCombinacionCantidades[index];
+  const detalle = producto.Detalle && producto.Detalle.length
+    ? producto.Detalle
+    : Array.from({ length: 3 }).map(() => ({ numeracion: "", cantidad: 0 }));
+
   const body = modal.querySelector("#modalDetalleBody");
   body.innerHTML = `
-    <h6 class="mb-3 text-primary">SKU: ${codigo}</h6>
+    <div class="mb-3 d-flex align-items-center justify-content-between">
+      <h6 class="text-primary mb-0">SKU: ${codigo}</h6>
+      <div class="ms-3 flex-grow-1">
+        <input type="text" id="idManualInput" class="form-control form-control-sm" placeholder="Ingresar ID del producto" value="${producto["ID manual"] || ""}">
+      </div>
+    </div>
     <table class="table table-bordered table-sm align-middle">
       <thead class="table-light">
         <tr><th>Numeración</th><th>Cantidad</th></tr>
       </thead>
       <tbody id="tablaNumeraciones">
-        ${Array.from({ length: 3 }).map(() => `
-          <tr>
-            <td><input type="text" class="form-control form-control-sm" placeholder="Ej: #10-12"></td>
-            <td><input type="number" class="form-control form-control-sm cantidad-input" min="0" value="0"></td>
-          </tr>
-        `).join("")}
+        ${detalle
+          .map(d => `
+            <tr>
+              <td><input type="text" class="form-control form-control-sm numeracion-input" value="${d.numeracion || ""}" placeholder="Ej: #10-12"></td>
+              <td><input type="number" class="form-control form-control-sm cantidad-input" min="0" value="${d.cantidad || 0}"></td>
+            </tr>
+          `)
+          .join("")}
       </tbody>
     </table>
     <div class="text-center">
@@ -1401,7 +1422,6 @@ function abrirModalDetalleProducto(codigo, index) {
     </div>
   `;
 
-  // Guardar el SKU activo en dataset
   modal.dataset.codigo = codigo;
   modal.dataset.index = index;
 
@@ -1409,34 +1429,54 @@ function abrirModalDetalleProducto(codigo, index) {
   modalInst.show();
 }
 
+
 function guardarCantidadIngresada(index) {
   const modal = document.getElementById("modalDetalleProducto");
   if (!modal) return;
 
-  const inputs = modal.querySelectorAll(".cantidad-input");
+  const codigo = modal.dataset.codigo;
+  const inputsNumeracion = modal.querySelectorAll(".numeracion-input");
+  const inputsCantidad = modal.querySelectorAll(".cantidad-input");
+  const idManual = modal.querySelector("#idManualInput")?.value.trim() || "";
+
+  const detalle = [];
   let suma = 0;
-  inputs.forEach(inp => {
-    const val = parseFloat(inp.value) || 0;
-    suma += val;
+
+  inputsNumeracion.forEach((nInput, i) => {
+    const numeracion = nInput.value.trim();
+    const cantidad = parseFloat(inputsCantidad[i].value) || 0;
+    suma += cantidad;
+    if (numeracion || cantidad) {
+      detalle.push({ numeracion, cantidad });
+    }
   });
 
   // Actualizar dataset global
-  if (window.datosCombinacionCantidades && window.datosCombinacionCantidades[index]) {
-    window.datosCombinacionCantidades[index]["Cantidad ingresada"] = suma;
-  }
+  const producto = window.datosCombinacionCantidades[index];
+  producto["Cantidad ingresada"] = suma;
+  producto["ID manual"] = idManual;
+  producto["Detalle"] = detalle;
 
-  // Actualizar en tabla visible
-  const codigo = modal.dataset.codigo;
+  // Guardar en localStorage
+  const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
+  guardados[codigo] = {
+    cantidadIngresada: suma,
+    idManual,
+    detalle
+  };
+  localStorage.setItem("datosCombinacionCantidades", JSON.stringify(guardados));
+
+  // Actualizar tabla visible
   const fila = document.getElementById(`fila-${codigo}`);
   if (fila) {
     const celda = fila.querySelector(".cantidad-ingresada");
     if (celda) celda.textContent = suma;
   }
 
-  // Cerrar modal
   const instancia = bootstrap.Modal.getInstance(modal);
   if (instancia) instancia.hide();
 }
+
 
 
 function agregarFilaNumeracion() {
@@ -2130,4 +2170,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1.8
+//V 1.9
