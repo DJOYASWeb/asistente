@@ -536,11 +536,7 @@ function leerExcelDesdeFilaA(file) {
       let categoria = "";
 
 if (materialRaw.includes("enchape")) {
-  const nombreProd = (row["nombre_producto"] || row["NOMBRE PRODUCTO"] || "").toLowerCase();
-  // Excluir los que son "Enchapado en Oro" o "Enchapado en Plata"
-  if (!nombreProd.includes("enchapado en oro") && !nombreProd.includes("enchapado en plata")) {
-    categoria = "ENCHAPADO";
-  }
+  categoria = "ENCHAPADO";
 }
  else if (materialRaw.includes("accesorios")) {
         categoria = "ACCESORIOS";
@@ -1717,4 +1713,4 @@ function formatearDescripcionHTML(texto, baseCaracteres = 200) {
 
 
 
-//V 2.3
+//V 2.4
