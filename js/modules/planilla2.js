@@ -1265,12 +1265,43 @@ function mostrarProductosConID() {
 
 /** ---------- COMBINACIONES (tabla especial) ---------- **/
 
-
+// ** ---------- COMBINACIONES (tabla especial) ---------- **
 function mostrarTablaCombinacionesCantidad() {
   tipoSeleccionado = "combinacion_cantidades";
+
+  // 🔹 Ocultar elementos principales
+  const formulario = document.querySelector(".formulario");
+  if (formulario) formulario.classList.add("d-none");
+
+  const botonesTipo = document.getElementById("botonesTipo");
+  if (botonesTipo) botonesTipo.classList.add("d-none");
+
   const tablaDiv = document.getElementById("tablaPreview");
   const procesarBtn = document.getElementById("botonProcesar");
+  if (procesarBtn) procesarBtn.classList.add("d-none");
 
+  // 🔹 Crear contenedor principal de vista combinaciones
+  let vista = document.getElementById("vistaCombinaciones");
+  if (!vista) {
+    vista = document.createElement("div");
+    vista.id = "vistaCombinaciones";
+    vista.className = "container my-4";
+
+    vista.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Vista de Combinaciones y Cantidades</h5>
+        <button class="btn btn-secondary btn-sm" onclick="volverDeCombinaciones()">← Volver</button>
+      </div>
+      <div id="tablaCombinacionesContenido" class="table-responsive"></div>
+    `;
+    tablaDiv.parentNode.insertBefore(vista, tablaDiv);
+  }
+
+  // 🔹 Ocultar la tabla principal y mostrar vista combinaciones
+  tablaDiv.classList.add("d-none");
+  vista.classList.remove("d-none");
+
+  // --- Generación de datos combinaciones ---
   const todos = [...datosOriginales, ...datosCombinaciones];
   const resultado = [];
 
@@ -1278,8 +1309,8 @@ function mostrarTablaCombinacionesCantidad() {
     const tipo = (row["producto_tipo"] || row["procucto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
     const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
     const codigo = extraerCodigo(row);
-const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
-    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"] );
+    const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
+    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
     // --- ANILLOS ---
@@ -1289,8 +1320,8 @@ const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
 
       resultado.push({
         "ID": idProducto,
-        "Attribute (Name:Type:Position)*": "Número:radio:0",
-        "Value (Value:Position)*": `${valueNum}:0`,
+        "Atributo": "Número",
+        "Valor": valueNum,
         "Referencia": codigo,
         "Cantidad": cantidad,
         "Precio S/ IVA": precioSinIVA
@@ -1298,9 +1329,8 @@ const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
       return;
     }
 
-    // --- COLGANTES CON LETRAS (A–Z) ---
+    // --- COLGANTES CON LETRAS ---
     if (esColganteLetra(row)) {
-      // letra desde columna o desde el final del código
       let letra = (row["producto_combinacion"] || row["PRODUCTO COMBINACION"] || "").toString().trim().toUpperCase();
       if (!/^[A-Z]$/.test(letra)) {
         const m = codigo.match(/([A-Z])$/i);
@@ -1308,12 +1338,10 @@ const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
       }
       if (!letra) return;
 
-      const pos = letra.charCodeAt(0) - "A".charCodeAt(0);
-
       resultado.push({
         "ID": idProducto,
-        "Attribute (Name:Type:Position)*": "Letras:select:0",
-        "Value (Value:Position)*": `${letra}:${pos}`,
+        "Atributo": "Letra",
+        "Valor": letra,
         "Referencia": codigo,
         "Cantidad": cantidad,
         "Precio S/ IVA": precioSinIVA
@@ -1322,55 +1350,56 @@ const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
     }
   });
 
-  // --- SIN RESULTADOS ---
+  // --- Mostrar tabla dentro de la nueva vista ---
+  const contenedor = document.getElementById("tablaCombinacionesContenido");
+
   if (!resultado.length) {
-    tablaDiv.innerHTML = `<p class='text-muted'>No se encontraron combinaciones válidas (anillos o colgantes de letra).</p>`;
-    procesarBtn.classList.add("d-none");
-    datosCombinacionCantidades = [];
+    contenedor.innerHTML = `<p class='text-muted'>No se encontraron combinaciones válidas (anillos o colgantes de letra).</p>`;
     return;
   }
 
-  // --- GUARDAR Y MOSTRAR TABLA PREVIA ---
-  datosCombinacionCantidades = resultado;
+  const encabezados = ["ID", "Atributo", "Valor", "Referencia", "Cantidad", "Precio S/ IVA"];
+  let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
+  encabezados.forEach(h => html += `<th>${h}</th>`);
+  html += `</tr></thead><tbody>`;
+  resultado.forEach(r => {
+    html += `<tr>
+      <td>${r["ID"] ?? ""}</td>
+      <td>${r["Atributo"] ?? ""}</td>
+      <td>${r["Valor"] ?? ""}</td>
+      <td>${r["Referencia"] ?? ""}</td>
+      <td>${r["Cantidad"] ?? ""}</td>
+      <td>${r["Precio S/ IVA"] ?? ""}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
 
-  // 🟢 Renderizado de tabla de previsualización corregido
-  const encabezados = [
-    "ID",
-    "Attribute (Name:Type:Position)*",
-    "Value (Value:Position)*",
-    "Referencia",
-    "Cantidad",
-    "Precio S/ IVA"
-  ];
+  contenedor.innerHTML = html;
 
-  const html = `
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <strong>Mostrando ${resultado.length} combinaciones generadas</strong>
-    </div>
-    <div class="table-responsive">
-      <table class="table table-bordered table-sm align-middle mb-3">
-        <thead class="table-light">
-          <tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr>
-        </thead>
-        <tbody>
-          ${resultado.map(r => `
-            <tr>
-              <td>${r["ID"] ?? ""}</td>
-              <td>${r["Attribute (Name:Type:Position)*"] ?? ""}</td>
-              <td>${r["Value (Value:Position)*"] ?? ""}</td>
-              <td>${r["Referencia"] ?? ""}</td>
-              <td>${r["Cantidad"] ?? ""}</td>
-              <td>${r["Precio S/ IVA"] ?? ""}</td>
-            </tr>`).join("")}
-        </tbody>
-      </table>
-    </div>`;
-
-  tablaDiv.innerHTML = html;
-  procesarBtn.classList.remove("d-none");
+  // Guardar dataset para exportación si lo necesitas después
+  window.datosCombinacionCantidades = resultado;
 }
 
 
+
+function volverDeCombinaciones() {
+  // Ocultar vista combinaciones
+  const vista = document.getElementById("vistaCombinaciones");
+  if (vista) vista.classList.add("d-none");
+
+  // Mostrar elementos principales
+  const tablaDiv = document.getElementById("tablaPreview");
+  if (tablaDiv) tablaDiv.classList.remove("d-none");
+
+  const formulario = document.querySelector(".formulario");
+  if (formulario) formulario.classList.remove("d-none");
+
+  const botonesTipo = document.getElementById("botonesTipo");
+  if (botonesTipo) botonesTipo.classList.remove("d-none");
+
+  const procesarBtn = document.getElementById("botonProcesar");
+  if (procesarBtn) procesarBtn.classList.remove("d-none");
+}
 
 
 // === ZIP FOTOS: eventos ===
@@ -2031,4 +2060,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1.5
+//V 1.6
