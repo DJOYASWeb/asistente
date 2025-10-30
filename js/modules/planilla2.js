@@ -1321,7 +1321,7 @@ function mostrarTablaCombinacionesCantidad() {
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
-    // Si hay datos guardados, los aplicamos
+    // ✅ si hay datos guardados, restaurar el ID manual y detalle
     const dataPrev = guardados[codigo] || {};
 
     resultado.push({
@@ -1332,8 +1332,8 @@ function mostrarTablaCombinacionesCantidad() {
       "Cantidad": cantidad,
       "Precio S/ IVA": precioSinIVA,
       "Cantidad ingresada": dataPrev.cantidadIngresada || 0,
-      "ID manual": dataPrev.idManual || "",
-      "Detalle": dataPrev.detalle || [] // array de numeraciones guardadas
+      "ID manual": dataPrev.idManual || "",   // ✅ restaurar ID manual guardado
+      "Detalle": dataPrev.detalle || []        // ✅ restaurar combinaciones previas
     });
   });
 
@@ -1434,7 +1434,6 @@ function abrirModalDetalleProducto(codigo, index) {
   modalInst.show();
 }
 
-
 function guardarCantidadIngresada(index) {
   const modal = document.getElementById("modalDetalleProducto");
   if (!modal) return;
@@ -1442,7 +1441,8 @@ function guardarCantidadIngresada(index) {
   const codigo = modal.dataset.codigo;
   const inputsNumeracion = modal.querySelectorAll(".numeracion-input");
   const inputsCantidad = modal.querySelectorAll(".cantidad-input");
-  const idManual = modal.querySelector("#idManualInput")?.value.trim() || "";
+  const idManualInput = modal.querySelector("#idManualInput");
+  const idManual = idManualInput ? idManualInput.value.trim() : "";
 
   const detalle = [];
   let suma = 0;
@@ -1451,36 +1451,38 @@ function guardarCantidadIngresada(index) {
     const numeracion = nInput.value.trim();
     const cantidad = parseFloat(inputsCantidad[i].value) || 0;
     suma += cantidad;
-    if (numeracion || cantidad) {
-      detalle.push({ numeracion, cantidad });
-    }
+    if (numeracion || cantidad) detalle.push({ numeracion, cantidad });
   });
 
-  // Actualizar dataset global
-  const producto = window.datosCombinacionCantidades[index];
-  producto["Cantidad ingresada"] = suma;
-  producto["ID manual"] = idManual;
-  producto["Detalle"] = detalle;
+  // 🔹 Actualizar dataset global
+  if (window.datosCombinacionCantidades && window.datosCombinacionCantidades[index]) {
+    const producto = window.datosCombinacionCantidades[index];
+    producto["Cantidad ingresada"] = suma;
+    producto["ID manual"] = idManual;
+    producto["Detalle"] = detalle;
+  }
 
-  // Guardar en localStorage
+  // 🔹 Actualizar o crear registro en localStorage
   const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
   guardados[codigo] = {
     cantidadIngresada: suma,
-    idManual,
-    detalle
+    idManual: idManual,
+    detalle: detalle
   };
   localStorage.setItem("datosCombinacionCantidades", JSON.stringify(guardados));
 
-  // Actualizar tabla visible
+  // 🔹 Refrescar en tabla visible
   const fila = document.getElementById(`fila-${codigo}`);
   if (fila) {
     const celda = fila.querySelector(".cantidad-ingresada");
     if (celda) celda.textContent = suma;
   }
 
+  // 🔹 Cerrar modal
   const instancia = bootstrap.Modal.getInstance(modal);
   if (instancia) instancia.hide();
 }
+
 
 function procesarCombinacionesFinal() {
   const datos = window.datosCombinacionCantidades || [];
@@ -2363,4 +2365,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 2.1
+//V 2.2
