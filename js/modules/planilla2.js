@@ -251,30 +251,43 @@ function driveIdFromUrl(url) {
 function normalizarUrlDrive(url) {
   if (!url) return '';
 
-  // Limpieza de espacios o comillas
+  // 🔹 Limpieza de posibles comillas o espacios
   url = url.trim().replace(/^"|"$/g, '');
 
-  // Si es un enlace directo (HTTP/HTTPS que no sea de Google Drive)
-  if (url.startsWith("http") && !url.includes("drive.google.com")) {
-    // 🔹 Usa proxy solo si el servidor no envía CORS
-    if (url.includes("distribuidoradejoyas.cl")) {
-      // servidor propio: puede ir directo
-      return url;
-    } else {
-      // otros dominios externos: pasar por proxy CORS
+  try {
+    const u = new URL(url);
+
+    // === 1️⃣ Si NO es de Google Drive ===
+    if (!u.host.includes("drive.google.com")) {
+      // Si termina en una extensión de imagen (jpg, jpeg, png, webp, gif)
+      if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
+        // Servidor propio (por ejemplo distribuidoradejoyas.cl): ir directo
+        if (u.host.includes("distribuidoradejoyas.cl")) {
+          return url;
+        }
+        // Otros dominios externos → pasar por proxy CORS
+        return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+      }
+
+      // Si no tiene extensión conocida, intentar igual con proxy
       return `https://corsproxy.io/?${encodeURIComponent(url)}`;
     }
-  }
 
-  // Si es Google Drive → extraer ID
-  const id = driveIdFromUrl(url);
-  if (id) {
-    return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
-  }
+    // === 2️⃣ Si SÍ es de Google Drive ===
+    const id = driveIdFromUrl(url);
+    if (id) {
+      // Forzar descarga directa con proxy para evitar CORS
+      return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
+    }
 
-  // Si no coincide con nada, devuelve la URL tal cual
-  return url;
+    // Si no se pudo extraer ID, devolver el original
+    return url;
+  } catch {
+    // Si no es una URL válida, devolver tal cual
+    return url;
+  }
 }
+
 
 
 
@@ -2018,4 +2031,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 1.3
+//V 1.4
