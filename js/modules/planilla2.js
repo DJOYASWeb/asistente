@@ -955,6 +955,9 @@ function renderTablaConOrden(datos) {
   tablaDiv.innerHTML = html;
 
   procesarBtn.classList.remove("d-none");
+  // 🔹 Mostrar también el nuevo botón de procesar imágenes
+const procesarImagenesBtn = document.getElementById("botonProcesarImagenes");
+if (procesarImagenesBtn) procesarImagenesBtn.classList.remove("d-none");
 }
 
 function mostrarTabla() {
@@ -1760,12 +1763,16 @@ function agregarCategoriaAdicional() {
 
 // === FUNCIÓN NUEVA: PROCESAR IMÁGENES Y MOSTRAR VISTA ===
 async function procesarImagenes() {
-  // Oculta la tabla principal
+  // 🔹 Ocultar elementos de la vista principal
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
 
-  // Muestra el contenedor de imágenes
+  // 🔹 NUEVO: ocultar también la barra de botones
+  const barraBotones = document.getElementById("botonesTipo");
+  if (barraBotones) barraBotones.classList.add("d-none");
+
+  // Mostrar la vista de imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   vista.classList.remove("d-none");
@@ -1821,4 +1828,4 @@ function volverAVistaPrincipal() {
 }
 
 
-//V 3.4
+//V 3.5
