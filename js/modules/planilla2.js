@@ -1957,4 +1957,4 @@ async function comprimirBlob(blob, maxKB = 120) {
 }
 
 
-//V 3.7
+//V 1
