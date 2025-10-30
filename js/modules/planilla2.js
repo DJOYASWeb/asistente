@@ -1825,7 +1825,10 @@ function volverAVistaPrincipal() {
   document.getElementById("tablaPreview").classList.remove("d-none");
   document.getElementById("botonProcesar").classList.remove("d-none");
   document.getElementById("botonProcesarImagenes").classList.remove("d-none");
+
+  // 🔹 Volver a mostrar la barra de botones
+  const barraBotones = document.getElementById("botonesTipo");
+  if (barraBotones) barraBotones.classList.remove("d-none");
 }
 
-
-//V 3.5
+//V 3.6
