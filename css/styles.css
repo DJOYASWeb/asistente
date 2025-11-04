@@ -1649,7 +1649,7 @@ textarea.form-control.inspira{
 }
 #cotizacionesApp .cotz-btn-primary { background:var(--primary); color:#fff; }
 #cotizacionesApp .cotz-btn-secondary { background:#e9e9ef; color:#000; }
-#cotizacionesApp .cotz-btn-ghost { background:transparent; color:#000; }
+#cotizacionesApp .cotz-btn-ghost { background:#e9e9ef; color:#000; }
 
 #cotizacionesApp .cotz-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
 #cotizacionesApp .cotz-grid10 { display:grid; grid-template-columns:repeat(5, 1fr); gap:12px; margin-top:.75rem; }
