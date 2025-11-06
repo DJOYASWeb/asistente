@@ -368,14 +368,6 @@ $(document).off('click', '#btnAjustes').on('click', '#btnAjustes', () => {
       return;
     }
 
-    // Bloque con buscador + contenedor
-    $area.append(`
-      <div class="mb-2">
-        <p class="mb-1"><strong>Valores únicos detectados:</strong></p>
-        <input type="text" id="filtroCategorias" class="form-control" placeholder="Buscar valor...">
-      </div>
-    `);
-
   // Bloque con buscador + contenedor
 $area.append(`
   <div class="mb-2">
@@ -601,4 +593,4 @@ function cerrarModalAjustes() {
 }
 
 
-//v. 2
+//v. 2.1
