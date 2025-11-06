@@ -234,7 +234,7 @@ $(document).ready(function () {
     let html = `
       <div class="d-flex flex-wrap gap-2 mb-3">
         <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
-        <button id="btnAjustes" class="btn btn-secondary">Ajustes</button>
+        <button id="btnAjustes" class="btn btn-secondary">Ajustar Categorías</button>
         <button id="btnVolver" class="btn btn-outline-secondary ms-auto">Volver atrás</button>
         <button id="btnExportar" class="btn btn-primary">Exportar Excel</button>
       </div>
