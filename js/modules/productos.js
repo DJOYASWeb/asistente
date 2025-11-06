@@ -286,9 +286,6 @@ $(document).ready(function () {
 
     // Pegarlo en el div resultado y mostrarlo
     $resultadoDiv.html(html).show();
-
-    // Aviso visual
-    mostrarNotificacion('Vista previa generada.', 'exito');
   }
 
   // --------- ORDENAR CATEGORÍAS (CLICK DELEGADO) ---------
