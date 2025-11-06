@@ -340,7 +340,7 @@ $(document).ready(function () {
       $contenedor.append($label);
     });
 
-    openModalAjustes();
+abrirModalAjustes();
   });
 
   // --------- APLICAR AJUSTES (GUARDAR COLUMNAS VISIBLES) ---------
@@ -427,4 +427,4 @@ function cerrarModalAjustes() {
 }
 
 
-//v. 1.4
+//v. 1.5
