@@ -376,21 +376,99 @@ $(document).off('click', '#btnAjustes').on('click', '#btnAjustes', () => {
       </div>
     `);
 
-    const contenedorBtns = $(`
-      <div id="listaCategorias"
-           style="display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; padding:5px 0;">
-      </div>
-    `);
+  // Bloque con buscador + contenedor
+$area.append(`
+  <div class="mb-2">
+    <p class="mb-1"><strong>Valores únicos detectados:</strong></p>
+    <input type="text" id="filtroCategorias" class="form-control" placeholder="Buscar valor...">
+  </div>
+`);
 
-    Array.from(setCategorias).sort().forEach(cat => {
-      contenedorBtns.append(`
-        <button class="btn btn-outline-secondary btn-sm categoria-btn" data-cat="${cat}">
-          ${cat} <i class="fa-solid fa-xmark"></i>
-        </button>
-      `);
-    });
+// --- NUEVO: botón "Agregar categoría" ---
+const barraHerramientas = $(`
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <button id="btnAgregarCategoria" class="btn btn-dark btn-sm">
+      <i class="fa-solid fa-plus"></i> Agregar categoría
+    </button>
+  </div>
+`);
+$area.append(barraHerramientas);
 
-    $area.append(contenedorBtns);
+// --- Contenedor de botones ---
+const contenedorBtns = $(`
+  <div id="listaCategorias"
+       style="display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; padding:5px 0;">
+  </div>
+`);
+
+Array.from(setCategorias).sort().forEach(cat => {
+  contenedorBtns.append(`
+    <button class="btn btn-outline-secondary btn-sm categoria-btn" data-cat="${cat}">
+      ${cat} <i class="fa-solid fa-xmark"></i>
+    </button>
+  `);
+});
+
+$area.append(contenedorBtns);
+
+// --- EVENTOS DINÁMICOS ---
+
+// Click → marcar / desmarcar para eliminar
+$(document).off('click', '.categoria-btn').on('click', '.categoria-btn', function () {
+  $(this).toggleClass('btn-outline-danger').toggleClass('btn-outline-secondary');
+});
+
+// Buscador dinámico
+$(document).off('input', '#filtroCategorias').on('input', '#filtroCategorias', function () {
+  const filtro = $(this).val().toLowerCase();
+  $('#listaCategorias .categoria-btn').each(function () {
+    const texto = $(this).text().toLowerCase();
+    $(this).toggle(texto.includes(filtro));
+  });
+});
+
+// --- NUEVO: agregar categoría manual ---
+$(document).off('click', '#btnAgregarCategoria').on('click', '#btnAgregarCategoria', function () {
+  const nueva = prompt('Ingrese el nombre de la nueva categoría:');
+  if (!nueva) return;
+  const nombre = nueva.trim();
+  if (!nombre) return;
+
+  // Verificar si ya existe
+  if ($('#listaCategorias .categoria-btn[data-cat="' + nombre + '"]').length > 0) {
+    mostrarNotificacion('Esa categoría ya existe.', 'alerta');
+    return;
+  }
+
+  // Agregar botón verde
+  const nuevoBtn = $(`
+    <button class="btn btn-success btn-sm categoria-btn" data-cat="${nombre}">
+      ${nombre} <i class="fa-solid fa-check"></i>
+    </button>
+  `);
+  $('#listaCategorias').prepend(nuevoBtn);
+
+  // Añadir la categoría a todos los productos
+  filteredData.forEach(row => {
+    if (!row[colSeleccionada]) row[colSeleccionada] = nombre;
+    else {
+      const partes = row[colSeleccionada].split(',').map(v => v.trim()).filter(Boolean);
+      if (!partes.includes(nombre)) partes.push(nombre);
+      row[colSeleccionada] = partes.join(', ');
+    }
+
+    // Actualiza también __procesado si corresponde
+    if (row.__procesado && colSeleccionada === colProcesar) {
+      if (!row.__procesado.partes.includes(nombre)) {
+        row.__procesado.partes.push(nombre);
+      }
+    }
+  });
+
+  mostrarNotificacion(`Se agregó la categoría "${nombre}" a todos los productos.`, 'exito');
+  renderResultadoPreview(PREVIEW_LIMIT);
+});
+
 
     // Click en botón → marcar / desmarcar para eliminar
     $(document).off('click', '.categoria-btn').on('click', '.categoria-btn', function () {
