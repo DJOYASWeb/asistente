@@ -415,15 +415,16 @@ $(document).ready(function () {
 
 }); 
 
-// --- Funciones globales para abrir/cerrar modal Ajustes ---
-function openModalAjustes() {
+// --- Apertura y cierre del modal AJUSTES ---
+function abrirModalAjustes() {
   const modal = document.getElementById('modalAjustes');
   if (modal) modal.style.display = 'flex';
 }
 
-function closeModalAjustes() {
+function cerrarModalAjustes() {
   const modal = document.getElementById('modalAjustes');
   if (modal) modal.style.display = 'none';
 }
 
-//v. 1.3
+
+//v. 1.4

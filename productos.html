@@ -110,23 +110,22 @@
   </div>
 </div>
 
-<!-- MODAL DE AJUSTES (SISTEMA DJOYAS) -->
-<div id="modalAjustes" class="alinear" style="display:none;">
-  <div class="ios-modal">
-    <div class="ios-modal-header">
-      <h3 class="ios-modal-title">⚙️ Ajustes de columnas</h3>
-      <button class="cerrar-ios" onclick="closeModalAjustes()">×</button>
+<!-- MODAL AJUSTES - MISMO FORMATO QUE MODALES DJOYAS -->
+<div id="modalAjustes"
+     class="alinear"
+     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:white; max-width:600px; width:90%; padding:2rem; border-radius:16px; position:relative;">
+    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalAjustes()"></button>
+    <h3 class="mb-4">⚙️ Ajustes de columnas</h3>
+
+    <p>Selecciona las columnas que deseas mostrar:</p>
+    <div id="contenedorCategorias" 
+         style="display:flex; flex-wrap:wrap; gap:10px; max-height:60vh; overflow-y:auto; padding:10px;">
     </div>
 
-    <div class="ios-modal-body">
-      <p>Selecciona las columnas que deseas mostrar:</p>
-      <div id="contenedorCategorias" 
-           style="display:flex; flex-wrap:wrap; gap:10px; max-height:60vh; overflow-y:auto; padding:10px;">
-      </div>
-    </div>
-
-    <div class="ios-modal-footer d-flex justify-content-end gap-2">
-      <button id="btnCancelarAjustes" class="btn btn-outline-secondary" onclick="closeModalAjustes()">Cancelar</button>
+    <div class="d-flex justify-content-end mt-4 gap-2">
+      <button class="btn btn-outline-secondary" onclick="cerrarModalAjustes()">Cancelar</button>
       <button id="btnAplicarAjustes" class="btn btn-primary">Aplicar Ajustes</button>
     </div>
   </div>
