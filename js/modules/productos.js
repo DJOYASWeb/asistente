@@ -321,27 +321,113 @@ $(document).ready(function () {
     renderResultadoPreview(PREVIEW_LIMIT);
   });
 
-  // --------- AJUSTES (ABRIR MODAL DE COLUMNAS) ---------
-  // este botón también se genera dinámicamente
-  $(document).on('click', '#btnAjustes', () => {
-    const $contenedor = $('#contenedorCategorias');
-    $contenedor.empty();
+// --------- AJUSTES (ABRIR MODAL AVANZADO) ---------
+$(document).on('click', '#btnAjustes', () => {
+  const $contenedor = $('#contenedorCategorias');
+  $contenedor.empty();
 
-    // Pintamos todas las columnas disponibles con checkbox
-    allColumns.forEach(col => {
-      const checked = colsMostrar.includes(col) ? 'checked' : '';
-      const $label = $(`
-        <label class="d-flex align-items-center gap-2"
-               style="width:48%; background:#f8f9fa; border:1px solid #ddd; border-radius:6px; padding:6px 10px; cursor:pointer;">
-          <input type="checkbox" class="chk-columna" value="${col}" ${checked} style="transform:scale(1.1);">
-          <span>${col}</span>
-        </label>
-      `);
-      $contenedor.append($label);
+  // Construimos un selector de columnas
+  let htmlSelect = `<div class="mb-3">
+      <label class="form-label"><strong>Selecciona una columna:</strong></label>
+      <select id="columnaSeleccionada" class="form-select">
+        <option value="">-- Seleccionar --</option>`;
+  allColumns.forEach(col => {
+    htmlSelect += `<option value="${col}">${col}</option>`;
+  });
+  htmlSelect += `</select></div>
+  <div id="areaCategorias" class="mt-3"></div>`;
+
+  $contenedor.html(htmlSelect);
+
+  // Evento de cambio de columna
+  $(document).off('change', '#columnaSeleccionada').on('change', '#columnaSeleccionada', function () {
+    const colSeleccionada = $(this).val();
+    const $area = $('#areaCategorias');
+    $area.empty();
+
+    if (!colSeleccionada) return;
+
+    // Si la columna tiene categorías separadas por coma
+    const setCategorias = new Set();
+    filteredData.forEach(row => {
+      const valor = (row[colSeleccionada] || '').toString();
+      valor.split(',').map(v => v.trim()).filter(Boolean).forEach(v => setCategorias.add(v));
     });
 
-abrirModalAjustes();
+    if (setCategorias.size === 0) {
+      $area.html('<p class="text-muted">No se detectaron valores en esta columna.</p>');
+      return;
+    }
+
+    // Render de botones únicos
+    $area.append('<p><strong>Valores únicos detectados:</strong></p>');
+    const contenedorBtns = $('<div class="d-flex flex-wrap gap-2"></div>');
+
+    Array.from(setCategorias).sort().forEach(cat => {
+      const btn = $(`<button class="btn btn-outline-secondary btn-sm categoria-btn" data-cat="${cat}">
+        ${cat} <i class="fa-solid fa-xmark"></i>
+      </button>`);
+      contenedorBtns.append(btn);
+    });
+
+    $area.append(contenedorBtns);
+
+    // Al hacer clic se marca/desmarca para eliminar
+    $('.categoria-btn').on('click', function () {
+      $(this).toggleClass('btn-outline-danger').toggleClass('btn-outline-secondary');
+    });
   });
+
+  abrirModalAjustes();
+});
+
+// --------- APLICAR AJUSTES (CATEGORÍAS O COLUMNAS) ---------
+$(document).on('click', '#btnAplicarAjustes', () => {
+  const colSeleccionada = $('#columnaSeleccionada').val();
+
+  // Si estamos en modo categorías
+  if (colSeleccionada) {
+    const eliminadas = [];
+    $('.categoria-btn.btn-outline-danger').each(function () {
+      eliminadas.push($(this).data('cat'));
+    });
+
+    if (eliminadas.length === 0) {
+      mostrarNotificacion('No seleccionaste ninguna categoría para eliminar.', 'alerta');
+      return;
+    }
+
+    filteredData.forEach(row => {
+      let valor = (row[colSeleccionada] || '').toString();
+      let partes = valor.split(',').map(v => v.trim()).filter(Boolean);
+      partes = partes.filter(p => !eliminadas.includes(p));
+      row[colSeleccionada] = partes.join(', ');
+    });
+
+    cerrarModalAjustes();
+    mostrarNotificacion(`Se eliminaron ${eliminadas.length} valores de "${colSeleccionada}".`, 'exito');
+    renderResultadoPreview(PREVIEW_LIMIT);
+    return;
+  }
+
+  // Si estamos en modo selección de columnas (ninguna columna elegida aún)
+  const seleccionadas = [];
+  $('.chk-columna:checked').each(function () {
+    seleccionadas.push($(this).val());
+  });
+
+  if (seleccionadas.length === 0) {
+    mostrarNotificacion('Debes dejar al menos una columna visible.', 'alerta');
+    return;
+  }
+
+  colsMostrar = [...seleccionadas];
+
+  cerrarModalAjustes();
+  mostrarNotificacion('Columnas actualizadas correctamente.', 'exito');
+  renderResultadoPreview(PREVIEW_LIMIT);
+});
+
 
   // --------- APLICAR AJUSTES (GUARDAR COLUMNAS VISIBLES) ---------
   $(document).on('click', '#btnAplicarAjustes', () => {
@@ -427,4 +513,4 @@ function cerrarModalAjustes() {
 }
 
 
-//v. 1.5
+//v. 1.6
