@@ -321,13 +321,16 @@ $(document).ready(function () {
     renderResultadoPreview(PREVIEW_LIMIT);
   });
 
+
+
 // --------- AJUSTES (ABRIR MODAL AVANZADO) ---------
 $(document).on('click', '#btnAjustes', () => {
   const $contenedor = $('#contenedorCategorias');
   $contenedor.empty();
 
   // Construimos un selector de columnas
-  let htmlSelect = `<div class="mb-3">
+  let htmlSelect = `
+    <div class="mb-3">
       <label class="form-label"><strong>Selecciona una columna:</strong></label>
       <select id="columnaSeleccionada" class="form-select">
         <option value="">-- Seleccionar --</option>`;
@@ -339,7 +342,7 @@ $(document).on('click', '#btnAjustes', () => {
 
   $contenedor.html(htmlSelect);
 
-  // Evento de cambio de columna
+  // Evento: cambio de columna seleccionada
   $(document).off('change', '#columnaSeleccionada').on('change', '#columnaSeleccionada', function () {
     const colSeleccionada = $(this).val();
     const $area = $('#areaCategorias');
@@ -347,11 +350,14 @@ $(document).on('click', '#btnAjustes', () => {
 
     if (!colSeleccionada) return;
 
-    // Si la columna tiene categorías separadas por coma
+    // Extraer todos los valores únicos separados por coma
     const setCategorias = new Set();
     filteredData.forEach(row => {
       const valor = (row[colSeleccionada] || '').toString();
-      valor.split(',').map(v => v.trim()).filter(Boolean).forEach(v => setCategorias.add(v));
+      valor.split(',')
+        .map(v => v.trim())
+        .filter(Boolean)
+        .forEach(v => setCategorias.add(v));
     });
 
     if (setCategorias.size === 0) {
@@ -359,27 +365,98 @@ $(document).on('click', '#btnAjustes', () => {
       return;
     }
 
-    // Render de botones únicos
-    $area.append('<p><strong>Valores únicos detectados:</strong></p>');
-    const contenedorBtns = $('<div class="d-flex flex-wrap gap-2"></div>');
+    // Render inicial con buscador
+    $area.append(`
+      <p><strong>Valores únicos detectados:</strong></p>
+      <input type="text" id="filtroCategorias" class="form-control mb-2" placeholder="Buscar valor...">
+    `);
 
+    const contenedorBtns = $('<div class="d-flex flex-wrap gap-2" id="listaCategorias"></div>');
     Array.from(setCategorias).sort().forEach(cat => {
-      const btn = $(`<button class="btn btn-outline-secondary btn-sm categoria-btn" data-cat="${cat}">
-        ${cat} <i class="fa-solid fa-xmark"></i>
-      </button>`);
+      const btn = $(`
+        <button class="btn btn-outline-secondary btn-sm categoria-btn" data-cat="${cat}">
+          ${cat} <i class="fa-solid fa-xmark"></i>
+        </button>
+      `);
       contenedorBtns.append(btn);
     });
-
     $area.append(contenedorBtns);
 
-    // Al hacer clic se marca/desmarca para eliminar
+    // Al hacer clic: marcar/desmarcar para eliminar
     $('.categoria-btn').on('click', function () {
       $(this).toggleClass('btn-outline-danger').toggleClass('btn-outline-secondary');
+    });
+
+    // 🕵️ Buscador dinámico
+    $(document).off('input', '#filtroCategorias').on('input', '#filtroCategorias', function () {
+      const filtro = $(this).val().toLowerCase();
+      $('#listaCategorias .categoria-btn').each(function () {
+        const texto = $(this).text().toLowerCase();
+        $(this).toggle(texto.includes(filtro));
+      });
     });
   });
 
   abrirModalAjustes();
 });
+
+// --------- APLICAR AJUSTES (CATEGORÍAS O COLUMNAS) ---------
+$(document).on('click', '#btnAplicarAjustes', () => {
+  const colSeleccionada = $('#columnaSeleccionada').val();
+
+  // ✅ Si estamos editando categorías
+  if (colSeleccionada) {
+    const eliminadas = [];
+    $('.categoria-btn.btn-outline-danger').each(function () {
+      eliminadas.push($(this).data('cat'));
+    });
+
+    if (eliminadas.length === 0) {
+      mostrarNotificacion('No seleccionaste ninguna categoría para eliminar.', 'alerta');
+      return;
+    }
+
+    // Eliminar en todas las filas
+    filteredData.forEach(row => {
+      let valor = (row[colSeleccionada] || '').toString();
+      let partes = valor.split(',').map(v => v.trim()).filter(Boolean);
+      partes = partes.filter(p => !eliminadas.includes(p));
+      row[colSeleccionada] = partes.join(', ');
+
+      // 🔄 Si esa columna era la procesada, actualizamos su versión procesada
+      if (row.__procesado && colSeleccionada === colProcesar) {
+        row.__procesado.partes = partes;
+      }
+    });
+
+    cerrarModalAjustes();
+    mostrarNotificacion(`Se eliminaron ${eliminadas.length} valores de "${colSeleccionada}".`, 'exito');
+
+    // 🔁 Actualizamos la tabla al instante
+    renderResultadoPreview(PREVIEW_LIMIT);
+    return;
+  }
+
+  // ✅ Si estamos gestionando columnas visibles
+  const seleccionadas = [];
+  $('.chk-columna:checked').each(function () {
+    seleccionadas.push($(this).val());
+  });
+
+  if (seleccionadas.length === 0) {
+    mostrarNotificacion('Debes dejar al menos una columna visible.', 'alerta');
+    return;
+  }
+
+  colsMostrar = [...seleccionadas];
+  cerrarModalAjustes();
+  mostrarNotificacion('Columnas actualizadas correctamente.', 'exito');
+  renderResultadoPreview(PREVIEW_LIMIT);
+});
+
+
+
+
 
 // --------- APLICAR AJUSTES (CATEGORÍAS O COLUMNAS) ---------
 $(document).on('click', '#btnAplicarAjustes', () => {
@@ -513,4 +590,4 @@ function cerrarModalAjustes() {
 }
 
 
-//v. 1.6
+//v. 1.7
