@@ -366,12 +366,19 @@ $(document).on('click', '#btnAjustes', () => {
     }
 
     // Render inicial con buscador
-    $area.append(`
-      <p><strong>Valores únicos detectados:</strong></p>
-      <input type="text" id="filtroCategorias" class="form-control mb-2" placeholder="Buscar valor...">
-    `);
+$area.append(`
+  <div class="mb-2">
+    <p class="mb-1"><strong>Valores únicos detectados:</strong></p>
+    <input type="text" id="filtroCategorias" class="form-control" placeholder="Buscar valor...">
+  </div>
+`);
 
-    const contenedorBtns = $('<div class="d-flex flex-wrap gap-2" id="listaCategorias"></div>');
+
+const contenedorBtns = $(`
+  <div id="listaCategorias"
+       style="display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; padding:5px 0;">
+  </div>
+`);
     Array.from(setCategorias).sort().forEach(cat => {
       const btn = $(`
         <button class="btn btn-outline-secondary btn-sm categoria-btn" data-cat="${cat}">
@@ -590,4 +597,4 @@ function cerrarModalAjustes() {
 }
 
 
-//v. 1.7
+//v. 1.8
