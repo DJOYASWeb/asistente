@@ -742,7 +742,7 @@ function construirCaracteristicas(row) {
   if (modelo) partes.push(`Modelo: ${modelo}`);
 
   // 💎 NUEVO: tipo de producto
-  if (tipoProducto) partes.push(`Tipo de producto: ${tipoProducto}`);
+  if (tipoProducto) partes.push(`Categoría: ${tipoProducto}`);
 
   // ⬇️ Dimensión
   if (dimension) {
