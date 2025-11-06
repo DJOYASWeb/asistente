@@ -601,4 +601,4 @@ function cerrarModalAjustes() {
 }
 
 
-//v. 1.9
+//v. 2
