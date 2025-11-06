@@ -323,12 +323,12 @@ $(document).ready(function () {
 
 
 
-// --------- AJUSTES (ABRIR MODAL AVANZADO) ---------
-$(document).on('click', '#btnAjustes', () => {
+// --------- AJUSTES (ABRIR MODAL AVANZADO, SIN DUPLICADOS) ---------
+$(document).off('click', '#btnAjustes').on('click', '#btnAjustes', () => {
   const $contenedor = $('#contenedorCategorias');
   $contenedor.empty();
 
-  // Construimos un selector de columnas
+  // UI base del modal
   let htmlSelect = `
     <div class="mb-3">
       <label class="form-label"><strong>Selecciona una columna:</strong></label>
@@ -337,20 +337,26 @@ $(document).on('click', '#btnAjustes', () => {
   allColumns.forEach(col => {
     htmlSelect += `<option value="${col}">${col}</option>`;
   });
-  htmlSelect += `</select></div>
-  <div id="areaCategorias" class="mt-3"></div>`;
+  htmlSelect += `</select></div><div id="areaCategorias" class="mt-3"></div>`;
 
   $contenedor.html(htmlSelect);
+  abrirModalAjustes();
 
-  // Evento: cambio de columna seleccionada
-  $(document).off('change', '#columnaSeleccionada').on('change', '#columnaSeleccionada', function () {
+  // 🔹 Limpiar posibles eventos anteriores
+  $(document).off('change', '#columnaSeleccionada');
+  $(document).off('input', '#filtroCategorias');
+  $(document).off('click', '.categoria-btn');
+  $(document).off('click', '#btnAplicarAjustes');
+
+  // -------- Cambio de columna seleccionada --------
+  $(document).on('change', '#columnaSeleccionada', function () {
     const colSeleccionada = $(this).val();
     const $area = $('#areaCategorias');
     $area.empty();
 
     if (!colSeleccionada) return;
 
-    // Extraer todos los valores únicos separados por coma
+    // Extraer valores únicos
     const setCategorias = new Set();
     filteredData.forEach(row => {
       const valor = (row[colSeleccionada] || '').toString();
@@ -365,36 +371,36 @@ $(document).on('click', '#btnAjustes', () => {
       return;
     }
 
-    // Render inicial con buscador
-$area.append(`
-  <div class="mb-2">
-    <p class="mb-1"><strong>Valores únicos detectados:</strong></p>
-    <input type="text" id="filtroCategorias" class="form-control" placeholder="Buscar valor...">
-  </div>
-`);
+    // Bloque con buscador + contenedor
+    $area.append(`
+      <div class="mb-2">
+        <p class="mb-1"><strong>Valores únicos detectados:</strong></p>
+        <input type="text" id="filtroCategorias" class="form-control" placeholder="Buscar valor...">
+      </div>
+    `);
 
+    const contenedorBtns = $(`
+      <div id="listaCategorias"
+           style="display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; padding:5px 0;">
+      </div>
+    `);
 
-const contenedorBtns = $(`
-  <div id="listaCategorias"
-       style="display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; padding:5px 0;">
-  </div>
-`);
     Array.from(setCategorias).sort().forEach(cat => {
-      const btn = $(`
+      contenedorBtns.append(`
         <button class="btn btn-outline-secondary btn-sm categoria-btn" data-cat="${cat}">
           ${cat} <i class="fa-solid fa-xmark"></i>
         </button>
       `);
-      contenedorBtns.append(btn);
     });
+
     $area.append(contenedorBtns);
 
-    // Al hacer clic: marcar/desmarcar para eliminar
-    $('.categoria-btn').on('click', function () {
+    // Click en botón → marcar / desmarcar para eliminar
+    $(document).off('click', '.categoria-btn').on('click', '.categoria-btn', function () {
       $(this).toggleClass('btn-outline-danger').toggleClass('btn-outline-secondary');
     });
 
-    // 🕵️ Buscador dinámico
+    // Buscador dinámico
     $(document).off('input', '#filtroCategorias').on('input', '#filtroCategorias', function () {
       const filtro = $(this).val().toLowerCase();
       $('#listaCategorias .categoria-btn').each(function () {
@@ -404,117 +410,40 @@ const contenedorBtns = $(`
     });
   });
 
-  abrirModalAjustes();
-});
-
-// --------- APLICAR AJUSTES (CATEGORÍAS O COLUMNAS) ---------
-$(document).on('click', '#btnAplicarAjustes', () => {
-  const colSeleccionada = $('#columnaSeleccionada').val();
-
-  // ✅ Si estamos editando categorías
-  if (colSeleccionada) {
-    const eliminadas = [];
-    $('.categoria-btn.btn-outline-danger').each(function () {
-      eliminadas.push($(this).data('cat'));
-    });
-
-    if (eliminadas.length === 0) {
-      mostrarNotificacion('No seleccionaste ninguna categoría para eliminar.', 'alerta');
-      return;
-    }
-
-    // Eliminar en todas las filas
-    filteredData.forEach(row => {
-      let valor = (row[colSeleccionada] || '').toString();
-      let partes = valor.split(',').map(v => v.trim()).filter(Boolean);
-      partes = partes.filter(p => !eliminadas.includes(p));
-      row[colSeleccionada] = partes.join(', ');
-
-      // 🔄 Si esa columna era la procesada, actualizamos su versión procesada
-      if (row.__procesado && colSeleccionada === colProcesar) {
-        row.__procesado.partes = partes;
-      }
-    });
-
-    cerrarModalAjustes();
-    mostrarNotificacion(`Se eliminaron ${eliminadas.length} valores de "${colSeleccionada}".`, 'exito');
-
-    // 🔁 Actualizamos la tabla al instante
-    renderResultadoPreview(PREVIEW_LIMIT);
-    return;
-  }
-
-  // ✅ Si estamos gestionando columnas visibles
-  const seleccionadas = [];
-  $('.chk-columna:checked').each(function () {
-    seleccionadas.push($(this).val());
-  });
-
-  if (seleccionadas.length === 0) {
-    mostrarNotificacion('Debes dejar al menos una columna visible.', 'alerta');
-    return;
-  }
-
-  colsMostrar = [...seleccionadas];
-  cerrarModalAjustes();
-  mostrarNotificacion('Columnas actualizadas correctamente.', 'exito');
-  renderResultadoPreview(PREVIEW_LIMIT);
-});
-
-
-
-
-
-// --------- APLICAR AJUSTES (CATEGORÍAS O COLUMNAS) ---------
-$(document).on('click', '#btnAplicarAjustes', () => {
-  const colSeleccionada = $('#columnaSeleccionada').val();
-
-  // Si estamos en modo categorías
-  if (colSeleccionada) {
-    const eliminadas = [];
-    $('.categoria-btn.btn-outline-danger').each(function () {
-      eliminadas.push($(this).data('cat'));
-    });
-
-    if (eliminadas.length === 0) {
-      mostrarNotificacion('No seleccionaste ninguna categoría para eliminar.', 'alerta');
-      return;
-    }
-
-    filteredData.forEach(row => {
-      let valor = (row[colSeleccionada] || '').toString();
-      let partes = valor.split(',').map(v => v.trim()).filter(Boolean);
-      partes = partes.filter(p => !eliminadas.includes(p));
-      row[colSeleccionada] = partes.join(', ');
-    });
-
-    cerrarModalAjustes();
-    mostrarNotificacion(`Se eliminaron ${eliminadas.length} valores de "${colSeleccionada}".`, 'exito');
-    renderResultadoPreview(PREVIEW_LIMIT);
-    return;
-  }
-
-  // Si estamos en modo selección de columnas (ninguna columna elegida aún)
-  const seleccionadas = [];
-  $('.chk-columna:checked').each(function () {
-    seleccionadas.push($(this).val());
-  });
-
-  if (seleccionadas.length === 0) {
-    mostrarNotificacion('Debes dejar al menos una columna visible.', 'alerta');
-    return;
-  }
-
-  colsMostrar = [...seleccionadas];
-
-  cerrarModalAjustes();
-  mostrarNotificacion('Columnas actualizadas correctamente.', 'exito');
-  renderResultadoPreview(PREVIEW_LIMIT);
-});
-
-
-  // --------- APLICAR AJUSTES (GUARDAR COLUMNAS VISIBLES) ---------
+  // -------- Aplicar ajustes (evita duplicaciones) --------
   $(document).on('click', '#btnAplicarAjustes', () => {
+    const colSeleccionada = $('#columnaSeleccionada').val();
+
+    if (colSeleccionada) {
+      const eliminadas = [];
+      $('.categoria-btn.btn-outline-danger').each(function () {
+        eliminadas.push($(this).data('cat'));
+      });
+
+      if (eliminadas.length === 0) {
+        mostrarNotificacion('No seleccionaste ninguna categoría para eliminar.', 'alerta');
+        return;
+      }
+
+      // Eliminar en todas las filas
+      filteredData.forEach(row => {
+        let valor = (row[colSeleccionada] || '').toString();
+        let partes = valor.split(',').map(v => v.trim()).filter(Boolean);
+        partes = partes.filter(p => !eliminadas.includes(p));
+        row[colSeleccionada] = partes.join(', ');
+
+        if (row.__procesado && colSeleccionada === colProcesar) {
+          row.__procesado.partes = partes;
+        }
+      });
+
+      cerrarModalAjustes();
+      mostrarNotificacion(`Se eliminaron ${eliminadas.length} valores de "${colSeleccionada}".`, 'exito');
+      renderResultadoPreview(PREVIEW_LIMIT);
+      return;
+    }
+
+    // Modo columnas visibles
     const seleccionadas = [];
     $('.chk-columna:checked').each(function () {
       seleccionadas.push($(this).val());
@@ -526,13 +455,14 @@ $(document).on('click', '#btnAplicarAjustes', () => {
     }
 
     colsMostrar = [...seleccionadas];
-
-    closeModalAjustes();
+    cerrarModalAjustes();
     mostrarNotificacion('Columnas actualizadas correctamente.', 'exito');
-
-    // refrescar la vista con las nuevas columnas elegidas
     renderResultadoPreview(PREVIEW_LIMIT);
   });
+});
+
+
+
 
   // --------- VOLVER ATRÁS ---------
   // también se genera dinámicamente
@@ -597,4 +527,4 @@ function cerrarModalAjustes() {
 }
 
 
-//v. 1.8
+//v. 1.9
