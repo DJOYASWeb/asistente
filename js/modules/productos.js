@@ -68,13 +68,7 @@ $(document).ready(function () {
     mostrarNotificacion(message, estado);
   }
 
-  function openModalAjustes() {
-    document.getElementById('modalAjustes').style.display = 'flex';
-  }
 
-  function closeModalAjustes() {
-    document.getElementById('modalAjustes').style.display = 'none';
-  }
 
   function updateActionsState() {
     const disabled = !(colsMostrar.length > 0 && colProcesar);
@@ -419,6 +413,14 @@ $(document).ready(function () {
     procesarDivision();
   });
 
-}); // <-- fin document.ready
+}); 
 
-//v. 1
+  function openModalAjustes() {
+    document.getElementById('modalAjustes').style.display = 'flex';
+  }
+
+  function closeModalAjustes() {
+    document.getElementById('modalAjustes').style.display = 'none';
+  }
+
+//v. 1.2
