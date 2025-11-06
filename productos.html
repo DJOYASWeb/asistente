@@ -114,21 +114,24 @@
 <div id="modalAjustes" class="alinear" style="display:none;">
   <div class="ios-modal">
     <div class="ios-modal-header">
-      <h3 class="ios-modal-title">Categorías asociadas a productos</h3>
+      <h3 class="ios-modal-title">⚙️ Ajustes de columnas</h3>
       <button class="cerrar-ios" onclick="closeModalAjustes()">×</button>
     </div>
 
     <div class="ios-modal-body">
+      <p>Selecciona las columnas que deseas mostrar:</p>
       <div id="contenedorCategorias" 
-           style="display:flex; flex-wrap:wrap; gap:8px; max-height:60vh; overflow-y:auto; padding:10px;">
+           style="display:flex; flex-wrap:wrap; gap:10px; max-height:60vh; overflow-y:auto; padding:10px;">
       </div>
     </div>
 
-    <div class="ios-modal-footer">
+    <div class="ios-modal-footer d-flex justify-content-end gap-2">
+      <button id="btnCancelarAjustes" class="btn btn-outline-secondary" onclick="closeModalAjustes()">Cancelar</button>
       <button id="btnAplicarAjustes" class="btn btn-primary">Aplicar Ajustes</button>
     </div>
   </div>
 </div>
+
 
 
 

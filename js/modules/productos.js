@@ -415,12 +415,15 @@ $(document).ready(function () {
 
 }); 
 
-  function openModalAjustes() {
-    document.getElementById('modalAjustes').style.display = 'flex';
-  }
+// --- Funciones globales para abrir/cerrar modal Ajustes ---
+function openModalAjustes() {
+  const modal = document.getElementById('modalAjustes');
+  if (modal) modal.style.display = 'flex';
+}
 
-  function closeModalAjustes() {
-    document.getElementById('modalAjustes').style.display = 'none';
-  }
+function closeModalAjustes() {
+  const modal = document.getElementById('modalAjustes');
+  if (modal) modal.style.display = 'none';
+}
 
-//v. 1.2
+//v. 1.3
