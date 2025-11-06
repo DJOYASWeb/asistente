@@ -1832,3 +1832,67 @@ textarea.form-control.inspira{
   border-color: #323232;
   box-shadow: none;
 }
+
+/* --- Estilo general del contenedor de categorías --- */
+#listaCategorias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 5px 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* --- Input buscador dentro del modal --- */
+#filtroCategorias {
+  border-radius: 8px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease-in-out;
+}
+
+#filtroCategorias:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+}
+
+/* --- Botones de categoría (modo normal) --- */
+.categoria-btn {
+  font-size: 0.85rem;
+  border-radius: 10px !important;
+  background-color: #f8f9fa;
+  border: 1px solid #d1d5db !important;
+  color: #333 !important;
+  transition: all 0.25s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+/* Hover sutil */
+.categoria-btn:hover {
+  background-color: #f1f1f1;
+  transform: scale(1.05);
+}
+
+/* --- Cuando se marca para eliminar (btn-outline-danger) --- */
+.categoria-btn.btn-outline-danger {
+  background-color: #dc3545 !important;
+  color: #fff !important;
+  border-color: #b02a37 !important;
+  box-shadow: 0 0 6px rgba(220, 53, 69, 0.4);
+  transform: scale(1.05);
+}
+
+/* Icono dentro del botón */
+.categoria-btn i {
+  opacity: 0.5;
+  font-size: 0.75rem;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.categoria-btn.btn-outline-danger i {
+  opacity: 1;
+}
