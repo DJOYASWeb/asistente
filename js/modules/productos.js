@@ -1,13 +1,15 @@
-// productos.js v3.5
+// productos.js v4.0 (Ajustes funcionales en modal + columnas dinámicas)
 $(document).ready(function () {
-  // --------- ESTADO ---------
+
+  // --------- ESTADO GLOBAL ---------
   let originalData = [];
   let filteredData = [];
   let colsMostrar = [];
   let colProcesar = null;
-  let allColumns = []; 
+  let allColumns = []; // <-- TODAS las columnas detectadas en el archivo
+  const PREVIEW_LIMIT = 10;
 
-  // --------- SELECTORES ---------
+  // --------- CACHE DE SELECTORES ---------
   const $fileInput = $('#excelFile');
   const $colsMostrarDiv = $('#colsMostrar');
   const $colsProcesarDiv = $('#colsProcesar');
@@ -15,11 +17,9 @@ $(document).ready(function () {
   const $progressBar = $('#progressBar');
   const $progressFill = $('#progressBar .progress-bar');
   const $resultadoDiv = $('#resultadoDiv');
-  const $alertas = $('#alertas');
   const $tableContainer = $('#tableContainer');
-  const $btnExportar = $('#btnExportar');
 
-  // --------- ORDEN DE CATEGORÍAS ---------
+  // --------- ORDEN DE CATEGORIAS PARA ORDENAR ---------
   const tipoOrden = {
     "Joyas de plata por mayor": { tipo: "Principal", orden: 1 },
     "ENCHAPADO": { tipo: "Principal", orden: 2 },
@@ -60,20 +60,28 @@ $(document).ready(function () {
     });
   }
 
-function showAlert(message, type = 'info') {
-  // Adaptar el tipo al sistema de notificaciones DJOYAS
-  let estado = 'exito';
-  if (type === 'danger' || type === 'error') estado = 'error';
-  if (type === 'warning' || type === 'alert') estado = 'alerta';
-  mostrarNotificacion(message, estado);
-}
+  function showAlert(message, type = 'info') {
+    // Adaptar el tipo al sistema de notificaciones DJOYAS
+    let estado = 'exito';
+    if (type === 'danger' || type === 'error') estado = 'error';
+    if (type === 'warning' || type === 'alert') estado = 'alerta';
+    mostrarNotificacion(message, estado);
+  }
+
+  function openModalAjustes() {
+    document.getElementById('modalAjustes').style.display = 'flex';
+  }
+
+  function closeModalAjustes() {
+    document.getElementById('modalAjustes').style.display = 'none';
+  }
 
   function updateActionsState() {
     const disabled = !(colsMostrar.length > 0 && colProcesar);
     $btnProcesar.prop('disabled', disabled);
   }
 
-  // --------- LEER EXCEL/CSV (con Worker) ---------
+  // --------- LEER EXCEL / CSV CON WORKER ---------
   function readExcel(file) {
     const fileName = file.name.toLowerCase();
     const isCSV = fileName.endsWith(".csv");
@@ -82,6 +90,7 @@ function showAlert(message, type = 'info') {
     reader.onload = function (e) {
       let fileData = isCSV ? e.target.result : new Uint8Array(e.target.result);
       const worker = new Worker("js/modules/excelWorker.js");
+
       worker.postMessage({ fileData, isCSV });
 
       worker.onmessage = function (msg) {
@@ -96,774 +105,320 @@ function showAlert(message, type = 'info') {
           return;
         }
 
+        // Guardamos datos en memoria
         originalData = jsonData;
         filteredData = [...originalData];
+
+        // Construimos selectores de columnas
         setupColumnSelectors(Object.keys(jsonData[0]));
         updateActionsState();
+
+        mostrarNotificacion('Archivo cargado correctamente.', 'exito');
       };
     };
 
-    if (isCSV) reader.readAsText(file, "UTF-8");
-    else reader.readAsArrayBuffer(file);
+    if (isCSV) {
+      reader.readAsText(file, "UTF-8");
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
   }
 
-  // --------- COLUMNAS ---------
+  // --------- ARMAR LOS CHECKBOX Y RADIO DE COLUMNAS ---------
   function setupColumnSelectors(columns) {
+    // 🔴 IMPORTANTE: guardamos todas las columnas disponibles globalmente
     allColumns = [...columns];
+
     $colsMostrarDiv.empty();
     $colsProcesarDiv.empty();
 
     columns.forEach(col => {
       const idMostrar = 'mostrar_' + col.replace(/\W/g, '');
-      $colsMostrarDiv.append(`<input type="checkbox" id="${idMostrar}" value="${col}" checked>`);
-      $colsMostrarDiv.append(`<label for="${idMostrar}"> ${col}</label><br>`);
+      $colsMostrarDiv.append(`
+        <input type="checkbox" id="${idMostrar}" value="${col}" checked>
+        <label for="${idMostrar}"> ${col}</label><br>
+      `);
 
       const idProcesar = 'procesar_' + col.replace(/\W/g, '');
-      $colsProcesarDiv.append(`<input type="radio" name="colProcesar" id="${idProcesar}" value="${col}">`);
-      $colsProcesarDiv.append(`<label for="${idProcesar}"> ${col}</label><br>`);
+      $colsProcesarDiv.append(`
+        <input type="radio" name="colProcesar" id="${idProcesar}" value="${col}">
+        <label for="${idProcesar}"> ${col}</label><br>
+      `);
     });
 
+    // eventos para columnas visibles
     $colsMostrarDiv.find('input[type=checkbox]').on('change', () => {
-      colsMostrar = $colsMostrarDiv.find('input[type=checkbox]:checked')
+      colsMostrar = $colsMostrarDiv
+        .find('input[type=checkbox]:checked')
         .map(function () { return this.value; })
         .get();
-      renderTablaPreview();
       updateActionsState();
     });
 
+    // evento para columna a procesar
     $colsProcesarDiv.find('input[type=radio]').on('change', () => {
-      colProcesar = $colsProcesarDiv.find('input[type=radio]:checked').val() || null;
+      colProcesar = $colsProcesarDiv
+        .find('input[type=radio]:checked')
+        .val() || null;
       updateActionsState();
     });
 
+    // estado inicial
     colsMostrar = [...columns];
     colProcesar = null;
   }
 
-  // --------- PROCESAR Y SIMPLIFICAR ---------
-async function procesarDivision() {
-  if (!colProcesar) {
-    mostrarNotificacion('Por favor selecciona una columna a procesar.', 'error');
-    return;
-  }
+  // --------- PROCESAR DIVISIÓN (VISTA FINAL) ---------
+  async function procesarDivision() {
+    if (!colProcesar) {
+      mostrarNotificacion('Por favor selecciona una columna a procesar.', 'error');
+      return;
+    }
 
-  // 🔹 Ocultamos las secciones anteriores
-  $('#excelFile').closest('.formulario').hide();
-  $('#columnSelector').hide();
-  $tableContainer.hide();
-  $progressBar.show();
-  $progressFill.css('width', '0%').text('0%');
+    // Ocultamos UI inicial
+    $('#excelFile').closest('.formulario').hide();
+    $('#columnSelector').hide();
+    $tableContainer.hide();
+    $progressBar.show();
+    $progressFill.css('width', '0%').text('0%');
 
-  const limit = 10;
-  const total = Math.min(filteredData.length, limit);
-  const resultado = [];
+    const total = Math.min(filteredData.length, PREVIEW_LIMIT);
+    const resultado = [];
 
-  for (let i = 0; i < total; i++) {
-    let valor = (filteredData[i][colProcesar] || '').toString().trim();
+    for (let i = 0; i < total; i++) {
+      const rawValor = (filteredData[i][colProcesar] || '').toString().trim();
 
-    // 🔸 Detectar separador por coma y limpiar
-    let partes = valor.split(',').map(p => p.trim()).filter(Boolean);
+      // separar por coma
+      let partes = rawValor.split(',').map(p => p.trim()).filter(Boolean);
 
-    // 🔸 Convertir pares tipo "Campo: Valor" en objeto clave-valor
-    const pares = {};
-    partes.forEach(p => {
-      const [campo, val] = p.split(':').map(x => x?.trim());
-      if (campo && val) pares[campo] = val;
-    });
-
-    resultado.push({ original: valor, partes, pares });
-
-    const porcentaje = Math.round(((i + 1) / total) * 100);
-    $progressFill.css('width', porcentaje + '%').text(porcentaje + '%');
-    await new Promise(r => setTimeout(r, 5));
-  }
-
-  $progressBar.hide();
-
-  // Guardamos en cada fila para exportación futura
-  filteredData.slice(0, total).forEach((row, i) => {
-    row.__procesado = resultado[i];
-  });
-
-  mostrarPantallaResultadoAvanzada(resultado, total);
-}
-
-
-function mostrarPantallaResultadoAvanzada(resultado, limit) {
-  $resultadoDiv.show().html('');
-
-  // 🔹 Estructura superior con botones
-  let html = `
-    <div class="d-flex flex-wrap gap-2 mb-3">
-      <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
-      <button id="btnAjustes" class="btn btn-secondary">Ajustes</button>
-      <button id="btnVolver" class="btn btn-outline-secondary ms-auto">Volver atrás</button>
-      <button id="btnExportar" class="btn btn-primary">Exportar Excel</button>
-    </div>
-
-    <div id="mensajeProcesado" class="alert alert-light">
-      Se procesaron ${limit} productos de vista previa. Vista limitada a las columnas seleccionadas.
-    </div>
-
-    <div class="table-responsive mt-3">
-      <table class="table table-bordered table-sm">
-        <thead><tr>`;
-
-  // 🔹 Mostrar las columnas seleccionadas por el usuario
-  colsMostrar.forEach(col => {
-    html += `<th>${col}</th>`;
-  });
-
-  html += `</tr></thead><tbody>`;
-
-  // 🔹 Renderizar los primeros “limit” productos
-  filteredData.slice(0, limit).forEach((row, i) => {
-    html += '<tr>';
-
-    colsMostrar.forEach(col => {
-      let valorCelda = row[col] || '';
-
-      // Si esta es la columna procesada, mostrar pares detectados
-      if (col === colProcesar) {
-        const procesado = resultado[i];
-        if (procesado && Object.keys(procesado.pares).length > 0) {
-          let detalles = '';
-          for (const [campo, val] of Object.entries(procesado.pares)) {
-            detalles += `<div><strong>${campo}:</strong> ${val}</div>`;
-          }
-          valorCelda = detalles;
+      // pares tipo "Clave: Valor"
+      const pares = {};
+      partes.forEach(p => {
+        const [campo, val] = p.split(':').map(x => x?.trim());
+        if (campo && val) {
+          pares[campo] = val;
         }
+      });
+
+      // guardamos lo que calculamos
+      resultado.push({
+        original: rawValor,
+        partes,
+        pares
+      });
+
+      // nota: si esta columna parece categorías, ordenamos
+      // (solo si NO tiene el formato clave: valor, es decir, categorías simples)
+      if (Object.keys(pares).length === 0 && partes.length > 0) {
+        partes = ordenarCategorias(partes);
       }
 
-      html += `<td>${valorCelda}</td>`;
-    });
-
-    html += '</tr>';
-  });
-
-  html += `</tbody></table></div>`;
-  $resultadoDiv.html(html);
-
-  mostrarNotificacion('Vista previa generada con tus columnas seleccionadas.', 'exito');
-
-  // --- BOTONES ---
-  $('#btnVolver').on('click', () => {
-    $resultadoDiv.hide();
-    $('#excelFile').closest('.formulario').show();
-    $('#columnSelector').show();
-    mostrarNotificacion('Has vuelto al inicio.', 'alerta');
-  });
-
-  $('#btnExportar').on('click', () => {
-    if (!filteredData || filteredData.length === 0) {
-      mostrarNotificacion('No hay datos para exportar.', 'error');
-      return;
-    }
-
-    try {
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(filteredData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
-
-      const fecha = new Date().toISOString().split('T')[0];
-      const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
-      XLSX.writeFile(wb, nombreArchivo);
-      mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
-    } catch (err) {
-      console.error(err);
-      mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
-    }
-  });
-}
-
-
-
-
-function mostrarPantallaResultadoSimplificada(limit) {
-  // Limpiamos pantalla y mostramos resultado
-  $resultadoDiv.show().html('');
-
-  // 🔹 Encabezado
-  let html = `
-    <div class="d-flex flex-wrap gap-2 mb-3">
-      <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
-      <button id="btnAjustes" class="btn btn-secondary">Ajustes</button>
-      <button id="btnVolver" class="btn btn-outline-secondary ms-auto">Volver atrás</button>
-      <button id="btnExportar" class="btn btn-primary">Exportar Excel</button>
-    </div>
-
-    <div id="mensajeProcesado" class="alert alert-light">
-      Se procesaron ${limit} productos de vista previa. Usa los botones para aplicar ajustes o exportar el archivo.
-    </div>
-
-    <div class="table-responsive mt-3">
-      <table class="table table-bordered table-sm">
-        <thead><tr>`;
-
-  colsMostrar.forEach(c => { html += `<th>${c}</th>`; });
-  html += `</tr></thead><tbody>`;
-
-  filteredData.slice(0, limit).forEach(row => {
-    html += '<tr>';
-    colsMostrar.forEach(c => { html += `<td>${row[c] || ''}</td>`; });
-    html += '</tr>';
-  });
-
-  html += `</tbody></table></div>`;
-
-  $resultadoDiv.html(html);
-
-  // 🔹 Notificación de confirmación
-  mostrarNotificacion('Vista previa generada correctamente.', 'exito');
-
-  // --- EVENTOS DE BOTONES ---
-  $('#btnVolver').on('click', () => {
-    $resultadoDiv.hide();
-    $('#excelFile').closest('.formulario').show();
-    $('#columnSelector').show();
-    $tableContainer.hide();
-    mostrarNotificacion('Has vuelto al inicio.', 'alerta');
-  });
-
-  $('#btnExportar').on('click', () => {
-    if (!filteredData || filteredData.length === 0) {
-      mostrarNotificacion('No hay datos para exportar.', 'error');
-      return;
-    }
-
-    try {
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(filteredData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
-
-      const fecha = new Date().toISOString().split('T')[0];
-      const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
-
-      XLSX.writeFile(wb, nombreArchivo);
-      mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
-    } catch (err) {
-      console.error(err);
-      mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
-    }
-  });
-}
-
-
-
-  // --------- ORDENAR CATEGORÍAS ---------
-  $('#btnOrdenarCategorias').on('click', () => {
-    filteredData.forEach(row => {
-      let cats = row.__categoriasProcesadas || [];
-      cats = ordenarCategorias(cats);
-      row.__categoriasProcesadas = cats;
-      row[colProcesar] = cats.join(', ');
-    });
-    showAlert('Categorías ordenadas correctamente.', 'success');
-  });
-
-
-// productos.js v3.5
-$(document).ready(function () {
-  // --------- ESTADO ---------
-  let originalData = [];
-  let filteredData = [];
-  let colsMostrar = [];
-  let colProcesar = null;
-  let allColumns = []; 
-
-  // --------- SELECTORES ---------
-  const $fileInput = $('#excelFile');
-  const $colsMostrarDiv = $('#colsMostrar');
-  const $colsProcesarDiv = $('#colsProcesar');
-  const $btnProcesar = $('#btnProcesar');
-  const $progressBar = $('#progressBar');
-  const $progressFill = $('#progressBar .progress-bar');
-  const $resultadoDiv = $('#resultadoDiv');
-  const $alertas = $('#alertas');
-  const $tableContainer = $('#tableContainer');
-  const $btnExportar = $('#btnExportar');
-
-  // --------- ORDEN DE CATEGORÍAS ---------
-  const tipoOrden = {
-    "Joyas de plata por mayor": { tipo: "Principal", orden: 1 },
-    "ENCHAPADO": { tipo: "Principal", orden: 2 },
-    "Accesorios": { tipo: "Principal", orden: 3 },
-    "Insumos": { tipo: "Categoría", orden: 4 },
-    "Anillos de Plata": { tipo: "Categoría", orden: 5 },
-    "Aros de Plata": { tipo: "Categoría", orden: 6 },
-    "Pulseras de Plata": { tipo: "Categoría", orden: 7 },
-    "Conjuntos de Plata": { tipo: "Categoría", orden: 8 },
-    "Colgantes de Plata": { tipo: "Categoría", orden: 9 },
-    "Cadenas de Plata": { tipo: "Categoría", orden: 10 },
-    "Infantil Plata": { tipo: "Categoría", orden: 11 },
-    "Collares de Plata": { tipo: "Categoría", orden: 12 },
-    "Tobilleras de Plata": { tipo: "Categoría", orden: 13 },
-    "Swarovski Elements": { tipo: "Categoría", orden: 14 },
-    "Hombre": { tipo: "Categoría", orden: 15 },
-    "Pack de Joyas": { tipo: "Categoría", orden: 16 },
-    "Insumos de Plata": { tipo: "Categoría", orden: 17 },
-    "Aros Enchapado": { tipo: "Categoría", orden: 18 },
-    "Anillos Enchapado": { tipo: "Categoría", orden: 19 },
-    "Pulseras Enchapado": { tipo: "Categoría", orden: 20 },
-    "Cadenas Enchapado": { tipo: "Categoría", orden: 21 },
-    "Colgantes Enchapado": { tipo: "Categoría", orden: 22 },
-    "Infantil enchapado": { tipo: "Categoría", orden: 23 },
-    "Collares Enchapado": { tipo: "Categoría", orden: 24 },
-    "Conjuntos Enchapado": { tipo: "Categoría", orden: 25 },
-    "Tobilleras Enchapado": { tipo: "Categoría", orden: 26 },
-    "Insumos Enchapados": { tipo: "Categoría", orden: 27 },
-    "Sin valor": { tipo: "Categoría", orden: 28 }
-  };
-
-  // --------- HELPERS ---------
-  function ordenarCategorias(categorias) {
-    return categorias.sort((a, b) => {
-      const aInfo = tipoOrden[a] || { orden: 9999 };
-      const bInfo = tipoOrden[b] || { orden: 9999 };
-      return aInfo.orden - bInfo.orden;
-    });
-  }
-
-function showAlert(message, type = 'info') {
-  // Adaptar el tipo al sistema de notificaciones DJOYAS
-  let estado = 'exito';
-  if (type === 'danger' || type === 'error') estado = 'error';
-  if (type === 'warning' || type === 'alert') estado = 'alerta';
-  mostrarNotificacion(message, estado);
-}
-
-  function updateActionsState() {
-    const disabled = !(colsMostrar.length > 0 && colProcesar);
-    $btnProcesar.prop('disabled', disabled);
-  }
-
-  // --------- LEER EXCEL/CSV (con Worker) ---------
-  function readExcel(file) {
-    const fileName = file.name.toLowerCase();
-    const isCSV = fileName.endsWith(".csv");
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-      let fileData = isCSV ? e.target.result : new Uint8Array(e.target.result);
-      const worker = new Worker("js/modules/excelWorker.js");
-      worker.postMessage({ fileData, isCSV });
-
-      worker.onmessage = function (msg) {
-        if (!msg.data.success) {
-          showAlert("Error procesando archivo: " + msg.data.error, "danger");
-          return;
-        }
-
-        const jsonData = msg.data.data;
-        if (jsonData.length === 0) {
-          showAlert("El archivo está vacío o no se pudo leer.", "danger");
-          return;
-        }
-
-        originalData = jsonData;
-        filteredData = [...originalData];
-        setupColumnSelectors(Object.keys(jsonData[0]));
-        updateActionsState();
+      // guardamos algo util en la fila para exportar luego
+      filteredData[i].__procesado = {
+        original: rawValor,
+        partes,
+        pares
       };
-    };
 
-    if (isCSV) reader.readAsText(file, "UTF-8");
-    else reader.readAsArrayBuffer(file);
+      const pct = Math.round(((i + 1) / total) * 100);
+      $progressFill.css('width', pct + '%').text(pct + '%');
+
+      // mini pausa no-bloqueante para que la barra se vea animada
+      await new Promise(r => setTimeout(r, 5));
+    }
+
+    $progressBar.hide();
+
+    // mostramos resultado final (preview + botones)
+    renderResultadoPreview(total);
   }
 
-  // --------- COLUMNAS ---------
-  function setupColumnSelectors(columns) {
-    allColumns = [...columns];
-    $colsMostrarDiv.empty();
-    $colsProcesarDiv.empty();
+  // --------- RENDER PANTALLA RESULTADO (BOTONES + TABLA PREVIEW) ---------
+  function renderResultadoPreview(limit) {
+    // reconstruimos todo el bloque de resultado en vivo
+    // esto es importante porque #btnAjustes, #btnVolver, #btnExportar se crean dinámicamente
+    let html = `
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
+        <button id="btnAjustes" class="btn btn-secondary">Ajustes</button>
+        <button id="btnVolver" class="btn btn-outline-secondary ms-auto">Volver atrás</button>
+        <button id="btnExportar" class="btn btn-primary">Exportar Excel</button>
+      </div>
 
-    columns.forEach(col => {
-      const idMostrar = 'mostrar_' + col.replace(/\W/g, '');
-      $colsMostrarDiv.append(`<input type="checkbox" id="${idMostrar}" value="${col}" checked>`);
-      $colsMostrarDiv.append(`<label for="${idMostrar}"> ${col}</label><br>`);
+      <div id="mensajeProcesado" class="alert alert-light">
+        Se procesaron ${limit} productos de vista previa.
+        Vista limitada a las columnas seleccionadas.
+      </div>
 
-      const idProcesar = 'procesar_' + col.replace(/\W/g, '');
-      $colsProcesarDiv.append(`<input type="radio" name="colProcesar" id="${idProcesar}" value="${col}">`);
-      $colsProcesarDiv.append(`<label for="${idProcesar}"> ${col}</label><br>`);
-    });
+      <div class="table-responsive mt-3">
+        <table class="table table-bordered table-sm">
+          <thead><tr>`;
 
-    $colsMostrarDiv.find('input[type=checkbox]').on('change', () => {
-      colsMostrar = $colsMostrarDiv.find('input[type=checkbox]:checked')
-        .map(function () { return this.value; })
-        .get();
-      renderTablaPreview();
-      updateActionsState();
-    });
-
-    $colsProcesarDiv.find('input[type=radio]').on('change', () => {
-      colProcesar = $colsProcesarDiv.find('input[type=radio]:checked').val() || null;
-      updateActionsState();
-    });
-
-    colsMostrar = [...columns];
-    colProcesar = null;
-  }
-
-  // --------- PROCESAR Y SIMPLIFICAR ---------
-async function procesarDivision() {
-  if (!colProcesar) {
-    mostrarNotificacion('Por favor selecciona una columna a procesar.', 'error');
-    return;
-  }
-
-  // 🔹 Ocultamos las secciones anteriores
-  $('#excelFile').closest('.formulario').hide();
-  $('#columnSelector').hide();
-  $tableContainer.hide();
-  $progressBar.show();
-  $progressFill.css('width', '0%').text('0%');
-
-  const limit = 10;
-  const total = Math.min(filteredData.length, limit);
-  const resultado = [];
-
-  for (let i = 0; i < total; i++) {
-    let valor = (filteredData[i][colProcesar] || '').toString().trim();
-
-    // 🔸 Detectar separador por coma y limpiar
-    let partes = valor.split(',').map(p => p.trim()).filter(Boolean);
-
-    // 🔸 Convertir pares tipo "Campo: Valor" en objeto clave-valor
-    const pares = {};
-    partes.forEach(p => {
-      const [campo, val] = p.split(':').map(x => x?.trim());
-      if (campo && val) pares[campo] = val;
-    });
-
-    resultado.push({ original: valor, partes, pares });
-
-    const porcentaje = Math.round(((i + 1) / total) * 100);
-    $progressFill.css('width', porcentaje + '%').text(porcentaje + '%');
-    await new Promise(r => setTimeout(r, 5));
-  }
-
-  $progressBar.hide();
-
-  // Guardamos en cada fila para exportación futura
-  filteredData.slice(0, total).forEach((row, i) => {
-    row.__procesado = resultado[i];
-  });
-
-  mostrarPantallaResultadoAvanzada(resultado, total);
-}
-
-
-function mostrarPantallaResultadoAvanzada(resultado, limit) {
-  $resultadoDiv.show().html('');
-
-  // 🔹 Estructura superior con botones
-  let html = `
-    <div class="d-flex flex-wrap gap-2 mb-3">
-      <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
-      <button id="btnAjustes" class="btn btn-secondary">Ajustes</button>
-      <button id="btnVolver" class="btn btn-outline-secondary ms-auto">Volver atrás</button>
-      <button id="btnExportar" class="btn btn-primary">Exportar Excel</button>
-    </div>
-
-    <div id="mensajeProcesado" class="alert alert-light">
-      Se procesaron ${limit} productos de vista previa. Vista limitada a las columnas seleccionadas.
-    </div>
-
-    <div class="table-responsive mt-3">
-      <table class="table table-bordered table-sm">
-        <thead><tr>`;
-
-  // 🔹 Mostrar las columnas seleccionadas por el usuario
-  colsMostrar.forEach(col => {
-    html += `<th>${col}</th>`;
-  });
-
-  html += `</tr></thead><tbody>`;
-
-  // 🔹 Renderizar los primeros “limit” productos
-  filteredData.slice(0, limit).forEach((row, i) => {
-    html += '<tr>';
-
+    // Cabecera: SOLO las columnas que el usuario eligió ver
     colsMostrar.forEach(col => {
-      let valorCelda = row[col] || '';
+      html += `<th>${col}</th>`;
+    });
 
-      // Si esta es la columna procesada, mostrar pares detectados
-      if (col === colProcesar) {
-        const procesado = resultado[i];
-        if (procesado && Object.keys(procesado.pares).length > 0) {
-          let detalles = '';
-          for (const [campo, val] of Object.entries(procesado.pares)) {
-            detalles += `<div><strong>${campo}:</strong> ${val}</div>`;
+    html += `</tr></thead><tbody>`;
+
+    // Filas: primeras N filas
+    filteredData.slice(0, limit).forEach((row, i) => {
+      html += `<tr>`;
+      colsMostrar.forEach(col => {
+        let valorCelda = row[col] || '';
+
+        // si esta es la columna procesada, mostramos lindo los pares "clave: valor"
+        if (col === colProcesar && row.__procesado) {
+          const p = row.__procesado;
+          if (p && p.pares && Object.keys(p.pares).length > 0) {
+            // tenemos estructura tipo "Campo: Valor"
+            let detalles = '';
+            for (const [campo, val] of Object.entries(p.pares)) {
+              detalles += `<div><strong>${campo}:</strong> ${val}</div>`;
+            }
+            valorCelda = detalles;
+          } else if (p && p.partes && p.partes.length > 0) {
+            // caso categorías simples
+            valorCelda = p.partes.join(', ');
           }
-          valorCelda = detalles;
+        }
+
+        html += `<td>${valorCelda}</td>`;
+      });
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+
+    // Pegarlo en el div resultado y mostrarlo
+    $resultadoDiv.html(html).show();
+
+    // Aviso visual
+    mostrarNotificacion('Vista previa generada.', 'exito');
+  }
+
+  // --------- ORDENAR CATEGORÍAS (CLICK DELEGADO) ---------
+  // Nota: este botón se genera dinámicamente en renderResultadoPreview
+  $(document).on('click', '#btnOrdenarCategorias', () => {
+    if (!colProcesar) {
+      mostrarNotificacion('Primero selecciona la columna a procesar.', 'alerta');
+      return;
+    }
+
+    // Ordena las categorías SOLO si es lista de categorías (sin pares "clave: valor")
+    filteredData.forEach(row => {
+      if (row.__procesado) {
+        const p = row.__procesado;
+        if (p && p.pares && Object.keys(p.pares).length > 0) {
+          // tiene pares tipo "Campo: Valor", NO lo tratamos como categorías
+          return;
+        }
+        if (p && p.partes && p.partes.length > 0) {
+          p.partes = ordenarCategorias(p.partes);
+          // reflejar también en la columna original por si exportamos
+          row[colProcesar] = p.partes.join(', ');
         }
       }
-
-      html += `<td>${valorCelda}</td>`;
     });
 
-    html += '</tr>';
+    mostrarNotificacion('Categorías ordenadas correctamente.', 'exito');
+
+    // volver a renderizar tabla con los cambios aplicados
+    renderResultadoPreview(PREVIEW_LIMIT);
   });
 
-  html += `</tbody></table></div>`;
-  $resultadoDiv.html(html);
+  // --------- AJUSTES (ABRIR MODAL DE COLUMNAS) ---------
+  // este botón también se genera dinámicamente
+  $(document).on('click', '#btnAjustes', () => {
+    const $contenedor = $('#contenedorCategorias');
+    $contenedor.empty();
 
-  mostrarNotificacion('Vista previa generada con tus columnas seleccionadas.', 'exito');
+    // Pintamos todas las columnas disponibles con checkbox
+    allColumns.forEach(col => {
+      const checked = colsMostrar.includes(col) ? 'checked' : '';
+      const $label = $(`
+        <label class="d-flex align-items-center gap-2"
+               style="width:48%; background:#f8f9fa; border:1px solid #ddd; border-radius:6px; padding:6px 10px; cursor:pointer;">
+          <input type="checkbox" class="chk-columna" value="${col}" ${checked} style="transform:scale(1.1);">
+          <span>${col}</span>
+        </label>
+      `);
+      $contenedor.append($label);
+    });
 
-  // --- BOTONES ---
-  $('#btnVolver').on('click', () => {
+    openModalAjustes();
+  });
+
+  // --------- APLICAR AJUSTES (GUARDAR COLUMNAS VISIBLES) ---------
+  $(document).on('click', '#btnAplicarAjustes', () => {
+    const seleccionadas = [];
+    $('.chk-columna:checked').each(function () {
+      seleccionadas.push($(this).val());
+    });
+
+    if (seleccionadas.length === 0) {
+      mostrarNotificacion('Debes dejar al menos una columna visible.', 'alerta');
+      return;
+    }
+
+    colsMostrar = [...seleccionadas];
+
+    closeModalAjustes();
+    mostrarNotificacion('Columnas actualizadas correctamente.', 'exito');
+
+    // refrescar la vista con las nuevas columnas elegidas
+    renderResultadoPreview(PREVIEW_LIMIT);
+  });
+
+  // --------- VOLVER ATRÁS ---------
+  // también se genera dinámicamente
+  $(document).on('click', '#btnVolver', () => {
     $resultadoDiv.hide();
+
+    // mostramos la UI inicial de nuevo
     $('#excelFile').closest('.formulario').show();
     $('#columnSelector').show();
     mostrarNotificacion('Has vuelto al inicio.', 'alerta');
   });
 
-  $('#btnExportar').on('click', () => {
+  // --------- EXPORTAR EXCEL ---------
+  // también botón dinámico
+  $(document).on('click', '#btnExportar', () => {
     if (!filteredData || filteredData.length === 0) {
       mostrarNotificacion('No hay datos para exportar.', 'error');
       return;
     }
 
     try {
+      // Exportamos TODO filteredData tal como está en memoria (incluye __procesado)
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(filteredData);
       XLSX.utils.book_append_sheet(wb, ws, 'Productos');
 
       const fecha = new Date().toISOString().split('T')[0];
       const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
+
       XLSX.writeFile(wb, nombreArchivo);
+
       mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
     } catch (err) {
       console.error(err);
       mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
     }
   });
-}
 
-
-
-
-function mostrarPantallaResultadoSimplificada(limit) {
-  // Limpiamos pantalla y mostramos resultado
-  $resultadoDiv.show().html('');
-
-  // 🔹 Encabezado
-  let html = `
-    <div class="d-flex flex-wrap gap-2 mb-3">
-      <button id="btnOrdenarCategorias" class="btn btn-info">Ordenar Categorías</button>
-      <button id="btnAjustes" class="btn btn-secondary">Ajustes</button>
-      <button id="btnVolver" class="btn btn-outline-secondary ms-auto">Volver atrás</button>
-      <button id="btnExportar" class="btn btn-primary">Exportar Excel</button>
-    </div>
-
-    <div id="mensajeProcesado" class="alert alert-light">
-      Se procesaron ${limit} productos de vista previa. Usa los botones para aplicar ajustes o exportar el archivo.
-    </div>
-
-    <div class="table-responsive mt-3">
-      <table class="table table-bordered table-sm">
-        <thead><tr>`;
-
-  colsMostrar.forEach(c => { html += `<th>${c}</th>`; });
-  html += `</tr></thead><tbody>`;
-
-  filteredData.slice(0, limit).forEach(row => {
-    html += '<tr>';
-    colsMostrar.forEach(c => { html += `<td>${row[c] || ''}</td>`; });
-    html += '</tr>';
-  });
-
-  html += `</tbody></table></div>`;
-
-  $resultadoDiv.html(html);
-
-  // 🔹 Notificación de confirmación
-  mostrarNotificacion('Vista previa generada correctamente.', 'exito');
-
-  // --- EVENTOS DE BOTONES ---
-  $('#btnVolver').on('click', () => {
-    $resultadoDiv.hide();
-    $('#excelFile').closest('.formulario').show();
-    $('#columnSelector').show();
-    $tableContainer.hide();
-    mostrarNotificacion('Has vuelto al inicio.', 'alerta');
-  });
-
-  $('#btnExportar').on('click', () => {
-    if (!filteredData || filteredData.length === 0) {
-      mostrarNotificacion('No hay datos para exportar.', 'error');
-      return;
-    }
-
-    try {
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(filteredData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
-
-      const fecha = new Date().toISOString().split('T')[0];
-      const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
-
-      XLSX.writeFile(wb, nombreArchivo);
-      mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
-    } catch (err) {
-      console.error(err);
-      mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
-    }
-  });
-}
-
-
-
-  // --------- ORDENAR CATEGORÍAS ---------
-  $('#btnOrdenarCategorias').on('click', () => {
-    filteredData.forEach(row => {
-      let cats = row.__categoriasProcesadas || [];
-      cats = ordenarCategorias(cats);
-      row.__categoriasProcesadas = cats;
-      row[colProcesar] = cats.join(', ');
-    });
-    showAlert('Categorías ordenadas correctamente.', 'success');
-  });
-
-
-
-  // --------- AJUSTES (GESTIÓN DE COLUMNAS) ---------
-$('#btnAjustes').on('click', () => {
-  const $contenedor = $('#contenedorCategorias');
-  $contenedor.empty();
-
-  // 🔹 Mostrar todas las columnas con check según colsMostrar
-  allColumns.forEach(col => {
-    const checked = colsMostrar.includes(col) ? 'checked' : '';
-    const label = $(`
-      <label class="d-flex align-items-center gap-2" style="width:48%;">
-        <input type="checkbox" class="chk-columna" value="${col}" ${checked}>
-        ${col}
-      </label>
-    `);
-    $contenedor.append(label);
-  });
-
-  openModalAjustes();
-});
-
-// --------- APLICAR AJUSTES (COLUMNA VISIBLES) ---------
-$('#btnAplicarAjustes').on('click', () => {
-  const seleccionadas = [];
-  $('.chk-columna:checked').each(function () {
-    seleccionadas.push($(this).val());
-  });
-
-  if (seleccionadas.length === 0) {
-    mostrarNotificacion('Debes dejar al menos una columna visible.', 'alerta');
-    return;
-  }
-
-  colsMostrar = [...seleccionadas];
-  closeModalAjustes();
-
-  mostrarNotificacion('Columnas actualizadas correctamente.', 'exito');
-
-  // 🔹 Recargar la vista previa con las nuevas columnas
-  mostrarPantallaResultadoAvanzada(
-    filteredData.slice(0, 10).map(row => row.__procesado || {}),
-    10
-  );
-});
-
-
-
-
-  // --------- EXPORTAR EXCEL ---------
-  $('#btnExportar').on('click', () => {
-    if (!filteredData || filteredData.length === 0) {
-      showAlert('No hay datos para exportar.', 'danger');
-      return;
-    }
-
-    try {
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(filteredData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
-
-      const fecha = new Date().toISOString().split('T')[0];
-      const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
-
-      XLSX.writeFile(wb, nombreArchivo);
-
-  mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
-  } catch (err) {
-    console.error(err);
-    mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
-  }
-  });
-
-  // --------- EVENTOS ---------
-  $fileInput.on('change', e => {
+  // --------- INPUT FILE / PROCESAR ---------
+  $fileInput.on('change', (e) => {
     const file = e.target.files[0];
     if (file) {
-      $btnExportar.addClass('d-none');
       readExcel(file);
     }
   });
 
-  $btnProcesar.on('click', () => procesarDivision());
-});
-
-function openModalAjustes() {
-  document.getElementById('modalAjustes').style.display = 'flex';
-}
-
-function closeModalAjustes() {
-  document.getElementById('modalAjustes').style.display = 'none';
-}
-
-//v. 2
-
-
-
-  // --------- EXPORTAR EXCEL ---------
-  $('#btnExportar').on('click', () => {
-    if (!filteredData || filteredData.length === 0) {
-      showAlert('No hay datos para exportar.', 'danger');
-      return;
-    }
-
-    try {
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(filteredData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Productos');
-
-      const fecha = new Date().toISOString().split('T')[0];
-      const nombreArchivo = `Productos_DJOYAS_${fecha}.xlsx`;
-
-      XLSX.writeFile(wb, nombreArchivo);
-
-  mostrarNotificacion('Archivo Excel exportado correctamente.', 'exito');
-  } catch (err) {
-    console.error(err);
-    mostrarNotificacion('Error al exportar el archivo Excel.', 'error');
-  }
+  $btnProcesar.on('click', () => {
+    procesarDivision();
   });
 
-  // --------- EVENTOS ---------
-  $fileInput.on('change', e => {
-    const file = e.target.files[0];
-    if (file) {
-      $btnExportar.addClass('d-none');
-      readExcel(file);
-    }
-  });
+}); // <-- fin document.ready
 
-  $btnProcesar.on('click', () => procesarDivision());
-});
-
-function openModalAjustes() {
-  document.getElementById('modalAjustes').style.display = 'flex';
-}
-
-function closeModalAjustes() {
-  document.getElementById('modalAjustes').style.display = 'none';
-}
-
-//v. 2.1
+//v. 1
