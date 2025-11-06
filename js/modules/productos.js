@@ -469,7 +469,6 @@ $(document).off('click', '#btnAjustes').on('click', '#btnAjustes', () => {
     // mostramos la UI inicial de nuevo
     $('#excelFile').closest('.formulario').show();
     $('#columnSelector').show();
-    mostrarNotificacion('Has vuelto al inicio.', 'alerta');
   });
 
   // --------- EXPORTAR EXCEL ---------
