@@ -204,24 +204,65 @@ document.querySelectorAll(".tab-reportes").forEach(btn => {
 document.querySelector('.tab-reportes[data-section="general"]').click();
 
 function inicializarInputsCSV() {
-  const archivos = ["Ventas", "Clientes", "Pedidos"];
+  const tipos = ["Ventas", "Clientes", "Pedidos"];
 
-  archivos.forEach(nombre => {
-    const input = document.getElementById(`input${nombre}`);
-    const info = document.getElementById(`info${nombre}`);
+  tipos.forEach(tipo => {
+    const input = document.getElementById(`input${tipo}`);
+    const info = document.getElementById(`info${tipo}`);
 
-    input.addEventListener("change", () => {
+    input.addEventListener("change", async () => {
       const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          localStorage.setItem(`data_${nombre.toLowerCase()}`, e.target.result);
-          info.textContent = `✅ ${file.name} (${(file.size / 1024).toFixed(1)} KB) cargado.`;
-        };
-        reader.readAsText(file);
-      }
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async e => {
+        const contenido = e.target.result;
+        const storageRef = firebase.storage().ref(`reportes/${tipo.toLowerCase()}.csv`);
+
+        try {
+          // 🔄 Subir o reemplazar archivo existente
+          await storageRef.putString(contenido);
+          const url = await storageRef.getDownloadURL();
+
+          // 🕓 Guardar metadatos en Firestore
+          await firebase.firestore()
+            .collection("reportes_datos")
+            .doc(tipo.toLowerCase())
+            .set({
+              nombreArchivo: file.name,
+              tamanoKB: (file.size / 1024).toFixed(1),
+              fechaSubida: new Date().toISOString(),
+              url,
+              tipo
+            });
+
+          info.textContent = `✅ ${file.name} cargado correctamente (${(file.size / 1024).toFixed(1)} KB).`;
+          mostrarToast(`Archivo ${tipo} cargado con éxito ✅`, "exito");
+        } catch (error) {
+          console.error("Error al subir archivo:", error);
+          info.textContent = `❌ Error al cargar ${file.name}`;
+          mostrarToast(`Error al cargar ${tipo}: ${error.message}`, "error");
+        }
+      };
+      reader.readAsText(file);
     });
   });
+}
+
+async function procesarArchivos() {
+  mostrarToast("Procesando archivos disponibles...", "alerta");
+
+  const coleccion = await firebase.firestore().collection("reportes_datos").get();
+  if (coleccion.empty) {
+    mostrarToast("⚠️ No hay archivos cargados aún en Firebase.", "alerta");
+    return;
+  }
+
+  const archivos = [];
+  coleccion.forEach(doc => archivos.push(doc.data()));
+
+  console.log("📦 Archivos disponibles:", archivos);
+  mostrarToast(`✅ ${archivos.length} archivo(s) disponibles para generar reportes.`, "exito");
 }
 
 function procesarArchivos() {
@@ -235,4 +276,14 @@ function procesarArchivos() {
   }
 
   alert("✅ Archivos cargados correctamente. Los reportes se actualizarán con estos datos.");
+}
+
+function mostrarToast(mensaje, tipo = "exito") {
+  const toast = document.createElement("div");
+  toast.className = `toast-notif toast-${tipo}`;
+  toast.innerHTML = `<span class="toast-icon">${
+    tipo === "error" ? "❌" : tipo === "alerta" ? "⚠️" : "✅"
+  }</span> ${mensaje}`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
