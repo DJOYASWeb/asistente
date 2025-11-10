@@ -137,7 +137,27 @@
 
 
 
+ <div class="main-reportes">
+    <!-- TOPBAR -->
+    <div class="topbar-reportes">
+      <div class="date-range">
+        <label for="fechaInicio">Desde:</label>
+        <input type="date" id="fechaInicio" class="form-control form-control-sm">
+        <label for="fechaFin">Hasta:</label>
+        <input type="date" id="fechaFin" class="form-control form-control-sm">
+        <button class="btn btn-primary btn-sm" id="btnAplicarFechas">Aplicar</button>
+      </div>
 
+      <div>
+        <input type="file" id="archivoClientes" accept=".csv,.json" class="form-control form-control-sm">
+      </div>
+    </div>
+
+    <!-- CONTENEDOR DE SECCIONES -->
+    <div id="contenidoReportes">
+      <!-- Aquí se cargará el dashboard general al iniciar -->
+    </div>
+  </div>
 
 
 
