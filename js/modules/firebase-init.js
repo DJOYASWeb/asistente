@@ -18,4 +18,4 @@ if (!firebase.apps.length) {
 
 // ✅ Inicializa los servicios y los expone globalmente
 window.db = firebase.firestore();
-window.storage = firebase.storage();
+
