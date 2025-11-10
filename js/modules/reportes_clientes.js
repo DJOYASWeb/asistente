@@ -202,3 +202,37 @@ document.querySelectorAll(".tab-reportes").forEach(btn => {
 
 // Cargar por defecto el dashboard general
 document.querySelector('.tab-reportes[data-section="general"]').click();
+
+function inicializarInputsCSV() {
+  const archivos = ["Ventas", "Clientes", "Pedidos"];
+
+  archivos.forEach(nombre => {
+    const input = document.getElementById(`input${nombre}`);
+    const info = document.getElementById(`info${nombre}`);
+
+    input.addEventListener("change", () => {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          localStorage.setItem(`data_${nombre.toLowerCase()}`, e.target.result);
+          info.textContent = `✅ ${file.name} (${(file.size / 1024).toFixed(1)} KB) cargado.`;
+        };
+        reader.readAsText(file);
+      }
+    });
+  });
+}
+
+function procesarArchivos() {
+  const ventas = localStorage.getItem("data_ventas");
+  const clientes = localStorage.getItem("data_clientes");
+  const pedidos = localStorage.getItem("data_pedidos");
+
+  if (!ventas || !clientes || !pedidos) {
+    alert("⚠️ Debes cargar los tres archivos antes de procesar los datos.");
+    return;
+  }
+
+  alert("✅ Archivos cargados correctamente. Los reportes se actualizarán con estos datos.");
+}
