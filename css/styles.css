@@ -1985,3 +1985,36 @@ textarea.form-control.inspira{
 }
 
 
+/* INICIO estilo flechas sutiles para colapsables */
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Flecha pequeña y minimalista */
+.menu-toggle .arrow {
+  font-size: 0.65rem; /* más pequeño */
+  color: var(--sidebar-text);
+  opacity: 0.6;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+  position: absolute;
+  right: 10px;
+}
+
+.menu-toggle:hover .arrow {
+  opacity: 0.9;
+}
+
+/* Rotación suave cuando se abre */
+.menu-toggle.open .arrow {
+  transform: rotate(180deg);
+}
+
+/* Espacio para que el texto no se superponga con la flecha */
+.menu-item .label {
+  width: calc(85% - 12px);
+}
+/* FIN estilo flechas sutiles para colapsables */
