@@ -30,6 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  // Control manual de abrir/cerrar con clic
   document.querySelectorAll('.menu-toggle').forEach(button => {
     button.addEventListener('click', e => {
       e.preventDefault();
@@ -39,20 +41,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Detectar la página actual y abrir el colapsable correspondiente
-  const currentPage = window.location.pathname.split("/").pop();
+  // Esperar a que todo cargue (permisos, etc.)
+  setTimeout(() => {
+    const currentPage = window.location.pathname.split("/").pop();
 
-  const groups = {
-    "blog.html": "contenidos",
-    "inspira.html": "contenidos",
-    "catalogo.html": "catalogo",
-    "planilla.html": "planillas",
-    "mysql.html": "planillas",
-    "cotizar.html": "planillas"
-  };
+    const groups = {
+      "blog.html": "contenidos",
+      "inspira.html": "contenidos",
+      "catalogo.html": "catalogo",
+      "productos.html": "catalogo",
+      "planilla.html": "planillas",
+      "mysql.html": "planillas",
+      "cotizar.html": "planillas"
+    };
 
-  const activeGroup = groups[currentPage];
-  if (activeGroup) {
-    const groupEl = document.querySelector(`.menu-group[data-group="${activeGroup}"] .submenu`);
-    if (groupEl) groupEl.classList.add('active');
-  }
+    const activeGroup = groups[currentPage];
+    if (activeGroup) {
+      const groupEl = document.querySelector(`.menu-group[data-group="${activeGroup}"]`);
+      if (groupEl) {
+        const submenu = groupEl.querySelector('.submenu');
+        const toggle = groupEl.querySelector('.menu-toggle');
+        if (submenu) submenu.classList.add('active');
+        if (toggle) toggle.classList.add('open');
+      }
+    }
+  }, 300); // ⏱ espera 300 ms para asegurarse que permisos-tabs ya terminó
+});
