@@ -95,3 +95,5 @@ function mostrarToast(mensaje, tipo = "exito") {
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
+
+

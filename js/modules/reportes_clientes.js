@@ -287,3 +287,25 @@ function mostrarToast(mensaje, tipo = "exito") {
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const botones = document.querySelectorAll(".tab-reportes");
+  const seccionConfig = document.getElementById("seccion-configuracion");
+  const contenidoMain = document.getElementById("contenidoReportesMain");
+
+  botones.forEach(boton => {
+    boton.addEventListener("click", () => {
+      botones.forEach(b => b.classList.remove("active"));
+      boton.classList.add("active");
+
+      // Mostrar u ocultar secciones
+      if (boton.dataset.section === "config") {
+        contenidoMain.style.display = "none";
+        seccionConfig.style.display = "block";
+      } else {
+        seccionConfig.style.display = "none";
+        contenidoMain.style.display = "block";
+      }
+    });
+  });
+});
