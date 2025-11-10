@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "productos.html": "planillas",
       "planilla.html": "planillas",
       "mysql.html": "planillas",
-      "cotizar.html": "planillas"
+      "cotizar.html": "planillas",
       "reportes_clientes.html": "reportes"
     };
 
