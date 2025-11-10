@@ -2558,3 +2558,30 @@ textarea.form-control.inspira{
 .flatpickr-calendar {
     box-shadow: none;
 }
+
+/* === Scroll suave dentro del dropdown de fechas === */
+.dropdown-fechas-ios {
+  max-height: 420px; /* limita la altura visible */
+  overflow-y: auto;  /* permite scroll vertical */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch; /* scroll fluido en iOS */
+}
+
+/* Estilo visual de scrollbar (moderno y discreto) */
+.dropdown-fechas-ios::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-fechas-ios::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+.dropdown-fechas-ios::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.35);
+}
+
+/* Ajuste: evita que el scroll corte las sombras */
+.fechas-contenedor {
+  padding-bottom: 1rem;
+}
