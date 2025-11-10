@@ -16,29 +16,97 @@
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
   <!-- Sidebar -->
+<!-- INICIO nuevo sidebar -->
 <div class="sidebar oculta-permisos" id="sidebar">
-    <div>
-      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
-        <span class="icon"><i class="fas fa-bars"></i></span>
-        <span class="label"><img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px"></span>
-      </h2>
-      <nav>
-        <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio"><span class="icon"><i class="fas fa-home"></i></span><span class="label">Inicio</span></a>
-        <a href="blog.html" data-tab="blog" data-tooltip="blog"><span class="icon"><i class="fa-brands fa-blogger"></i></span><span class="label">DJOYAS Blog</span></a>
-        <a href="creative.html" data-tab="creative" data-tooltip="Uso"><span class="icon"><i class="fa-solid fa-globe"></i></span><span class="label">HMTL</span></a>
-        <a href="inspira.html" data-tab="inspira" data-tooltip="Inspira"><span class="icon"><i class="fa-solid fa-photo-film"></i></span><span class="label">DJOYAS Inspira</span></a>
-        <a href="planilla.html" data-tab="planilla" data-tooltip="Planilla"><span class="icon"><i class="fa-solid fa-file-excel"></i></span><span class="label">Planilla Presta</span></a>    
-        <a href="catalogo.html" data-tab="catalogo" data-tooltip="Catálogo"><span class="icon"><i class="fa-regular fa-address-card"></i></span><span class="label">Catálogo</span></a>
-        <a href="mysql.html" data-tab="catalogo" data-tooltip="Mysql"><span class="icon"><i class="fa-solid fa-code"></i></span><span class="label">Mysql</span></a>
-      </nav>
-    </div>
-    <div class="bottom-links">
-                 <a href="compresor.html" data-tab="tareas" data-tooltip="Compresor"><span class="icon"><i class="fa fa-cog"></i></span><span class="label">Comprimir IMG</span></a>
-      <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias"><span class="icon"><i class="fas fa-list-check"></i></span><span class="label">Tareas Diarias</span></a>
-      <a href="calendario.html" data-tab="calendario" data-tooltip="calendario"><span class="icon"><i class="fa-solid fa-calendar-days"></i></span><span class="label">Calendario</span></a>
-        <a href="configuracion.html" data-tab="configuracion" data-tooltip="Configuración"><span class="icon"><i class="fas fa-cog"></i></span><span class="label">Configuración</span></a>
-    </div>
+  <div>
+    <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+      <span class="icon"><i class="fas fa-bars"></i></span>
+      <span class="label">
+        <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
+      </span>
+    </h2>
+
+    <nav>
+      <!-- 1️⃣ INICIO -->
+      <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio">
+        <span class="icon"><i class="fas fa-home"></i></span>
+        <span class="label">Inicio</span>
+      </a>
+
+      <!-- 2️⃣ CATÁLOGO -->
+      <div class="menu-group">
+        <a href="#" class="menu-toggle" data-tooltip="Catálogo">
+          <span class="icon"><i class="fa-regular fa-address-card"></i></span>
+          <span class="label">Catálogo</span>
+          <i class="fas fa-chevron-down arrow"></i>
+        </a>
+        <div class="submenu">
+          <a href="catalogo.html" data-tab="catalogo">Catálogo General</a>
+        </div>
+      </div>
+
+      <!-- 3️⃣ CONTENIDOS -->
+      <div class="menu-group">
+        <a href="#" class="menu-toggle" data-tooltip="Contenidos">
+          <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
+          <span class="label">Contenidos</span>
+          <i class="fas fa-chevron-down arrow"></i>
+        </a>
+        <div class="submenu">
+          <a href="blog.html" data-tab="blog">DJOYAS Blog</a>
+          <a href="inspira.html" data-tab="inspira">DJOYAS Inspira</a>
+        </div>
+      </div>
+
+      <!-- 4️⃣ PLANILLAS -->
+      <div class="menu-group">
+        <a href="#" class="menu-toggle" data-tooltip="Planillas">
+          <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
+          <span class="label">Planillas</span>
+          <i class="fas fa-chevron-down arrow"></i>
+        </a>
+        <div class="submenu">
+          <a href="#" data-tab="cotizar">Cotizar</a>
+          <a href="planilla.html" data-tab="planilla">Planilla Presta</a>
+          <a href="mysql.html" data-tab="mysql">MySQL</a>
+        </div>
+      </div>
+
+      <!-- 5️⃣ MÉTRICAS -->
+      <a href="#" data-tab="metricas" data-tooltip="Métricas">
+        <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
+        <span class="label">Métricas</span>
+      </a>
+
+      <!-- 6️⃣ ATENCIÓN AL CLIENTE -->
+      <a href="#" data-tab="cliente" data-tooltip="Atención al Cliente">
+        <span class="icon"><i class="fa-solid fa-headset"></i></span>
+        <span class="label">Atención al Cliente</span>
+      </a>
+    </nav>
   </div>
+
+  <div class="bottom-links">
+    <a href="compresor.html" data-tab="tareas" data-tooltip="Compresor">
+      <span class="icon"><i class="fa fa-cog"></i></span>
+      <span class="label">Comprimir IMG</span>
+    </a>
+    <a href="tareas.html" data-tab="tareas" data-tooltip="Tareas Diarias">
+      <span class="icon"><i class="fas fa-list-check"></i></span>
+      <span class="label">Tareas Diarias</span>
+    </a>
+    <a href="calendario.html" data-tab="calendario" data-tooltip="Calendario">
+      <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
+      <span class="label">Calendario</span>
+    </a>
+    <a href="configuracion.html" data-tab="configuracion" data-tooltip="Configuración">
+      <span class="icon"><i class="fas fa-cog"></i></span>
+      <span class="label">Configuración</span>
+    </a>
+  </div>
+</div>
+<!-- FIN nuevo sidebar -->
+
 
   <!-- Contenido principal -->
   <div class="main-content">

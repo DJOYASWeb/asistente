@@ -203,7 +203,7 @@ function esProductoNuevo(row) {
 
 // Mostrar/ocultar botón según condición “1 fila activa y nueva”
 function onAbrirModalProcesar() {
-  const btnZip = document.getElementById('btnDescargarFotosZip');
+  const btnZip = document.getElementById('btncFotosZip');
   if (!btnZip) return;
 
   const filas = obtenerFilasActivas({

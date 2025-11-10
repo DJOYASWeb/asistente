@@ -29,3 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+  document.querySelectorAll('.menu-toggle').forEach(button => {
+    button.addEventListener('click', e => {
+      e.preventDefault();
+      const submenu = button.nextElementSibling;
+      submenu.classList.toggle('active');
+      button.classList.toggle('open');
+    });
+  });

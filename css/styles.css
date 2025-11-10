@@ -1895,3 +1895,30 @@ textarea.form-control.inspira{
 .categoria-btn.btn-outline-danger i {
   opacity: 1;
 }
+
+/* INICIO estilo colapsables */
+.menu-group {
+  display: flex;
+  flex-direction: column;
+}
+.menu-group .submenu {
+  display: none;
+  flex-direction: column;
+  margin-left: 20px;
+}
+.menu-group .submenu.active {
+  display: flex;
+}
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.menu-toggle .arrow {
+  transition: transform 0.2s ease;
+}
+.menu-toggle.open .arrow {
+  transform: rotate(180deg);
+}
+/* FIN estilo colapsables */
