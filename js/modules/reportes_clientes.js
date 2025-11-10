@@ -143,3 +143,31 @@ async function cargarDashboardClientes() {
 }
 
 cargarDashboardClientes();
+
+document.querySelectorAll(".tab-reportes").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const section = btn.getAttribute("data-section");
+    const main = document.getElementById("contenidoReportesMain");
+
+    if (section === "general") {
+      main.innerHTML = `
+        <div class="ios-card">
+          <h2>Resumen General</h2>
+          <p class="muted">Cargando dashboard...</p>
+        </div>`;
+      await cargarDashboardClientes(); // Reutilizamos la función que ya hicimos
+    } else {
+      main.innerHTML = `
+        <div class="ios-card">
+          <h2>${btn.textContent.trim()}</h2>
+          <p class="muted">Aquí mostraremos los reportes detallados de <b>${section}</b>.</p>
+        </div>`;
+    }
+  });
+});
+
+// Cargar por defecto el dashboard general
+document.querySelector('.tab-reportes[data-section="general"]').click();
