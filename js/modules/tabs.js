@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "blog.html": "contenidos",
       "inspira.html": "contenidos",
       "catalogo.html": "catalogo",
-      "productos.html": "catalogo",
+      "productos.html": "planillas",
       "planilla.html": "planillas",
       "mysql.html": "planillas",
       "cotizar.html": "planillas"
