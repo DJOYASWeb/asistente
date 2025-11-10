@@ -16,5 +16,7 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
+window.storage = firebase.storage();
+
 // Inicializa Firestore y la expone globalmente
 window.db = firebase.firestore();
