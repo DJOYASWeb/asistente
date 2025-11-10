@@ -1,99 +1,111 @@
 // =========================================
 // reportes_manager.js
-// Maneja la subida y lectura de CSVs (Ventas / Clientes / Pedidos)
+// Version: replicado de dashboard_archivos (tres datasets)
 // =========================================
 
-// Subir archivo CSV a Firebase Storage y guardar metadatos en Firestore
-async function subirArchivoCSV(tipo, archivo) {
-  if (!archivo) return mostrarToast(`⚠️ No se seleccionó archivo para ${tipo}`, "alerta");
+document.addEventListener("DOMContentLoaded", () => {
+  const db = firebase.firestore();
 
-  const reader = new FileReader();
+  // === Configuración de inputs ===
+  const configuraciones = [
+    { tipo: "ventas", input: "inputVentas", info: "infoVentas" },
+    { tipo: "clientes", input: "inputClientes", info: "infoClientes" },
+    { tipo: "pedidos", input: "inputPedidos", info: "infoPedidos" }
+  ];
 
-  reader.onload = async (e) => {
-    const contenido = e.target.result;
-    const storageRef = firebase.storage().ref(`reportes/${tipo.toLowerCase()}.csv`);
+  configuraciones.forEach(cfg => {
+    const inputEl = document.getElementById(cfg.input);
+    const infoEl = document.getElementById(cfg.info);
 
-    try {
-      // Subir o reemplazar archivo existente
-      await storageRef.putString(contenido);
-      const url = await storageRef.getDownloadURL();
+    if (!inputEl || !infoEl) return;
 
-      // Guardar metadatos en Firestore
-      await firebase.firestore()
-        .collection("reportes_datos")
-        .doc(tipo.toLowerCase())
-        .set({
-          nombreArchivo: archivo.name,
-          tamanoKB: (archivo.size / 1024).toFixed(1),
-          fechaSubida: new Date().toISOString(),
-          url,
-          tipo
-        });
+    // Cargar el último archivo al iniciar
+    cargarUltimoArchivo(cfg.tipo, infoEl);
 
-      mostrarToast(`✅ ${tipo} cargado correctamente`, "exito");
-    } catch (error) {
-      console.error(error);
-      mostrarToast(`❌ Error al subir ${tipo}: ${error.message}`, "error");
-    }
-  };
-
-  reader.readAsText(archivo);
-}
-
-// Descargar y leer CSV desde Firebase Storage
-async function obtenerCSVDesdeFirebase(tipo) {
-  try {
-    const doc = await firebase.firestore()
-      .collection("reportes_datos")
-      .doc(tipo.toLowerCase())
-      .get();
-
-    if (!doc.exists) {
-      mostrarToast(`⚠️ No se encontró archivo para ${tipo}`, "alerta");
-      return null;
-    }
-
-    const { url } = doc.data();
-    const response = await fetch(url);
-    const csv = await response.text();
-
-    mostrarToast(`📦 ${tipo} descargado desde Firebase`, "exito");
-    return csv;
-  } catch (error) {
-    console.error(error);
-    mostrarToast(`❌ Error al leer ${tipo}: ${error.message}`, "error");
-    return null;
-  }
-}
-
-// Vincular inputs de Configuración
-function inicializarCargadoresCSV() {
-  const tipos = ["Ventas", "Clientes", "Pedidos"];
-
-  tipos.forEach(tipo => {
-    const input = document.getElementById(`input${tipo}`);
-    if (!input) return;
-
-    input.addEventListener("change", () => {
-      const archivo = input.files[0];
-      if (archivo) subirArchivoCSV(tipo, archivo);
+    // Evento de subida
+    inputEl.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      procesarArchivo(cfg.tipo, file, infoEl);
     });
   });
-}
 
-document.addEventListener("DOMContentLoaded", inicializarCargadoresCSV);
+  // === Procesamiento general ===
+  function procesarArchivo(tipo, file, infoEl) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const data = new Uint8Array(ev.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
 
-// Toast visual
-function mostrarToast(mensaje, tipo = "exito") {
-  const toast = document.createElement("div");
-  toast.className = `toast-notif toast-${tipo}`;
-  toast.innerHTML = `
-    <span class="toast-icon">${
-      tipo === "error" ? "❌" :
-      tipo === "alerta" ? "⚠️" : "✅"
-    }</span> ${mensaje}`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
+      const sheets = {};
+      workbook.SheetNames.forEach(name => {
+        const ws = workbook.Sheets[name];
+        const sheet = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false });
+        const limitedSheet = sheet.slice(0, 6);
 
+        if (ws["!merges"]) {
+          ws["!merges"].forEach(merge => {
+            const startCell = XLSX.utils.encode_cell(merge.s);
+            const value = ws[startCell]?.v;
+            for (let R = merge.s.r; R <= merge.e.r; ++R) {
+              for (let C = merge.s.c; C <= merge.e.c; ++C) {
+                if (R < 6) {
+                  if (!limitedSheet[R]) limitedSheet[R] = [];
+                  if (!limitedSheet[R][C]) limitedSheet[R][C] = value;
+                }
+              }
+            }
+          });
+        }
 
+        sheets[name] = limitedSheet;
+      });
+
+      const now = new Date();
+      const nowStr = now.toLocaleString();
+
+      const archivo = {
+        nombre: file.name,
+        tipo,
+        fecha: firebase.firestore.Timestamp.fromDate(now),
+        data: JSON.stringify(sheets)
+      };
+
+      db.collection("reportes_" + tipo)
+        .add(archivo)
+        .then(() => {
+          mostrarInfoArchivo(infoEl, { nombre: archivo.nombre, fecha: nowStr });
+          console.log(`✅ Archivo de ${tipo} guardado en Firestore`);
+        })
+        .catch(err => console.error(`Error guardando ${tipo}:`, err));
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // === Cargar último archivo ===
+  function cargarUltimoArchivo(tipo, infoEl) {
+    db.collection("reportes_" + tipo)
+      .orderBy("fecha", "desc")
+      .limit(1)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          infoEl.innerHTML = `<p class="muted">Sin archivos cargados.</p>`;
+          return;
+        }
+        const doc = snapshot.docs[0].data();
+        const fecha = doc.fecha.toDate().toLocaleString();
+        mostrarInfoArchivo(infoEl, { nombre: doc.nombre, fecha });
+      })
+      .catch(err => console.error(`Error leyendo ${tipo}:`, err));
+  }
+
+  // === UI Info ===
+  function mostrarInfoArchivo(el, archivo) {
+    el.innerHTML = `
+      <p><strong>Último archivo:</strong> ${archivo.nombre}</p>
+      <p><strong>Fecha de carga:</strong> ${archivo.fecha}</p>
+      <p>✅ El dashboard está usando esta información.</p>
+    `;
+  }
+});
