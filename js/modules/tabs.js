@@ -53,6 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "planilla.html": "planillas",
       "mysql.html": "planillas",
       "cotizar.html": "planillas"
+      "reportes_clientes.html": "reportes"
     };
 
     const activeGroup = groups[currentPage];
