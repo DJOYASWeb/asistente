@@ -70,7 +70,7 @@ body.protegido {
       color: var(--sidebar-text);
       width: 250px;
       min-width: 250px;
-      padding: 1rem;
+      padding: 1rem 0.5rem;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -1904,7 +1904,7 @@ textarea.form-control.inspira{
 .menu-group .submenu {
   display: none;
   flex-direction: column;
-  margin-left: 20px;
+  margin-left: 40px;
 }
 .menu-group .submenu.active {
   display: flex;
