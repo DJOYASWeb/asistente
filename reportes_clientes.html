@@ -190,7 +190,39 @@
 
     <!-- CONTENEDOR DE SECCIONES -->
     <div id="contenidoReportes">
-      <!-- Aquí se cargará el dashboard general al iniciar -->
+<!-- === DASHBOARD CLIENTES === -->
+<div id="dashboardClientes" class="ios-card">
+  <h2>Resumen de Clientes</h2>
+  <div class="metricas-grid">
+    <div class="dashboard-metric"><h4>Clientes nuevos</h4><p id="mClientesNuevos">0</p></div>
+    <div class="dashboard-metric"><h4>Clientes recurrentes</h4><p id="mClientesRecurrentes">0</p></div>
+    <div class="dashboard-metric"><h4>Tasa de repetición</h4><p id="mTasaRepeticion">0%</p></div>
+    <div class="dashboard-metric"><h4>Ticket promedio</h4><p id="mTicketPromedio">$0</p></div>
+    <div class="dashboard-metric"><h4>Tiempo a primera compra</h4><p id="mTiempoPrimera">0 días</p></div>
+  </div>
+
+  <div class="graficos-grid">
+    <div id="graficoCategorias" class="grafico-card"></div>
+    <div id="graficoNuevosVsRecurrentes" class="grafico-card"></div>
+  </div>
+
+  <h3>Top 10 Clientes por Total Gastado</h3>
+  <div class="scroll-x">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Email</th>
+          <th>Pedidos</th>
+          <th>Total Gastado</th>
+          <th>Categoría Principal</th>
+        </tr>
+      </thead>
+      <tbody id="tablaTopClientes"></tbody>
+    </table>
+  </div>
+</div>
+
     </div>
   </div>
 
@@ -210,6 +242,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="js/modules/reportes_clientes.js"></script>
 <script src="js/modules/modales.js"></script>
 <script src="js/modules/firebase-init.js"></script>
