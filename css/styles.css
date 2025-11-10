@@ -2307,3 +2307,54 @@ textarea.form-control.inspira{
   background: #1a1a1a;
 }
 /* === FIN selector de fechas iOS === */
+/* === POSICIÓN === */
+.topbar-reportes {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: var(--bg-color);
+  border-bottom: 1px solid #e5e5e5;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* === NUEVAS PARTES DEL SELECTOR === */
+.comparar-periodo {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #444;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.comparar-periodo label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.select-ios {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.9rem;
+  color: #333;
+  background: #fff;
+}
+
+.comparar-personal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+.oculto {
+  display: none;
+}
+

@@ -63,4 +63,19 @@ function actualizarDashboardPersonalizado(inicio, fin) {
     dashboard.style.opacity = 1;
   }, 400);
 }
-// FIN script selector de fechas animado
+
+// --- Comparar periodos ---
+const compararToggle = document.getElementById("compararToggle");
+const compararRango = document.getElementById("compararRango");
+const tipoComparacion = document.getElementById("tipoComparacion");
+const compararFechasPersonal = document.getElementById("compararFechasPersonal");
+
+compararToggle.addEventListener("change", () => {
+  compararRango.classList.toggle("oculto", !compararToggle.checked);
+});
+
+tipoComparacion.addEventListener("change", () => {
+  const esPersonalizado = tipoComparacion.value === "personalizado";
+  compararFechasPersonal.classList.toggle("oculto", !esPersonalizado);
+});
+

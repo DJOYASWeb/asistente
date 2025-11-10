@@ -139,6 +139,7 @@
 
  <div class="main-reportes">
     <!-- TOPBAR -->
+<!-- TOPBAR -->
 <div class="topbar-reportes">
   <div class="filtros-derecha">
     <div class="selector-fechas" id="selectorFechas">
@@ -148,11 +149,13 @@
         <i class="fa-solid fa-chevron-down icono"></i>
       </button>
 
-<div class="dropdown-fechas-ios" id="dropdownFechas">
+      <div class="dropdown-fechas-ios" id="dropdownFechas">
         <button class="opcion-fecha" data-range="7">Últimos 7 días</button>
         <button class="opcion-fecha" data-range="30">Último mes</button>
         <button class="opcion-fecha" data-range="365">Último año</button>
+
         <div class="divider"></div>
+
         <div class="rango-personalizado">
           <label>Desde:</label>
           <input type="date" id="fechaInicioPersonal">
@@ -160,11 +163,34 @@
           <input type="date" id="fechaFinPersonal">
           <button id="aplicarRangoPersonal" class="btn-aplicar">Aplicar</button>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="comparar-periodo">
+          <label>
+            <input type="checkbox" id="compararToggle"> Comparar con otro periodo
+          </label>
+          <div id="compararRango" class="comparar-rango oculto">
+            <select id="tipoComparacion" class="select-ios">
+              <option value="anterior">Periodo anterior</option>
+              <option value="anio">Mismo periodo año anterior</option>
+              <option value="personalizado">Elegir manualmente</option>
+            </select>
+
+            <div id="compararFechasPersonal" class="comparar-personal oculto">
+              <label>Desde:</label>
+              <input type="date" id="compDesde">
+              <label>Hasta:</label>
+              <input type="date" id="compHasta">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
-<!-- FIN bloque selector de fechas compacto -->
+<!-- FIN bloque selector de fechas -->
+
 
 
     <!-- CONTENEDOR DE SECCIONES -->
