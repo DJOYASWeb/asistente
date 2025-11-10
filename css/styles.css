@@ -1921,4 +1921,54 @@ textarea.form-control.inspira{
 .menu-toggle.open .arrow {
   transform: rotate(180deg);
 }
-/* FIN estilo colapsables */
+
+
+/* INICIO estilos colapsables v2 */
+.menu-item, .submenu-item {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  padding: 8px 10px;
+  transition: background 0.2s;
+}
+
+.menu-item:hover, .submenu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-item .icon {
+  width: 15%;
+  text-align: center;
+}
+
+.menu-item .label {
+  width: 85%;
+}
+
+.submenu {
+  display: none;
+  flex-direction: column;
+  margin-left: 0;
+}
+
+.submenu.active {
+  display: flex;
+}
+
+.submenu-item {
+  padding-left: 15%; /* deja espacio vacío donde iría el ícono */
+}
+
+.submenu-item .label {
+  width: 85%;
+}
+
+.menu-toggle {
+  cursor: pointer;
+}
+/* FIN estilos colapsables v2 */
+
+
+
+
