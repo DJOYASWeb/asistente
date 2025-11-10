@@ -159,13 +159,44 @@ document.querySelectorAll(".tab-reportes").forEach(btn => {
           <p class="muted">Cargando dashboard...</p>
         </div>`;
       await cargarDashboardClientes(); // Reutilizamos la función que ya hicimos
-    } else {
-      main.innerHTML = `
-        <div class="ios-card">
-          <h2>${btn.textContent.trim()}</h2>
-          <p class="muted">Aquí mostraremos los reportes detallados de <b>${section}</b>.</p>
-        </div>`;
-    }
+    } else if (section === "config") {
+  main.innerHTML = `
+    <div class="ios-card">
+      <h2><i class="fa-solid fa-database"></i> Centro de Datos</h2>
+      <p class="muted">Sube tus archivos exportados (CSV) para alimentar los reportes.</p>
+
+      <div class="config-grid">
+        <div class="data-card" id="cardVentas">
+          <h4>📦 Ventas</h4>
+          <input type="file" id="inputVentas" accept=".csv" hidden>
+          <button class="btn-subir" onclick="document.getElementById('inputVentas').click()">Subir archivo</button>
+          <p class="archivo-info" id="infoVentas">Ningún archivo cargado.</p>
+        </div>
+
+        <div class="data-card" id="cardClientes">
+          <h4>👥 Clientes</h4>
+          <input type="file" id="inputClientes" accept=".csv" hidden>
+          <button class="btn-subir" onclick="document.getElementById('inputClientes').click()">Subir archivo</button>
+          <p class="archivo-info" id="infoClientes">Ningún archivo cargado.</p>
+        </div>
+
+        <div class="data-card" id="cardPedidos">
+          <h4>🧾 Pedidos</h4>
+          <input type="file" id="inputPedidos" accept=".csv" hidden>
+          <button class="btn-subir" onclick="document.getElementById('inputPedidos').click()">Subir archivo</button>
+          <p class="archivo-info" id="infoPedidos">Ningún archivo cargado.</p>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:2rem;">
+        <button class="btn-procesar" onclick="procesarArchivos()">Procesar Datos</button>
+      </div>
+    </div>
+  `;
+
+  inicializarInputsCSV(); // activa los listeners
+}
+
   });
 });
 

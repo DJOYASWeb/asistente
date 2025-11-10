@@ -2611,7 +2611,6 @@ textarea.form-control.inspira{
 .panel-reportes {
   display: flex;
   height: calc(100vh - 80px);
-  gap: 1.5rem;
   margin-top: 1rem;
 }
 
