@@ -2523,3 +2523,28 @@ textarea.form-control.inspira{
 .calendario-bloque {
   padding: 0.5rem;
 }
+
+.flatpickr-innerContainer {
+    border-bottom: 0;
+}
+
+.flatpickr-weekdays {
+    background: none;
+  }
+
+
+  span.flatpickr-weekday {
+
+    background: #ffffff;
+
+}
+
+.flatpickr-months .flatpickr-month {
+    border-radius: 5px;
+    background: #dfdfdf;
+    color: #000000;
+}
+.flatpickr-days {
+    border-left: none;
+    border-right:none;
+}
