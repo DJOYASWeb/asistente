@@ -139,19 +139,34 @@
 
  <div class="main-reportes">
     <!-- TOPBAR -->
-    <div class="topbar-reportes">
-      <div class="date-range">
-        <label for="fechaInicio">Desde:</label>
-        <input type="date" id="fechaInicio" class="form-control form-control-sm">
-        <label for="fechaFin">Hasta:</label>
-        <input type="date" id="fechaFin" class="form-control form-control-sm">
-        <button class="btn btn-primary btn-sm" id="btnAplicarFechas">Aplicar</button>
-      </div>
+<!-- INICIO bloque selector de fechas compacto -->
+<div class="topbar-reportes">
+  <div class="filtros-derecha">
+    <div class="selector-fechas" id="selectorFechas">
+      <button id="btnRangoFechas" class="btn-fechas">
+        <i class="fa-solid fa-calendar-days"></i>
+        <span id="textoRango">Últimos 30 días</span>
+        <i class="fa-solid fa-chevron-down icono"></i>
+      </button>
 
-      <div>
-        <input type="file" id="archivoClientes" accept=".csv,.json" class="form-control form-control-sm">
+      <div class="dropdown-fechas" id="dropdownFechas">
+        <button class="opcion-fecha" data-range="7">Últimos 7 días</button>
+        <button class="opcion-fecha" data-range="30">Último mes</button>
+        <button class="opcion-fecha" data-range="365">Último año</button>
+        <div class="divider"></div>
+        <div class="rango-personalizado">
+          <label>Desde:</label>
+          <input type="date" id="fechaInicioPersonal">
+          <label>Hasta:</label>
+          <input type="date" id="fechaFinPersonal">
+          <button id="aplicarRangoPersonal" class="btn-aplicar">Aplicar</button>
+        </div>
       </div>
     </div>
+  </div>
+</div>
+<!-- FIN bloque selector de fechas compacto -->
+
 
     <!-- CONTENEDOR DE SECCIONES -->
     <div id="contenidoReportes">
@@ -173,7 +188,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/modules/reportes.js"></script>
+<script src="js/modules/reportes_clientes.js"></script>
 <script src="js/modules/modales.js"></script>
 <script src="js/modules/firebase-init.js"></script>
 <script type="module" src="js/modules/checkAuth.js"></script>
