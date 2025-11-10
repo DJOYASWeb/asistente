@@ -2358,3 +2358,130 @@ textarea.form-control.inspira{
   display: none;
 }
 
+/* === Barra superior fija === */
+.topbar-reportes {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: var(--bg-color);
+  border-bottom: 1px solid #e5e5e5;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* === Popover de fechas tipo iOS === */
+.dropdown-fechas-ios {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  max-height: 0;
+  pointer-events: none;
+  transition: all 0.35s ease;
+  min-width: 540px;
+  z-index: 99;
+  backdrop-filter: blur(6px);
+}
+
+.dropdown-fechas-ios.show {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 600px;
+  pointer-events: auto;
+}
+
+/* === Layout interno de dos columnas === */
+.fechas-contenedor {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 1.2rem;
+  padding: 1rem 1.2rem;
+}
+
+.col-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-right: 1px solid #f0f0f0;
+  padding-right: 1rem;
+}
+
+.titulo-columna {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 0.4rem;
+}
+
+.opcion-fecha {
+  display: block;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.45rem 0.7rem;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #333;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.opcion-fecha:hover {
+  background: #f5f5f5;
+}
+
+.col-calendarios {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.calendario-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 0.7rem;
+  border: 1px solid #eee;
+}
+
+.calendario-bloque h5 {
+  margin: 0 0 0.3rem;
+  font-size: 0.85rem;
+  color: #000;
+  font-weight: 600;
+}
+
+.calendario-bloque input[type="date"] {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.9rem;
+  color: #333;
+  background: #fff;
+}
+
+.btn-aplicar {
+  align-self: flex-end;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.btn-aplicar:hover {
+  background: #1a1a1a;
+}

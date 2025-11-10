@@ -138,59 +138,57 @@
 
 
  <div class="main-reportes">
-    <!-- TOPBAR -->
-<!-- TOPBAR -->
+
+  <!-- TOPBAR -->
 <div class="topbar-reportes">
-  <div class="filtros-derecha">
-    <div class="selector-fechas" id="selectorFechas">
-      <button id="btnRangoFechas" class="btn-fechas">
-        <i class="fa-solid fa-calendar-days"></i>
-        <span id="textoRango">Últimos 30 días</span>
-        <i class="fa-solid fa-chevron-down icono"></i>
-      </button>
+  <div class="selector-fechas" id="selectorFechas">
+    <button id="btnRangoFechas" class="btn-fechas">
+      <i class="fa-solid fa-calendar-days"></i>
+      <span id="textoRango">Últimos 30 días</span>
+      <i class="fa-solid fa-chevron-down icono"></i>
+    </button>
 
-      <div class="dropdown-fechas-ios" id="dropdownFechas">
-        <button class="opcion-fecha" data-range="7">Últimos 7 días</button>
-        <button class="opcion-fecha" data-range="30">Último mes</button>
-        <button class="opcion-fecha" data-range="365">Último año</button>
+    <div class="dropdown-fechas-ios" id="dropdownFechas">
+      <div class="fechas-contenedor">
+        <!-- Columna izquierda -->
+        <div class="col-opciones">
+          <h4 class="titulo-columna">Fechas</h4>
+          <button class="opcion-fecha" data-range="7">Últimos 7 días</button>
+          <button class="opcion-fecha" data-range="30">Últimos 30 días</button>
+          <button class="opcion-fecha" data-range="365">Último año</button>
 
-        <div class="divider"></div>
+          <div class="divider"></div>
 
-        <div class="rango-personalizado">
-          <label>Desde:</label>
-          <input type="date" id="fechaInicioPersonal">
-          <label>Hasta:</label>
-          <input type="date" id="fechaFinPersonal">
-          <button id="aplicarRangoPersonal" class="btn-aplicar">Aplicar</button>
+          <h4 class="titulo-columna">Comparar</h4>
+          <button class="opcion-fecha" data-compare="prev">Periodo anterior</button>
+          <button class="opcion-fecha" data-compare="year">Mismo periodo año anterior</button>
         </div>
 
-        <div class="divider"></div>
-
-        <div class="comparar-periodo">
-          <label>
-            <input type="checkbox" id="compararToggle"> Comparar con otro periodo
-          </label>
-          <div id="compararRango" class="comparar-rango oculto">
-            <select id="tipoComparacion" class="select-ios">
-              <option value="anterior">Periodo anterior</option>
-              <option value="anio">Mismo periodo año anterior</option>
-              <option value="personalizado">Elegir manualmente</option>
-            </select>
-
-            <div id="compararFechasPersonal" class="comparar-personal oculto">
-              <label>Desde:</label>
-              <input type="date" id="compDesde">
-              <label>Hasta:</label>
-              <input type="date" id="compHasta">
-            </div>
+        <!-- Columna derecha -->
+        <div class="col-calendarios">
+          <div class="calendario-bloque">
+            <h5>Rango principal</h5>
+            <label>Desde:</label>
+            <input type="date" id="fechaInicio">
+            <label>Hasta:</label>
+            <input type="date" id="fechaFin">
           </div>
+
+          <div class="calendario-bloque">
+            <h5>Comparar con</h5>
+            <label>Desde:</label>
+            <input type="date" id="fechaInicioComparar">
+            <label>Hasta:</label>
+            <input type="date" id="fechaFinComparar">
+          </div>
+
+          <button id="aplicarFechas" class="btn-aplicar">Aplicar</button>
         </div>
       </div>
     </div>
   </div>
 </div>
-<!-- FIN bloque selector de fechas -->
-
+<!-- FIN bloque selector -->
 
 
     <!-- CONTENEDOR DE SECCIONES -->

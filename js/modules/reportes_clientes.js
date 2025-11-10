@@ -1,8 +1,7 @@
-// INICIO script selector de fechas animado
+// --- Selector de Fechas con desplegable iOS ---
 const btnRangoFechas = document.getElementById("btnRangoFechas");
-const dropdownFechas = document.querySelector(".dropdown-fechas-ios");
+const dropdownFechas = document.getElementById("dropdownFechas");
 const textoRango = document.getElementById("textoRango");
-const rangoPersonalizado = document.querySelector(".rango-personalizado");
 
 btnRangoFechas.addEventListener("click", (e) => {
   e.stopPropagation();
@@ -15,67 +14,17 @@ document.addEventListener("click", () => {
   btnRangoFechas.classList.remove("open");
 });
 
-// Selección rápida
 document.querySelectorAll(".opcion-fecha").forEach(btn => {
   btn.addEventListener("click", () => {
-    const dias = btn.getAttribute("data-range");
-    if (dias) {
-      textoRango.textContent = `Últimos ${dias} días`;
-      dropdownFechas.classList.remove("show");
-      btnRangoFechas.classList.remove("open");
-      actualizarDashboard(dias);
-    } else {
-      rangoPersonalizado.classList.toggle("activo");
-    }
+    const rango = btn.textContent.trim();
+    textoRango.textContent = rango;
+    dropdownFechas.classList.remove("show");
+    btnRangoFechas.classList.remove("open");
   });
 });
 
-// Rango personalizado
-document.getElementById("aplicarRangoPersonal").addEventListener("click", () => {
-  const ini = document.getElementById("fechaInicioPersonal").value;
-  const fin = document.getElementById("fechaFinPersonal").value;
-  if (ini && fin) {
-    textoRango.textContent = `${ini} → ${fin}`;
-    dropdownFechas.classList.remove("show");
-    btnRangoFechas.classList.remove("open");
-    actualizarDashboardPersonalizado(ini, fin);
-  }
+// Botón aplicar (puedes conectar lógica real aquí)
+document.getElementById("aplicarFechas").addEventListener("click", () => {
+  dropdownFechas.classList.remove("show");
+  btnRangoFechas.classList.remove("open");
 });
-
-// Funciones de actualización con efecto fade
-function actualizarDashboard(dias) {
-  const dashboard = document.getElementById("dashboardGeneral");
-  if (!dashboard) return;
-  dashboard.style.opacity = 0;
-  setTimeout(() => {
-    // Aquí llamarías a tu función real de carga de datos según "dias"
-    console.log(`Actualizando dashboard para últimos ${dias} días...`);
-    dashboard.style.opacity = 1;
-  }, 400);
-}
-
-function actualizarDashboardPersonalizado(inicio, fin) {
-  const dashboard = document.getElementById("dashboardGeneral");
-  if (!dashboard) return;
-  dashboard.style.opacity = 0;
-  setTimeout(() => {
-    console.log(`Actualizando dashboard del ${inicio} al ${fin}...`);
-    dashboard.style.opacity = 1;
-  }, 400);
-}
-
-// --- Comparar periodos ---
-const compararToggle = document.getElementById("compararToggle");
-const compararRango = document.getElementById("compararRango");
-const tipoComparacion = document.getElementById("tipoComparacion");
-const compararFechasPersonal = document.getElementById("compararFechasPersonal");
-
-compararToggle.addEventListener("change", () => {
-  compararRango.classList.toggle("oculto", !compararToggle.checked);
-});
-
-tipoComparacion.addEventListener("change", () => {
-  const esPersonalizado = tipoComparacion.value === "personalizado";
-  compararFechasPersonal.classList.toggle("oculto", !esPersonalizado);
-});
-
