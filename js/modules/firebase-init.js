@@ -11,12 +11,11 @@ var firebaseConfig = {
   measurementId: "G-9ZTSMFYFE1"
 };
 
-// Inicializa Firebase solo si no está inicializado
+// ✅ Inicializa Firebase solo una vez
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
-window.storage = firebase.storage();
-
-// Inicializa Firestore y la expone globalmente
+// ✅ Inicializa los servicios y los expone globalmente
 window.db = firebase.firestore();
+window.storage = firebase.storage();
