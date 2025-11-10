@@ -1969,7 +1969,7 @@ textarea.form-control.inspira{
 }
 /* FIN estilos colapsables v2 */
 
-.menu-group .submenu {
+.submenu {
   overflow: hidden;
   max-height: 0;
   opacity: 0;
@@ -1979,7 +1979,7 @@ textarea.form-control.inspira{
   transition: max-height 0.4s ease, opacity 0.3s ease;
 }
 
-.menu-group .submenu .active {
+.submenu.active {
   max-height: 500px; /* suficiente para mostrar los enlaces */
   opacity: 1;
 }
