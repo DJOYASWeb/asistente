@@ -2622,7 +2622,8 @@ textarea.form-control.inspira{
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  padding: 1rem 0;
+  padding: 1rem;
+    margin: 1rem ;
   overflow-y: auto;
   height: 100%;
 }
@@ -2660,6 +2661,5 @@ textarea.form-control.inspira{
   background: var(--bg-color);
   border-radius: var(--radius);
   overflow-y: auto;
-  padding: 2rem;
-  box-shadow: var(--shadow);
+  padding: 0rem 1rem;
 }
