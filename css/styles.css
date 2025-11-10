@@ -90,7 +90,7 @@ body.protegido {
     .sidebar h2 {
       color: var(--sidebar-text);
       text-decoration: none;
-      margin: 0.25rem 0;
+      margin: 0.1rem 0;
       height: 48px;
       padding: 0 1rem;
       border-radius: 12px;
