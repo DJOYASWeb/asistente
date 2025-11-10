@@ -38,3 +38,29 @@ document.addEventListener("DOMContentLoaded", () => {
       button.classList.toggle('open');
     });
   });
+
+    document.querySelectorAll('.menu-toggle').forEach(button => {
+    button.addEventListener('click', e => {
+      e.preventDefault();
+      const submenu = button.nextElementSibling;
+      submenu.classList.toggle('active');
+    });
+  });
+
+  // Detectar la página actual y abrir el colapsable correspondiente
+  const currentPage = window.location.pathname.split("/").pop();
+
+  const groups = {
+    "blog.html": "contenidos",
+    "inspira.html": "contenidos",
+    "catalogo.html": "catalogo",
+    "planilla.html": "planillas",
+    "mysql.html": "planillas",
+    "cotizar.html": "planillas"
+  };
+
+  const activeGroup = groups[currentPage];
+  if (activeGroup) {
+    const groupEl = document.querySelector(`.menu-group[data-group="${activeGroup}"] .submenu`);
+    if (groupEl) groupEl.classList.add('active');
+  }
