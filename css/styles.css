@@ -2485,3 +2485,41 @@ textarea.form-control.inspira{
 .btn-aplicar:hover {
   background: #1a1a1a;
 }
+/* === Ajuste de tamaño de calendarios (más compactos) === */
+
+/* Contenedor general de los calendarios */
+.col-calendarios {
+  gap: 0.8rem;
+}
+
+/* Reduce tamaño general del calendario */
+.flatpickr-calendar {
+  transform: scale(0.85);
+  transform-origin: top center;
+}
+
+/* Ajusta tipografía para mantener proporción */
+.flatpickr-day,
+.flatpickr-month,
+.flatpickr-weekday {
+  font-size: 0.8rem !important;
+}
+
+/* Reduce padding para compactar */
+.flatpickr-months {
+  padding: 0.25rem 0 !important;
+}
+
+.flatpickr-innerContainer {
+  padding: 0 0.25rem !important;
+}
+
+/* Reduce margen interno entre meses */
+.flatpickr-days {
+  padding: 0 !important;
+}
+
+/* Mantén el espacio consistente */
+.calendario-bloque {
+  padding: 0.5rem;
+}
