@@ -2548,3 +2548,10 @@ textarea.form-control.inspira{
     border-left: none;
     border-right:none;
 }
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: none;
+}
+.flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month {
+    color: #000000;
+    fill: #000000;
+}
