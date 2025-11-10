@@ -29,16 +29,17 @@ document.querySelectorAll(".opcion-fecha").forEach(btn => {
 flatpickr("#calendarioPrincipal", {
   mode: "range",
   inline: true,
-  dateFormat: "Y-m-d",
-  locale: "es"
+  dateFormat: "d/m/Y",
+  locale: flatpickr.l10ns.es
 });
 
 flatpickr("#calendarioComparar", {
   mode: "range",
   inline: true,
-  dateFormat: "Y-m-d",
-  locale: "es"
+  dateFormat: "d/m/Y",
+  locale: flatpickr.l10ns.es
 });
+
 
 // Cerrar al aplicar
 document.getElementById("aplicarFechas").addEventListener("click", () => {
