@@ -39,14 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-    document.querySelectorAll('.menu-toggle').forEach(button => {
-    button.addEventListener('click', e => {
-      e.preventDefault();
-      const submenu = button.nextElementSibling;
-      submenu.classList.toggle('active');
-    });
-  });
-
   // Detectar la página actual y abrir el colapsable correspondiente
   const currentPage = window.location.pathname.split("/").pop();
 
