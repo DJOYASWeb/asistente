@@ -2226,3 +2226,84 @@ textarea.form-control.inspira{
   to {opacity: 1; transform: translateY(0);}
 }
 /* FIN estilo selector de fechas con animación */
+
+
+/* === Selector de fechas iOS (sin conflictos) === */
+.dropdown-fechas-ios {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  padding: 0.5rem;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  max-height: 0;
+  pointer-events: none;
+  transition: all 0.35s ease;
+  min-width: 210px;
+  z-index: 20;
+  backdrop-filter: blur(6px);
+}
+
+.dropdown-fechas-ios.show {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 400px;
+  pointer-events: auto;
+}
+
+/* Opciones */
+.dropdown-fechas-ios .opcion-fecha {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.dropdown-fechas-ios .opcion-fecha:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-fechas-ios .divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 0.4rem 0;
+}
+
+.dropdown-fechas-ios .rango-personalizado {
+  display: none;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-top: 0.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.dropdown-fechas-ios .rango-personalizado.activo {
+  display: flex;
+}
+
+.dropdown-fechas-ios .btn-aplicar {
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  margin-top: 0.3rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.dropdown-fechas-ios .btn-aplicar:hover {
+  background: #1a1a1a;
+}
+/* === FIN selector de fechas iOS === */

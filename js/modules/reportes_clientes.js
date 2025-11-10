@@ -1,6 +1,6 @@
 // INICIO script selector de fechas animado
 const btnRangoFechas = document.getElementById("btnRangoFechas");
-const dropdownFechas = document.getElementById("dropdownFechas");
+const dropdownFechas = document.querySelector(".dropdown-fechas-ios");
 const textoRango = document.getElementById("textoRango");
 const rangoPersonalizado = document.querySelector(".rango-personalizado");
 
