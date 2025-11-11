@@ -108,41 +108,44 @@ async function cargarDashboardClientes() {
     const response = await fetch(url);
     if (!response.ok) throw new Error("No se pudo acceder al CSV (verifica permisos públicos).");
 
-    const text = await response.text();
-    const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+   
+const text = await response.text();
 
+// Parsear CSV
+let data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-    
+// 🧹 Normalizar nombres de columnas y limpiar números
+data = data.map(row => {
+  const cleanRow = {};
+  Object.keys(row).forEach(k => {
+    const cleanKey = k.trim().toLowerCase().replace(/\s+/g, "_");
+    cleanRow[cleanKey] = row[k];
+  });
+  return cleanRow;
+});
 
+// Helper numérico
+const toNum = v =>
+  Number(String(v || "").replace(",", ".").replace(/[^0-9.\-]/g, "")) || 0;
 
-// === Calcular métricas con limpieza de datos ===
-function toNum(v) {
-  if (!v) return 0;
-  return Number(String(v).trim().replace(",", ".").replace(/[^0-9.\-]/g, "")) || 0;
-}
-
+// === Calcular métricas ===
 const clientesNuevos = data.length;
+const recurrentes = data.filter(c => toNum(c.cantidad_pedidos) > 1).length;
+const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
 
-// Filtrar solo clientes con ticket válido
 const clientesValidos = data.filter(c => toNum(c.ticket_promedio) > 0);
 
-// Clientes recurrentes
-const recurrentes = data.filter(c => toNum(c.cantidad_pedidos) > 1).length;
-
-// Tasa de repetición (%)
-const tasaRepeticion = clientesNuevos > 0
-  ? ((recurrentes / clientesNuevos) * 100).toFixed(1)
-  : "0.0";
-
-// Ticket promedio (solo en clientes con ticket válido)
 const ticketPromedio = clientesValidos.length
-  ? (clientesValidos.reduce((sum, c) => sum + toNum(c.ticket_promedio), 0) / clientesValidos.length).toFixed(0)
+  ? (clientesValidos.reduce((s, c) => s + toNum(c.ticket_promedio), 0) /
+      clientesValidos.length).toFixed(0)
   : 0;
 
-// Días promedio hasta la primera compra
 const tiempoProm = clientesValidos.length
-  ? (clientesValidos.reduce((sum, c) => sum + toNum(c.dias_hasta_primera_compra), 0) / clientesValidos.length).toFixed(1)
+  ? (clientesValidos.reduce((s, c) => s + toNum(c.dias_hasta_primera_compra), 0) /
+      clientesValidos.length).toFixed(1)
   : 0;
+
+
 
 
 
