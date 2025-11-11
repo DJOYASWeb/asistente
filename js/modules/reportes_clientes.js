@@ -123,71 +123,49 @@ const normalizado = data.map(row => {
   return limpio;
 });
 
-// ⚙️ Obtener rango activo desde el selector de fechas
+
+
+// ⚙️ Detectar rango activo seleccionado en el calendario
 let inicioRango = null;
 let finRango = null;
-if (typeof rangoPrincipal !== "undefined" && rangoPrincipal && rangoPrincipal.length === 2) {
+
+if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
   inicioRango = rangoPrincipal[0];
   finRango = rangoPrincipal[1];
+  console.log("✅ Filtro activo:", inicioRango, "→", finRango);
+} else {
+  console.log("⚠️ Sin rango seleccionado, mostrando todos los registros.");
 }
 
-// 🧩 Convertir string "YYYY-MM-DD HH:mm:ss" a objeto Date válido
-const parseFecha = (str) => {
+// 🧩 Convertir string "YYYY-MM-DD HH:mm:ss" a objeto Date
+function parseFecha(str) {
   if (!str || typeof str !== "string") return null;
-  // Ejemplo: "2025-11-10 17:32:11"
   const [fechaPart, horaPart] = str.trim().split(" ");
   if (!fechaPart) return null;
   const [y, m, d] = fechaPart.split("-").map(Number);
   let h = 0, min = 0, s = 0;
-  if (horaPart) {
-    [h, min, s] = horaPart.split(":").map(Number);
-  }
+  if (horaPart) [h, min, s] = horaPart.split(":").map(Number);
   return new Date(y, m - 1, d, h, min, s);
-};
-
-// 🧠 DEBUG – Verificación de fechas y rango seleccionado
-console.log("============== DEBUG RANGO ==============");
-console.log("➡️ Rango actual:", rangoPrincipal);
-if (rangoPrincipal && rangoPrincipal.length === 2) {
-  console.log("   Inicio:", rangoPrincipal[0].toISOString());
-  console.log("   Fin:", rangoPrincipal[1].toISOString());
-} else {
-  console.log("⚠️ No hay rango seleccionado aún.");
 }
 
-// Verificar que existan registros y columnas esperadas
-console.log("➡️ Total registros cargados:", normalizado.length);
-if (normalizado.length > 0) {
-  console.log("📋 Primer registro:", normalizado[0]);
-  console.log("🗝 Claves detectadas:", Object.keys(normalizado[0]));
-}
-
-// Contar cuántos registros tienen fecha válida
-const conFecha = normalizado.filter(c => c.fecha_registro || c.primera_compra);
-console.log(`📅 Registros con fecha detectada: ${conFecha.length} de ${normalizado.length}`);
-
-// Probar conversión de fechas en los primeros 3 registros
-conFecha.slice(0, 3).forEach((c, i) => {
-  const raw = c.fecha_registro || c.primera_compra;
-  const parsed = parseFecha(raw);
-  console.log(`🧩 [${i}] Fecha original: "${raw}" → Objeto:`, parsed);
-});
-console.log("=========================================");
-
-
-// 🕓 Filtrar datos según rango si está seleccionado
+// 🕓 Filtrar registros dentro del rango seleccionado
 const filtrados = normalizado.filter(c => {
   const fecha = parseFecha(c.fecha_registro || c.primera_compra || "");
   if (!fecha) return false;
+
+  // Si hay rango seleccionado, aplicar filtro
   if (inicioRango && finRango) {
     return fecha >= inicioRango && fecha <= finRango;
   }
+
+  // Si no hay rango, incluir todos
   return true;
 });
 
+console.log(`📊 Filtrados ${filtrados.length} de ${normalizado.length} registros dentro del rango.`);
 
 
-console.log(`📅 Filtrados: ${filtrados.length} de ${filtrados.length} registros`);
+
 
 // 🔹 Función auxiliar para convertir texto a número seguro
 const num = (v) => {
