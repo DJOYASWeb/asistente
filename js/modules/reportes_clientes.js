@@ -108,51 +108,59 @@ async function cargarDashboardClientes() {
     const response = await fetch(url);
     if (!response.ok) throw new Error("No se pudo acceder al CSV (verifica permisos públicos).");
 
-   
-const text = await response.text();
+    const text = await response.text();
+    const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-// Parsear CSV
-let data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+// === DEBUG: Ver columnas reales ===
+console.log("👉 Primeras filas leídas:", data.slice(0, 3));
+if (data[0]) {
+  console.log("👉 Encabezados detectados:", Object.keys(data[0]));
+}
 
-// 🧹 Normalizar nombres de columnas y limpiar números
-data = data.map(row => {
-  const cleanRow = {};
+// 🧹 Normalizar encabezados
+const normalizado = data.map(row => {
+  const limpio = {};
   Object.keys(row).forEach(k => {
-    const cleanKey = k.trim().toLowerCase().replace(/\s+/g, "_");
-    cleanRow[cleanKey] = row[k];
+    const key = k.trim().toLowerCase().replace(/\s+/g, "_");
+    limpio[key] = row[k];
   });
-  return cleanRow;
+  return limpio;
 });
 
-// Helper numérico
-const toNum = v =>
-  Number(String(v || "").replace(",", ".").replace(/[^0-9.\-]/g, "")) || 0;
+// 🧩 Conversor numérico seguro
+const num = v => Number(String(v || "").replace(",", ".").replace(/[^0-9.\-]/g, "")) || 0;
 
 // === Calcular métricas ===
-const clientesNuevos = data.length;
-const recurrentes = data.filter(c => toNum(c.cantidad_pedidos) > 1).length;
-const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
+const clientesNuevos = normalizado.length;
+const recurrentes = normalizado.filter(c => num(c.cantidad_pedidos) > 1).length;
+const tasaRepeticion = clientesNuevos
+  ? ((recurrentes / clientesNuevos) * 100).toFixed(1)
+  : 0;
 
-const clientesValidos = data.filter(c => toNum(c.ticket_promedio) > 0);
+const clientesValidos = normalizado.filter(c => num(c.ticket_promedio) > 0);
 
 const ticketPromedio = clientesValidos.length
-  ? (clientesValidos.reduce((s, c) => s + toNum(c.ticket_promedio), 0) /
-      clientesValidos.length).toFixed(0)
+  ? (
+      clientesValidos.reduce((acc, c) => acc + num(c.ticket_promedio), 0) /
+      clientesValidos.length
+    ).toFixed(0)
   : 0;
 
 const tiempoProm = clientesValidos.length
-  ? (clientesValidos.reduce((s, c) => s + toNum(c.dias_hasta_primera_compra), 0) /
-      clientesValidos.length).toFixed(1)
+  ? (
+      clientesValidos.reduce((acc, c) => acc + num(c.dias_hasta_primera_compra), 0) /
+      clientesValidos.length
+    ).toFixed(1)
   : 0;
 
-
-
-
-
-
-
-
-
+// === Mostrar resultados en consola también (para revisar) ===
+console.log("📊 Métricas calculadas:", {
+  clientesNuevos,
+  recurrentes,
+  tasaRepeticion,
+  ticketPromedio,
+  tiempoProm
+});
 
 
     // === Renderizar contenido ===
