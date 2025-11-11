@@ -215,34 +215,49 @@ console.log("📊 Métricas calculadas:", {
 });
 
 
-    // === Renderizar contenido ===
-    const main = document.getElementById("contenidoReportesMain");
-    main.innerHTML = `
-      <div class="ios-card">
-        <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
+const main = document.getElementById("contenidoReportesMain");
+main.innerHTML = `
+  <div class="ios-card">
+    <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
 
-        <div class="metricas-grid">
-          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${clientesNuevos}</strong><p>Nuevos clientes</p></div>
-          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${recurrentes}</strong><p>Recurrentes</p></div>
-          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
-          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">$${Number(ticketPromedio).toLocaleString('es-CL')}</strong><p>Ticket promedio</p></div>
-          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${tiempoProm}</strong><p>Días hasta primera compra</p></div>
-        </div>
-
-        <h4 style="margin-top:1rem;">Top 10 clientes</h4>
-        <table class="tabla-ios">
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>Email</th>
-              <th>Pedidos</th>
-              <th>Total gastado</th>
-            </tr>
-          </thead>
-          <tbody id="tablaTopClientes"></tbody>
-        </table>
+    <div class="metricas-grid">
+      <div class="card-metrica" data-tipo="nuevos">
+        <strong style="font-size:2rem;">${clientesNuevos}</strong>
+        <p>Nuevos clientes</p>
       </div>
-    `;
+      <div class="card-metrica" data-tipo="recurrentes">
+        <strong style="font-size:2rem;">${recurrentes}</strong>
+        <p>Recurrentes</p>
+      </div>
+      <div class="card-metrica" data-tipo="repeticion">
+        <strong style="font-size:2rem;">${tasaRepeticion}%</strong>
+        <p>Tasa de repetición</p>
+      </div>
+      <div class="card-metrica" data-tipo="ticket">
+        <strong style="font-size:2rem;">$${Number(ticketPromedio).toLocaleString('es-CL')}</strong>
+        <p>Ticket promedio</p>
+      </div>
+      <div class="card-metrica" data-tipo="tiempo">
+        <strong style="font-size:2rem;">${tiempoProm}</strong>
+        <p>Días hasta primera compra</p>
+      </div>
+    </div>
+
+    <h4 style="margin-top:1rem;">Top 10 clientes</h4>
+    <table class="tabla-ios">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Email</th>
+          <th>Pedidos</th>
+          <th>Total gastado</th>
+          <th>Categoría</th>
+        </tr>
+      </thead>
+      <tbody id="tablaTopClientes"></tbody>
+    </table>
+  </div>
+`;
 // === Tabla top 10 (filtrada por rango de fechas) ===
 
 // ✅ Paso 1: tomar los datos filtrados según rango activo
