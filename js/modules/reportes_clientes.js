@@ -112,7 +112,7 @@ async function cargarDashboardClientes() {
 const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
 // 🧹 Normalizar encabezados
-const normalizado = data.map(row => {
+const filtradosa = data.map(row => {
   const limpio = {};
   Object.keys(row).forEach(k => {
     const key = k.trim().toLowerCase().replace(/\s+/g, "_");
@@ -139,7 +139,7 @@ const parseFecha = (str) => {
 };
 
 // 🕓 Filtrar datos según rango si está seleccionado
-const filtrados = normalizado.filter(c => {
+const filtrados = filtrados.filter(c => {
   const fecha = parseFecha(c.fecha_registro || c.primera_compra || "");
   if (!fecha) return false;
   if (inicioRango && finRango) {
@@ -148,16 +148,16 @@ const filtrados = normalizado.filter(c => {
   return true;
 });
 
-console.log(`📅 Filtrados: ${filtrados.length} de ${normalizado.length} registros`);
+console.log(`📅 Filtrados: ${filtrados.length} de ${filtrados.length} registros`);
 
 // === Calcular métricas ===
-const clientesNuevos = normalizado.length;
-const recurrentes = normalizado.filter(c => num(c.cantidad_pedidos) > 1).length;
+const clientesNuevos = filtrados.length;
+const recurrentes = filtrados.filter(c => num(c.cantidad_pedidos) > 1).length;
 const tasaRepeticion = clientesNuevos
   ? ((recurrentes / clientesNuevos) * 100).toFixed(1)
   : 0;
 
-const clientesValidos = normalizado.filter(c => num(c.ticket_promedio) > 0);
+const clientesValidos = filtrados.filter(c => num(c.ticket_promedio) > 0);
 
 const ticketPromedio = clientesValidos.length
   ? (
