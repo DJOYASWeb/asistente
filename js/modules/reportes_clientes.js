@@ -151,6 +151,15 @@ const filtrados = normalizado.filter(c => {
 
 console.log(`📅 Filtrados: ${filtrados.length} de ${filtrados.length} registros`);
 
+// 🔹 Función auxiliar para convertir texto a número seguro
+const num = (v) => {
+  if (v === null || v === undefined || v === "") return 0;
+  const n = parseFloat(v.toString().replace(",", "."));
+  return isNaN(n) ? 0 : n;
+};
+
+
+
 // === Calcular métricas ===
 const clientesNuevos = filtrados.length;
 const recurrentes = filtrados.filter(c => num(c.cantidad_pedidos) > 1).length;
