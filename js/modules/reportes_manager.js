@@ -1,6 +1,5 @@
 // =========================================
 // reportes_manager.js
-// Version: replicado de dashboard_archivos (tres datasets)
 // =========================================
 
 document.addEventListener("DOMContentLoaded", () => {

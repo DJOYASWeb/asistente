@@ -1,3 +1,7 @@
+// =========================================
+//reportes_clientes.js
+// =========================================
+
 // === SELECTOR DE FECHAS iOS ===
 const btnRangoFechas = document.getElementById("btnRangoFechas");
 const dropdownFechas = document.getElementById("dropdownFechas");
