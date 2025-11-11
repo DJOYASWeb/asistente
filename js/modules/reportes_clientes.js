@@ -250,20 +250,29 @@ console.log("📊 Métricas calculadas:", {
       </div>
     `;
 
-    // === Gráfico 1: Categorías más compradas ===
-    const catMap = {};
-    data.forEach(c => {
-      const cat = c.categoria_principal_mas_comprada || "Sin categoría";
-      catMap[cat] = (catMap[cat] || 0) + 1;
-    });
+// === Gráfico 1: Ciudades con más clientas nuevas ===
+const ciudadMap = {};
+filtrados.forEach(c => {
+  const ciudad = (c.ciudad || "Sin ciudad").trim();
+  ciudadMap[ciudad] = (ciudadMap[ciudad] || 0) + 1;
+});
 
-    new ApexCharts(document.querySelector("#graficoCategorias"), {
-      chart: { type: "donut" },
-      labels: Object.keys(catMap),
-      series: Object.values(catMap),
-      legend: { position: "bottom" },
-      title: { text: "Categorías más compradas" }
-    }).render();
+// Obtener las 10 ciudades principales
+const topCiudades = Object.entries(ciudadMap)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 10);
+
+const nombresCiudades = topCiudades.map(c => c[0]);
+const valoresCiudades = topCiudades.map(c => c[1]);
+
+new ApexCharts(document.querySelector("#graficoCategorias"), {
+  chart: { type: "bar", height: 300 },
+  series: [{ name: "Clientes Nuevos", data: valoresCiudades }],
+  xaxis: { categories: nombresCiudades },
+  colors: ["#0a84ff"],
+  title: { text: "🏙️ Ciudades con más clientas nuevas" },
+  legend: { show: false }
+}).render();
 
     // === Gráfico 2: Nuevos vs recurrentes ===
     new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
