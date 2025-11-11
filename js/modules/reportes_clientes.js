@@ -207,31 +207,52 @@ async function cargarDashboardClientes() {
 }
 
 
-  // =========================================
-  // 🔹 CONTROL DE TABS
-  // =========================================
-  document.querySelectorAll(".tab-reportes").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
+// =========================================
+// 🔹 CONTROL DE TABS (cada sección carga solo su propio contenido)
+// =========================================
+document.querySelectorAll(".tab-reportes").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
 
-      const section = btn.getAttribute("data-section");
-      const main = document.getElementById("contenidoReportesMain");
-      const seccionConfig = document.getElementById("seccion-configuracion");
+    const section = btn.getAttribute("data-section");
+    const main = document.getElementById("contenidoReportesMain");
+    const seccionConfig = document.getElementById("seccion-configuracion");
 
-      if (section === "config") {
-        main.style.display = "none";
-        seccionConfig.style.display = "block";
-      } else {
-        seccionConfig.style.display = "none";
-        main.style.display = "block";
-      }
+    // Ocultar/mostrar secciones
+    if (section === "config") {
+      main.style.display = "none";
+      seccionConfig.style.display = "block";
+      return;
+    } else {
+      seccionConfig.style.display = "none";
+      main.style.display = "block";
+    }
 
-      if (section === "general" || section === "clientes") {
-        await cargarDashboardClientes();
-      }
-    });
+    // Limpiar contenido anterior
+    main.innerHTML = `<div class="ios-card"><p class="muted">Cargando ${section}...</p></div>`;
+
+    // === Control individual por pestaña ===
+    if (section === "clientes") {
+      await cargarDashboardClientes();
+    } 
+    else if (section === "ventas") {
+      main.innerHTML = `<div class="ios-card"><p class="muted">📦 Próximamente: Reporte de Ventas.</p></div>`;
+    } 
+    else if (section === "categorias") {
+      main.innerHTML = `<div class="ios-card"><p class="muted">🏷️ Reporte de Categorías aún no disponible.</p></div>`;
+    } 
+    else if (section === "geografia") {
+      main.innerHTML = `<div class="ios-card"><p class="muted">🌎 Reporte geográfico en desarrollo.</p></div>`;
+    } 
+    else if (section === "tendencias") {
+      main.innerHTML = `<div class="ios-card"><p class="muted">📈 Reporte de tendencias en desarrollo.</p></div>`;
+    } 
+    else if (section === "general") {
+      main.innerHTML = `<div class="ios-card"><p class="muted">📊 Resumen general en desarrollo.</p></div>`;
+    }
   });
+});
 
   // === Seleccionar pestaña inicial ===
   const tabInicial = document.querySelector('.tab-reportes[data-section="general"]');
