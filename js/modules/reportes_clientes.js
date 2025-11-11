@@ -129,13 +129,18 @@ if (typeof rangoPrincipal !== "undefined" && rangoPrincipal && rangoPrincipal.le
   finRango = rangoPrincipal[1];
 }
 
-// 🧩 Convertir string de fecha a objeto Date
+// 🧩 Convertir string "YYYY-MM-DD HH:mm:ss" a objeto Date válido
 const parseFecha = (str) => {
-  if (!str) return null;
-  const parts = str.split(" ");
-  const fecha = parts[0];
-  const [y, m, d] = fecha.split("-").map(Number);
-  return new Date(y, m - 1, d);
+  if (!str || typeof str !== "string") return null;
+  // Ejemplo: "2025-11-10 17:32:11"
+  const [fechaPart, horaPart] = str.trim().split(" ");
+  if (!fechaPart) return null;
+  const [y, m, d] = fechaPart.split("-").map(Number);
+  let h = 0, min = 0, s = 0;
+  if (horaPart) {
+    [h, min, s] = horaPart.split(":").map(Number);
+  }
+  return new Date(y, m - 1, d, h, min, s);
 };
 
 // 🕓 Filtrar datos según rango si está seleccionado
@@ -147,6 +152,7 @@ const filtrados = normalizado.filter(c => {
   }
   return true;
 });
+
 
 
 console.log(`📅 Filtrados: ${filtrados.length} de ${filtrados.length} registros`);
