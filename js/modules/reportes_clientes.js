@@ -2,6 +2,8 @@
 // ✅ LECTURA DE CSV DESDE GOOGLE DRIVE – reportes_clientes.js (versión limpia)
 // =========================================
 
+    let rangoPrincipal = null;
+
 document.addEventListener("DOMContentLoaded", () => {
   // === SELECTOR DE FECHAS iOS ===
   const btnRangoFechas = document.getElementById("btnRangoFechas");
@@ -21,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btnRangoFechas.classList.remove("open");
     });
 
-    let rangoPrincipal = null;
+
 
     flatpickr("#calendarioPrincipal", {
       mode: "range",
