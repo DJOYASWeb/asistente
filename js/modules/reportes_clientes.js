@@ -222,11 +222,11 @@ console.log("📊 Métricas calculadas:", {
         <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
 
         <div class="metricas-grid">
-          <div><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
-          <div><strong>${recurrentes}</strong><p>Recurrentes</p></div>
-          <div><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
-          <div><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
-          <div><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
+          <div class="caja"><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
+          <div class="caja"><strong>${recurrentes}</strong><p>Recurrentes</p></div>
+          <div class="caja"><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
+          <div class="caja"><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
+          <div class="caja"><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
         </div>
 
         <div class="grafico-contenedor">
