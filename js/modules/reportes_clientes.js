@@ -139,7 +139,7 @@ const parseFecha = (str) => {
 };
 
 // 🕓 Filtrar datos según rango si está seleccionado
-const filtrados = filtrados.filter(c => {
+const filtrados = normalizado.filter(c => {
   const fecha = parseFecha(c.fecha_registro || c.primera_compra || "");
   if (!fecha) return false;
   if (inicioRango && finRango) {
@@ -147,6 +147,7 @@ const filtrados = filtrados.filter(c => {
   }
   return true;
 });
+
 
 console.log(`📅 Filtrados: ${filtrados.length} de ${filtrados.length} registros`);
 
