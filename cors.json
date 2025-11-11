@@ -1,0 +1,11 @@
+[
+  {
+    "origin": [
+      "https://silver-orbit-g46r6r5v77x5hv9rv-8000.app.github.dev",
+      "https://djoyasweb.github.io"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
+    "responseHeader": ["Content-Type", "x-goog-meta-*"],
+    "maxAgeSeconds": 3600
+  }
+]
