@@ -111,6 +111,10 @@ async function cargarDashboardClientes() {
     const text = await response.text();
     const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
+
+    
+
+
 // === Calcular métricas con limpieza de datos ===
 function toNum(v) {
   if (!v) return 0;
@@ -119,21 +123,33 @@ function toNum(v) {
 
 const clientesNuevos = data.length;
 
-// Clientes con más de 1 pedido
+// Filtrar solo clientes con ticket válido
+const clientesValidos = data.filter(c => toNum(c.ticket_promedio) > 0);
+
+// Clientes recurrentes
 const recurrentes = data.filter(c => toNum(c.cantidad_pedidos) > 1).length;
 
 // Tasa de repetición (%)
-const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
+const tasaRepeticion = clientesNuevos > 0
+  ? ((recurrentes / clientesNuevos) * 100).toFixed(1)
+  : "0.0";
 
-// Ticket promedio (promedio de ticket_promedio)
-const ticketPromedio = (
-  data.reduce((sum, c) => sum + toNum(c.ticket_promedio), 0) / data.length
-).toFixed(0);
+// Ticket promedio (solo en clientes con ticket válido)
+const ticketPromedio = clientesValidos.length
+  ? (clientesValidos.reduce((sum, c) => sum + toNum(c.ticket_promedio), 0) / clientesValidos.length).toFixed(0)
+  : 0;
 
-// Tiempo promedio hasta la primera compra
-const tiempoProm = (
-  data.reduce((sum, c) => sum + toNum(c.dias_hasta_primera_compra), 0) / data.length
-).toFixed(1);
+// Días promedio hasta la primera compra
+const tiempoProm = clientesValidos.length
+  ? (clientesValidos.reduce((sum, c) => sum + toNum(c.dias_hasta_primera_compra), 0) / clientesValidos.length).toFixed(1)
+  : 0;
+
+
+
+
+
+
+
 
 
     // === Renderizar contenido ===
