@@ -215,6 +215,7 @@ console.log("📊 Métricas calculadas:", {
 });
 
 
+// === Renderizar contenido ===
 const main = document.getElementById("contenidoReportesMain");
 main.innerHTML = `
   <div class="ios-card">
@@ -258,6 +259,38 @@ main.innerHTML = `
     </table>
   </div>
 `;
+
+// === Inyectar estilos dinámicamente ===
+const estilo = document.createElement("style");
+estilo.textContent = `
+  .metricas-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .card-metrica {
+    background: #ededed;
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .card-metrica.active {
+    background: #000;
+    color: #fff;
+    transform: scale(1.03);
+  }
+`;
+document.head.appendChild(estilo);
+
+// === Interacción (clic para activar/desactivar) ===
+document.querySelectorAll(".card-metrica").forEach(card => {
+  card.addEventListener("click", () => {
+    card.classList.toggle("active"); // ✅ activa o desactiva individualmente
+  });
+});
+
 // === Tabla top 10 (filtrada por rango de fechas) ===
 
 // ✅ Paso 1: tomar los datos filtrados según rango activo
@@ -389,38 +422,3 @@ enlaces.forEach(item => {
   });
 });
 
-// === Activar animación e interacción ===
-const estilo = document.createElement("style");
-estilo.textContent = `
-  .metricas-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
-  .card-metrica {
-    background: #ededed;
-    border-radius: 15px;
-    padding: 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .card-metrica:hover {
-    background: #dcdcdc;
-    transform: translateY(-3px);
-  }
-  .card-metrica.active {
-    background: #333;
-    color: white;
-    transform: scale(1.05);
-  }
-`;
-document.head.appendChild(estilo);
-
-// === Interacción JS (activar al hacer clic) ===
-document.querySelectorAll(".card-metrica").forEach(card => {
-  card.addEventListener("click", () => {
-    document.querySelectorAll(".card-metrica").forEach(c => c.classList.remove("active"));
-    card.classList.add("active");
-  });
-});
