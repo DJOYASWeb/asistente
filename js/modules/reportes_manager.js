@@ -65,9 +65,25 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const data = JSON.parse(saved);
+    let data;
+    try {
+      data = JSON.parse(saved);
+    } catch (err) {
+      console.warn(`⚠️ Error interpretando JSON de ${tipo}, limpiando almacenamiento...`);
+      localStorage.removeItem(`data_${tipo}`);
+      infoEl.innerHTML = `<p class="text-danger">❌ Archivo corrupto, vuelve a subir ${tipo}.csv</p>`;
+      return;
+    }
+
+    // Verificar que tenga contenido CSV válido
+    if (!data.contenido || typeof data.contenido !== "string") {
+      infoEl.innerHTML = `<p class="text-danger">❌ El archivo guardado no es válido.</p>`;
+      return;
+    }
+
     mostrarTarjetaArchivo(infoEl, data);
   }
+
 
   // === Renderizar tarjeta con info del archivo ===
   function mostrarTarjetaArchivo(infoEl, data) {
