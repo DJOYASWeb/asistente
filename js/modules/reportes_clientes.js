@@ -143,6 +143,36 @@ const parseFecha = (str) => {
   return new Date(y, m - 1, d, h, min, s);
 };
 
+// 🧠 DEBUG – Verificación de fechas y rango seleccionado
+console.log("============== DEBUG RANGO ==============");
+console.log("➡️ Rango actual:", rangoPrincipal);
+if (rangoPrincipal && rangoPrincipal.length === 2) {
+  console.log("   Inicio:", rangoPrincipal[0].toISOString());
+  console.log("   Fin:", rangoPrincipal[1].toISOString());
+} else {
+  console.log("⚠️ No hay rango seleccionado aún.");
+}
+
+// Verificar que existan registros y columnas esperadas
+console.log("➡️ Total registros cargados:", normalizado.length);
+if (normalizado.length > 0) {
+  console.log("📋 Primer registro:", normalizado[0]);
+  console.log("🗝 Claves detectadas:", Object.keys(normalizado[0]));
+}
+
+// Contar cuántos registros tienen fecha válida
+const conFecha = normalizado.filter(c => c.fecha_registro || c.primera_compra);
+console.log(`📅 Registros con fecha detectada: ${conFecha.length} de ${normalizado.length}`);
+
+// Probar conversión de fechas en los primeros 3 registros
+conFecha.slice(0, 3).forEach((c, i) => {
+  const raw = c.fecha_registro || c.primera_compra;
+  const parsed = parseFecha(raw);
+  console.log(`🧩 [${i}] Fecha original: "${raw}" → Objeto:`, parsed);
+});
+console.log("=========================================");
+
+
 // 🕓 Filtrar datos según rango si está seleccionado
 const filtrados = normalizado.filter(c => {
   const fecha = parseFecha(c.fecha_registro || c.primera_compra || "");
