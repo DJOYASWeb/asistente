@@ -1,245 +1,222 @@
 // =========================================
-// ✅ LECTURA DE CSV DESDE GOOGLE DRIVE – reportes_clientes.js
+// ✅ LECTURA DE CSV DESDE GOOGLE DRIVE – reportes_clientes.js (versión limpia)
 // =========================================
 
-// === SELECTOR DE FECHAS iOS ===
-const btnRangoFechas = document.getElementById("btnRangoFechas");
-const dropdownFechas = document.getElementById("dropdownFechas");
-const textoRango = document.getElementById("textoRango");
-const aplicarFechas = document.getElementById("aplicarFechas");
+document.addEventListener("DOMContentLoaded", () => {
+  // === SELECTOR DE FECHAS iOS ===
+  const btnRangoFechas = document.getElementById("btnRangoFechas");
+  const dropdownFechas = document.getElementById("dropdownFechas");
+  const textoRango = document.getElementById("textoRango");
+  const aplicarFechas = document.getElementById("aplicarFechas");
 
-dropdownFechas.addEventListener("click", e => e.stopPropagation());
-btnRangoFechas.addEventListener("click", e => {
-  e.stopPropagation();
-  dropdownFechas.classList.toggle("show");
-  btnRangoFechas.classList.toggle("open");
-});
-document.addEventListener("click", () => {
-  dropdownFechas.classList.remove("show");
-  btnRangoFechas.classList.remove("open");
-});
-
-// === Calendarios ===
-let rangoPrincipal = null;
-let rangoComparar = null;
-
-const calendarioPrincipal = flatpickr("#calendarioPrincipal", {
-  mode: "range",
-  inline: true,
-  dateFormat: "d 'de' F",
-  locale: flatpickr.l10ns.es,
-  onChange: d => (rangoPrincipal = d)
-});
-
-const calendarioComparar = flatpickr("#calendarioComparar", {
-  mode: "range",
-  inline: true,
-  dateFormat: "d 'de' F",
-  locale: flatpickr.l10ns.es,
-  onChange: d => (rangoComparar = d)
-});
-
-document.querySelectorAll(".opcion-fecha").forEach(btn => {
-  btn.addEventListener("click", () => {
-    textoRango.textContent = btn.textContent.trim();
-  });
-});
-
-aplicarFechas.addEventListener("click", () => {
-  if (rangoPrincipal && rangoPrincipal.length === 2) {
-    const [inicio, fin] = rangoPrincipal;
-    const opciones = { day: "numeric", month: "short" };
-    textoRango.textContent =
-      `${inicio.toLocaleDateString("es-ES", opciones)} – ${fin.toLocaleDateString("es-ES", opciones)}`;
-  } else {
-    textoRango.textContent = "Selecciona un rango";
-  }
-  dropdownFechas.classList.remove("show");
-  btnRangoFechas.classList.remove("open");
-});
-
-// =========================================
-// 🔹 FUNCIÓN PRINCIPAL: CARGAR DASHBOARD CLIENTES DESDE GOOGLE DRIVE
-// =========================================
-
-async function cargarDashboardClientes() {
-  try {
-    // === 1️⃣ Cargar CSV desde Google Drive ===
-    const fileId = "1XXXXXXXXXXXXXX"; // ⬅️ Reemplaza esto con tu ID real de Google Drive
-    const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    const response = await fetch(url);
-    const text = await response.text();
-    const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
-
-    // === 2️⃣ Calcular métricas ===
-    const clientesNuevos = data.length;
-    const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
-    const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
-    const ticketPromedio = (
-      data.reduce((acc, c) => acc + parseFloat(c.ticket_promedio || 0), 0) / data.length
-    ).toFixed(0);
-    const tiempoProm = (
-      data.reduce((acc, c) => acc + parseFloat(c.dias_hasta_primera_compra || 0), 0) / data.length
-    ).toFixed(1);
-
-    // === 3️⃣ Renderizar panel principal ===
-    const main = document.getElementById("contenidoReportesMain");
-    main.innerHTML = `
-      <div class="ios-card">
-        <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
-
-        <div class="metricas-grid">
-          <div><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
-          <div><strong>${recurrentes}</strong><p>Recurrentes</p></div>
-          <div><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
-          <div><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
-          <div><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
-        </div>
-
-        <div class="grafico-contenedor">
-          <div id="graficoCategorias"></div>
-          <div id="graficoNuevosVsRecurrentes"></div>
-        </div>
-
-        <h4 style="margin-top:1rem;">Top 10 clientes</h4>
-        <table class="tabla-ios">
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>Email</th>
-              <th>Pedidos</th>
-              <th>Total gastado</th>
-              <th>Categoría</th>
-            </tr>
-          </thead>
-          <tbody id="tablaTopClientes"></tbody>
-        </table>
-      </div>
-    `;
-
-    // === 4️⃣ Gráfico de categorías ===
-    const catMap = {};
-    data.forEach(c => {
-      const cat = c.categoria_principal_mas_comprada || "Sin categoría";
-      catMap[cat] = (catMap[cat] || 0) + 1;
+  if (btnRangoFechas && dropdownFechas && textoRango && aplicarFechas) {
+    dropdownFechas.addEventListener("click", e => e.stopPropagation());
+    btnRangoFechas.addEventListener("click", e => {
+      e.stopPropagation();
+      dropdownFechas.classList.toggle("show");
+      btnRangoFechas.classList.toggle("open");
+    });
+    document.addEventListener("click", () => {
+      dropdownFechas.classList.remove("show");
+      btnRangoFechas.classList.remove("open");
     });
 
-    const categorias = Object.keys(catMap);
-    const valores = Object.values(catMap);
+    let rangoPrincipal = null;
 
-    new ApexCharts(document.querySelector("#graficoCategorias"), {
-      chart: { type: "donut" },
-      labels: categorias,
-      series: valores,
-      legend: { position: "bottom" },
-      title: { text: "Categorías más compradas" }
-    }).render();
+    flatpickr("#calendarioPrincipal", {
+      mode: "range",
+      inline: true,
+      dateFormat: "d 'de' F",
+      locale: flatpickr.l10ns.es,
+      onChange: d => (rangoPrincipal = d)
+    });
 
-    // === 5️⃣ Gráfico nuevos vs recurrentes ===
-    new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
-      chart: { type: "bar" },
-      series: [{ name: "Clientes", data: [clientesNuevos - recurrentes, recurrentes] }],
-      xaxis: { categories: ["Nuevos", "Recurrentes"] },
-      colors: ["#0a84ff", "#5ac8fa"],
-      title: { text: "Nuevos vs Recurrentes" }
-    }).render();
+    document.querySelectorAll(".opcion-fecha").forEach(btn => {
+      btn.addEventListener("click", () => {
+        textoRango.textContent = btn.textContent.trim();
+      });
+    });
 
-    // === 6️⃣ Tabla Top 10 clientes ===
-    const top = data
-      .filter(c => parseFloat(c.total_gastado || 0) > 0)
-      .sort((a, b) => b.total_gastado - a.total_gastado)
-      .slice(0, 10);
-
-    document.getElementById("tablaTopClientes").innerHTML = top
-      .map(
-        c => `
-        <tr>
-          <td>${c.nombre_cliente}</td>
-          <td>${c.email}</td>
-          <td>${c.cantidad_pedidos}</td>
-          <td>$${parseFloat(c.total_gastado).toLocaleString()}</td>
-          <td>${c.categoria_principal_mas_comprada || "-"}</td>
-        </tr>`
-      )
-      .join("");
-  } catch (err) {
-    console.error("❌ Error cargando CSV desde Drive:", err);
-    document.getElementById("contenidoReportesMain").innerHTML = `
-      <div class="ios-card"><p class="text-danger">Error cargando CSV desde Drive.</p></div>`;
+    aplicarFechas.addEventListener("click", () => {
+      if (rangoPrincipal && rangoPrincipal.length === 2) {
+        const [inicio, fin] = rangoPrincipal;
+        const opciones = { day: "numeric", month: "short" };
+        textoRango.textContent =
+          `${inicio.toLocaleDateString("es-ES", opciones)} – ${fin.toLocaleDateString("es-ES", opciones)}`;
+      } else {
+        textoRango.textContent = "Selecciona un rango";
+      }
+      dropdownFechas.classList.remove("show");
+      btnRangoFechas.classList.remove("open");
+    });
   }
-}
 
-// =========================================
-// 🔹 CONTROL DE TABS
-// =========================================
-document.querySelectorAll(".tab-reportes").forEach(btn => {
-  btn.addEventListener("click", async () => {
-    document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    const section = btn.getAttribute("data-section");
-    const main = document.getElementById("contenidoReportesMain");
-    const seccionConfig = document.getElementById("seccion-configuracion");
-
-    if (section === "config") {
-      main.style.display = "none";
-      seccionConfig.style.display = "block";
-    } else {
-      seccionConfig.style.display = "none";
-      main.style.display = "block";
-    }
-
-    if (section === "general" || section === "clientes") {
-      await cargarDashboardClientes();
-    }
-  });
-});
-
-// === Cargar por defecto ===
-document.querySelector('.tab-reportes[data-section="general"]').click();
-
-// =========================================
-// ⚙️ BLOQUE NUEVO – CONFIGURAR ENLACE DE GOOGLE DRIVE
-// =========================================
-
-// Campo de texto donde el usuario pega el enlace de Google Drive
-// y botón para guardarlo en localStorage
-document.addEventListener("DOMContentLoaded", () => {
+  // =========================================
+  // ⚙️ CONFIGURAR ENLACE DE GOOGLE DRIVE (Guardar y cargar)
+  // =========================================
   const inputDrive = document.getElementById("inputDriveCSV");
   const btnGuardarDrive = document.getElementById("btnGuardarDrive");
   const statusDrive = document.getElementById("statusDriveCSV");
 
-  if (!inputDrive || !btnGuardarDrive) return;
+  if (inputDrive && btnGuardarDrive) {
+    const savedId = localStorage.getItem("drive_csv_clientes");
+    if (savedId) {
+      inputDrive.value = `https://drive.google.com/file/d/${savedId}/view?usp=sharing`;
+      if (statusDrive) statusDrive.textContent = "✅ Enlace guardado correctamente.";
+    }
 
-  // Al iniciar, mostrar el valor guardado (si existe)
-  const savedId = localStorage.getItem("drive_csv_clientes");
-  if (savedId) {
-    inputDrive.value = `https://drive.google.com/file/d/${savedId}/view?usp=sharing`;
-    statusDrive.textContent = "✅ Enlace guardado correctamente.";
+    btnGuardarDrive.addEventListener("click", () => {
+      const url = inputDrive.value.trim();
+      if (!url) {
+        alert("Por favor, pega el enlace de Google Drive del archivo CSV.");
+        return;
+      }
+      const match = url.match(/[-\w]{25,}/);
+      if (!match) {
+        alert("⚠️ El enlace de Google Drive no es válido.");
+        return;
+      }
+      const fileId = match[0];
+      localStorage.setItem("drive_csv_clientes", fileId);
+      if (statusDrive) statusDrive.textContent = "✅ Enlace guardado correctamente.";
+      alert("✅ Enlace de Google Drive guardado con éxito.");
+    });
   }
 
-  // Guardar el enlace al presionar el botón
-  btnGuardarDrive.addEventListener("click", () => {
-    const url = inputDrive.value.trim();
-    if (!url) {
-      alert("Por favor, pega el enlace de Google Drive del archivo CSV.");
-      return;
-    }
+  // =========================================
+  // 📊 FUNCIÓN PRINCIPAL: CARGAR DASHBOARD CLIENTES DESDE GOOGLE DRIVE
+  // =========================================
+  async function cargarDashboardClientes() {
+    try {
+      const fileId = localStorage.getItem("drive_csv_clientes") || "1XXXXXXXXXXXXXX"; // <- ID por defecto opcional
+      const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
+      const response = await fetch(url);
+      const text = await response.text();
+      const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-    // Extraer el ID del enlace
-    const match = url.match(/[-\w]{25,}/);
-    if (!match) {
-      alert("⚠️ El enlace de Google Drive no es válido.");
-      return;
-    }
+      const clientesNuevos = data.length;
+      const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
+      const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
+      const ticketPromedio = (
+        data.reduce((acc, c) => acc + parseFloat(c.ticket_promedio || 0), 0) / data.length
+      ).toFixed(0);
+      const tiempoProm = (
+        data.reduce((acc, c) => acc + parseFloat(c.dias_hasta_primera_compra || 0), 0) / data.length
+      ).toFixed(1);
 
-    const fileId = match[0];
-    localStorage.setItem("drive_csv_clientes", fileId);
-    statusDrive.textContent = "✅ Enlace guardado correctamente.";
-    alert("✅ Enlace de Google Drive guardado con éxito.");
+      const main = document.getElementById("contenidoReportesMain");
+      if (!main) return;
+
+      main.innerHTML = `
+        <div class="ios-card">
+          <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
+
+          <div class="metricas-grid">
+            <div><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
+            <div><strong>${recurrentes}</strong><p>Recurrentes</p></div>
+            <div><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
+            <div><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
+            <div><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
+          </div>
+
+          <div class="grafico-contenedor">
+            <div id="graficoCategorias"></div>
+            <div id="graficoNuevosVsRecurrentes"></div>
+          </div>
+
+          <h4 style="margin-top:1rem;">Top 10 clientes</h4>
+          <table class="tabla-ios">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Email</th>
+                <th>Pedidos</th>
+                <th>Total gastado</th>
+                <th>Categoría</th>
+              </tr>
+            </thead>
+            <tbody id="tablaTopClientes"></tbody>
+          </table>
+        </div>
+      `;
+
+      // === Gráfico 1: Categorías más compradas ===
+      const catMap = {};
+      data.forEach(c => {
+        const cat = c.categoria_principal_mas_comprada || "Sin categoría";
+        catMap[cat] = (catMap[cat] || 0) + 1;
+      });
+
+      new ApexCharts(document.querySelector("#graficoCategorias"), {
+        chart: { type: "donut" },
+        labels: Object.keys(catMap),
+        series: Object.values(catMap),
+        legend: { position: "bottom" },
+        title: { text: "Categorías más compradas" }
+      }).render();
+
+      // === Gráfico 2: Nuevos vs recurrentes ===
+      new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
+        chart: { type: "bar" },
+        series: [{ name: "Clientes", data: [clientesNuevos - recurrentes, recurrentes] }],
+        xaxis: { categories: ["Nuevos", "Recurrentes"] },
+        colors: ["#0a84ff", "#5ac8fa"],
+        title: { text: "Nuevos vs Recurrentes" }
+      }).render();
+
+      // === Tabla top 10 clientes ===
+      const top = data
+        .filter(c => parseFloat(c.total_gastado || 0) > 0)
+        .sort((a, b) => b.total_gastado - a.total_gastado)
+        .slice(0, 10);
+
+      document.getElementById("tablaTopClientes").innerHTML = top
+        .map(
+          c => `
+          <tr>
+            <td>${c.nombre_cliente}</td>
+            <td>${c.email}</td>
+            <td>${c.cantidad_pedidos}</td>
+            <td>$${parseFloat(c.total_gastado).toLocaleString()}</td>
+            <td>${c.categoria_principal_mas_comprada || "-"}</td>
+          </tr>`
+        )
+        .join("");
+    } catch (err) {
+      console.error("❌ Error cargando CSV desde Drive:", err);
+      const main = document.getElementById("contenidoReportesMain");
+      if (main)
+        main.innerHTML = `<div class="ios-card"><p class="text-danger">Error cargando CSV desde Drive.</p></div>`;
+    }
+  }
+
+  // =========================================
+  // 🔹 CONTROL DE TABS
+  // =========================================
+  document.querySelectorAll(".tab-reportes").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const section = btn.getAttribute("data-section");
+      const main = document.getElementById("contenidoReportesMain");
+      const seccionConfig = document.getElementById("seccion-configuracion");
+
+      if (section === "config") {
+        main.style.display = "none";
+        seccionConfig.style.display = "block";
+      } else {
+        seccionConfig.style.display = "none";
+        main.style.display = "block";
+      }
+
+      if (section === "general" || section === "clientes") {
+        await cargarDashboardClientes();
+      }
+    });
   });
+
+  // === Seleccionar pestaña inicial ===
+  const tabInicial = document.querySelector('.tab-reportes[data-section="general"]');
+  if (tabInicial) tabInicial.click();
 });
-
-
-const fileId = localStorage.getItem("drive_csv_clientes") || "1XXXXXXXXXXXXXX"; 
-
