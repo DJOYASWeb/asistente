@@ -225,7 +225,7 @@ console.log("📊 Métricas calculadas:", {
           <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${clientesNuevos}</strong><p>Nuevos clientes</p></div>
           <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${recurrentes}</strong><p>Recurrentes</p></div>
           <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
-          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">$${ticketPromedio}</strong><p>Ticket promedio</p></div>
+          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">$${Number(ticketPromedio).toLocaleString('es-CL')}</strong><p>Ticket promedio</p></div>
           <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${tiempoProm}</strong><p>Días hasta primera compra</p></div>
         </div>
 
