@@ -237,7 +237,6 @@ console.log("📊 Métricas calculadas:", {
               <th>Email</th>
               <th>Pedidos</th>
               <th>Total gastado</th>
-              <th>Categoría</th>
             </tr>
           </thead>
           <tbody id="tablaTopClientes"></tbody>
@@ -259,7 +258,6 @@ dataFiltrada.forEach(c => {
       nombre,
       email: c.email || "-",
       ciudad: c.ciudad || "-",
-      categoria: c.categoria_principal_mas_comprada || "-",
       pedidos: 0,
       total: 0
     };
