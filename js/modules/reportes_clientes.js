@@ -82,126 +82,130 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("✅ Enlace de Google Drive guardado con éxito.");
     });
   }
+// =========================================
+// 📊 CARGAR DASHBOARD CLIENTES (Lee desde enlace guardado en localStorage)
+// =========================================
+async function cargarDashboardClientes() {
+  try {
+    const saved = localStorage.getItem("csv_clientes");
 
-  // =========================================
-  // 📊 FUNCIÓN PRINCIPAL: CARGAR DASHBOARD CLIENTES DESDE GOOGLE DRIVE
-  // =========================================
-  async function cargarDashboardClientes() {
-    try {
-// 🔁 NUEVO BLOQUE – compatibilidad Drive/Sheets
-let url = "";
-const saved = localStorage.getItem("drive_csv_clientes");
+    if (!saved) {
+      document.getElementById("contenidoReportesMain").innerHTML = `
+        <div class="ios-card"><p class="muted">⚠️ No hay enlace configurado para Clientes.</p></div>`;
+      return;
+    }
 
-// Si el valor guardado contiene "http", es un enlace completo de Sheets o Drive
-if (saved && saved.startsWith("http")) {
-  url = saved;
-} else if (saved) {
-  // Si es solo un ID, construir la URL de descarga de Drive
-  url = `https://drive.google.com/uc?export=download&id=${saved}`;
-} else {
-  // Valor por defecto opcional
-  url = "https://docs.google.com/spreadsheets/d/e/2PACX-XXXXX/pub?output=csv";
+    // Detectar tipo de enlace (Google Sheets o Drive)
+    let url;
+    if (saved.startsWith("http")) {
+      url = saved;
+    } else {
+      // Por compatibilidad, si solo se guardó el ID
+      url = `https://drive.google.com/uc?export=download&id=${saved}`;
+    }
+
+    // Cargar CSV
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("No se pudo acceder al CSV (verifica permisos públicos).");
+
+    const text = await response.text();
+    const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+
+    // === Calcular métricas ===
+    const clientesNuevos = data.length;
+    const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
+    const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
+    const ticketPromedio = (
+      data.reduce((acc, c) => acc + parseFloat(c.ticket_promedio || 0), 0) / data.length
+    ).toFixed(0);
+    const tiempoProm = (
+      data.reduce((acc, c) => acc + parseFloat(c.dias_hasta_primera_compra || 0), 0) / data.length
+    ).toFixed(1);
+
+    // === Renderizar contenido ===
+    const main = document.getElementById("contenidoReportesMain");
+    main.innerHTML = `
+      <div class="ios-card">
+        <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
+
+        <div class="metricas-grid">
+          <div><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
+          <div><strong>${recurrentes}</strong><p>Recurrentes</p></div>
+          <div><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
+          <div><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
+          <div><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
+        </div>
+
+        <div class="grafico-contenedor">
+          <div id="graficoCategorias"></div>
+          <div id="graficoNuevosVsRecurrentes"></div>
+        </div>
+
+        <h4 style="margin-top:1rem;">Top 10 clientes</h4>
+        <table class="tabla-ios">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Email</th>
+              <th>Pedidos</th>
+              <th>Total gastado</th>
+              <th>Categoría</th>
+            </tr>
+          </thead>
+          <tbody id="tablaTopClientes"></tbody>
+        </table>
+      </div>
+    `;
+
+    // === Gráfico 1: Categorías más compradas ===
+    const catMap = {};
+    data.forEach(c => {
+      const cat = c.categoria_principal_mas_comprada || "Sin categoría";
+      catMap[cat] = (catMap[cat] || 0) + 1;
+    });
+
+    new ApexCharts(document.querySelector("#graficoCategorias"), {
+      chart: { type: "donut" },
+      labels: Object.keys(catMap),
+      series: Object.values(catMap),
+      legend: { position: "bottom" },
+      title: { text: "Categorías más compradas" }
+    }).render();
+
+    // === Gráfico 2: Nuevos vs recurrentes ===
+    new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
+      chart: { type: "bar" },
+      series: [{ name: "Clientes", data: [clientesNuevos - recurrentes, recurrentes] }],
+      xaxis: { categories: ["Nuevos", "Recurrentes"] },
+      colors: ["#0a84ff", "#5ac8fa"],
+      title: { text: "Nuevos vs Recurrentes" }
+    }).render();
+
+    // === Tabla top 10 ===
+    const top = data
+      .filter(c => parseFloat(c.total_gastado || 0) > 0)
+      .sort((a, b) => b.total_gastado - a.total_gastado)
+      .slice(0, 10);
+
+    document.getElementById("tablaTopClientes").innerHTML = top
+      .map(
+        c => `
+        <tr>
+          <td>${c.nombre_cliente}</td>
+          <td>${c.email}</td>
+          <td>${c.cantidad_pedidos}</td>
+          <td>$${parseFloat(c.total_gastado).toLocaleString()}</td>
+          <td>${c.categoria_principal_mas_comprada || "-"}</td>
+        </tr>`
+      )
+      .join("");
+  } catch (err) {
+    console.error("❌ Error cargando dashboard clientes:", err);
+    document.getElementById("contenidoReportesMain").innerHTML = `
+      <div class="ios-card"><p class="text-danger">Error cargando CSV: ${err.message}</p></div>`;
+  }
 }
 
-      const response = await fetch(url);
-      const text = await response.text();
-      const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
-
-      const clientesNuevos = data.length;
-      const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
-      const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
-      const ticketPromedio = (
-        data.reduce((acc, c) => acc + parseFloat(c.ticket_promedio || 0), 0) / data.length
-      ).toFixed(0);
-      const tiempoProm = (
-        data.reduce((acc, c) => acc + parseFloat(c.dias_hasta_primera_compra || 0), 0) / data.length
-      ).toFixed(1);
-
-      const main = document.getElementById("contenidoReportesMain");
-      if (!main) return;
-
-      main.innerHTML = `
-        <div class="ios-card">
-          <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
-
-          <div class="metricas-grid">
-            <div><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
-            <div><strong>${recurrentes}</strong><p>Recurrentes</p></div>
-            <div><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
-            <div><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
-            <div><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
-          </div>
-
-          <div class="grafico-contenedor">
-            <div id="graficoCategorias"></div>
-            <div id="graficoNuevosVsRecurrentes"></div>
-          </div>
-
-          <h4 style="margin-top:1rem;">Top 10 clientes</h4>
-          <table class="tabla-ios">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Email</th>
-                <th>Pedidos</th>
-                <th>Total gastado</th>
-                <th>Categoría</th>
-              </tr>
-            </thead>
-            <tbody id="tablaTopClientes"></tbody>
-          </table>
-        </div>
-      `;
-
-      // === Gráfico 1: Categorías más compradas ===
-      const catMap = {};
-      data.forEach(c => {
-        const cat = c.categoria_principal_mas_comprada || "Sin categoría";
-        catMap[cat] = (catMap[cat] || 0) + 1;
-      });
-
-      new ApexCharts(document.querySelector("#graficoCategorias"), {
-        chart: { type: "donut" },
-        labels: Object.keys(catMap),
-        series: Object.values(catMap),
-        legend: { position: "bottom" },
-        title: { text: "Categorías más compradas" }
-      }).render();
-
-      // === Gráfico 2: Nuevos vs recurrentes ===
-      new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
-        chart: { type: "bar" },
-        series: [{ name: "Clientes", data: [clientesNuevos - recurrentes, recurrentes] }],
-        xaxis: { categories: ["Nuevos", "Recurrentes"] },
-        colors: ["#0a84ff", "#5ac8fa"],
-        title: { text: "Nuevos vs Recurrentes" }
-      }).render();
-
-      // === Tabla top 10 clientes ===
-      const top = data
-        .filter(c => parseFloat(c.total_gastado || 0) > 0)
-        .sort((a, b) => b.total_gastado - a.total_gastado)
-        .slice(0, 10);
-
-      document.getElementById("tablaTopClientes").innerHTML = top
-        .map(
-          c => `
-          <tr>
-            <td>${c.nombre_cliente}</td>
-            <td>${c.email}</td>
-            <td>${c.cantidad_pedidos}</td>
-            <td>$${parseFloat(c.total_gastado).toLocaleString()}</td>
-            <td>${c.categoria_principal_mas_comprada || "-"}</td>
-          </tr>`
-        )
-        .join("");
-    } catch (err) {
-      console.error("❌ Error cargando CSV desde Drive:", err);
-      const main = document.getElementById("contenidoReportesMain");
-      if (main)
-        main.innerHTML = `<div class="ios-card"><p class="text-danger">Error cargando CSV desde Drive.</p></div>`;
-    }
-  }
 
   // =========================================
   // 🔹 CONTROL DE TABS
