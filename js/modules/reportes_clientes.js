@@ -39,18 +39,24 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    aplicarFechas.addEventListener("click", () => {
-      if (rangoPrincipal && rangoPrincipal.length === 2) {
-        const [inicio, fin] = rangoPrincipal;
-        const opciones = { day: "numeric", month: "short" };
-        textoRango.textContent =
-          `${inicio.toLocaleDateString("es-ES", opciones)} – ${fin.toLocaleDateString("es-ES", opciones)}`;
-      } else {
-        textoRango.textContent = "Selecciona un rango";
-      }
-      dropdownFechas.classList.remove("show");
-      btnRangoFechas.classList.remove("open");
-    });
+aplicarFechas.addEventListener("click", async () => {
+  if (rangoPrincipal && rangoPrincipal.length === 2) {
+    const [inicio, fin] = rangoPrincipal;
+    const opciones = { day: "numeric", month: "short" };
+    textoRango.textContent =
+      `${inicio.toLocaleDateString("es-ES", opciones)} – ${fin.toLocaleDateString("es-ES", opciones)}`;
+
+    // 🔁 Recargar dashboard clientes con el nuevo rango
+    console.log("📅 Nuevo rango aplicado:", inicio, "→", fin);
+    await cargarDashboardClientes();
+  } else {
+    textoRango.textContent = "Selecciona un rango";
+    console.warn("⚠️ Intento de aplicar rango sin fechas seleccionadas.");
+  }
+
+  dropdownFechas.classList.remove("show");
+  btnRangoFechas.classList.remove("open");
+});
   }
 
   // =========================================
