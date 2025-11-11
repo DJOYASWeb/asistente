@@ -233,3 +233,28 @@ if (saved && saved.startsWith("http")) {
   const tabInicial = document.querySelector('.tab-reportes[data-section="general"]');
   if (tabInicial) tabInicial.click();
 });
+
+// === CONFIGURADOR MINIMALISTA DE ENLACES CSV ===
+const enlaces = [
+  { id: "Clientes", key: "csv_clientes" },
+  { id: "Ventas", key: "csv_ventas" },
+  { id: "Pedidos", key: "csv_pedidos" }
+];
+
+enlaces.forEach(item => {
+  const input = document.getElementById(`link${item.id}`);
+  const btn = document.getElementById(`btnGuardar${item.id}`);
+  if (!input || !btn) return;
+
+  // Mostrar valor guardado
+  const saved = localStorage.getItem(item.key);
+  if (saved) input.value = saved;
+
+  // Guardar nuevo enlace
+  btn.addEventListener("click", () => {
+    const url = input.value.trim();
+    if (!url) return alert("Pega un enlace válido para " + item.id);
+    localStorage.setItem(item.key, url);
+    document.getElementById("statusLinks").textContent = `✅ Enlace de ${item.id} guardado.`;
+  });
+});
