@@ -74,7 +74,7 @@ async function cargarDashboardClientes() {
     const text = await response.text();
     const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-    // === Métricas ===
+      // === Métricas ===
     const clientesNuevos = data.length;
     const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
     const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
@@ -85,6 +85,7 @@ async function cargarDashboardClientes() {
       data.reduce((acc, c) => acc + parseFloat(c.dias_hasta_primera_compra || 0), 0) / data.length
     ).toFixed(1);
 
+    // === Render dinámico del dashboard ===
     document.getElementById("contenidoReportesMain").innerHTML = `
       <div class="ios-card">
         <h2><i class="fa-solid fa-user-group"></i> Clientes</h2>
@@ -108,6 +109,7 @@ async function cargarDashboardClientes() {
         </table>
       </div>
     `;
+
 
     const catMap = {};
     data.forEach(c => {
