@@ -1,15 +1,18 @@
 // =========================================
-// 🔁 INICIO BLOQUE MODIFICADO – reportes_manager.js (Fase 2)
+// ✅ VERSIÓN CORREGIDA SIN STORAGE – reportes_manager.js (Fase 2 Final)
 // =========================================
 
 document.addEventListener("DOMContentLoaded", () => {
   const db = firebase.firestore();
+
+  // === Configuración de inputs ===
   const tipos = [
     { tipo: "ventas", input: "inputVentas", info: "infoVentas" },
     { tipo: "clientes", input: "inputClientes", info: "infoClientes" },
     { tipo: "pedidos", input: "inputPedidos", info: "infoPedidos" }
   ];
 
+  // Vincular inputs
   tipos.forEach(cfg => {
     const inputEl = document.getElementById(cfg.input);
     const infoEl = document.getElementById(cfg.info);
@@ -20,38 +23,41 @@ document.addEventListener("DOMContentLoaded", () => {
     inputEl.addEventListener("change", e => {
       const file = e.target.files[0];
       if (!file) return;
-      subirArchivoFirebase(cfg.tipo, file, infoEl);
+      subirArchivoFirestore(cfg.tipo, file, infoEl);
     });
   });
 
-  // === Subida a Firebase Storage + Firestore ===
-  async function subirArchivoFirebase(tipo, file, infoEl) {
-    const storageRef = storage.ref(`reportes/${tipo}.csv`);
-    infoEl.innerHTML = `<p>⏳ Subiendo <strong>${file.name}</strong>...</p>`;
+  // === Subida directa a Firestore (sin Storage) ===
+  async function subirArchivoFirestore(tipo, file, infoEl) {
+    infoEl.innerHTML = `<p>⏳ Procesando <strong>${file.name}</strong>...</p>`;
     try {
-      await storageRef.put(file);
-      const url = await storageRef.getDownloadURL();
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        const contenido = ev.target.result;
 
-      const registro = {
-        nombreArchivo: file.name,
-        tamanoKB: (file.size / 1024).toFixed(1),
-        fechaSubida: new Date().toISOString(),
-        url,
-        tipo,
-        estado: "listo"
+        const registro = {
+          nombreArchivo: file.name,
+          tamanoKB: (file.size / 1024).toFixed(1),
+          fechaSubida: new Date().toISOString(),
+          tipo,
+          contenido, // Guardamos el CSV directamente como texto
+          estado: "listo"
+        };
+
+        await db.collection("reportes_datos").doc(tipo).set(registro);
+
+        mostrarTarjetaArchivo(infoEl, registro);
+        mostrarToast(`✅ Archivo ${tipo} cargado correctamente.`, "exito");
       };
-
-      await db.collection("reportes_datos").doc(tipo).set(registro);
-      mostrarTarjetaArchivo(infoEl, registro);
-      mostrarToast(`Archivo ${tipo} cargado con éxito ✅`, "exito");
+      reader.readAsText(file);
     } catch (err) {
-      console.error("Error al subir archivo:", err);
+      console.error("❌ Error al subir archivo:", err);
       infoEl.innerHTML = `<p class="text-danger">❌ Error al subir ${file.name}</p>`;
       mostrarToast(`Error al subir ${tipo}: ${err.message}`, "error");
     }
   }
 
-  // === Cargar último archivo de Firestore ===
+  // === Cargar último archivo guardado en Firestore ===
   async function cargarUltimoArchivo(tipo, infoEl) {
     try {
       const doc = await db.collection("reportes_datos").doc(tipo).get();
@@ -61,12 +67,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       mostrarTarjetaArchivo(infoEl, doc.data());
     } catch (err) {
-      console.error("Error leyendo metadatos:", err);
-      infoEl.innerHTML = `<p class="text-danger">❌ Error al cargar información.</p>`;
+      console.error("❌ Error leyendo archivo:", err);
+      infoEl.innerHTML = `<p class="text-danger">Error al cargar información.</p>`;
     }
   }
 
-  // === Renderizar tarjeta de estado del archivo ===
+  // === Renderizar tarjeta con info de archivo ===
   function mostrarTarjetaArchivo(infoEl, data) {
     const fecha = new Date(data.fechaSubida).toLocaleString();
     infoEl.innerHTML = `
@@ -81,31 +87,31 @@ document.addEventListener("DOMContentLoaded", () => {
           <p><strong>Tamaño:</strong> ${data.tamanoKB} KB</p>
           <p><strong>Fecha:</strong> ${fecha}</p>
         </div>
-        <button class="btn-ver" onclick="mostrarPrevisualizacion('${data.tipo}', '${data.url}')">
+        <button class="btn-ver" onclick="mostrarPrevisualizacion('${data.tipo}')">
           👁 Ver contenido
         </button>
       </div>
     `;
   }
 
-  // === Procesar archivos (solo verifica existencia) ===
+  // === Procesar archivos disponibles ===
   async function procesarArchivos() {
     mostrarToast("Procesando archivos disponibles...", "alerta");
     try {
       const snapshot = await db.collection("reportes_datos").get();
       if (snapshot.empty) {
-        mostrarToast("⚠️ No hay archivos cargados aún en Firebase.", "alerta");
+        mostrarToast("⚠️ No hay archivos cargados aún en Firestore.", "alerta");
         return;
       }
       const archivos = snapshot.docs.map(d => d.data());
       console.log("📦 Archivos disponibles:", archivos);
-      mostrarToast(`✅ ${archivos.length} archivo(s) disponibles.`, "exito");
+      mostrarToast(`✅ ${archivos.length} archivo(s) listos.`, "exito");
     } catch (err) {
       mostrarToast(`❌ Error al procesar archivos: ${err.message}`, "error");
     }
   }
 
-  // === Toasts reutilizables ===
+  // === Toasts (notificaciones visuales) ===
   function mostrarToast(mensaje, tipo = "exito") {
     const toast = document.createElement("div");
     toast.className = `toast-notif toast-${tipo}`;
@@ -116,16 +122,21 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => toast.remove(), 4000);
   }
 
-  // Exponer función global para el botón HTML
+  // Exponer función global para botón HTML
   window.procesarArchivos = procesarArchivos;
 });
 
-// === Previsualización (modal dinámico) ===
-window.mostrarPrevisualizacion = async function (tipo, url) {
+// === Previsualización del CSV desde Firestore ===
+window.mostrarPrevisualizacion = async function (tipo) {
   try {
-    const response = await fetch(url);
-    const text = await response.text();
-    const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+    const doc = await firebase.firestore().collection("reportes_datos").doc(tipo).get();
+    if (!doc.exists) {
+      alert("⚠️ No hay archivo guardado para " + tipo);
+      return;
+    }
+
+    const contenido = doc.data().contenido;
+    const data = Papa.parse(contenido, { header: true, skipEmptyLines: true }).data;
     const primerasFilas = data.slice(0, 10);
     const columnas = Object.keys(primerasFilas[0] || {});
 
@@ -151,11 +162,11 @@ window.mostrarPrevisualizacion = async function (tipo, url) {
     `;
     document.body.appendChild(modal);
   } catch (err) {
-    console.error("Error en previsualización:", err);
-    alert("❌ No se pudo cargar la previsualización.");
+    console.error("❌ Error en previsualización:", err);
+    alert("No se pudo cargar la previsualización.");
   }
 };
 
 // =========================================
-// 🔁 FIN BLOQUE MODIFICADO – reportes_manager.js (Fase 2)
+// 🔁 FIN BLOQUE CORREGIDO – reportes_manager.js (Fase 2 Final)
 // =========================================
