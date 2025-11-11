@@ -111,16 +111,25 @@ async function cargarDashboardClientes() {
     const text = await response.text();
     const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-    // === Calcular métricas ===
-    const clientesNuevos = data.length;
-    const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
-    const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
-    const ticketPromedio = (
-      data.reduce((acc, c) => acc + parseFloat(c.ticket_promedio || 0), 0) / data.length
-    ).toFixed(0);
-    const tiempoProm = (
-      data.reduce((acc, c) => acc + parseFloat(c.dias_hasta_primera_compra || 0), 0) / data.length
-    ).toFixed(1);
+// === Calcular métricas con tus columnas reales ===
+const clientesNuevos = data.length;
+
+// Clientes con más de 1 pedido
+const recurrentes = data.filter(c => Number(c.cantidad_pedidos) > 1).length;
+
+// Tasa de repetición (%)
+const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
+
+// Ticket promedio (promedio de ticket_promedio)
+const ticketPromedio = (
+  data.reduce((sum, c) => sum + Number(c.ticket_promedio || 0), 0) / data.length
+).toFixed(0);
+
+// Tiempo promedio hasta la primera compra
+const tiempoProm = (
+  data.reduce((sum, c) => sum + Number(c.dias_hasta_primera_compra || 0), 0) / data.length
+).toFixed(1);
+
 
     // === Renderizar contenido ===
     const main = document.getElementById("contenidoReportesMain");
