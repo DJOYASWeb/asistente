@@ -222,11 +222,11 @@ console.log("📊 Métricas calculadas:", {
         <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
 
         <div class="metricas-grid">
-          <div class="caja"><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
-          <div class="caja"><strong>${recurrentes}</strong><p>Recurrentes</p></div>
-          <div class="caja"><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
-          <div class="caja"><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
-          <div class="caja"><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
+          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
+          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong>${recurrentes}</strong><p>Recurrentes</p></div>
+          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
+          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
+          <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
         </div>
 
         <div class="grafico-contenedor">
