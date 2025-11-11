@@ -2773,3 +2773,7 @@ textarea.form-control.inspira{
   border-radius: 6px;
   cursor: pointer;
 }
+
+.metricas-grid div{
+background:#ededed;  
+}
