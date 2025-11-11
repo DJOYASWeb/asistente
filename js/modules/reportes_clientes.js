@@ -244,24 +244,54 @@ console.log("📊 Métricas calculadas:", {
         </table>
       </div>
     `;
-    // === Tabla top 10 ===
-    const top = data
-      .filter(c => parseFloat(c.total_gastado || 0) > 0)
-      .sort((a, b) => b.total_gastado - a.total_gastado)
-      .slice(0, 10);
+// === Tabla top 10 (filtrada por rango de fechas) ===
 
-    document.getElementById("tablaTopClientes").innerHTML = top
-      .map(
-        c => `
-        <tr>
-          <td>${c.nombre_cliente}</td>
-          <td>${c.email}</td>
-          <td>${c.cantidad_pedidos}</td>
-          <td>$${parseFloat(c.total_gastado).toLocaleString()}</td>
-          <td>${c.categoria_principal_mas_comprada || "-"}</td>
-        </tr>`
-      )
-      .join("");
+// ✅ Paso 1: tomar los datos filtrados según rango activo
+let dataFiltrada = filtrados;
+
+// ✅ Paso 2: agrupar por cliente y sumar total gastado dentro del rango
+const clientesMap = {};
+
+dataFiltrada.forEach(c => {
+  const nombre = c.nombre_cliente || "Sin nombre";
+  if (!clientesMap[nombre]) {
+    clientesMap[nombre] = {
+      nombre,
+      email: c.email || "-",
+      ciudad: c.ciudad || "-",
+      categoria: c.categoria_principal_mas_comprada || "-",
+      pedidos: 0,
+      total: 0
+    };
+  }
+
+  clientesMap[nombre].pedidos += parseInt(c.cantidad_pedidos || 0);
+  clientesMap[nombre].total += parseFloat(c.total_gastado || 0);
+});
+
+// ✅ Paso 3: convertir a array y ordenar por total gastado
+const top = Object.values(clientesMap)
+  .filter(c => c.total > 0)
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 10);
+
+// ✅ Paso 4: renderizar tabla
+document.getElementById("tablaTopClientes").innerHTML =
+  top.length > 0
+    ? top
+        .map(
+          (c, i) => `
+          <tr>
+            <td><strong>${i + 1}.</strong> ${c.nombre}</td>
+            <td>${c.email}</td>
+            <td>${c.pedidos}</td>
+            <td>$${c.total.toLocaleString()}</td>
+            <td>${c.categoria}</td>
+          </tr>`
+        )
+        .join("")
+    : `<tr><td colspan="5" class="text-center text-muted">⚠️ No se encontraron clientas con compras en el rango seleccionado.</td></tr>`;
+
   } catch (err) {
     console.error("❌ Error cargando dashboard clientes:", err);
     document.getElementById("contenidoReportesMain").innerHTML = `
