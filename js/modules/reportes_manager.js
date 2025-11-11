@@ -4,8 +4,6 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const db = firebase.firestore();
-  const storage = firebase.storage();
-
   const tipos = [
     { tipo: "ventas", input: "inputVentas", info: "infoVentas" },
     { tipo: "clientes", input: "inputClientes", info: "infoClientes" },
