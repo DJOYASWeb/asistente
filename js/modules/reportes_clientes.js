@@ -112,7 +112,7 @@ async function cargarDashboardClientes() {
 const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
 // 🧹 Normalizar encabezados
-const filtrados = data.map(row => {
+const normalizado = data.map(row => {
   const limpio = {};
   Object.keys(row).forEach(k => {
     const key = k.trim().toLowerCase().replace(/\s+/g, "_");
