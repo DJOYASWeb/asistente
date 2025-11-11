@@ -212,56 +212,28 @@
 <!-- 🔧 CENTRO DE DATOS – CARGA Y GESTIÓN LOCAL -->
 <!-- ========================================= -->
 <div id="seccion-configuracion" class="seccion-reportes" style="display:none;">
-  <div class="ios-card mt-4">
-    <h2><i class="fa-solid fa-database"></i> Centro de Datos</h2>
-    <p class="text-muted">Sube tus archivos exportados (.csv o .xlsx) para alimentar los reportes.</p>
+<div class="ios-card mt-4 p-3">
+  <h4><i class="fa-solid fa-link"></i> Enlaces CSV</h4>
+  <p class="text-muted small">Pega los enlaces CSV públicos (Google Sheets o Drive) para cada reporte.</p>
 
-    <!-- === BLOQUE CLIENTES === -->
-    <div class="ios-card mt-4 p-3">
-      <h4><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h4>
-      <input type="file" id="inputClientes" accept=".csv,.xlsx" class="form-control mb-2">
-      <div id="infoClientes" class="small text-muted"></div>
+  <div class="d-flex flex-column gap-2 mt-3">
+    <div class="d-flex gap-2">
+      <input id="linkClientes" type="url" class="form-control form-control-sm" placeholder="Clientes – enlace CSV">
+      <button id="btnGuardarClientes" class="btn btn-sm btn-primary">💾</button>
     </div>
-
-    <!-- === BLOQUE VENTAS === -->
-    <div class="ios-card mt-4 p-3">
-      <h4><i class="fa-solid fa-cart-shopping"></i> Reporte de Ventas</h4>
-      <input type="file" id="inputVentas" accept=".csv,.xlsx" class="form-control mb-2">
-      <div id="infoVentas" class="small text-muted"></div>
+    <div class="d-flex gap-2">
+      <input id="linkVentas" type="url" class="form-control form-control-sm" placeholder="Ventas – enlace CSV">
+      <button id="btnGuardarVentas" class="btn btn-sm btn-primary">💾</button>
     </div>
-
-    <!-- === BLOQUE PEDIDOS === -->
-    <div class="ios-card mt-4 p-3">
-      <h4><i class="fa-solid fa-box"></i> Reporte de Pedidos</h4>
-      <input type="file" id="inputPedidos" accept=".csv,.xlsx" class="form-control mb-2">
-      <div id="infoPedidos" class="small text-muted"></div>
-    </div>
-
-    <!-- === BLOQUE ENLACE DRIVE (opcional) === -->
-    <div class="ios-card mt-4 p-3">
-      <h4>📎 Enlace CSV de Google Drive</h4>
-      <p class="text-muted">
-        Pega aquí el enlace público de tu archivo CSV en Google Drive.  
-        El sistema guardará el ID para usarlo en el dashboard de clientes.
-      </p>
-
-      <div class="d-flex gap-2 flex-wrap align-items-center">
-        <input id="inputDriveCSV" type="url"
-               placeholder="https://drive.google.com/file/d/..." 
-               class="form-control" style="max-width:500px;">
-        <button id="btnGuardarDrive" class="btn btn-primary">Guardar enlace</button>
-      </div>
-
-      <p id="statusDriveCSV" class="mt-2 text-muted small"></p>
-    </div>
-
-    <!-- === BOTÓN PROCESAR DATOS === -->
-    <div class="text-center mt-4">
-      <button class="btn btn-success" onclick="procesarArchivos()">
-        <i class="fa-solid fa-gear"></i> Procesar Datos
-      </button>
+    <div class="d-flex gap-2">
+      <input id="linkPedidos" type="url" class="form-control form-control-sm" placeholder="Pedidos – enlace CSV">
+      <button id="btnGuardarPedidos" class="btn btn-sm btn-primary">💾</button>
     </div>
   </div>
+
+  <p id="statusLinks" class="text-muted small mt-2"></p>
+</div>
+
 </div>
 <!-- ========================================= -->
 <!-- 🔚 FIN CENTRO DE DATOS -->

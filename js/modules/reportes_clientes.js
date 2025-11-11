@@ -88,8 +88,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================================
   async function cargarDashboardClientes() {
     try {
-      const fileId = localStorage.getItem("drive_csv_clientes") || "1XXXXXXXXXXXXXX"; // <- ID por defecto opcional
-      const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
+// 🔁 NUEVO BLOQUE – compatibilidad Drive/Sheets
+let url = "";
+const saved = localStorage.getItem("drive_csv_clientes");
+
+// Si el valor guardado contiene "http", es un enlace completo de Sheets o Drive
+if (saved && saved.startsWith("http")) {
+  url = saved;
+} else if (saved) {
+  // Si es solo un ID, construir la URL de descarga de Drive
+  url = `https://drive.google.com/uc?export=download&id=${saved}`;
+} else {
+  // Valor por defecto opcional
+  url = "https://docs.google.com/spreadsheets/d/e/2PACX-XXXXX/pub?output=csv";
+}
+
       const response = await fetch(url);
       const text = await response.text();
       const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
