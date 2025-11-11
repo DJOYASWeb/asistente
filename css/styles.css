@@ -2777,3 +2777,26 @@ textarea.form-control.inspira{
 .caja{
 background:#ededed;border-radius: 15px;padding: 1rem;
 }
+
+  .metricas-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .card-metrica {
+    background: #ededed;
+    border-radius: 15px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .card-metrica:hover {
+    background: #dcdcdc;
+    transform: translateY(-3px);
+  }
+  .card-metrica.active {
+    background: #333;
+    color: white;
+    transform: scale(1.05);
+  }

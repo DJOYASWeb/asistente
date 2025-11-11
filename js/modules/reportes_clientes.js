@@ -373,3 +373,11 @@ enlaces.forEach(item => {
     document.getElementById("statusLinks").textContent = `✅ Enlace de ${item.id} guardado.`;
   });
 });
+
+// === Interacción JS (activar al hacer clic) ===
+document.querySelectorAll(".card-metrica").forEach(card => {
+  card.addEventListener("click", () => {
+    document.querySelectorAll(".card-metrica").forEach(c => c.classList.remove("active"));
+    card.classList.add("active");
+  });
+});
