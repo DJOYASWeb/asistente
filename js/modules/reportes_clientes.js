@@ -229,11 +229,6 @@ console.log("📊 Métricas calculadas:", {
           <div style="background:#ededed;border-radius: 15px;padding: 1rem;"><strong style="font-size: 2rem;">${tiempoProm}</strong><p>Días hasta primera compra</p></div>
         </div>
 
-        <div class="grafico-contenedor">
-          <div id="graficoCategorias"></div>
-          <div id="graficoNuevosVsRecurrentes"></div>
-        </div>
-
         <h4 style="margin-top:1rem;">Top 10 clientes</h4>
         <table class="tabla-ios">
           <thead>
@@ -249,40 +244,6 @@ console.log("📊 Métricas calculadas:", {
         </table>
       </div>
     `;
-
-// === Gráfico 1: Ciudades con más clientas nuevas ===
-const ciudadMap = {};
-filtrados.forEach(c => {
-  const ciudad = (c.ciudad || "Sin ciudad").trim();
-  ciudadMap[ciudad] = (ciudadMap[ciudad] || 0) + 1;
-});
-
-// Obtener las 10 ciudades principales
-const topCiudades = Object.entries(ciudadMap)
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 10);
-
-const nombresCiudades = topCiudades.map(c => c[0]);
-const valoresCiudades = topCiudades.map(c => c[1]);
-
-new ApexCharts(document.querySelector("#graficoCategorias"), {
-  chart: { type: "bar", height: 300 },
-  series: [{ name: "Clientes Nuevos", data: valoresCiudades }],
-  xaxis: { categories: nombresCiudades },
-  colors: ["#0a84ff"],
-  title: { text: "🏙️ Ciudades con más clientas nuevas" },
-  legend: { show: false }
-}).render();
-
-    // === Gráfico 2: Nuevos vs recurrentes ===
-    new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
-      chart: { type: "bar" },
-      series: [{ name: "Clientes", data: [clientesNuevos - recurrentes, recurrentes] }],
-      xaxis: { categories: ["Nuevos", "Recurrentes"] },
-      colors: ["#0a84ff", "#5ac8fa"],
-      title: { text: "Nuevos vs Recurrentes" }
-    }).render();
-
     // === Tabla top 10 ===
     const top = data
       .filter(c => parseFloat(c.total_gastado || 0) > 0)
