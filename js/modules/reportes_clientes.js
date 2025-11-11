@@ -1,5 +1,5 @@
 // =========================================
-//reportes_clientes.js
+// 🔁 INICIO BLOQUE MODIFICADO – reportes_clientes.js
 // =========================================
 
 // === SELECTOR DE FECHAS iOS ===
@@ -8,17 +8,12 @@ const dropdownFechas = document.getElementById("dropdownFechas");
 const textoRango = document.getElementById("textoRango");
 const aplicarFechas = document.getElementById("aplicarFechas");
 
-// ✅ Evita que el dropdown se cierre al hacer clic dentro
 dropdownFechas.addEventListener("click", e => e.stopPropagation());
-
-// Abre/cierra el popover
-btnRangoFechas.addEventListener("click", (e) => {
+btnRangoFechas.addEventListener("click", e => {
   e.stopPropagation();
   dropdownFechas.classList.toggle("show");
   btnRangoFechas.classList.toggle("open");
 });
-
-// Cierra al hacer clic fuera
 document.addEventListener("click", () => {
   dropdownFechas.classList.remove("show");
   btnRangoFechas.classList.remove("open");
@@ -28,126 +23,140 @@ document.addEventListener("click", () => {
 let rangoPrincipal = null;
 let rangoComparar = null;
 
-// Flatpickr principal
 const calendarioPrincipal = flatpickr("#calendarioPrincipal", {
   mode: "range",
   inline: true,
   dateFormat: "d 'de' F",
   locale: flatpickr.l10ns.es,
-  onChange: function(selectedDates) {
-    rangoPrincipal = selectedDates;
-  }
+  onChange: d => (rangoPrincipal = d)
 });
 
-// Flatpickr comparativo
 const calendarioComparar = flatpickr("#calendarioComparar", {
   mode: "range",
   inline: true,
   dateFormat: "d 'de' F",
   locale: flatpickr.l10ns.es,
-  onChange: function(selectedDates) {
-    rangoComparar = selectedDates;
-  }
+  onChange: d => (rangoComparar = d)
 });
 
-// === Opciones predefinidas ===
 document.querySelectorAll(".opcion-fecha").forEach(btn => {
   btn.addEventListener("click", () => {
-    const rango = btn.textContent.trim();
-    textoRango.textContent = rango;
+    textoRango.textContent = btn.textContent.trim();
   });
 });
 
-// === Aplicar selección ===
 aplicarFechas.addEventListener("click", () => {
   if (rangoPrincipal && rangoPrincipal.length === 2) {
     const [inicio, fin] = rangoPrincipal;
-    const opciones = { day: 'numeric', month: 'short' };
-    const inicioTxt = inicio.toLocaleDateString('es-ES', opciones);
-    const finTxt = fin.toLocaleDateString('es-ES', opciones);
-    textoRango.textContent = `${inicioTxt} – ${finTxt}`;
+    const opciones = { day: "numeric", month: "short" };
+    textoRango.textContent =
+      `${inicio.toLocaleDateString("es-ES", opciones)} – ${fin.toLocaleDateString("es-ES", opciones)}`;
   } else {
     textoRango.textContent = "Selecciona un rango";
   }
-
-  // Cerrar el popover
   dropdownFechas.classList.remove("show");
   btnRangoFechas.classList.remove("open");
 });
 
+// === DASHBOARD CLIENTES ===
 async function cargarDashboardClientes() {
-  // === Paso 1: Cargar CSV ===
-  const response = await fetch("tu_archivo_clientes.csv");
-  const text = await response.text();
-  const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+  try {
+    const snapshot = await firebase.firestore().collection("reportes_datos").doc("clientes").get();
+    if (!snapshot.exists) {
+      console.warn("⚠️ No hay archivo de clientes cargado aún.");
+      document.getElementById("contenidoReportesMain").innerHTML = `
+        <div class="ios-card"><p class="muted">⚠️ No hay datos de clientes disponibles.</p></div>`;
+      return;
+    }
 
-  // === Paso 2: Calcular métricas ===
-  const clientesNuevos = data.length;
-  const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
-  const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
-  const ticketPromedio = (
-    data.reduce((acc, c) => acc + (parseFloat(c.ticket_promedio || 0)), 0) / data.length
-  ).toFixed(0);
-  const tiempoProm = (
-    data.reduce((acc, c) => acc + (parseFloat(c.dias_hasta_primera_compra || 0)), 0) / data.length
-  ).toFixed(1);
+    const dataFile = snapshot.data();
+    const response = await fetch(dataFile.url);
+    const text = await response.text();
+    const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-  // === Paso 3: Actualizar métricas ===
-  document.getElementById("mClientesNuevos").textContent = clientesNuevos;
-  document.getElementById("mClientesRecurrentes").textContent = recurrentes;
-  document.getElementById("mTasaRepeticion").textContent = tasaRepeticion + "%";
-  document.getElementById("mTicketPromedio").textContent = "$" + ticketPromedio;
-  document.getElementById("mTiempoPrimera").textContent = tiempoProm + " días";
+    // === Métricas ===
+    const clientesNuevos = data.length;
+    const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
+    const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
+    const ticketPromedio = (
+      data.reduce((acc, c) => acc + parseFloat(c.ticket_promedio || 0), 0) / data.length
+    ).toFixed(0);
+    const tiempoProm = (
+      data.reduce((acc, c) => acc + parseFloat(c.dias_hasta_primera_compra || 0), 0) / data.length
+    ).toFixed(1);
 
-  // === Paso 4: Gráfico categorías ===
-  const catMap = {};
-  data.forEach(c => {
-    const cat = c.categoria_principal_mas_comprada || "Sin categoría";
-    catMap[cat] = (catMap[cat] || 0) + 1;
-  });
+    document.getElementById("contenidoReportesMain").innerHTML = `
+      <div class="ios-card">
+        <h2><i class="fa-solid fa-user-group"></i> Clientes</h2>
+        <div class="metricas-grid">
+          <div><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
+          <div><strong>${recurrentes}</strong><p>Recurrentes</p></div>
+          <div><strong>${tasaRepeticion}%</strong><p>Tasa de repetición</p></div>
+          <div><strong>$${ticketPromedio}</strong><p>Ticket promedio</p></div>
+          <div><strong>${tiempoProm}</strong><p>Días hasta primera compra</p></div>
+        </div>
 
-  const categorias = Object.keys(catMap);
-  const valores = Object.values(catMap);
+        <div class="grafico-contenedor">
+          <div id="graficoCategorias"></div>
+          <div id="graficoNuevosVsRecurrentes"></div>
+        </div>
 
-  new ApexCharts(document.querySelector("#graficoCategorias"), {
-    chart: { type: "donut" },
-    labels: categorias,
-    series: valores,
-    legend: { position: "bottom" },
-    title: { text: "Categorías más compradas" }
-  }).render();
+        <h4 style="margin-top:1rem;">Top 10 clientes</h4>
+        <table class="tabla-ios">
+          <thead><tr><th>Cliente</th><th>Email</th><th>Pedidos</th><th>Total gastado</th><th>Categoría</th></tr></thead>
+          <tbody id="tablaTopClientes"></tbody>
+        </table>
+      </div>
+    `;
 
-  // === Paso 5: Gráfico nuevos vs recurrentes ===
-  new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
-    chart: { type: "bar" },
-    series: [{
-      name: "Clientes",
-      data: [clientesNuevos - recurrentes, recurrentes]
-    }],
-    xaxis: { categories: ["Nuevos", "Recurrentes"] },
-    colors: ["#0a84ff", "#5ac8fa"],
-    title: { text: "Nuevos vs Recurrentes" }
-  }).render();
+    const catMap = {};
+    data.forEach(c => {
+      const cat = c.categoria_principal_mas_comprada || "Sin categoría";
+      catMap[cat] = (catMap[cat] || 0) + 1;
+    });
 
-  // === Paso 6: Tabla top 10 ===
-  const top = data
-    .filter(c => parseFloat(c.total_gastado || 0) > 0)
-    .sort((a,b) => b.total_gastado - a.total_gastado)
-    .slice(0, 10);
+    const categorias = Object.keys(catMap);
+    const valores = Object.values(catMap);
 
-  document.getElementById("tablaTopClientes").innerHTML = top.map(c => `
-    <tr>
-      <td>${c.nombre_cliente}</td>
-      <td>${c.email}</td>
-      <td>${c.cantidad_pedidos}</td>
-      <td>$${parseFloat(c.total_gastado).toLocaleString()}</td>
-      <td>${c.categoria_principal_mas_comprada || "-"}</td>
-    </tr>
-  `).join("");
+    new ApexCharts(document.querySelector("#graficoCategorias"), {
+      chart: { type: "donut" },
+      labels: categorias,
+      series: valores,
+      legend: { position: "bottom" },
+      title: { text: "Categorías más compradas" }
+    }).render();
+
+    new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
+      chart: { type: "bar" },
+      series: [{ name: "Clientes", data: [clientesNuevos - recurrentes, recurrentes] }],
+      xaxis: { categories: ["Nuevos", "Recurrentes"] },
+      colors: ["#0a84ff", "#5ac8fa"],
+      title: { text: "Nuevos vs Recurrentes" }
+    }).render();
+
+    const top = data
+      .filter(c => parseFloat(c.total_gastado || 0) > 0)
+      .sort((a, b) => b.total_gastado - a.total_gastado)
+      .slice(0, 10);
+
+    document.getElementById("tablaTopClientes").innerHTML = top
+      .map(
+        c => `
+        <tr>
+          <td>${c.nombre_cliente}</td>
+          <td>${c.email}</td>
+          <td>${c.cantidad_pedidos}</td>
+          <td>$${parseFloat(c.total_gastado).toLocaleString()}</td>
+          <td>${c.categoria_principal_mas_comprada || "-"}</td>
+        </tr>`
+      )
+      .join("");
+  } catch (err) {
+    console.error("Error cargando dashboard clientes:", err);
+  }
 }
 
-cargarDashboardClientes();
-
+// === CONTROL DE TABS ===
 document.querySelectorAll(".tab-reportes").forEach(btn => {
   btn.addEventListener("click", async () => {
     document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
@@ -155,161 +164,25 @@ document.querySelectorAll(".tab-reportes").forEach(btn => {
 
     const section = btn.getAttribute("data-section");
     const main = document.getElementById("contenidoReportesMain");
+    const seccionConfig = document.getElementById("seccion-configuracion");
 
-    if (section === "general") {
-      main.innerHTML = `
-        <div class="ios-card">
-          <h2>Resumen General</h2>
-          <p class="muted">Cargando dashboard...</p>
-        </div>`;
-      await cargarDashboardClientes(); // Reutilizamos la función que ya hicimos
-    } else if (section === "config") {
-  main.innerHTML = `
-    <div class="ios-card">
-      <h2><i class="fa-solid fa-database"></i> Centro de Datos</h2>
-      <p class="muted">Sube tus archivos exportados (CSV) para alimentar los reportes.</p>
+    if (section === "config") {
+      main.style.display = "none";
+      seccionConfig.style.display = "block";
+    } else {
+      seccionConfig.style.display = "none";
+      main.style.display = "block";
+    }
 
-      <div class="config-grid">
-        <div class="data-card" id="cardVentas">
-          <h4>📦 Ventas</h4>
-          <input type="file" id="inputVentas" accept=".csv" hidden>
-          <button class="btn-subir" onclick="document.getElementById('inputVentas').click()">Subir archivo</button>
-          <p class="archivo-info" id="infoVentas">Ningún archivo cargado.</p>
-        </div>
-
-        <div class="data-card" id="cardClientes">
-          <h4>👥 Clientes</h4>
-          <input type="file" id="inputClientes" accept=".csv" hidden>
-          <button class="btn-subir" onclick="document.getElementById('inputClientes').click()">Subir archivo</button>
-          <p class="archivo-info" id="infoClientes">Ningún archivo cargado.</p>
-        </div>
-
-        <div class="data-card" id="cardPedidos">
-          <h4>🧾 Pedidos</h4>
-          <input type="file" id="inputPedidos" accept=".csv" hidden>
-          <button class="btn-subir" onclick="document.getElementById('inputPedidos').click()">Subir archivo</button>
-          <p class="archivo-info" id="infoPedidos">Ningún archivo cargado.</p>
-        </div>
-      </div>
-
-      <div style="text-align:center; margin-top:2rem;">
-        <button class="btn-procesar" onclick="procesarArchivos()">Procesar Datos</button>
-      </div>
-    </div>
-  `;
-
-  inicializarInputsCSV(); // activa los listeners
-}
-
+    if (section === "general" || section === "clientes") {
+      await cargarDashboardClientes();
+    }
   });
 });
 
-// Cargar por defecto el dashboard general
+// === Seleccionar pestaña inicial ===
 document.querySelector('.tab-reportes[data-section="general"]').click();
 
-function inicializarInputsCSV() {
-  const tipos = ["Ventas", "Clientes", "Pedidos"];
-
-  tipos.forEach(tipo => {
-    const input = document.getElementById(`input${tipo}`);
-    const info = document.getElementById(`info${tipo}`);
-
-    input.addEventListener("change", async () => {
-      const file = input.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async e => {
-        const contenido = e.target.result;
-        const storageRef = firebase.storage().ref(`reportes/${tipo.toLowerCase()}.csv`);
-
-        try {
-          // 🔄 Subir o reemplazar archivo existente
-          await storageRef.putString(contenido);
-          const url = await storageRef.getDownloadURL();
-
-          // 🕓 Guardar metadatos en Firestore
-          await firebase.firestore()
-            .collection("reportes_datos")
-            .doc(tipo.toLowerCase())
-            .set({
-              nombreArchivo: file.name,
-              tamanoKB: (file.size / 1024).toFixed(1),
-              fechaSubida: new Date().toISOString(),
-              url,
-              tipo
-            });
-
-          info.textContent = `✅ ${file.name} cargado correctamente (${(file.size / 1024).toFixed(1)} KB).`;
-          mostrarToast(`Archivo ${tipo} cargado con éxito ✅`, "exito");
-        } catch (error) {
-          console.error("Error al subir archivo:", error);
-          info.textContent = `❌ Error al cargar ${file.name}`;
-          mostrarToast(`Error al cargar ${tipo}: ${error.message}`, "error");
-        }
-      };
-      reader.readAsText(file);
-    });
-  });
-}
-
-async function procesarArchivos() {
-  mostrarToast("Procesando archivos disponibles...", "alerta");
-
-  const coleccion = await firebase.firestore().collection("reportes_datos").get();
-  if (coleccion.empty) {
-    mostrarToast("⚠️ No hay archivos cargados aún en Firebase.", "alerta");
-    return;
-  }
-
-  const archivos = [];
-  coleccion.forEach(doc => archivos.push(doc.data()));
-
-  console.log("📦 Archivos disponibles:", archivos);
-  mostrarToast(`✅ ${archivos.length} archivo(s) disponibles para generar reportes.`, "exito");
-}
-
-function procesarArchivos() {
-  const ventas = localStorage.getItem("data_ventas");
-  const clientes = localStorage.getItem("data_clientes");
-  const pedidos = localStorage.getItem("data_pedidos");
-
-  if (!ventas || !clientes || !pedidos) {
-    alert("⚠️ Debes cargar los tres archivos antes de procesar los datos.");
-    return;
-  }
-
-  alert("✅ Archivos cargados correctamente. Los reportes se actualizarán con estos datos.");
-}
-
-function mostrarToast(mensaje, tipo = "exito") {
-  const toast = document.createElement("div");
-  toast.className = `toast-notif toast-${tipo}`;
-  toast.innerHTML = `<span class="toast-icon">${
-    tipo === "error" ? "❌" : tipo === "alerta" ? "⚠️" : "✅"
-  }</span> ${mensaje}`;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const botones = document.querySelectorAll(".tab-reportes");
-  const seccionConfig = document.getElementById("seccion-configuracion");
-  const contenidoMain = document.getElementById("contenidoReportesMain");
-
-  botones.forEach(boton => {
-    boton.addEventListener("click", () => {
-      botones.forEach(b => b.classList.remove("active"));
-      boton.classList.add("active");
-
-      // Mostrar u ocultar secciones
-      if (boton.dataset.section === "config") {
-        contenidoMain.style.display = "none";
-        seccionConfig.style.display = "block";
-      } else {
-        seccionConfig.style.display = "none";
-        contenidoMain.style.display = "block";
-      }
-    });
-  });
-});
+// =========================================
+// 🔁 FIN BLOQUE MODIFICADO – reportes_clientes.js
+// =========================================
