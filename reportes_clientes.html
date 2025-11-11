@@ -215,28 +215,20 @@
   <h2><i class="fa-solid fa-database"></i> Centro de Datos</h2>
   <p class="text-muted">Sube tus archivos exportados (CSV) para alimentar los reportes.</p>
 
-  <div class="config-grid" style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px,1fr));">
-    <div class="data-card p-3 border rounded" id="cardVentas">
-      <h4>📦 Ventas</h4>
-      <input type="file" id="inputVentas" accept=".csv" hidden>
-      <button class="btn btn-primary w-100" onclick="document.getElementById('inputVentas').click()">Subir archivo</button>
-      <p class="archivo-info mt-2 small" id="infoVentas">Ningún archivo cargado.</p>
-    </div>
+<div class="ios-card mt-4 p-3">
+  <h4>📎 Enlace CSV de Google Drive</h4>
+  <p class="text-muted">
+    Pega aquí el enlace de tu archivo CSV en Google Drive (asegúrate de que sea público).  
+    El sistema guardará el ID y lo usará automáticamente para cargar el Dashboard.
+  </p>
 
-    <div class="data-card p-3 border rounded" id="cardClientes">
-      <h4>👥 Clientes</h4>
-      <input type="file" id="inputClientes" accept=".csv" hidden>
-      <button class="btn btn-primary w-100" onclick="document.getElementById('inputClientes').click()">Subir archivo</button>
-      <p class="archivo-info mt-2 small" id="infoClientes">Ningún archivo cargado.</p>
-    </div>
-
-    <div class="data-card p-3 border rounded" id="cardPedidos">
-      <h4>🧾 Pedidos</h4>
-      <input type="file" id="inputPedidos" accept=".csv" hidden>
-      <button class="btn btn-primary w-100" onclick="document.getElementById('inputPedidos').click()">Subir archivo</button>
-      <p class="archivo-info mt-2 small" id="infoPedidos">Ningún archivo cargado.</p>
-    </div>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <input id="inputDriveCSV" type="url" placeholder="https://drive.google.com/file/d/..." class="form-control" style="max-width: 500px;">
+    <button id="btnGuardarDrive" class="btn btn-primary">Guardar enlace</button>
   </div>
+
+  <p id="statusDriveCSV" class="mt-2 text-muted small"></p>
+</div>
 
   <div class="text-center mt-4">
     <button class="btn btn-success" onclick="procesarArchivos()">
