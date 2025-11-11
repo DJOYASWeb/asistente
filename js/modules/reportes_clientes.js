@@ -58,9 +58,11 @@ aplicarFechas.addEventListener("click", () => {
   btnRangoFechas.classList.remove("open");
 });
 
-// === DASHBOARD CLIENTES ===
+// 🔁 INICIO BLOQUE CORREGIDO – reportes_clientes.js (función cargarDashboardClientes)
+
 async function cargarDashboardClientes() {
   try {
+    // === 1️⃣ Cargar CSV desde Firebase Storage ===
     const snapshot = await firebase.firestore().collection("reportes_datos").doc("clientes").get();
     if (!snapshot.exists) {
       console.warn("⚠️ No hay archivo de clientes cargado aún.");
@@ -74,7 +76,7 @@ async function cargarDashboardClientes() {
     const text = await response.text();
     const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-      // === Métricas ===
+    // === 2️⃣ Calcular métricas ===
     const clientesNuevos = data.length;
     const recurrentes = data.filter(c => parseInt(c.cantidad_pedidos || 0) > 1).length;
     const tasaRepeticion = ((recurrentes / clientesNuevos) * 100).toFixed(1);
@@ -85,10 +87,12 @@ async function cargarDashboardClientes() {
       data.reduce((acc, c) => acc + parseFloat(c.dias_hasta_primera_compra || 0), 0) / data.length
     ).toFixed(1);
 
-    // === Render dinámico del dashboard ===
-    document.getElementById("contenidoReportesMain").innerHTML = `
+    // === 3️⃣ Renderizar dashboard completo en HTML ===
+    const main = document.getElementById("contenidoReportesMain");
+    main.innerHTML = `
       <div class="ios-card">
-        <h2><i class="fa-solid fa-user-group"></i> Clientes</h2>
+        <h2><i class="fa-solid fa-user-group"></i> Reporte de Clientes</h2>
+
         <div class="metricas-grid">
           <div><strong>${clientesNuevos}</strong><p>Nuevos clientes</p></div>
           <div><strong>${recurrentes}</strong><p>Recurrentes</p></div>
@@ -104,13 +108,21 @@ async function cargarDashboardClientes() {
 
         <h4 style="margin-top:1rem;">Top 10 clientes</h4>
         <table class="tabla-ios">
-          <thead><tr><th>Cliente</th><th>Email</th><th>Pedidos</th><th>Total gastado</th><th>Categoría</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Email</th>
+              <th>Pedidos</th>
+              <th>Total gastado</th>
+              <th>Categoría</th>
+            </tr>
+          </thead>
           <tbody id="tablaTopClientes"></tbody>
         </table>
       </div>
     `;
 
-
+    // === 4️⃣ Gráfico de categorías ===
     const catMap = {};
     data.forEach(c => {
       const cat = c.categoria_principal_mas_comprada || "Sin categoría";
@@ -128,6 +140,7 @@ async function cargarDashboardClientes() {
       title: { text: "Categorías más compradas" }
     }).render();
 
+    // === 5️⃣ Gráfico nuevos vs recurrentes ===
     new ApexCharts(document.querySelector("#graficoNuevosVsRecurrentes"), {
       chart: { type: "bar" },
       series: [{ name: "Clientes", data: [clientesNuevos - recurrentes, recurrentes] }],
@@ -136,6 +149,7 @@ async function cargarDashboardClientes() {
       title: { text: "Nuevos vs Recurrentes" }
     }).render();
 
+    // === 6️⃣ Tabla Top 10 clientes ===
     const top = data
       .filter(c => parseFloat(c.total_gastado || 0) > 0)
       .sort((a, b) => b.total_gastado - a.total_gastado)
@@ -157,6 +171,9 @@ async function cargarDashboardClientes() {
     console.error("Error cargando dashboard clientes:", err);
   }
 }
+
+// 🔁 FIN BLOQUE CORREGIDO – reportes_clientes.js
+
 
 // === CONTROL DE TABS ===
 document.querySelectorAll(".tab-reportes").forEach(btn => {
