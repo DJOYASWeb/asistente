@@ -285,8 +285,7 @@ document.getElementById("tablaTopClientes").innerHTML =
             <td><strong>${i + 1}.</strong> ${c.nombre}</td>
             <td>${c.email}</td>
             <td>${c.pedidos}</td>
-            <td>$${c.total.toLocaleString()}</td>
-            <td>${c.categoria}</td>
+<td>$${c.total.toLocaleString('es-CL')}</td>
           </tr>`
         )
         .join("")
