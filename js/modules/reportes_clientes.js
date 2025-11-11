@@ -109,13 +109,7 @@ async function cargarDashboardClientes() {
     if (!response.ok) throw new Error("No se pudo acceder al CSV (verifica permisos públicos).");
 
     const text = await response.text();
-    const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
-
-// === DEBUG: Ver columnas reales ===
-console.log("👉 Primeras filas leídas:", data.slice(0, 3));
-if (data[0]) {
-  console.log("👉 Encabezados detectados:", Object.keys(data[0]));
-}
+const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
 // 🧹 Normalizar encabezados
 const normalizado = data.map(row => {
@@ -127,8 +121,34 @@ const normalizado = data.map(row => {
   return limpio;
 });
 
-// 🧩 Conversor numérico seguro
-const num = v => Number(String(v || "").replace(",", ".").replace(/[^0-9.\-]/g, "")) || 0;
+// ⚙️ Obtener rango activo desde el selector de fechas
+let inicioRango = null;
+let finRango = null;
+if (typeof rangoPrincipal !== "undefined" && rangoPrincipal && rangoPrincipal.length === 2) {
+  inicioRango = rangoPrincipal[0];
+  finRango = rangoPrincipal[1];
+}
+
+// 🧩 Convertir string de fecha a objeto Date
+const parseFecha = (str) => {
+  if (!str) return null;
+  const parts = str.split(" ");
+  const fecha = parts[0];
+  const [y, m, d] = fecha.split("-").map(Number);
+  return new Date(y, m - 1, d);
+};
+
+// 🕓 Filtrar datos según rango si está seleccionado
+const filtrados = normalizado.filter(c => {
+  const fecha = parseFecha(c.fecha_registro || c.primera_compra || "");
+  if (!fecha) return false;
+  if (inicioRango && finRango) {
+    return fecha >= inicioRango && fecha <= finRango;
+  }
+  return true;
+});
+
+console.log(`📅 Filtrados: ${filtrados.length} de ${normalizado.length} registros`);
 
 // === Calcular métricas ===
 const clientesNuevos = normalizado.length;
