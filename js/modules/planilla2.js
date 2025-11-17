@@ -1022,18 +1022,19 @@ function exportarXLSX(tipo, datos) {
 
   const fechaStr = `${dia}-${mes}-${anio}`;
 
-  let baseNombre;
+let baseNombre;
   switch (tipo) {
     case "todo":
-      baseNombre = "Nuevos_prod";
+    case "nuevo": // Nuevo caso: si el tipo es 'nuevo', nombrar como 'productos_nuevos'
+      baseNombre = "productos_nuevos";
       break;
     case "combinacion":
-      baseNombre = "Combinaciones_prod";
+      baseNombre = "combinaciones";
       break;
-      case "reposicion":
-      baseNombre = "Reposicion_prod"; 
+    case "reposicion": // 🎯 CORRECCIÓN: Nuevo caso para el botón de Reposición
+      baseNombre = "productos_reposicion"; 
       break;
-default:
+    default:
       baseNombre = "exportacion_planilla"; // Fallback más genérico
       break;
   }
@@ -2371,4 +2372,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.5
+//V 1.6
