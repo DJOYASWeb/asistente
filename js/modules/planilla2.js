@@ -1353,7 +1353,7 @@ function mostrarTablaCombinacionesCantidad() {
   window.datosCombinacionCantidades = resultado;
 
   // 5. Renderizado final (Declaración de variables y HTML)
-const contenedor = document.getElementById("tablaPreview");
+const contenedor = document.getElementById("vistaCombinaciones");
   const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA", "Cantidad ingresada"];
   
   let html = `<table class="table table-bordered table-sm align-middle" id="tablaCombinaciones">
@@ -2389,4 +2389,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.9
+//V 1.
