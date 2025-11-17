@@ -1548,7 +1548,6 @@ function procesarCombinacionesFinal() {
       const cantidad = d.cantidad || 0;
       if (!combinacion) return;
 
-      // armar referencia reemplazando los últimos dígitos (3 o más ceros) con la combinación
       const referencia = baseCodigo.replace(/0+$/, combinacion.padStart(3, "0"));
 
       resultado.push({
@@ -1563,44 +1562,17 @@ function procesarCombinacionesFinal() {
   });
 
   if (!resultado.length) {
-    document.getElementById("resultadoProcesado").innerHTML = `
-      <p class="text-muted text-center">No hay combinaciones válidas para procesar.</p>`;
+    alert("No hay combinaciones válidas para procesar.");
     return;
   }
 
-  // Renderizar la tabla final
-  const encabezados = [
-    "ID",
-    "Attribute (Name:Type:Position)*",
-    "Value (Value:Position)*",
-    "Referencia",
-    "Cantidad",
-    "Precio S/ IVA"
-  ];
-
-  let html = `<h6 class="text-center mb-3">Resultado procesado (${resultado.length} filas)</h6>`;
-  html += `<div class="table-responsive"><table class="table table-bordered table-sm align-middle">
-    <thead class="table-light"><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
-
-  resultado.forEach(r => {
-    html += `<tr>
-      <td>${r["ID"]}</td>
-      <td>${r["Attribute (Name:Type:Position)*"]}</td>
-      <td>${r["Value (Value:Position)*"]}</td>
-      <td>${r["Referencia"]}</td>
-      <td>${r["Cantidad"]}</td>
-      <td>${r["Precio S/ IVA"]}</td>
-    </tr>`;
-  });
-
-  html += `</tbody></table></div>`;
-
-  const contenedor = document.getElementById("resultadoProcesado");
-  contenedor.innerHTML = html;
-
-  // Guardar también el resultado en memoria por si se quiere exportar
+  // Guardamos para exportación posterior
   window.resultadoCombinacionesProcesado = resultado;
+
+  // 👇👇👇 AQUI SE ABRE EL MODAL (tu versión buena)
+  abrirModalPrevisualizacionProcesado(resultado);
 }
+
 
 
 function agregarFilaNumeracion() {
