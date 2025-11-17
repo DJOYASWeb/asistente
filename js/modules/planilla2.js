@@ -1437,7 +1437,15 @@ function abrirModalDetalleProducto(codigo, index) {
     <div class="mb-3 d-flex align-items-center justify-content-between">
       <h6 class="text-primary mb-0">SKU: ${codigo}</h6>
       <div class="ms-3 flex-grow-1">
-        <input type="text" id="idManualInput" class="form-control form-control-sm" placeholder="Ingresar ID del producto" value="${producto["ID manual"] || ""}">
+   <input type="text" id="idManualInput" class="form-control form-control-sm"
+  placeholder="Ingresar ID del producto"
+  value="${
+    producto["ID manual"] ||
+    producto["ID"] ||
+    rowOriginalId(codigo) ||
+    ""
+  }">
+
       </div>
     </div>
     <table class="table table-bordered table-sm align-middle">
