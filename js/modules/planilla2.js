@@ -1003,14 +1003,14 @@ function procesarExportacion() {
     return;
   }
 
-  // exportar TODO (inyectar padres para que el XLSX tenga los ...000)
   let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
     ? datosFiltrados
     : [...datosOriginales, ...datosCombinaciones];
 
   dataset = inyectarPadresEnDataset(dataset);
 
-  exportarXLSX("todo", dataset);
+  // ⬅️ CORRECCIÓN: exporta según el tipo real
+  exportarXLSX(tipoSeleccionado, dataset);
 }
 
 
