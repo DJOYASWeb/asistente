@@ -1440,7 +1440,7 @@ function abrirModalDetalleProducto(codigo, index) {
    <input type="text" id="idManualInput" class="form-control form-control-sm"
   placeholder="Ingresar ID del producto"
   value="${
-(p["ID manual"] || p["ID"] || rowOriginalId(extraerCodigo(p)) || "") ||
+    producto["ID manual"] ||
     producto["ID"] ||
     rowOriginalId(codigo) ||
     ""
@@ -1502,7 +1502,7 @@ inputsNumeracion.forEach((nInput, i) => {
   if (window.datosCombinacionCantidades && window.datosCombinacionCantidades[index]) {
     const producto = window.datosCombinacionCantidades[index];
     producto["Cantidad ingresada"] = suma;
-    (p["ID manual"] || p["ID"] || rowOriginalId(extraerCodigo(p)) || "") = idManual;
+    producto["ID manual"] = idManual;
     producto["Detalle"] = detalle;
   }
 
@@ -2309,6 +2309,7 @@ const idManual =
   p["ID"] ||
   rowOriginalId(p["Referencia"] || p["CODIGO PRODUCTO"]) ||
   "";
+
     const precio = prod["Precio S/ IVA"] || 0;
     const baseCodigo = prod["Referencia"] || "";
     const detalle = Array.isArray(prod["Detalle"]) ? prod["Detalle"] : [];
