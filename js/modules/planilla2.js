@@ -1447,12 +1447,15 @@ function guardarCantidadIngresada(index) {
   const detalle = [];
   let suma = 0;
 
-  inputsNumeracion.forEach((nInput, i) => {
-    const numeracion = nInput.value.trim();
-    const cantidad = parseFloat(inputsCantidad[i].value) || 0;
-    suma += cantidad;
-    if (numeracion || cantidad) detalle.push({ numeracion, cantidad });
-  });
+inputsNumeracion.forEach((nInput, i) => {
+  const numeracion = nInput.value.trim();
+  const cantidad = parseFloat(inputsCantidad[i].value) || 0;
+  suma += cantidad;
+
+  // 🔹 Ahora SIEMPRE guardaremos la fila, tenga o no datos
+  detalle.push({ numeracion, cantidad });
+});
+
 
   // 🔹 Actualizar dataset global
   if (window.datosCombinacionCantidades && window.datosCombinacionCantidades[index]) {
@@ -2365,4 +2368,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 2.2
+//V 1
