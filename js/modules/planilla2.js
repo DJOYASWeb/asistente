@@ -2293,57 +2293,7 @@ async function comprimirBlob(blob, maxKB = 120) {
   });
 }
 
-// === PROCESAR COMBINACIONES Y MOSTRAR MODAL ===
-function procesarCombinacionesFinal() {
-  const datos = window.datosCombinacionCantidades || [];
-  if (!datos.length) {
-    alert("No hay datos para procesar.");
-    return;
-  }
 
-  const resultado = [];
-
-  datos.forEach(prod => {
-const idManual =
-  p["ID manual"] ||
-  p["ID"] ||
-  rowOriginalId(p["Referencia"] || p["CODIGO PRODUCTO"]) ||
-  "";
-
-    const precio = prod["Precio S/ IVA"] || 0;
-    const baseCodigo = prod["Referencia"] || "";
-    const detalle = Array.isArray(prod["Detalle"]) ? prod["Detalle"] : [];
-
-    detalle.forEach(d => {
-      const combinacion = (d.numeracion || "").trim();
-      const cantidad = d.cantidad || 0;
-      if (!combinacion) return;
-
-      // generar código reemplazando los últimos ceros por la combinación
-      const referencia = baseCodigo.replace(/0+$/, combinacion.padStart(3, "0"));
-
-      resultado.push({
-        "ID": idManual,
-        "Attribute (Name:Type:Position)*": "Número:radio:0",
-        "Value (Value:Position)*": `${combinacion}:0`,
-        "Referencia": referencia,
-        "Cantidad": cantidad,
-        "Precio S/ IVA": precio
-      });
-    });
-  });
-
-  if (!resultado.length) {
-    alert("No hay combinaciones válidas para procesar.");
-    return;
-  }
-
-  // guardar en memoria por si se exporta luego
-  window.resultadoCombinacionesProcesado = resultado;
-
-  // abrir modal de previsualización
-  abrirModalPrevisualizacionProcesado(resultado);
-}
 
 function rowOriginalId(codigo) {
   const all = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
