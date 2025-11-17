@@ -1041,21 +1041,26 @@ function exportarXLSX(tipo, datos) {
   const fechaStr = `${dia}-${mes}-${anio}`;
 
 let baseNombre;
-  switch (tipo) {
-    case "todo":
-    case "nuevo": // Nuevo caso: si el tipo es 'nuevo', nombrar como 'productos_nuevos'
-      baseNombre = "productos_nuevos";
-      break;
-    case "combinacion":
-      baseNombre = "combinaciones";
-      break;
-    case "reposicion": // 🎯 CORRECCIÓN: Nuevo caso para el botón de Reposición
-      baseNombre = "productos_reposicion"; 
-      break;
-    default:
-      baseNombre = "exportacion_planilla"; // Fallback más genérico
-      break;
-  }
+switch (tipo) {
+  case "todo":
+  case "nuevo":
+    baseNombre = "productos_nuevos";
+    break;
+
+  case "combinacion":
+    baseNombre = "combinaciones";
+    break;
+
+  case "reposición": // por si acaso
+  case "reposicion": // ← ESTA ES LA QUE ESTÁS USANDO REALMENTE
+    baseNombre = "productos_reposicion";
+    break;
+
+  default:
+    baseNombre = "exportacion_planilla";
+    break;
+}
+
 
   const nombre = `${baseNombre}_${fechaStr}.xlsx`;
   XLSX.writeFile(wb, nombre);
