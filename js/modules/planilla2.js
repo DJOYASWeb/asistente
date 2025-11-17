@@ -1230,7 +1230,10 @@ function filtrarCombinaciones(tipo) {
 function mostrarProductosNuevos() {
   tipoSeleccionado = "nuevo";
 
-  const todos = [...datosOriginales, ...datosCombinaciones];
+// FILTRO ESPECIAL: solo Anillos y Colgantes con letra (no MIDI)
+const todos = [...datosOriginales, ...datosCombinaciones].filter(row => {
+  return esAnillo(row) || esColganteLetra(row);
+});
 
   // 1) separar tipos especiales
   const anillos = todos.filter(esAnillo);
