@@ -163,34 +163,6 @@ function detectarColumnaQueIncluye(row, textoBuscado) {
 }
 
 
-// === ZIP FOTOS: utilidades ===
-
-// Toma dataset activo según reglas acordadas
-function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones }) {
-  // ✅ Prioridad: datos filtrados (si hay algo)
-  if (Array.isArray(datosFiltrados) && datosFiltrados.length > 0) {
-    return datosFiltrados;
-  }
-
-  // ✅ Combinar todo si no hay filtrado activo
-  const base = [];
-  if (Array.isArray(datosOriginales) && datosOriginales.length) base.push(...datosOriginales);
-  if (Array.isArray(datosCombinaciones) && datosCombinaciones.length) base.push(...datosCombinaciones);
-
-  // ✅ Fallback final: intenta tomar las globales directas
-  if (base.length === 0 && Array.isArray(window.datosFiltrados) && window.datosFiltrados.length) {
-    return window.datosFiltrados;
-  }
-
-  return base;
-}
-
-// Extrae URL de foto contemplando variantes del header (¡incluye el espacio!)
-function extraerUrlFoto(row) {
-  if (!row || typeof row !== "object") return "";
-  const url = row["FOTO LINK INDIVIDUAL"];
-  return typeof url === "string" ? url.trim() : "";
-}
 
 
 
@@ -265,47 +237,6 @@ function driveIdFromUrl(url) {
   }
 }
 
-// Usa Google Drive API (CORS OK) cuando haya API key
-function normalizarUrlDrive(url) {
-  if (!url) return '';
-
-  // 🔹 Limpieza de posibles comillas o espacios
-  url = url.trim().replace(/^"|"$/g, '');
-
-  try {
-    const u = new URL(url);
-
-    // === 1️⃣ Si NO es de Google Drive ===
-    if (!u.host.includes("drive.google.com")) {
-      // Si termina en una extensión de imagen (jpg, jpeg, png, webp, gif)
-      if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
-        // Servidor propio (por ejemplo distribuidoradejoyas.cl): ir directo
-if (u.host.includes("distribuidoradejoyas.cl")) {
-  return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-}
-        // Otros dominios externos → pasar por proxy CORS
-        return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-      }
-
-      // Si no tiene extensión conocida, intentar igual con proxy
-      return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-    }
-
-    // === 2️⃣ Si SÍ es de Google Drive ===
-    const id = driveIdFromUrl(url);
-    if (id) {
-      // Forzar descarga directa con proxy para evitar CORS
-      return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
-    }
-
-    // Si no se pudo extraer ID, devolver el original
-    return url;
-  } catch {
-    // Si no es una URL válida, devolver tal cual
-    return url;
-  }
-}
-
 
 
 
@@ -335,28 +266,6 @@ function filenameDeContentDisposition(cd) {
   }
   const u = cd.match(/filename=([^;]+)/i);
   return u?.[1]?.trim() || '';
-}
-
-// Deducción de extensión con prioridad: Content-Disposition > Content-Type > URL > .jpg
-function deducirExtension({ response, finalUrl }) {
-  const cd = response.headers.get('Content-Disposition') || response.headers.get('content-disposition');
-  const fromCD = filenameDeContentDisposition(cd);
-  if (fromCD && /\.[a-z0-9]{2,5}$/i.test(fromCD)) return '.' + fromCD.split('.').pop().toLowerCase();
-
-  const ct = response.headers.get('Content-Type') || response.headers.get('content-type');
-  const extCT = extPorContentType(ct);
-  if (extCT) return extCT;
-
-  try {
-    const u = new URL(finalUrl);
-    const path = u.pathname || '';
-    const m1 = path.match(/\.(jpg|jpeg|png|webp|gif|bmp|tiff|heic|svg)(?:\?|$)/i);
-    if (m1?.[1]) return (m1[1].toLowerCase() === 'jpeg') ? '.jpg' : `.${m1[1].toLowerCase()}`;
-    const q = u.searchParams.toString();
-    const m2 = q.match(/(?:type|format)=?(jpg|jpeg|png|webp|gif|bmp|tiff|heic|svg)/i);
-    if (m2?.[1]) return (m2[1].toLowerCase() === 'jpeg') ? '.jpg' : `.${m2[1].toLowerCase()}`;
-  } catch {}
-  return '.jpg';
 }
 
 function safeName(name) {
