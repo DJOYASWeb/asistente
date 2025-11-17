@@ -1341,7 +1341,13 @@ const todos = [...datosOriginales, ...datosCombinaciones].filter(row => {
 
   todos.forEach(row => {
     const codigo = extraerCodigo(row);
-    const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
+const idProducto = asNumericId(
+  row["prestashop_id"] ||
+  row["PRESTASHOP ID"] ||
+  row["ID"] ||
+  row["id"] ||
+  ""
+);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
     const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
     const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
@@ -2291,9 +2297,9 @@ function procesarCombinacionesFinal() {
 
   datos.forEach(prod => {
 const idManual =
-  prod["ID manual"] ||        // si ya lo guardaste antes
-  prod["ID"] ||               // si ya viene desde datosCombinacionCantidades
-  rowOriginalId(prod["Referencia"]) ||  // ← ID real del producto, sacado del excel original
+  producto["ID manual"] ||
+  producto["ID"] || 
+  rowOriginalId(codigo) ||
   "";
     const precio = prod["Precio S/ IVA"] || 0;
     const baseCodigo = prod["Referencia"] || "";
@@ -2332,14 +2338,30 @@ const idManual =
 
 function rowOriginalId(codigo) {
   const all = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
+
   const fila = all.find(r => extraerCodigo(r) === codigo);
   if (!fila) return "";
-  return (
-    fila["prestashop_id"] ||
-    fila["PRESTASHOP ID"] ||
-    ""
-  ).toString().trim();
+
+  // Revisamos TODAS las formas en que podría llamarse la columna del ID
+  const keys = [
+    "prestashop_id",
+    "PRESTASHOP ID",
+    "ID PRODUCTO",
+    "id_producto",
+    "Producto ID",
+    "ID",
+    "id"
+  ];
+
+  for (const k of keys) {
+    if (fila[k] && fila[k].toString().trim() !== "") {
+      return fila[k].toString().trim();
+    }
+  }
+
+  return "";
 }
+
 
 
 // === MOSTRAR MODAL DE PREVISUALIZACIÓN Y EXPORTAR ===
