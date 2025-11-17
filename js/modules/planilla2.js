@@ -1025,13 +1025,16 @@ function exportarXLSX(tipo, datos) {
   let baseNombre;
   switch (tipo) {
     case "todo":
-      baseNombre = "productos_nuevos";
+      baseNombre = "Nuevos_prod";
       break;
     case "combinacion":
-      baseNombre = "combinaciones";
+      baseNombre = "Combinaciones_prod";
       break;
-    default:
-      baseNombre = "reposicion";
+      case "reposicion":
+      baseNombre = "Reposicion_prod"; 
+      break;
+default:
+      baseNombre = "exportacion_planilla"; // Fallback más genérico
       break;
   }
 
@@ -2368,4 +2371,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.3
+//V 1.5
