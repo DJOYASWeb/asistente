@@ -1184,7 +1184,7 @@ function procesarExportacion() {
 
   dataset = inyectarPadresEnDataset(dataset);
 
-  exportarXLSX("todo", dataset);
+exportarXLSX(tipoSeleccionado, dataset);
 }
 
 
@@ -2387,4 +2387,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.6
+//V 1.7
