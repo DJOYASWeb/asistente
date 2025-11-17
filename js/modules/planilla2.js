@@ -626,13 +626,11 @@ if (materialRaw.includes("enchape")) {
 
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
-if (esAnilloConValidacion && combinacion === "") {
-  // guardar como producto sin combinaciones
-  datosOriginales.push(row);
-  // registrar advertencia, pero NO excluirlo
-  errores.push(`${sku} - anillo sin combinaciones (se agregará igualmente)`);
-  return;
-}
+      // ⚠️ Si es un anillo y el campo combinaciones está vacío → error
+      if (esAnilloConValidacion && combinacion === "") {
+        errores.push(`${sku} - combinaciones vacías (${categoria})`);
+        return;
+      }
 
       // 🟢 Determinar si el campo de combinación tiene realmente algo útil
       const combiValida =
@@ -1011,40 +1009,35 @@ function mostrarTablaFiltrada(datos) {
 /** ---------- EXPORTACIONES ---------- **/
 
 function exportarXLSX(tipo, datos) {
-  const transformados = transformarDatosParaExportar(datos);
-  const ws = XLSX.utils.json_to_sheet(transformados);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
+  const transformados = transformarDatosParaExportar(datos);
+  const ws = XLSX.utils.json_to_sheet(transformados);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
 
-  // Fecha actual DD-MM-YY
-  const ahora = new Date();
-  const dia = String(ahora.getDate()).padStart(2, "0");
-  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
-  const anio = String(ahora.getFullYear()).slice(-2);
+  // Fecha actual DD-MM-YY
+  const ahora = new Date();
+  const dia = String(ahora.getDate()).padStart(2, "0");
+  const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+  const anio = String(ahora.getFullYear()).slice(-2);
 
-  const fechaStr = `${dia}-${mes}-${anio}`;
+  const fechaStr = `${dia}-${mes}-${anio}`;
 
-  let baseNombre;
-  switch (tipo) {
-    case "todo":
-    case "nuevo":
-      baseNombre = "Nuevos_prod";
-      break;
-    case "combinacion":
-      baseNombre = "Combinaciones_prod";
-      break;
-    case "reposicion": // <--- Caso CORREGIDO: si tipo es 'reposicion', usa este nombre
-      baseNombre = "Reposicion_prod"; 
-      break;
-    default:
-      baseNombre = "exportacion_planilla";
-      break;
-  }
+  let baseNombre;
+  switch (tipo) {
+    case "todo":
+      baseNombre = "productos_nuevos";
+      break;
+    case "combinacion":
+      baseNombre = "combinaciones";
+      break;
+    default:
+      baseNombre = "reposicion";
+      break;
+  }
 
-  const nombre = `${baseNombre}_${fechaStr}.xlsx`;
-  XLSX.writeFile(wb, nombre);
+  const nombre = `${baseNombre}_${fechaStr}.xlsx`;
+  XLSX.writeFile(wb, nombre);
 }
-
 
 function inyectarPadresEnDataset(datos) {
   const anillos = datos.filter(esAnillo);
@@ -1186,7 +1179,7 @@ function procesarExportacion() {
 
   dataset = inyectarPadresEnDataset(dataset);
 
-exportarXLSX(tipoSeleccionado, dataset);
+  exportarXLSX("todo", dataset);
 }
 
 
@@ -1230,160 +1223,149 @@ function filtrarCombinaciones(tipo) {
   mostrarTablaFiltrada(datosFiltrados);
 }
 
-
 function mostrarProductosNuevos() {
-  tipoSeleccionado = "nuevo"; // <-- Tipo de exportación: 'nuevo'
+  tipoSeleccionado = "nuevo";
 
-  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
+  const todos = [...datosOriginales, ...datosCombinaciones];
 
-  // 🎯 FILTRO: Solo si NO tiene ID de PrestaShop asignado
-  const productosSinID = todos.filter(row => {
-    const id = row["PRESTASHOP ID"] || row["prestashop_id"];
-    return !id || id.toString().trim() === "";
-  });
+  // 1) separar tipos especiales
+  const anillos = todos.filter(esAnillo);
+  const colgantesLetra = todos.filter(esColganteLetra);
 
-  // 1) Separar tipos especiales (anillos y colgantes) SÓLO de los SIN ID
-  const anillos = productosSinID.filter(esAnillo);
-  const colgantesLetra = productosSinID.filter(esColganteLetra);
+  // 2) el resto (no anillos y no colgantes de letra)
+  const otros = todos.filter(row => !anillos.includes(row) && !colgantesLetra.includes(row));
 
-  // 2) El resto (no anillos y no colgantes de letra)
-  const otros = productosSinID.filter(row => !anillos.includes(row) && !colgantesLetra.includes(row));
+  // 3) agrupar en padres (…000) anillos + colgantes de letra
+  const anillosPadres = agruparAnillosComoPadres(anillos);
+  const colgantesPadres = agruparAnillosComoPadres(colgantesLetra);
 
-  // 3) Agrupar en padres (…000) anillos + colgantes de letra
-  const anillosPadres = agruparAnillosComoPadres(anillos);
-  const colgantesPadres = agruparAnillosComoPadres(colgantesLetra);
+  // 4) vista: solo padres y el resto de productos
+  datosFiltrados = [...otros, ...anillosPadres, ...colgantesPadres];
 
-  // 4) Vista: solo padres y el resto de productos (TODO SIN ID)
-  datosFiltrados = [...otros, ...anillosPadres, ...colgantesPadres];
-
-  renderTablaConOrden(datosFiltrados);
+  renderTablaConOrden(datosFiltrados);
 }
 
 
 function mostrarProductosConID() {
-  tipoSeleccionado = "reposicion"; // <-- Tipo de exportación: 'reposicion'
+  tipoSeleccionado = "reposicion_id";
 
-  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
+  // Combina todos los productos cargados
+  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
 
-  // 🎯 FILTRO: Solo los que tienen PRESTASHOP ID (o prestashop_id)
-  datosFiltrados = todos.filter(row => {
-    const id = row["PRESTASHOP ID"] || row["prestashop_id"];
-    return id && id.toString().trim() !== "";
-  });
-  renderTablaConOrden(datosFiltrados);
+  // Filtra solo los que tienen PRESTASHOP ID (o prestashop_id)
+  datosFiltrados = todos.filter(row => {
+    const id = row["PRESTASHOP ID"] || row["prestashop_id"];
+    return id && id.toString().trim() !== "";
+  });
+
+  // Renderiza la tabla igual que los otros botones
+  renderTablaConOrden(datosFiltrados);
 }
 
 
+
+
+// ** ---------- COMBINACIONES (tabla especial) ---------- **
 function mostrarTablaCombinacionesCantidad() {
-  tipoSeleccionado = "combinacion_cantidades";
+  tipoSeleccionado = "combinacion_cantidades";
 
-  // Ocultar la tabla principal y mostrar vista combinaciones
-  document.getElementById("tablaPreview").classList.add("d-none");
-  const vista = document.getElementById("vistaCombinaciones");
-  if (vista) vista.classList.remove("d-none");
+  // 🔹 Ocultar elementos principales
+  const formulario = document.querySelector(".formulario");
+  if (formulario) formulario.classList.add("d-none");
 
-  // --- Generación de datos combinaciones ---
-  
-  // 1. Obtener todos los productos cargados
-  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion]; 
-  
-  // 2. 🎯 FILTRAR: Solo productos que tienen una combinación válida o son de tipo especial
-  const productosConCombinacion = todos.filter(row => {
-    const combinacionRaw = (
-      row["Combinaciones"] ||
-      row["PRODUCTO COMBINACION"] ||
-      row["producto_combinacion"] ||
-      ""
-    ).toString().trim().toLowerCase();
+  const botonesTipo = document.getElementById("botonesTipo");
+  if (botonesTipo) botonesTipo.classList.add("d-none");
 
-    // Lógica para determinar si el campo de combinación tiene un valor válido
-    const tieneCombinacion = combinacionRaw && 
-                             combinacionRaw !== "sin valor" && 
-                             combinacionRaw !== "null" && 
-                             combinacionRaw !== "ninguno";
+  const procesarBtn = document.getElementById("botonProcesar");
+  if (procesarBtn) procesarBtn.classList.add("d-none");
 
-    // Incluir también los que son anillos o colgantes con letra (lógica para asignarles tallas/numeraciones)
-    const esTipoEspecial = esAnillo(row) || esColganteLetra(row);
+  const procesarImagenesBtn = document.getElementById("botonProcesarImagenes");
+  if (procesarImagenesBtn) procesarImagenesBtn.classList.add("d-none");
 
-    // Se muestra si tiene una combinación válida O es un tipo especial
-    return tieneCombinacion || esTipoEspecial;
-  });
-  
-  // 3. 🚨 Manejo si no hay productos que mostrar
-  if (!productosConCombinacion.length) {
-      // Mostrar tabla principal y ocultar la de combinaciones
-      document.getElementById("tablaPreview").classList.remove("d-none");
-      if (vista) vista.classList.add("d-none");
-      mostrarAlerta("No se encontraron productos con combinaciones o que requieran numeración.", "info");
-      volverDeCombinaciones(); 
-      return;
-  }
+  const tablaDiv = document.getElementById("tablaPreview");
 
-  const resultado = [];
+  // 🔹 Crear contenedor principal de vista combinaciones
+  let vista = document.getElementById("vistaCombinaciones");
+  if (!vista) {
+    vista = document.createElement("div");
+    vista.id = "vistaCombinaciones";
+    vista.className = "container my-4";
 
-  // 🔹 Intentar cargar datos guardados
-  const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
+    vista.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Vista de Combinaciones y Cantidades</h5>
+        <button class="btn btn-secondary btn-sm" onclick="volverDeCombinaciones()">← Volver</button>
+      </div>
+      <div id="tablaCombinacionesContenido" class="table-responsive"></div>
+    `;
+    tablaDiv.parentNode.insertBefore(vista, tablaDiv);
+  }
 
-  // 4. Iterar sobre los productos FILTRADOS
-  productosConCombinacion.forEach(row => {
-    const codigo = extraerCodigo(row);
-    
-    const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
-    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
-    const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
-    const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
-    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
-    const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
+  // 🔹 Ocultar la tabla principal y mostrar vista combinaciones
+  tablaDiv.classList.add("d-none");
+  vista.classList.remove("d-none");
 
-    const dataPrev = guardados[codigo] || {};
+  // --- Generación de datos combinaciones ---
+  const todos = [...datosOriginales, ...datosCombinaciones];
+  const resultado = [];
 
-    resultado.push({
-      "ID": idProducto,
-      "Nombre": nombre,
-      "Referencia": codigo,
-      "Combinaciones": combinaciones,
-      "Cantidad": cantidad,
-      "Precio S/ IVA": precioSinIVA,
-      "Cantidad ingresada": dataPrev.cantidadIngresada || 0,
-      "ID manual": dataPrev.idManual || "",
-      "Detalle": dataPrev.detalle || []
-    });
-  });
+  // 🔹 Intentar cargar datos guardados
+  const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
 
-  window.datosCombinacionCantidades = resultado;
+  todos.forEach(row => {
+    const codigo = extraerCodigo(row);
+    const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
+    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
+    const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
+    const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
+    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
+    const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
-  // 5. Renderizado final (Declaración de variables y HTML)
-const contenedor = document.getElementById("vistaCombinaciones");
-  const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA", "Cantidad ingresada"];
-  
-  let html = `<table class="table table-bordered table-sm align-middle" id="tablaCombinaciones">
-    <thead><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
+    // ✅ si hay datos guardados, restaurar el ID manual y detalle
+    const dataPrev = guardados[codigo] || {};
 
-  resultado.forEach((r, idx) => {
-    html += `
-      <tr id="fila-${r["Referencia"]}" onclick="abrirModalDetalleProducto('${r["Referencia"]}', ${idx})" style="cursor:pointer;">
-        <td>${r["ID"] ?? ""}</td>
-        <td>${r["Nombre"] ?? ""}</td>
-        <td>${r["Referencia"] ?? ""}</td>
-        <td>${r["Combinaciones"] ?? ""}</td>
-        <td>${r["Cantidad"] ?? ""}</td>
-        <td>${r["Precio S/ IVA"] ?? ""}</td>
-        <td class="cantidad-ingresada">${r["Cantidad ingresada"]}</td>
-      </tr>`;
-  });
+    resultado.push({
+      "ID": idProducto,
+      "Nombre": nombre,
+      "Referencia": codigo,
+      "Combinaciones": combinaciones,
+      "Cantidad": cantidad,
+      "Precio S/ IVA": precioSinIVA,
+      "Cantidad ingresada": dataPrev.cantidadIngresada || 0,
+      "ID manual": dataPrev.idManual || "",   // ✅ restaurar ID manual guardado
+      "Detalle": dataPrev.detalle || []        // ✅ restaurar combinaciones previas
+    });
+  });
 
-  html += `
-    </tbody>
-    </table>
+  window.datosCombinacionCantidades = resultado;
+
+  const contenedor = document.getElementById("tablaCombinacionesContenido");
+  const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA", "Cantidad ingresada"];
+
+  let html = `<table class="table table-bordered table-sm align-middle" id="tablaCombinaciones">
+    <thead><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
+
+  resultado.forEach((r, idx) => {
+    html += `
+      <tr id="fila-${r["Referencia"]}" onclick="abrirModalDetalleProducto('${r["Referencia"]}', ${idx})" style="cursor:pointer;">
+        <td>${r["ID"] ?? ""}</td>
+        <td>${r["Nombre"] ?? ""}</td>
+        <td>${r["Referencia"] ?? ""}</td>
+        <td>${r["Combinaciones"] ?? ""}</td>
+        <td>${r["Cantidad"] ?? ""}</td>
+        <td>${r["Precio S/ IVA"] ?? ""}</td>
+        <td class="cantidad-ingresada">${r["Cantidad ingresada"]}</td>
+      </tr>`;
+  });
+
+  html += `</tbody></table>
     <div class="text-center mt-4">
-      <button class="btn btn-success px-4" onclick="procesarCombinacionesFinal()">Procesar</button>
+     <button class="btn btn-success px-4" onclick="procesarCombinacionesFinal()">Procesar</button>
     </div>
-    <div id="resultadoProcesado" class="mt-4"></div>
-  `;
-  // Asegura que el contenedor exista antes de inyectar HTML
-  if (contenedor) {
-    contenedor.innerHTML = html;
-  }
+    <div id="resultadoProcesado" class="mt-4"></div>`;
+
+  contenedor.innerHTML = html;
+
 }
 
 
@@ -1584,15 +1566,12 @@ function agregarFilaNumeracion() {
   const tbody = document.getElementById("tablaNumeraciones");
   if (!tbody) return;
   const tr = document.createElement("tr");
-  // 🎯 CORRECCIÓN: Agregar las clases 'numeracion-input' y 'cantidad-input'
   tr.innerHTML = `
-    <td><input type="text" class="form-control form-control-sm numeracion-input" placeholder="Ej: #10-12"></td>
-    <td><input type="number" class="form-control form-control-sm cantidad-input" min="0" value="0"></td>
+    <td><input type="text" class="form-control form-control-sm" placeholder="Ej: #10-12"></td>
+    <td><input type="number" class="form-control form-control-sm" min="0" value="0"></td>
   `;
   tbody.appendChild(tr);
 }
-
-// ... (resto del código)
 
 
 
@@ -2389,4 +2368,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.
+//V 1
