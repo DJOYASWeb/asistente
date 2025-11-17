@@ -2305,9 +2305,9 @@ function procesarCombinacionesFinal() {
 
   datos.forEach(prod => {
 const idManual =
-  producto["ID manual"] ||
-  producto["ID"] || 
-  rowOriginalId(codigo) ||
+  p["ID manual"] ||
+  p["ID"] ||
+  rowOriginalId(p["Referencia"] || p["CODIGO PRODUCTO"]) ||
   "";
     const precio = prod["Precio S/ IVA"] || 0;
     const baseCodigo = prod["Referencia"] || "";
