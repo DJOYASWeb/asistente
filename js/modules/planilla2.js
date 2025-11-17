@@ -2290,7 +2290,11 @@ function procesarCombinacionesFinal() {
   const resultado = [];
 
   datos.forEach(prod => {
-    const idManual = prod["ID manual"] || prod["ID"] || "";
+const idManual =
+  prod["ID manual"] ||        // si ya lo guardaste antes
+  prod["ID"] ||               // si ya viene desde datosCombinacionCantidades
+  rowOriginalId(prod["Referencia"]) ||  // ← ID real del producto, sacado del excel original
+  "";
     const precio = prod["Precio S/ IVA"] || 0;
     const baseCodigo = prod["Referencia"] || "";
     const detalle = Array.isArray(prod["Detalle"]) ? prod["Detalle"] : [];
@@ -2325,6 +2329,18 @@ function procesarCombinacionesFinal() {
   // abrir modal de previsualización
   abrirModalPrevisualizacionProcesado(resultado);
 }
+
+function rowOriginalId(codigo) {
+  const all = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
+  const fila = all.find(r => extraerCodigo(r) === codigo);
+  if (!fila) return "";
+  return (
+    fila["prestashop_id"] ||
+    fila["PRESTASHOP ID"] ||
+    ""
+  ).toString().trim();
+}
+
 
 // === MOSTRAR MODAL DE PREVISUALIZACIÓN Y EXPORTAR ===
 function abrirModalPrevisualizacionProcesado(resultado) {
