@@ -1566,12 +1566,15 @@ function agregarFilaNumeracion() {
   const tbody = document.getElementById("tablaNumeraciones");
   if (!tbody) return;
   const tr = document.createElement("tr");
+  // 🎯 CORRECCIÓN: Agregar las clases 'numeracion-input' y 'cantidad-input'
   tr.innerHTML = `
-    <td><input type="text" class="form-control form-control-sm" placeholder="Ej: #10-12"></td>
-    <td><input type="number" class="form-control form-control-sm" min="0" value="0"></td>
+    <td><input type="text" class="form-control form-control-sm numeracion-input" placeholder="Ej: #10-12"></td>
+    <td><input type="number" class="form-control form-control-sm cantidad-input" min="0" value="0"></td>
   `;
   tbody.appendChild(tr);
 }
+
+// ... (resto del código)
 
 
 
