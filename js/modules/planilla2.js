@@ -1008,7 +1008,6 @@ function mostrarTablaFiltrada(datos) {
 
 /** ---------- EXPORTACIONES ---------- **/
 
-
 function exportarXLSX(tipo, datos) {
   const transformados = transformarDatosParaExportar(datos);
   const ws = XLSX.utils.json_to_sheet(transformados);
@@ -1032,7 +1031,7 @@ function exportarXLSX(tipo, datos) {
     case "combinacion":
       baseNombre = "combinaciones";
       break;
-    case "reposicion": // <--- CORRECCIÓN DEL NOMBRE
+    case "reposicion": // <--- Caso CORREGIDO: si tipo es 'reposicion', usa este nombre
       baseNombre = "productos_reposicion"; 
       break;
     default:
@@ -1040,10 +1039,9 @@ function exportarXLSX(tipo, datos) {
       break;
   }
 
-const nombre = `${baseNombre}_${fechaStr}.xlsx`;
-XLSX.writeFile(wb, nombre);
+  const nombre = `${baseNombre}_${fechaStr}.xlsx`;
+  XLSX.writeFile(wb, nombre);
 }
-
 
 
 function inyectarPadresEnDataset(datos) {
@@ -2389,4 +2387,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.5
+//V 1.6
