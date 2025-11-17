@@ -1386,9 +1386,6 @@ function mostrarTablaCombinacionesCantidad() {
 
   contenedor.innerHTML = html;
 
-}
-
-
 
 function abrirModalDetalleProducto(codigo, index) {
   let modal = document.getElementById("modalDetalleProducto");
@@ -2391,4 +2388,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.2
+//V 1.3
