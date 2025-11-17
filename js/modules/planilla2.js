@@ -22,12 +22,30 @@ function normalizarTexto(valor) {
 }
 
 function esAnillo(row) {
-  const tipo = (row["procucto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
-  const combi = (row["PRODUCTO COMBINACION"] || "").toString().trim().toLowerCase();
+  // Normalizar tipo correctamente
+  const tipo = (
+    row["producto_tipo"] ||
+    row["PRODUCTO TIPO"] ||
+    row["procucto_tipo"] || 
+    ""
+  ).toString().trim().toLowerCase();
 
-  // Es anillo solo si dice "anillo" y no es Midi
-  return tipo.includes("anillo") && combi !== "midi";
+  // si no dice “anillo”, no sirve
+  if (!tipo.includes("anillo")) return false;
+
+  // excluir midi
+  const combi = (
+    row["producto_combinacion"] ||
+    row["PRODUCTO COMBINACION"] ||
+    row["Combinaciones"] ||
+    ""
+  ).toString().trim().toLowerCase();
+
+  if (combi === "midi") return false;
+
+  return true;
 }
+
 
 function esColganteLetra(row) {
   const tipo = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
@@ -1313,7 +1331,9 @@ function mostrarTablaCombinacionesCantidad() {
   vista.classList.remove("d-none");
 
   // --- Generación de datos combinaciones ---
-  const todos = [...datosOriginales, ...datosCombinaciones];
+const todos = [...datosOriginales, ...datosCombinaciones].filter(row => {
+  return esAnillo(row) || esColganteLetra(row);
+});
   const resultado = [];
 
   // 🔹 Intentar cargar datos guardados
