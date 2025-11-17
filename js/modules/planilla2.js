@@ -1029,7 +1029,7 @@ function filtrarProductos(tipo) {
 
   if (tipo === "nuevo") {
     datosFiltrados = datosOriginales.filter(p => !p["Combinaciones"]);
-  } else if (tipo === "reposicion") {
+  } else if (tipo === "reposición") {
     datosFiltrados = datosReposicion.filter(p => !p["Combinaciones"]);
   }
 
