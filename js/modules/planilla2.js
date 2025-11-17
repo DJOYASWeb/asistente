@@ -1270,55 +1270,62 @@ function mostrarProductosConID() {
 
 
 
-// ** ---------- COMBINACIONES (tabla especial) ---------- **
+// Desde la línea de inicio de la función mostrarTablaCombinacionesCantidad
+
 function mostrarTablaCombinacionesCantidad() {
   tipoSeleccionado = "combinacion_cantidades";
 
-  // 🔹 Ocultar elementos principales
-  const formulario = document.querySelector(".formulario");
-  if (formulario) formulario.classList.add("d-none");
-
-  const botonesTipo = document.getElementById("botonesTipo");
-  if (botonesTipo) botonesTipo.classList.add("d-none");
-
-  const procesarBtn = document.getElementById("botonProcesar");
-  if (procesarBtn) procesarBtn.classList.add("d-none");
-
-  const procesarImagenesBtn = document.getElementById("botonProcesarImagenes");
-  if (procesarImagenesBtn) procesarImagenesBtn.classList.add("d-none");
-
-  const tablaDiv = document.getElementById("tablaPreview");
-
-  // 🔹 Crear contenedor principal de vista combinaciones
-  let vista = document.getElementById("vistaCombinaciones");
-  if (!vista) {
-    vista = document.createElement("div");
-    vista.id = "vistaCombinaciones";
-    vista.className = "container my-4";
-
-    vista.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Vista de Combinaciones y Cantidades</h5>
-        <button class="btn btn-secondary btn-sm" onclick="volverDeCombinaciones()">← Volver</button>
-      </div>
-      <div id="tablaCombinacionesContenido" class="table-responsive"></div>
-    `;
-    tablaDiv.parentNode.insertBefore(vista, tablaDiv);
-  }
-
-  // 🔹 Ocultar la tabla principal y mostrar vista combinaciones
-  tablaDiv.classList.add("d-none");
-  vista.classList.remove("d-none");
+  // Ocultar la tabla principal y mostrar vista combinaciones
+  document.getElementById("tablaPreview").classList.add("d-none");
+  const vista = document.getElementById("vistaCombinaciones");
+  if (vista) vista.classList.remove("d-none");
 
   // --- Generación de datos combinaciones ---
-  const todos = [...datosOriginales, ...datosCombinaciones];
+  
+  // 1. Obtener todos los productos cargados
+  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion]; 
+  
+  // 2. 🎯 FILTRAR: Solo productos que tienen una combinación válida o son de tipo especial
+  const productosConCombinacion = todos.filter(row => {
+    const combinacionRaw = (
+      row["Combinaciones"] ||
+      row["PRODUCTO COMBINACION"] ||
+      row["producto_combinacion"] ||
+      ""
+    ).toString().trim().toLowerCase();
+
+    // Lógica para determinar si el campo de combinación tiene un valor válido
+    const tieneCombinacion = combinacionRaw && 
+                             combinacionRaw !== "sin valor" && 
+                             combinacionRaw !== "null" && 
+                             combinacionRaw !== "ninguno";
+
+    // Incluir también los que son anillos o colgantes con letra (lógica para asignarles tallas/numeraciones)
+    const esTipoEspecial = esAnillo(row) || esColganteLetra(row);
+
+    // Se muestra si tiene una combinación válida O es un tipo especial
+    return tieneCombinacion || esTipoEspecial;
+  });
+  
+  // 3. 🚨 Manejo si no hay productos que mostrar
+  if (!productosConCombinacion.length) {
+      // Mostrar tabla principal y ocultar la de combinaciones
+      document.getElementById("tablaPreview").classList.remove("d-none");
+      if (vista) vista.classList.add("d-none");
+      mostrarAlerta("No se encontraron productos con combinaciones o que requieran numeración.", "info");
+      volverDeCombinaciones(); // Volver a la vista principal
+      return;
+  }
+
   const resultado = [];
 
   // 🔹 Intentar cargar datos guardados
   const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
 
-  todos.forEach(row => {
+  // 4. Iterar sobre los productos FILTRADOS
+  productosConCombinacion.forEach(row => {
     const codigo = extraerCodigo(row);
+    
     const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
     const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
@@ -1326,7 +1333,6 @@ function mostrarTablaCombinacionesCantidad() {
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
-    // ✅ si hay datos guardados, restaurar el ID manual y detalle
     const dataPrev = guardados[codigo] || {};
 
     resultado.push({
@@ -1337,8 +1343,8 @@ function mostrarTablaCombinacionesCantidad() {
       "Cantidad": cantidad,
       "Precio S/ IVA": precioSinIVA,
       "Cantidad ingresada": dataPrev.cantidadIngresada || 0,
-      "ID manual": dataPrev.idManual || "",   // ✅ restaurar ID manual guardado
-      "Detalle": dataPrev.detalle || []        // ✅ restaurar combinaciones previas
+      "ID manual": dataPrev.idManual || "",
+      "Detalle": dataPrev.detalle || []
     });
   });
 
@@ -1346,6 +1352,15 @@ function mostrarTablaCombinacionesCantidad() {
 
   const contenedor = document.getElementById("tablaCombinacionesContenido");
   const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA", "Cantidad ingresada"];
+  
+  // ... (El resto del renderizado de la tabla)
+  if (contenedor) {
+      contenedor.innerHTML = generarTablaCombinaciones(resultado, encabezados);
+      activarTooltips();
+  }
+}
+
+// Hasta la línea final de la función mostrarTablaCombinacionesCantidad
 
   let html = `<table class="table table-bordered table-sm align-middle" id="tablaCombinaciones">
     <thead><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
