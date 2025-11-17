@@ -855,8 +855,8 @@ switch (tipo) {
     baseNombre = "combinaciones";
     break;
 
-  case "reposición": // por si acaso
-  case "reposicion": // ← ESTA ES LA QUE ESTÁS USANDO REALMENTE
+  case "reposición":
+  case "reposicion": 
     baseNombre = "productos_reposicion";
     break;
 
@@ -1029,7 +1029,7 @@ function filtrarProductos(tipo) {
 
   if (tipo === "nuevo") {
     datosFiltrados = datosOriginales.filter(p => !p["Combinaciones"]);
-  } else if (tipo === "reposición") {
+  } else if (tipo === "reposicion") {
     datosFiltrados = datosReposicion.filter(p => !p["Combinaciones"]);
   }
 
