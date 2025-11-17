@@ -1026,13 +1026,13 @@ function exportarXLSX(tipo, datos) {
   switch (tipo) {
     case "todo":
     case "nuevo":
-      baseNombre = "productos_nuevos";
+      baseNombre = "Nuevos_prod";
       break;
     case "combinacion":
-      baseNombre = "combinaciones";
+      baseNombre = "Combinaciones_prod";
       break;
     case "reposicion": // <--- Caso CORREGIDO: si tipo es 'reposicion', usa este nombre
-      baseNombre = "productos_reposicion"; 
+      baseNombre = "Reposicion_prod"; 
       break;
     default:
       baseNombre = "exportacion_planilla";
