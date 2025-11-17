@@ -626,11 +626,13 @@ if (materialRaw.includes("enchape")) {
 
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
-      // ⚠️ Si es un anillo y el campo combinaciones está vacío → error
-      if (esAnilloConValidacion && combinacion === "") {
-        errores.push(`${sku} - combinaciones vacías (${categoria})`);
-        return;
-      }
+if (esAnilloConValidacion && combinacion === "") {
+  // guardar como producto sin combinaciones
+  datosOriginales.push(row);
+  // registrar advertencia, pero NO excluirlo
+  errores.push(`${sku} - anillo sin combinaciones (se agregará igualmente)`);
+  return;
+}
 
       // 🟢 Determinar si el campo de combinación tiene realmente algo útil
       const combiValida =
@@ -2387,4 +2389,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.7
+//V 1.8
