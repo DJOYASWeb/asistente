@@ -1848,12 +1848,23 @@ async function procesarImagenes() {
   btnComprimir.classList.remove("d-none");
 }
 
-
 function registrarErrorImagen(codigo, img) {
-  img.onerror = null; // ← evitar loop infinito
+  // evitar bucle infinito
+  img.onerror = null;
+
+  // solo registrar en variable global si existe
+  if (!window.erroresImagenes) {
+    window.erroresImagenes = [];
+  }
+
+  window.erroresImagenes.push(codigo);
+
+  // asignar un placeholder válido
   img.src = "https://via.placeholder.com/200x200?text=Sin+Imagen";
-  erroresImagenes.push(codigo);
 }
+
+
+
 function abrirModalErrores() {
   const listaUl = document.getElementById("listaErrores");
   listaUl.innerHTML = "";
