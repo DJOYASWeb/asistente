@@ -1,6 +1,5 @@
 // js/modules/planilla.js
 
-
 window.zipDescargando = false;
 window.datosOriginales = [];
 window.datosCombinaciones = [];
@@ -8,73 +7,6 @@ window.datosReposicion = [];
 window.datosFiltrados = [];
 window.datosCombinacionCantidades = [];
 window.tipoSeleccionado = "todo";
-
-const PROXY_URL = "https://script.google.com/macros/s/AKfycbw4T4OK2pMq2aWbFud8tEQ5fCBfzE7WrSmO9PdJA_vIUGvI4eAgfNdZ5P71DA3wPzWJ/exec";
-
-/** 
- * Descarga imagen via proxy, devuelve peso en KB
- */
-async function obtenerPesoDesdeProxy(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-
-    img.onload = function () {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      canvas.getContext("2d").drawImage(img, 0, 0);
-
-      canvas.toBlob(blob => {
-        if (!blob) return reject("Blob vacío");
-        resolve(blob.size / 1024); // KB
-      }, "image/jpeg", 0.92);
-    };
-
-    img.onerror = () => reject("No se pudo cargar");
-    img.src = PROXY_URL + "?url=" + encodeURIComponent(url);
-  });
-}
-
-
-async function comprimirImagenDesdeProxy(url, quality = 0.75) {
-  // 1. Descargar blob desde Drive (no hay CORS aquí)
-  const res = await fetch(url, { mode: "no-cors" });
-  const blobOriginal = await res.blob();
-
-  // 2. Cargar la imagen desde ese blob
-  return await new Promise((resolve, reject) => {
-    const img = new Image();
-
-    img.onload = () => {
-      // 3. Dibujar en canvas
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-
-      // 4. Comprimir
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) reject("Error al comprimir");
-          else resolve(blob);
-        },
-        "image/jpeg",
-        quality
-      );
-    };
-
-    img.onerror = reject;
-
-    // MUY IMPORTANTE: cargar desde blob, NO desde Drive directo
-    img.src = URL.createObjectURL(blobOriginal);
-  });
-}
-
-
 
 // Orden de columnas para la vista (encabezados de Fila A + "Categoría principal" al final)
 let ordenColumnasVista = [];
@@ -1775,160 +1707,45 @@ function normalizarUrlDrive(url) {
   try {
     const u = new URL(url);
 
-    // Drive normal → convertir a descarga directa
+    // --- NO USAMOS PROXY, PROXY ROMPE TODO ---
+    // Google Drive normal
     if (u.host.includes("drive.google.com")) {
-      const id = url.match(/\/d\/([^/]+)/)?.[1] ||
-                u.searchParams.get("id");
+      const id = driveIdFromUrl(url);
       if (id) {
         return `https://drive.google.com/uc?export=download&id=${id}`;
       }
+      return url;
     }
 
+    // Si es una imagen directa (JPG/PNG/etc.) → dejarla tal cual
+    if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
+      return url;
+    }
+
+    return url; // dejar cualquier otra URL normal
+  } catch {
     return url;
-  } catch (e) {
-    return url;
   }
 }
 
-async function obtenerPesoReal(url) {
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error("Error al descargar imagen");
-
-  const blob = await resp.blob();
-  return blob.size / 1024; // KB
-}
-
-function blobAImagen(blob) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(img.src);
-      resolve(img);
-    };
-    img.src = URL.createObjectURL(blob);
-  });
-}
 
 
-async function procesarImagenes() {
-  // ocultar interfaz
-  document.getElementById("tablaPreview").classList.add("d-none");
-  document.getElementById("botonProcesar").classList.add("d-none");
-  document.getElementById("botonProcesarImagenes").classList.add("d-none");
-  const barraBotones = document.getElementById("botonesTipo");
-  if (barraBotones) barraBotones.classList.add("d-none");
-  const formulario = document.querySelector(".formulario");
-  if (formulario) formulario.classList.add("d-none");
 
-  const vista = document.getElementById("vistaImagenes");
-  const contenedor = document.getElementById("contenedorImagenes");
-  const barra = document.getElementById("barraProgreso");
-  const estado = document.getElementById("estadoProgreso");
-  const btnComprimir = document.getElementById("btnComprimir");
 
-  vista.classList.remove("d-none");
-  contenedor.innerHTML = "";
-  barra.style.width = "0%";
-  barra.textContent = "0%";
-  estado.textContent = "Procesando imágenes...";
-  btnComprimir.classList.add("d-none");
-
-  const filas = obtenerFilasActivas({
-    tipoSeleccionado,
-    datosFiltrados,
-    datosOriginales,
-    datosCombinaciones
-  });
-
-  const lista = [];
-  const errores = [];
-
-  let livianas = 0;
-  let pesadas = 0;
-
-  for (const row of filas) {
-    const codigo = extraerCodigo(row);
-    const raw = extraerUrlFoto(row);
-
-    if (!codigo || !raw) {
-      errores.push(codigo || "(sin código)");
-      continue;
-    }
-
-    const url = normalizarUrlDrive(raw);
-    lista.push({ codigo, url });
-  }
-
-  window.imagenesProcesadas = lista;
-
-  // Render 6 primeras
-  lista.slice(0, 6).forEach(({ codigo, url }) => {
-    const col = document.createElement("div");
-    col.className = "col-6 col-sm-4 col-md-2";
-    col.innerHTML = `
-      <div class="card shadow-sm h-100">
-        <img src="${url}" class="card-img-top" alt="${codigo}"
-             onerror="registrarErrorImagen('${codigo}', this)">
-        <div class="card-body p-2 text-center">
-          <small class="text-muted">${codigo}</small>
-        </div>
-      </div>`;
-    contenedor.appendChild(col);
-  });
-
-  // MEDICIÓN REAL POR CANVAS
-  let completadas = 0;
-  const total = lista.length;
-
-  for (const { codigo, url } of lista) {
-    try {
-      const pesoKB = await obtenerPesoDesdeImg(url);
-
-      if (pesoKB < 120) livianas++;
-      else pesadas++;
-    } catch {
-      errores.push(codigo);
-    }
-
-    completadas++;
-    const pct = Math.round((completadas / total) * 100);
-    barra.style.width = pct + "%";
-    barra.textContent = pct + "%";
-  }
-
-  // Finalización
-  barra.classList.add("bg-success");
-  estado.textContent = "✅ Listo, imágenes cargadas.";
-
-  document.getElementById("cantProcesadas").textContent = lista.length;
-  document.getElementById("cantLivianas").textContent = livianas;
-  document.getElementById("cantPesadas").textContent = pesadas;
-
-  if (errores.length) {
-    document.getElementById("cantErrores").textContent = errores.length;
-    document.getElementById("erroresLinea").classList.remove("d-none");
-    window.erroresImagenes = errores;
-  }
-
-  btnComprimir.classList.remove("d-none");
-}
 
 
 function registrarErrorImagen(codigo, img) {
   img.src = "https://dummyimage.com/200x200/cccccc/000000&text=Error";
 
-  if (!window.erroresImagenes)
-    window.erroresImagenes = [];
+  if (!window.erroresImagenes) window.erroresImagenes = new Set();
 
-  if (!window.erroresImagenes.includes(codigo))
-    window.erroresImagenes.push(codigo);
+  window.erroresImagenes.add(codigo);
 
   document.getElementById("cantErrores").textContent =
-    window.erroresImagenes.length;
+    window.erroresImagenes.size;
 
   document.getElementById("erroresLinea").classList.remove("d-none");
 }
-
 
 
 
@@ -1965,254 +1782,7 @@ function volverAVistaPrincipal() {
 
 
 
-async function comprimirImagenes() {
-  const barra = document.getElementById("barraProgreso");
-  const estado = document.getElementById("estadoProgreso");
-  const btn = document.getElementById("btnComprimir");
 
-  const lista = window.imagenesProcesadas || [];
-  if (!lista.length) {
-    alert("No hay imágenes procesadas.");
-    return;
-  }
-
-  btn.disabled = true;
-  estado.textContent = "Comprimiendo imágenes...";
-
-  const zip = new JSZip();
-  let completadas = 0;
-
-  for (const { codigo, url } of lista) {
-    try {
-      // medir peso usando proxy
-      const pesoKB = await obtenerPesoDesdeProxy(url);
-
-      // reglas
-      let quality;
-      if (pesoKB <= 120) quality = 0.92;     // casi original
-      else if (pesoKB <= 300) quality = 0.75;
-      else quality = 0.45;                   // fuerte
-
-      // comprimir usando proxy
-      const blob = await comprimirImagenDesdeProxy(url, quality);
-
-      zip.file(`${codigo}.jpg`, blob);
-
-    } catch (e) {
-      console.warn("Error al comprimir", codigo, e);
-    }
-
-    // barra de progreso
-    completadas++;
-    const pct = Math.round((completadas / lista.length) * 100);
-    barra.style.width = pct + "%";
-    barra.textContent = pct + "%";
-  }
-
-  // generar zip
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-  saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
-
-  estado.textContent = "ZIP generado correctamente.";
-  btn.disabled = false;
-}
-
-
-
-
-function cargarImagenSinCORS(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "Anonymous"; // no afecta si CORS no está habilitado
-
-    img.onload = () => {
-      // convertir la imagen a dataURL usando canvas
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-
-      canvas.toBlob(blob => {
-        if (!blob) return reject("No se pudo obtener blob");
-        resolve(blob);
-      }, "image/jpeg", 1); // calidad 100% al cargar
-    };
-
-    img.onerror = () => reject("No se pudo cargar imagen");
-    img.src = url + "&time=" + Date.now(); // evita cache
-  });
-}
-
-
-
-async function comprimirDebajo120(blobOriginal) {
-  const img = await new Promise(res => {
-    const image = new Image();
-    image.onload = () => res(image);
-    image.src = URL.createObjectURL(blobOriginal);
-  });
-
-  let canvas = document.createElement("canvas");
-  let ctx = canvas.getContext("2d");
-
-  canvas.width = img.width;
-  canvas.height = img.height;
-  ctx.drawImage(img, 0, 0);
-
-  let calidad = 0.9;
-  let blob;
-
-  while (calidad > 0.1) {
-    blob = await new Promise(res =>
-      canvas.toBlob(res, "image/jpeg", calidad)
-    );
-    if (blob.size / 1024 <= 120) break;
-    calidad -= 0.1;
-  }
-
-  return blob;
-}
-
-
-async function procesarImagen(url) {
-  const blob = await cargarImagenSinCORS(url); // Carga incluso desde Drive
-  const pesoKB = blob.size / 1024;
-
-  if (pesoKB <= 120) {
-    return blob; // deja tal cual
-  }
-
-  return await comprimirDebajo120(blob); // baja de tamaño
-}
-
-
-async function comprimirImagenes() {
-  const zip = new JSZip();
-  let completadas = 0;
-
-  for (const { codigo, url } of window.imagenesProcesadas) {
-    try {
-      const blobFinal = await procesarImagen(url);
-      zip.file(`${codigo}.jpg`, blobFinal);
-    } catch (err) {
-      console.error("Error en", codigo, err);
-    }
-
-    completadas++;
-    // actualización de progreso...
-  }
-
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-  saveAs(zipBlob, "imagenes.zip");
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function normalizarUrlDrive(url) {
-  if (!url) return "";
-  url = url.trim().replace(/^"|"$/g, "");
-
-  try {
-    const u = new URL(url);
-
-    // URL Drive → convertir a /uc
-    if (u.host.includes("drive.google.com")) {
-      const id = driveIdFromUrl(url);
-      if (id) return `https://drive.google.com/uc?export=download&id=${id}`;
-      return url;
-    }
-
-    return url; // cualquier imagen externa la dejamos igual
-  } catch {
-    return url;
-  }
-}
-
-
-async function obtenerPesoDesdeImg(url) {
-  const res = await fetch(url, { mode: "no-cors" });
-  const blob = await res.blob();
-  return blob.size / 1024; // KB
-}
-
-
-
-
-
-async function comprimirImagen(url, quality = 0.45) {
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error("No se pudo descargar la imagen");
-
-  const originalBlob = await resp.blob();
-  const img = await blobAImagen(originalBlob);
-
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  canvas.width = img.width;
-  canvas.height = img.height;
-
-  ctx.drawImage(img, 0, 0);
-
-  return new Promise(resolve => {
-    canvas.toBlob(
-      blob => resolve(blob),
-      "image/jpeg",
-      quality
-    );
-  });
-}
-
-
-
-async function comprimirBlob(blob, maxKB = 120) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = function () {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-
-      let calidad = 0.92;
-      let resultado;
-
-      do {
-        resultado = canvas.toDataURL("image/jpeg", calidad);
-        calidad -= 0.05;
-      } while (resultado.length / 1024 > maxKB && calidad > 0.1);
-
-      fetch(resultado)
-        .then(res => res.blob())
-        .then(resolve);
-    };
-    img.src = URL.createObjectURL(blob);
-  });
-}
 
 
 
@@ -2311,6 +1881,104 @@ function exportarCombinacionesProcesadas() {
   }
   exportarXLSXPersonalizado("combinacion_cantidades", window.resultadoCombinacionesProcesado);
 }
+
+async function fetchBlob(url) {
+  const res = await fetch(url, { mode: "no-cors" });
+  return await res.blob();
+}
+
+async function obtenerPesoDesdeImg(url) {
+  const blob = await fetchBlob(url);
+  return blob.size / 1024;
+}
+
+async function comprimirBlob(blobOriginal, maxKB = 120) {
+  const img = await new Promise(resolve => {
+    const i = new Image();
+    i.onload = () => resolve(i);
+    i.src = URL.createObjectURL(blobOriginal);
+  });
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  ctx.drawImage(img, 0, 0);
+
+  let quality = 0.92;
+  let blob;
+
+  while (quality > 0.05) {
+    blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
+    if (blob.size / 1024 <= maxKB) return blob;
+    quality -= 0.05;
+  }
+
+  return blob;
+}
+
+async function procesarImagen(url) {
+  const blob = await fetchBlob(url);
+  const kb = blob.size / 1024;
+
+  if (kb <= 120) return blob;
+  return await comprimirBlob(blob, 120);
+}
+
+async function comprimirImagenes() {
+  const barra = document.getElementById("barraProgreso");
+  const estado = document.getElementById("estadoProgreso");
+  const btnComprimir = document.getElementById("btnComprimir");
+
+  if (!window.imagenesProcesadas?.length) {
+    alert("No hay imágenes procesadas.");
+    return;
+  }
+
+  btnComprimir.disabled = true;
+  barra.classList.remove("bg-success");
+  barra.classList.add("progress-bar-animated");
+  estado.textContent = "Comprimiendo imágenes...";
+
+  const zip = new JSZip();
+  const total = window.imagenesProcesadas.length;
+  let completadas = 0;
+
+  for (const { codigo, url } of window.imagenesProcesadas) {
+    try {
+      const blobFinal = await procesarImagen(url);
+      zip.file(`${codigo}.jpg`, blobFinal);
+    } catch (e) {
+      console.warn("Error con", codigo, e);
+    }
+
+    completadas++;
+    const pct = Math.round((completadas / total) * 100);
+    barra.style.width = pct + "%";
+    barra.textContent = pct + "%";
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
+
+  barra.classList.remove("progress-bar-animated");
+  barra.classList.add("bg-success");
+  barra.style.width = "100%";
+  barra.textContent = "100%";
+  estado.textContent = "✅ Archivo ZIP generado correctamente.";
+
+  btnComprimir.disabled = false;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 //V 1
