@@ -1,5 +1,6 @@
 // js/modules/planilla.js
 
+
 window.zipDescargando = false;
 window.datosOriginales = [];
 window.datosCombinaciones = [];
@@ -7,6 +8,62 @@ window.datosReposicion = [];
 window.datosFiltrados = [];
 window.datosCombinacionCantidades = [];
 window.tipoSeleccionado = "todo";
+
+const PROXY_URL = "https://script.google.com/macros/s/AKfycbw4T4OK2pMq2aWbFud8tEQ5fCBfzE7WrSmO9PdJA_vIUGvI4eAgfNdZ5P71DA3wPzWJ/exec";
+
+/** 
+ * Descarga imagen via proxy, devuelve peso en KB
+ */
+async function obtenerPesoDesdeProxy(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = function () {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      canvas.getContext("2d").drawImage(img, 0, 0);
+
+      canvas.toBlob(blob => {
+        if (!blob) return reject("Blob vacío");
+        resolve(blob.size / 1024); // KB
+      }, "image/jpeg", 0.92);
+    };
+
+    img.onerror = () => reject("No se pudo cargar");
+    img.src = PROXY_URL + "?url=" + encodeURIComponent(url);
+  });
+}
+
+
+/**
+ * Comprime imagen via proxy con calidad controlada
+ */
+async function comprimirImagenDesdeProxy(url, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = function () {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      canvas.getContext("2d").drawImage(img, 0, 0);
+
+      canvas.toBlob(blob => {
+        if (!blob) return reject("No se pudo comprimir");
+        resolve(blob);
+      }, "image/jpeg", quality);
+    };
+
+    img.onerror = () => reject("Error al comprimir");
+    img.src = PROXY_URL + "?url=" + encodeURIComponent(url);
+  });
+}
+
 
 // Orden de columnas para la vista (encabezados de Fila A + "Categoría principal" al final)
 let ordenColumnasVista = [];
@@ -1896,6 +1953,7 @@ function volverAVistaPrincipal() {
 }
 
 
+
 async function comprimirImagenes() {
   const barra = document.getElementById("barraProgreso");
   const estado = document.getElementById("estadoProgreso");
@@ -1915,15 +1973,17 @@ async function comprimirImagenes() {
 
   for (const { codigo, url } of lista) {
     try {
-      const pesoKB = await obtenerPesoReal(url);
+      // medir peso usando proxy
+      const pesoKB = await obtenerPesoDesdeProxy(url);
 
-      // reglas de compresión
+      // reglas
       let quality;
-      if (pesoKB <= 120) quality = 0.92;  // casi sin pérdida
+      if (pesoKB <= 120) quality = 0.92;     // casi original
       else if (pesoKB <= 300) quality = 0.75;
-      else quality = 0.45;               // compresión fuerte
+      else quality = 0.45;                   // fuerte
 
-      const blob = await comprimirImagen(url, quality);
+      // comprimir usando proxy
+      const blob = await comprimirImagenDesdeProxy(url, quality);
 
       zip.file(`${codigo}.jpg`, blob);
 
@@ -1931,20 +1991,23 @@ async function comprimirImagenes() {
       console.warn("Error al comprimir", codigo, e);
     }
 
-    // progreso visual
+    // barra de progreso
     completadas++;
     const pct = Math.round((completadas / lista.length) * 100);
     barra.style.width = pct + "%";
     barra.textContent = pct + "%";
   }
 
-  // Generar ZIP final
+  // generar zip
   const zipBlob = await zip.generateAsync({ type: "blob" });
   saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
 
   estado.textContent = "ZIP generado correctamente.";
   btn.disabled = false;
 }
+
+
+
 
 function cargarImagenSinCORS(url) {
   return new Promise((resolve, reject) => {
@@ -2103,9 +2166,10 @@ function obtenerPesoDesdeImg(url) {
 
     img.onerror = () => reject("No se pudo cargar");
 
-    img.src = url;
+img.src = PROXY_URL + "?url=" + encodeURIComponent(url);
   });
 }
+
 
 
 
