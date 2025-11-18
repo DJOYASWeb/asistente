@@ -1729,19 +1729,15 @@ function normalizarUrlDrive(url) {
 }
 
 async function procesarImagenes() {
-
-  // 🔹 Ocultar vista principal
+  // ocultar interfaz
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
-
   const barraBotones = document.getElementById("botonesTipo");
   if (barraBotones) barraBotones.classList.add("d-none");
-
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.add("d-none");
 
-  // 🔹 Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   const barra = document.getElementById("barraProgreso");
@@ -1755,7 +1751,6 @@ async function procesarImagenes() {
   estado.textContent = "Procesando imágenes...";
   btnComprimir.classList.add("d-none");
 
-  // Obtener filas
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -1765,31 +1760,26 @@ async function procesarImagenes() {
 
   const lista = [];
   const errores = [];
+
   let livianas = 0;
   let pesadas = 0;
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
-    const rawUrl = extraerUrlFoto(row);
+    const raw = extraerUrlFoto(row);
 
-    if (!codigo || !rawUrl) {
+    if (!codigo || !raw) {
       errores.push(codigo || "(sin código)");
       continue;
     }
 
-    const url = normalizarUrlDrive(rawUrl);
+    const url = normalizarUrlDrive(raw);
     lista.push({ codigo, url });
   }
 
   window.imagenesProcesadas = lista;
 
-  if (!lista.length) {
-    contenedor.innerHTML = `<p class="text-danger">No se encontraron imágenes.</p>`;
-    estado.textContent = "No hay imágenes para mostrar.";
-    return;
-  }
-
-  // Mostrar primeras 6 imágenes
+  // Render 6 primeras
   lista.slice(0, 6).forEach(({ codigo, url }) => {
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-2";
@@ -1804,35 +1794,30 @@ async function procesarImagenes() {
     contenedor.appendChild(col);
   });
 
-  // 🔥🔥🔥 PROCESADOR REAL DE PESO (SIN API, SIN HEAD, SIN CORS) 🔥🔥🔥
+  // MEDICIÓN REAL POR CANVAS
   let completadas = 0;
   const total = lista.length;
 
-  for (const { url } of lista) {
+  for (const { codigo, url } of lista) {
     try {
-      const resp = await fetch(url);  // DESCARGA REAL DE LA IMAGEN
-      const blob = await resp.blob();  
-      const sizeKB = blob.size / 1024;
+      const pesoKB = await obtenerPesoDesdeImg(url);
 
-      if (sizeKB < 120) livianas++;
+      if (pesoKB < 120) livianas++;
       else pesadas++;
-
-    } catch (e) {
-      console.warn("Error descargando imagen:", url);
+    } catch {
+      errores.push(codigo);
     }
 
     completadas++;
-    const progreso = Math.round((completadas / total) * 100);
-    barra.style.width = progreso + "%";
-    barra.textContent = progreso + "%";
+    const pct = Math.round((completadas / total) * 100);
+    barra.style.width = pct + "%";
+    barra.textContent = pct + "%";
   }
 
-  // Fin del proceso
-  barra.classList.remove("progress-bar-animated");
+  // Finalización
   barra.classList.add("bg-success");
   estado.textContent = "✅ Listo, imágenes cargadas.";
 
-  // Resumen
   document.getElementById("cantProcesadas").textContent = lista.length;
   document.getElementById("cantLivianas").textContent = livianas;
   document.getElementById("cantPesadas").textContent = pesadas;
@@ -1841,8 +1826,6 @@ async function procesarImagenes() {
     document.getElementById("cantErrores").textContent = errores.length;
     document.getElementById("erroresLinea").classList.remove("d-none");
     window.erroresImagenes = errores;
-  } else {
-    document.getElementById("erroresLinea").classList.add("d-none");
   }
 
   btnComprimir.classList.remove("d-none");
@@ -1852,15 +1835,18 @@ async function procesarImagenes() {
 function registrarErrorImagen(codigo, img) {
   img.src = "https://dummyimage.com/200x200/cccccc/000000&text=Error";
 
-  if (!window.erroresImagenes) window.erroresImagenes = new Set();
+  if (!window.erroresImagenes)
+    window.erroresImagenes = [];
 
-  window.erroresImagenes.add(codigo);
+  if (!window.erroresImagenes.includes(codigo))
+    window.erroresImagenes.push(codigo);
 
   document.getElementById("cantErrores").textContent =
-    window.erroresImagenes.size;
+    window.erroresImagenes.length;
 
   document.getElementById("erroresLinea").classList.remove("d-none");
 }
+
 
 
 
@@ -1898,56 +1884,128 @@ function volverAVistaPrincipal() {
 async function comprimirImagenes() {
   const barra = document.getElementById("barraProgreso");
   const estado = document.getElementById("estadoProgreso");
-  const btnComprimir = document.getElementById("btnComprimir");
+  const btn = document.getElementById("btnComprimir");
 
-  if (!window.imagenesProcesadas?.length) {
+  const lista = window.imagenesProcesadas || [];
+  if (!lista.length) {
     alert("No hay imágenes procesadas.");
     return;
   }
 
-  btnComprimir.disabled = true;
-  barra.classList.remove("bg-success");
-  barra.classList.add("progress-bar-animated");
+  btn.disabled = true;
   estado.textContent = "Comprimiendo imágenes...";
 
   const zip = new JSZip();
-  let livianas = 0, pesadas = 0;
-  const total = window.imagenesProcesadas.length;
   let completadas = 0;
 
-  for (const { codigo, url } of window.imagenesProcesadas) {
+  for (const { codigo, url } of lista) {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
+      const peso = await obtenerPesoDesdeImg(url);
 
-      if (blob.size <= 100 * 1024) {
-        zip.file(`${codigo}.jpg`, blob);
-        livianas++;
+      let blob;
+
+      if (peso <= 120) {
+        blob = await comprimirImagenDesdeImg(url, 0.92); // casi original
       } else {
-        const comprimido = await comprimirBlob(blob, 120);
-        zip.file(`${codigo}.jpg`, comprimido);
-        pesadas++;
+        blob = await comprimirImagenDesdeImg(url, 0.45); // fuerte
       }
-    } catch (err) {
-      console.warn(`Error con ${codigo}:`, err);
+
+      zip.file(`${codigo}.jpg`, blob);
+
+    } catch (e) {
+      console.warn("Error al comprimir:", codigo, e);
     }
 
     completadas++;
-    const progreso = Math.round((completadas / total) * 100);
-    barra.style.width = progreso + "%";
-    barra.textContent = progreso + "%";
+    const pct = Math.round((completadas / lista.length) * 100);
+    barra.style.width = pct + "%";
+    barra.textContent = pct + "%";
   }
 
   const zipBlob = await zip.generateAsync({ type: "blob" });
   saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
 
-  barra.classList.remove("progress-bar-animated");
-  barra.classList.add("bg-success");
   barra.style.width = "100%";
   barra.textContent = "100%";
-  estado.textContent = "✅ Archivo ZIP generado correctamente.";
+  estado.textContent = "✅ ZIP generado correctamente.";
+  btn.disabled = false;
+}
 
-  btnComprimir.disabled = false;
+
+function normalizarUrlDrive(url) {
+  if (!url) return "";
+  url = url.trim().replace(/^"|"$/g, "");
+
+  try {
+    const u = new URL(url);
+
+    // URL Drive → convertir a /uc
+    if (u.host.includes("drive.google.com")) {
+      const id = driveIdFromUrl(url);
+      if (id) return `https://drive.google.com/uc?export=download&id=${id}`;
+      return url;
+    }
+
+    return url; // cualquier imagen externa la dejamos igual
+  } catch {
+    return url;
+  }
+}
+
+
+function obtenerPesoDesdeImg(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = function () {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob(blob => {
+          if (!blob) return reject("Blob vacío");
+          resolve(blob.size / 1024); // KB
+        }, "image/jpeg", 0.92);
+      } catch (e) {
+        reject(e);
+      }
+    };
+
+    img.onerror = () => reject("No se pudo cargar");
+
+    img.src = url;
+  });
+}
+
+
+
+function comprimirImagenDesdeImg(url, quality = 0.50) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = function () {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+
+      canvas.toBlob(blob => {
+        if (!blob) return reject("No se pudo comprimir");
+        resolve(blob); // Blob comprimido
+      }, "image/jpeg", quality);
+    };
+
+    img.onerror = () => reject("Error al comprimir");
+    img.src = url;
+  });
 }
 
 
