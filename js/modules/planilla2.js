@@ -1818,20 +1818,13 @@ async function procesarImagenes() {
   const total = lista.length;
 
   for (const { url } of lista) {
-    try {
-      const resp = await fetch(url, { method: "HEAD" });
-      const size = resp.headers.get("content-length");
-      if (size) {
-        const kb = parseInt(size) / 1024;
-        if (kb < 100) livianas++;
-        else pesadas++;
-      }
-    } catch {}
-    completadas++;
-    const progreso = Math.round((completadas / total) * 100);
-    barra.style.width = progreso + "%";
-    barra.textContent = progreso + "%";
-  }
+  // No podemos medir tamaño por CORS, solo incrementamos progreso
+  completadas++;
+  const progreso = Math.round((completadas / total) * 100);
+  barra.style.width = progreso + "%";
+  barra.textContent = progreso + "%";
+}
+
 
   // ✅ Fin del proceso
   barra.classList.remove("progress-bar-animated");
