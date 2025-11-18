@@ -1804,21 +1804,42 @@ async function procesarImagenes() {
   let completadas = 0;
   const total = lista.length;
 
-  for (const { url } of lista) {
+for (const { url } of lista) {
+
+    let sizeInfo = null;
+
+    // 1) Intentar con HEAD
     try {
-      const resp = await fetch(url, { method: "HEAD" });
-      const size = resp.headers.get("content-length");
-      if (size) {
-        const kb = parseInt(size) / 1024;
+        const headResp = await fetch(url, { method: "HEAD" });
+        if (headResp.ok) {
+            sizeInfo = headResp.headers.get("content-length");
+        }
+    } catch {}
+
+    // 2) Si HEAD falló, intentar GET
+    if (!sizeInfo) {
+        try {
+            const getResp = await fetch(url, { method: "GET" });
+            if (getResp.ok) {
+                sizeInfo = getResp.headers.get("content-length");
+            }
+        } catch {}
+    }
+
+    // 3) Clasificación de peso
+    if (sizeInfo) {
+        const kb = parseInt(sizeInfo) / 1024;
         if (kb < 100) livianas++;
         else pesadas++;
-      }
-    } catch {}
+    }
+
+    // 4) Progreso
     completadas++;
     const progreso = Math.round((completadas / total) * 100);
     barra.style.width = progreso + "%";
     barra.textContent = progreso + "%";
-  }
+}
+
 
   // ✅ Fin del proceso
   barra.classList.remove("progress-bar-animated");
