@@ -1055,25 +1055,28 @@ function filtrarCombinaciones(tipo) {
 }
 
 function mostrarProductosNuevos() {
-  tipoSeleccionado = "nuevo";
+  tipoSeleccionado = "nuevo"; // <-- Mantenemos 'nuevo' para el tipo de exportación
 
-// FILTRO ESPECIAL: solo Anillos y Colgantes con letra (no MIDI)
-const todos = [...datosOriginales, ...datosCombinaciones].filter(row => {
-  return esAnillo(row) || esColganteLetra(row);
-});
+  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
 
-  // 1) separar tipos especiales
-  const anillos = todos.filter(esAnillo);
-  const colgantesLetra = todos.filter(esColganteLetra);
+  // 🎯 FILTRO: Solo si NO tiene ID de PrestaShop asignado
+  const productosSinID = todos.filter(row => {
+    const id = row["PRESTASHOP ID"] || row["prestashop_id"];
+    return !id || id.toString().trim() === "";
+  });
 
-  // 2) el resto (no anillos y no colgantes de letra)
-  const otros = todos.filter(row => !anillos.includes(row) && !colgantesLetra.includes(row));
+  // 1) Separar tipos especiales (anillos y colgantes) SÓLO de los SIN ID
+  const anillos = productosSinID.filter(esAnillo);
+  const colgantesLetra = productosSinID.filter(esColganteLetra);
 
-  // 3) agrupar en padres (…000) anillos + colgantes de letra
+  // 2) El resto (no anillos y no colgantes de letra)
+  const otros = productosSinID.filter(row => !anillos.includes(row) && !colgantesLetra.includes(row));
+
+  // 3) Agrupar en padres (…000) anillos + colgantes de letra
   const anillosPadres = agruparAnillosComoPadres(anillos);
   const colgantesPadres = agruparAnillosComoPadres(colgantesLetra);
 
-  // 4) vista: solo padres y el resto de productos
+  // 4) Vista: solo padres y el resto de productos (TODO SIN ID)
   datosFiltrados = [...otros, ...anillosPadres, ...colgantesPadres];
 
   renderTablaConOrden(datosFiltrados);
