@@ -1,3 +1,4 @@
+
 // js/modules/planilla.js
 
 window.zipDescargando = false;
@@ -22,12 +23,30 @@ function normalizarTexto(valor) {
 }
 
 function esAnillo(row) {
-  const tipo = (row["procucto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
-  const combi = (row["PRODUCTO COMBINACION"] || "").toString().trim().toLowerCase();
+  // Normalizar tipo correctamente
+  const tipo = (
+    row["producto_tipo"] ||
+    row["PRODUCTO TIPO"] ||
+    row["procucto_tipo"] || 
+    ""
+  ).toString().trim().toLowerCase();
 
-  // Es anillo solo si dice "anillo" y no es Midi
-  return tipo.includes("anillo") && combi !== "midi";
+  // si no dice “anillo”, no sirve
+  if (!tipo.includes("anillo")) return false;
+
+  // excluir midi
+  const combi = (
+    row["producto_combinacion"] ||
+    row["PRODUCTO COMBINACION"] ||
+    row["Combinaciones"] ||
+    ""
+  ).toString().trim().toLowerCase();
+
+  if (combi === "midi") return false;
+
+  return true;
 }
+
 
 function esColganteLetra(row) {
   const tipo = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
@@ -145,34 +164,6 @@ function detectarColumnaQueIncluye(row, textoBuscado) {
 }
 
 
-// === ZIP FOTOS: utilidades ===
-
-// Toma dataset activo según reglas acordadas
-function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones }) {
-  // ✅ Prioridad: datos filtrados (si hay algo)
-  if (Array.isArray(datosFiltrados) && datosFiltrados.length > 0) {
-    return datosFiltrados;
-  }
-
-  // ✅ Combinar todo si no hay filtrado activo
-  const base = [];
-  if (Array.isArray(datosOriginales) && datosOriginales.length) base.push(...datosOriginales);
-  if (Array.isArray(datosCombinaciones) && datosCombinaciones.length) base.push(...datosCombinaciones);
-
-  // ✅ Fallback final: intenta tomar las globales directas
-  if (base.length === 0 && Array.isArray(window.datosFiltrados) && window.datosFiltrados.length) {
-    return window.datosFiltrados;
-  }
-
-  return base;
-}
-
-// Extrae URL de foto contemplando variantes del header (¡incluye el espacio!)
-function extraerUrlFoto(row) {
-  if (!row || typeof row !== "object") return "";
-  const url = row["FOTO LINK INDIVIDUAL"];
-  return typeof url === "string" ? url.trim() : "";
-}
 
 
 
@@ -203,7 +194,7 @@ function esProductoNuevo(row) {
 
 // Mostrar/ocultar botón según condición “1 fila activa y nueva”
 function onAbrirModalProcesar() {
-  const btnZip = document.getElementById('btnDescargarFotosZip');
+  const btnZip = document.getElementById('btncFotosZip');
   if (!btnZip) return;
 
   const filas = obtenerFilasActivas({
@@ -224,63 +215,26 @@ function onAbrirModalProcesar() {
 }
 
 
+// Normaliza URL de Google Drive a descarga directa
+// Extrae fileId desde las variantes comunes de Drive
 function driveIdFromUrl(url) {
   try {
     const u = new URL(url);
-    if (!u.host.includes("drive.google.com")) return null;
-
-    const m1 = u.pathname.match(/\/file\/d\/([^/]+)\//);
-    if (m1) return m1[1];
-
-    const id = u.searchParams.get("id");
+    if (!u.host.includes('drive.google.com')) return null;
+    // /file/d/<ID>/view
+    const m1 = u.pathname.match(/\/file\/d\/([^/]+)\/view/i);
+    if (m1?.[1]) return m1[1];
+    // ?id=<ID>
+    const id = u.searchParams.get('id');
     if (id) return id;
-
+    // /uc?id=<ID>&export=download
+    if (u.pathname.includes('/uc')) {
+      const id2 = u.searchParams.get('id');
+      if (id2) return id2;
+    }
     return null;
   } catch {
     return null;
-  }
-}
-
-
-
-// Usa Google Drive API (CORS OK) cuando haya API key
-function normalizarUrlDrive(url) {
-  if (!url) return '';
-
-  // 🔹 Limpieza de posibles comillas o espacios
-  url = url.trim().replace(/^"|"$/g, '');
-
-  try {
-    const u = new URL(url);
-
-    // === 1️⃣ Si NO es de Google Drive ===
-    if (!u.host.includes("drive.google.com")) {
-      // Si termina en una extensión de imagen (jpg, jpeg, png, webp, gif)
-      if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
-        // Servidor propio (por ejemplo distribuidoradejoyas.cl): ir directo
-if (u.host.includes("distribuidoradejoyas.cl")) {
-  return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-}
-        // Otros dominios externos → pasar por proxy CORS
-        return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-      }
-
-      // Si no tiene extensión conocida, intentar igual con proxy
-      return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-    }
-
-    // === 2️⃣ Si SÍ es de Google Drive ===
-    const id = driveIdFromUrl(url);
-    if (id) {
-      // Forzar descarga directa con proxy para evitar CORS
-      return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
-    }
-
-    // Si no se pudo extraer ID, devolver el original
-    return url;
-  } catch {
-    // Si no es una URL válida, devolver tal cual
-    return url;
   }
 }
 
@@ -313,28 +267,6 @@ function filenameDeContentDisposition(cd) {
   }
   const u = cd.match(/filename=([^;]+)/i);
   return u?.[1]?.trim() || '';
-}
-
-// Deducción de extensión con prioridad: Content-Disposition > Content-Type > URL > .jpg
-function deducirExtension({ response, finalUrl }) {
-  const cd = response.headers.get('Content-Disposition') || response.headers.get('content-disposition');
-  const fromCD = filenameDeContentDisposition(cd);
-  if (fromCD && /\.[a-z0-9]{2,5}$/i.test(fromCD)) return '.' + fromCD.split('.').pop().toLowerCase();
-
-  const ct = response.headers.get('Content-Type') || response.headers.get('content-type');
-  const extCT = extPorContentType(ct);
-  if (extCT) return extCT;
-
-  try {
-    const u = new URL(finalUrl);
-    const path = u.pathname || '';
-    const m1 = path.match(/\.(jpg|jpeg|png|webp|gif|bmp|tiff|heic|svg)(?:\?|$)/i);
-    if (m1?.[1]) return (m1[1].toLowerCase() === 'jpeg') ? '.jpg' : `.${m1[1].toLowerCase()}`;
-    const q = u.searchParams.toString();
-    const m2 = q.match(/(?:type|format)=?(jpg|jpeg|png|webp|gif|bmp|tiff|heic|svg)/i);
-    if (m2?.[1]) return (m2[1].toLowerCase() === 'jpeg') ? '.jpg' : `.${m2[1].toLowerCase()}`;
-  } catch {}
-  return '.jpg';
 }
 
 function safeName(name) {
@@ -373,111 +305,6 @@ async function procesaConConcurrencia(items, handler, concurrency = 4, onProgres
   });
 }
 
-
-// === ZIP FOTOS: acción principal ===
-async function descargarFotosComoZip(_ctx = {}, concurrencia = 4) {
-  const progressEl = document.getElementById("zipProgress");
-  if (progressEl) {
-    progressEl.style.display = "inline";
-    progressEl.textContent = "Preparando…";
-  }
-
-  // 🟢 Forzar uso de los datos actualmente visibles (datosFiltrados)
-  const filas =
-    (Array.isArray(window.datosFiltrados) && window.datosFiltrados.length
-      ? window.datosFiltrados
-      : (Array.isArray(window.datosOriginales) && window.datosOriginales.length
-          ? window.datosOriginales
-          : (Array.isArray(window.datosCombinaciones) && window.datosCombinaciones.length
-              ? window.datosCombinaciones
-              : [])));
-
-  console.log("[ZIP] Filas obtenidas:", filas.length);
-  console.log("[ZIP] Ejemplo FOTO LINK INDIVIDUAL:", filas[0]?.["FOTO LINK INDIVIDUAL"]);
-
-  const lista = [];
-  let faltantesSinUrl = 0;
-
-  for (const row of filas) {
-    const codigo = extraerCodigo(row);
-    const rawUrl = extraerUrlFoto(row); // debe devolver la URL de 'FOTO LINK INDIVIDUAL'
-
-    if (!codigo) continue;
-    if (!rawUrl) {
-      faltantesSinUrl++;
-      continue;
-    }
-
-    const url = normalizarUrlDrive(rawUrl);
-    lista.push({ codigo, url });
-  }
-
-  // ⚠️ Si no hay URLs válidas
-  if (!lista.length) {
-    if (progressEl) progressEl.style.display = "none";
-    alert("No se encontraron fotos para descargar en las filas activas.");
-    console.warn("[ZIP] Ninguna URL detectada. filas:", filas.length, "faltantes:", faltantesSinUrl);
-    return;
-  }
-
-  // 🧩 Evitar duplicados
-  const usados = new Map();
-  const zip = new JSZip();
-  let exitosas = 0;
-
-  console.log("[ZIP] Iniciando descarga de", lista.length, "archivos…");
-
-  const resultados = await procesaConConcurrencia(
-    lista,
-    async (item) => {
-      const finalUrl = item.url;
-      const resp = await fetch(finalUrl, { credentials: "omit" });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-
-      const ext = deducirExtension({ response: resp, finalUrl });
-      const base = safeName(item.codigo);
-      const n = (usados.get(base) || 0) + 1;
-      usados.set(base, n);
-
-      const filename = n === 1 ? `${base}${ext}` : `${base}_${n}${ext}`;
-      zip.file(filename, blob);
-      exitosas++;
-    },
-    concurrencia,
-    (done, total) => {
-      if (progressEl) progressEl.textContent = `Descargando ${done}/${total}…`;
-    }
-  );
-
-  const fallidas = resultados.filter(r => !r || !r.ok).length;
-
-  if (progressEl) progressEl.textContent = "Empaquetando…";
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-  const nombreZip = `fotos_${fechaDDMMYY()}.zip`;
-
-  if (typeof saveAs === "function") {
-    saveAs(zipBlob, nombreZip);
-  } else {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(zipBlob);
-    a.download = nombreZip;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      URL.revokeObjectURL(a.href);
-      a.remove();
-    }, 0);
-  }
-
-  if (progressEl) progressEl.style.display = "none";
-
-  const totalIntentadas = lista.length;
-  const total = totalIntentadas + faltantesSinUrl;
-  const msg = `Descarga finalizada. Incluidas: ${exitosas}/${total}. Fallidas: ${fallidas}. Sin URL: ${faltantesSinUrl}.`;
-  console.warn(msg);
-  alert(msg);
-}
 
 
 let tipoSeleccionado = "nuevo";
@@ -738,7 +565,7 @@ function construirCaracteristicas(row) {
   if (modelo) partes.push(`Modelo: ${modelo}`);
 
   // 💎 NUEVO: tipo de producto
-  if (tipoProducto) partes.push(`Tipo de producto: ${tipoProducto}`);
+  if (tipoProducto) partes.push(`Categoría: ${tipoProducto}`);
 
   // ⬇️ Dimensión
   if (dimension) {
@@ -1018,18 +845,27 @@ function exportarXLSX(tipo, datos) {
 
   const fechaStr = `${dia}-${mes}-${anio}`;
 
-  let baseNombre;
-  switch (tipo) {
-    case "todo":
-      baseNombre = "productos_nuevos";
-      break;
-    case "combinacion":
-      baseNombre = "combinaciones";
-      break;
-    default:
-      baseNombre = "reposicion";
-      break;
-  }
+let baseNombre;
+switch (tipo) {
+  case "todo":
+  case "nuevo":
+    baseNombre = "productos_nuevos";
+    break;
+
+  case "combinacion":
+    baseNombre = "combinaciones";
+    break;
+
+  case "reposición":
+  case "reposicion": 
+    baseNombre = "productos_reposicion";
+    break;
+
+  default:
+    baseNombre = "exportacion_planilla";
+    break;
+}
+
 
   const nombre = `${baseNombre}_${fechaStr}.xlsx`;
   XLSX.writeFile(wb, nombre);
@@ -1168,14 +1004,14 @@ function procesarExportacion() {
     return;
   }
 
-  // exportar TODO (inyectar padres para que el XLSX tenga los ...000)
   let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
     ? datosFiltrados
     : [...datosOriginales, ...datosCombinaciones];
 
   dataset = inyectarPadresEnDataset(dataset);
 
-  exportarXLSX("todo", dataset);
+  // ⬅️ CORRECCIÓN: exporta según el tipo real
+  exportarXLSX(tipoSeleccionado, dataset);
 }
 
 
@@ -1220,22 +1056,28 @@ function filtrarCombinaciones(tipo) {
 }
 
 function mostrarProductosNuevos() {
-  tipoSeleccionado = "nuevo";
+  tipoSeleccionado = "nuevo"; // <-- Mantenemos 'nuevo' para el tipo de exportación
 
-  const todos = [...datosOriginales, ...datosCombinaciones];
+  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
 
-  // 1) separar tipos especiales
-  const anillos = todos.filter(esAnillo);
-  const colgantesLetra = todos.filter(esColganteLetra);
+  // 🎯 FILTRO: Solo si NO tiene ID de PrestaShop asignado
+  const productosSinID = todos.filter(row => {
+    const id = row["PRESTASHOP ID"] || row["prestashop_id"];
+    return !id || id.toString().trim() === "";
+  });
 
-  // 2) el resto (no anillos y no colgantes de letra)
-  const otros = todos.filter(row => !anillos.includes(row) && !colgantesLetra.includes(row));
+  // 1) Separar tipos especiales (anillos y colgantes) SÓLO de los SIN ID
+  const anillos = productosSinID.filter(esAnillo);
+  const colgantesLetra = productosSinID.filter(esColganteLetra);
 
-  // 3) agrupar en padres (…000) anillos + colgantes de letra
+  // 2) El resto (no anillos y no colgantes de letra)
+  const otros = productosSinID.filter(row => !anillos.includes(row) && !colgantesLetra.includes(row));
+
+  // 3) Agrupar en padres (…000) anillos + colgantes de letra
   const anillosPadres = agruparAnillosComoPadres(anillos);
   const colgantesPadres = agruparAnillosComoPadres(colgantesLetra);
 
-  // 4) vista: solo padres y el resto de productos
+  // 4) Vista: solo padres y el resto de productos (TODO SIN ID)
   datosFiltrados = [...otros, ...anillosPadres, ...colgantesPadres];
 
   renderTablaConOrden(datosFiltrados);
@@ -1302,7 +1144,9 @@ function mostrarTablaCombinacionesCantidad() {
   vista.classList.remove("d-none");
 
   // --- Generación de datos combinaciones ---
-  const todos = [...datosOriginales, ...datosCombinaciones];
+const todos = [...datosOriginales, ...datosCombinaciones].filter(row => {
+  return esAnillo(row) || esColganteLetra(row);
+});
   const resultado = [];
 
   // 🔹 Intentar cargar datos guardados
@@ -1310,7 +1154,13 @@ function mostrarTablaCombinacionesCantidad() {
 
   todos.forEach(row => {
     const codigo = extraerCodigo(row);
-    const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"]);
+const idProducto = asNumericId(
+  row["prestashop_id"] ||
+  row["PRESTASHOP ID"] ||
+  row["ID"] ||
+  row["id"] ||
+  ""
+);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
     const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
     const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
@@ -1400,7 +1250,15 @@ function abrirModalDetalleProducto(codigo, index) {
     <div class="mb-3 d-flex align-items-center justify-content-between">
       <h6 class="text-primary mb-0">SKU: ${codigo}</h6>
       <div class="ms-3 flex-grow-1">
-        <input type="text" id="idManualInput" class="form-control form-control-sm" placeholder="Ingresar ID del producto" value="${producto["ID manual"] || ""}">
+   <input type="text" id="idManualInput" class="form-control form-control-sm"
+  placeholder="Ingresar ID del producto"
+  value="${
+    producto["ID manual"] ||
+    producto["ID"] ||
+    rowOriginalId(codigo) ||
+    ""
+  }">
+
       </div>
     </div>
     <table class="table table-bordered table-sm align-middle">
@@ -1443,12 +1301,15 @@ function guardarCantidadIngresada(index) {
   const detalle = [];
   let suma = 0;
 
-  inputsNumeracion.forEach((nInput, i) => {
-    const numeracion = nInput.value.trim();
-    const cantidad = parseFloat(inputsCantidad[i].value) || 0;
-    suma += cantidad;
-    if (numeracion || cantidad) detalle.push({ numeracion, cantidad });
-  });
+inputsNumeracion.forEach((nInput, i) => {
+  const numeracion = nInput.value.trim();
+  const cantidad = parseFloat(inputsCantidad[i].value) || 0;
+  suma += cantidad;
+
+  // 🔹 Ahora SIEMPRE guardaremos la fila, tenga o no datos
+  detalle.push({ numeracion, cantidad });
+});
+
 
   // 🔹 Actualizar dataset global
   if (window.datosCombinacionCantidades && window.datosCombinacionCantidades[index]) {
@@ -1500,7 +1361,6 @@ function procesarCombinacionesFinal() {
       const cantidad = d.cantidad || 0;
       if (!combinacion) return;
 
-      // armar referencia reemplazando los últimos dígitos (3 o más ceros) con la combinación
       const referencia = baseCodigo.replace(/0+$/, combinacion.padStart(3, "0"));
 
       resultado.push({
@@ -1515,57 +1375,30 @@ function procesarCombinacionesFinal() {
   });
 
   if (!resultado.length) {
-    document.getElementById("resultadoProcesado").innerHTML = `
-      <p class="text-muted text-center">No hay combinaciones válidas para procesar.</p>`;
+    alert("No hay combinaciones válidas para procesar.");
     return;
   }
 
-  // Renderizar la tabla final
-  const encabezados = [
-    "ID",
-    "Attribute (Name:Type:Position)*",
-    "Value (Value:Position)*",
-    "Referencia",
-    "Cantidad",
-    "Precio S/ IVA"
-  ];
-
-  let html = `<h6 class="text-center mb-3">Resultado procesado (${resultado.length} filas)</h6>`;
-  html += `<div class="table-responsive"><table class="table table-bordered table-sm align-middle">
-    <thead class="table-light"><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
-
-  resultado.forEach(r => {
-    html += `<tr>
-      <td>${r["ID"]}</td>
-      <td>${r["Attribute (Name:Type:Position)*"]}</td>
-      <td>${r["Value (Value:Position)*"]}</td>
-      <td>${r["Referencia"]}</td>
-      <td>${r["Cantidad"]}</td>
-      <td>${r["Precio S/ IVA"]}</td>
-    </tr>`;
-  });
-
-  html += `</tbody></table></div>`;
-
-  const contenedor = document.getElementById("resultadoProcesado");
-  contenedor.innerHTML = html;
-
-  // Guardar también el resultado en memoria por si se quiere exportar
+  // Guardamos para exportación posterior
   window.resultadoCombinacionesProcesado = resultado;
+
+  // 👇👇👇 AQUI SE ABRE EL MODAL (tu versión buena)
+  abrirModalPrevisualizacionProcesado(resultado);
 }
+
 
 
 function agregarFilaNumeracion() {
   const tbody = document.getElementById("tablaNumeraciones");
   if (!tbody) return;
   const tr = document.createElement("tr");
+  // 🎯 CORRECCIÓN: Agregar las clases 'numeracion-input' y 'cantidad-input'
   tr.innerHTML = `
-    <td><input type="text" class="form-control form-control-sm" placeholder="Ej: #10-12"></td>
-    <td><input type="number" class="form-control form-control-sm" min="0" value="0"></td>
+    <td><input type="text" class="form-control form-control-sm numeracion-input" placeholder="Ej: #10-12"></td>
+    <td><input type="number" class="form-control form-control-sm cantidad-input" min="0" value="0"></td>
   `;
   tbody.appendChild(tr);
 }
-
 
 
 function volverDeCombinaciones() {
@@ -1598,165 +1431,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-
-
-//corte
-
-
-// ========= DEBUG / AUTO-INTEGRACIÓN BOTÓN ZIP =========
-(function () {
-  const MODAL_ID = 'modalColumnas';
-  const BTN_ID = 'btnDescargarFotosZip';
-  const PROG_ID = 'zipProgress';
-
-  // 0) Asegura que exista el botón (si no está en el HTML, lo inserta)
-  document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById(MODAL_ID);
-    if (!modal) {
-      console.warn('[zip] No se encontró #' + MODAL_ID + ' en el DOM.');
-      return;
-    }
-    const footer = modal.querySelector('.modal-footer');
-    if (!footer) {
-      console.warn('[zip] No se encontró .modal-footer dentro del modal.');
-      return;
-    }
-    let btn = document.getElementById(BTN_ID);
-    let prog = document.getElementById(PROG_ID);
-
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.id = BTN_ID;
-      btn.type = 'button';
-      btn.className = 'btn btn-outline-secondary';
-      btn.style.display = 'none';
-      btn.textContent = 'Descargar fotos (.zip)';
-      // Inserta ANTES del botón Exportar, si existe:
-      const exportBtn = footer.querySelector('#confirmarExportar');
-      if (exportBtn) footer.insertBefore(btn, exportBtn);
-      else footer.appendChild(btn);
-      console.log('[zip] Botón ZIP inyectado en el modal.');
-    }
-    if (!prog) {
-      prog = document.createElement('small');
-      prog.id = PROG_ID;
-      prog.className = 'text-muted ms-2';
-      prog.style.display = 'none';
-      prog.textContent = 'Descargando 0/0…';
-      btn.after(prog);
-      console.log('[zip] Indicador de progreso inyectado.');
-    }
-  });
-
-  // 1) Envoltorio de diagnóstico para onAbrirModalProcesar
-  const _orig_onAbrir = (typeof onAbrirModalProcesar === 'function') ? onAbrirModalProcesar : null;
-
-window.onAbrirModalProcesar = function () {
-  const btnZip = document.getElementById(BTN_ID);
-  const filas = obtenerFilasActivas({ 
-    tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones 
-  });
-
-  const show = Array.isArray(filas) && filas.length > 0;
-
-  console.log('[zip] evaluar botón →', {
-    btnZip: !!btnZip,
-    tipoSeleccionado,
-    filas: Array.isArray(filas) ? filas.length : 0,
-    show
-  });
-
-  if (btnZip) btnZip.style.display = show ? 'inline-block' : 'none';
-  if (_orig_onAbrir) try { _orig_onAbrir(); } catch (e) {}
-};
-
-
-  // 2) Forzar evaluación al preparar el modal (por si el evento de Bootstrap no corre)
-  const _orig_preparar = (typeof prepararModal === 'function') ? prepararModal : null;
-  window.prepararModal = function () {
-    if (_orig_preparar) _orig_preparar.apply(this, arguments);
-    // tras armar la tabla:
-    try { window.onAbrirModalProcesar(); } catch (e) {
-      console.error('[zip] onAbrirModalProcesar() falló al final de prepararModal:', e);
-    }
-  };
-
-  // 3) Engancha ambos eventos de Bootstrap para cubrir todos los casos
-  document.addEventListener('DOMContentLoaded', () => {
-    const modal = document.getElementById(MODAL_ID);
-    if (!modal) return;
-
-    // show: antes de que sea visible
-    modal.addEventListener('show.bs.modal', () => {
-      console.log('[zip] show.bs.modal');
-      try { window.onAbrirModalProcesar(); } catch (e) {
-        console.error('[zip] error en show.bs.modal:', e);
-      }
-    });
-
-    // shown: ya visible en pantalla
-    modal.addEventListener('shown.bs.modal', () => {
-      console.log('[zip] shown.bs.modal');
-      try { window.onAbrirModalProcesar(); } catch (e) {
-        console.error('[zip] error en shown.bs.modal:', e);
-      }
-    });
-  });
-
-// 4) Click del botón (con guard para evitar descargas duplicadas)
-document.addEventListener('click', async (e) => {
-  const btn = e.target.closest('#' + BTN_ID);
-  if (!btn) return;
-
-  if (window.zipDescargando) {
-    console.warn('[zip] Descarga en curso; se ignora click adicional.');
-    return;
-  }
-
-  console.log('[zip] click botón ZIP');
-
-  // ✅ Acceso a variables globales reales
-  const tipoSel = window.tipoSeleccionado;
-  const datosFilt = window.datosFiltrados || [];
-  const datosOrig = window.datosOriginales || [];
-  const datosComb = window.datosCombinaciones || [];
-
-  console.log('[zip] Debug variables globales (forzadas):', {
-    datosFiltrados: datosFilt.length,
-    datosOriginales: datosOrig.length,
-    datosCombinaciones: datosComb.length,
-    tipoSeleccionado: tipoSel
-  });
-
-  try {
-    if (typeof JSZip === 'undefined') {
-      alert('Falta JSZip. Verifica que el CDN esté cargado.');
-      return;
-    }
-
-    window.zipDescargando = true;
-    btn.disabled = true;
-
-    // 🔥 Usamos los datos reales del window
-    await descargarFotosComoZip({
-      tipoSeleccionado: tipoSel,
-      datosFiltrados: datosFilt,
-      datosOriginales: datosOrig,
-      datosCombinaciones: datosComb
-    }, 4);
-
-  } catch (err) {
-    console.error('[zip] No se pudo iniciar/completar la descarga ZIP:', err);
-    alert('No se pudo iniciar/completar la descarga. Revisa la consola para más detalles.');
-  } finally {
-    window.zipDescargando = false;
-    btn.disabled = false;
-  }
-});
-
-
-
-})();
 
 
 // === INGRESAR ID PADRES ===
@@ -2008,9 +1682,57 @@ function agregarCategoriaAdicional() {
   alert(`Categoría "${nuevaCat}" agregada correctamente a toda la planilla ✅`);
 }
 
+function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones }) {
+  // Si estás viendo una tabla filtrada → usar esa
+  if (Array.isArray(datosFiltrados) && datosFiltrados.length > 0) {
+    return datosFiltrados;
+  }
+
+  // Si no hay filtro → usar todo lo cargado
+  return [...datosOriginales, ...datosCombinaciones];
+}
+
+function extraerUrlFoto(row) {
+  if (!row || typeof row !== "object") return "";
+  const url = row["FOTO LINK INDIVIDUAL"];
+  return typeof url === "string" ? url.trim() : "";
+}
+
+
+
+function normalizarUrlDrive(url) {
+  if (!url) return "";
+
+  url = url.trim().replace(/^"|"$/g, "");
+
+  try {
+    const u = new URL(url);
+
+    // --- NO USAMOS PROXY, PROXY ROMPE TODO ---
+    // Google Drive normal
+    if (u.host.includes("drive.google.com")) {
+      const id = driveIdFromUrl(url);
+      if (id) {
+        return `https://drive.google.com/uc?export=download&id=${id}`;
+      }
+      return url;
+    }
+
+    // Si es una imagen directa (JPG/PNG/etc.) → dejarla tal cual
+    if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
+      return url;
+    }
+
+    return url; // dejar cualquier otra URL normal
+  } catch {
+    return url;
+  }
+}
+
+
 
 async function procesarImagenes() {
-  // Ocultar vista principal
+  // 🔹 Ocultar vista principal
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
@@ -2019,13 +1741,12 @@ async function procesarImagenes() {
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.add("d-none");
 
-  // Mostrar vista imágenes
+  // 🔹 Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   const barra = document.getElementById("barraProgreso");
   const estado = document.getElementById("estadoProgreso");
   const btnComprimir = document.getElementById("btnComprimir");
-
   vista.classList.remove("d-none");
   contenedor.innerHTML = "";
   barra.style.width = "0%";
@@ -2033,7 +1754,7 @@ async function procesarImagenes() {
   estado.textContent = "Procesando imágenes...";
   btnComprimir.classList.add("d-none");
 
-  // 1️⃣ Obtener filas visibles
+  // 🧩 Obtener filas
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -2042,42 +1763,33 @@ async function procesarImagenes() {
   });
 
   const lista = [];
-  let errores = [];
+  const errores = [];
+  let livianas = 0;
+  let pesadas = 0;
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
     const rawUrl = extraerUrlFoto(row);
-
     if (!codigo || !rawUrl) {
       errores.push(codigo || "(sin código)");
       continue;
     }
-
-    // Normalizamos la URL pero sin usar proxys
-    let url = rawUrl.trim().replace(/^"|"$/g, "");
-    const id = driveIdFromUrl(url);
-
-    if (id) {
-      url = `https://drive.google.com/uc?export=view&id=${id}`;
-    }
-
+    const url = normalizarUrlDrive(rawUrl);
     lista.push({ codigo, url });
   }
 
   window.imagenesProcesadas = lista;
 
-  // Si no hay imágenes
   if (!lista.length) {
     contenedor.innerHTML = `<p class="text-danger">No se encontraron imágenes.</p>`;
     estado.textContent = "No hay imágenes para mostrar.";
     return;
   }
 
-  // 2️⃣ Renderizar solo primeras 6 imágenes
+  // 🖼️ Renderizar solo 6 imágenes
   lista.slice(0, 6).forEach(({ codigo, url }) => {
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-2";
-
     col.innerHTML = `
       <div class="card shadow-sm h-100">
         <img src="${url}" class="card-img-top" alt="${codigo}"
@@ -2085,32 +1797,60 @@ async function procesarImagenes() {
         <div class="card-body p-2 text-center">
           <small class="text-muted">${codigo}</small>
         </div>
-      </div>
-    `;
-
+      </div>`;
     contenedor.appendChild(col);
   });
 
-  // 3️⃣ Simulación de carga progresiva (como antes)
+  // 🔹 Barra de progreso
   let completadas = 0;
   const total = lista.length;
 
-  for (let i = 0; i < total; i++) {
-    await new Promise((r) => setTimeout(r, 20));
+for (const { url } of lista) {
+
+    let sizeInfo = null;
+
+    // 1) Intentar con HEAD
+    try {
+        const headResp = await fetch(url, { method: "HEAD" });
+        if (headResp.ok) {
+            sizeInfo = headResp.headers.get("content-length");
+        }
+    } catch {}
+
+    // 2) Si HEAD falló, intentar GET
+    if (!sizeInfo) {
+        try {
+            const getResp = await fetch(url, { method: "GET" });
+            if (getResp.ok) {
+                sizeInfo = getResp.headers.get("content-length");
+            }
+        } catch {}
+    }
+
+    // 3) Clasificación de peso
+    if (sizeInfo) {
+        const kb = parseInt(sizeInfo) / 1024;
+        if (kb < 100) livianas++;
+        else pesadas++;
+    }
+
+    // 4) Progreso
     completadas++;
     const progreso = Math.round((completadas / total) * 100);
     barra.style.width = progreso + "%";
     barra.textContent = progreso + "%";
-  }
+}
 
-  // 4️⃣ Finalizar
+
+  // ✅ Fin del proceso
   barra.classList.remove("progress-bar-animated");
   barra.classList.add("bg-success");
   estado.textContent = "✅ Listo, imágenes cargadas.";
 
+  // Actualizar resumen
   document.getElementById("cantProcesadas").textContent = lista.length;
-  document.getElementById("cantLivianas").textContent = "0";
-  document.getElementById("cantPesadas").textContent = "0";
+  document.getElementById("cantLivianas").textContent = livianas;
+  document.getElementById("cantPesadas").textContent = pesadas;
 
   if (errores.length) {
     document.getElementById("cantErrores").textContent = errores.length;
@@ -2120,20 +1860,28 @@ async function procesarImagenes() {
     document.getElementById("erroresLinea").classList.add("d-none");
   }
 
+  // Mostrar botón de comprimir
   btnComprimir.classList.remove("d-none");
 }
 
 
 
+
 function registrarErrorImagen(codigo, img) {
-  img.src = "https://via.placeholder.com/200x200?text=Sin+Imagen";
-  if (!window.erroresImagenes) window.erroresImagenes = [];
-  if (!window.erroresImagenes.includes(codigo)) {
-    window.erroresImagenes.push(codigo);
-  }
-  document.getElementById("cantErrores").textContent = window.erroresImagenes.length;
+  img.src = "https://dummyimage.com/200x200/cccccc/000000&text=Error";
+
+  if (!window.erroresImagenes) window.erroresImagenes = new Set();
+
+  window.erroresImagenes.add(codigo);
+
+  document.getElementById("cantErrores").textContent =
+    window.erroresImagenes.size;
+
   document.getElementById("erroresLinea").classList.remove("d-none");
 }
+
+
+
 
 function abrirModalErrores() {
   const listaUl = document.getElementById("listaErrores");
@@ -2248,52 +1996,35 @@ async function comprimirBlob(blob, maxKB = 120) {
   });
 }
 
-// === PROCESAR COMBINACIONES Y MOSTRAR MODAL ===
-function procesarCombinacionesFinal() {
-  const datos = window.datosCombinacionCantidades || [];
-  if (!datos.length) {
-    alert("No hay datos para procesar.");
-    return;
+
+
+function rowOriginalId(codigo) {
+  const all = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
+
+  const fila = all.find(r => extraerCodigo(r) === codigo);
+  if (!fila) return "";
+
+  // Revisamos TODAS las formas en que podría llamarse la columna del ID
+  const keys = [
+    "prestashop_id",
+    "PRESTASHOP ID",
+    "ID PRODUCTO",
+    "id_producto",
+    "Producto ID",
+    "ID",
+    "id"
+  ];
+
+  for (const k of keys) {
+    if (fila[k] && fila[k].toString().trim() !== "") {
+      return fila[k].toString().trim();
+    }
   }
 
-  const resultado = [];
-
-  datos.forEach(prod => {
-    const idManual = prod["ID manual"] || prod["ID"] || "";
-    const precio = prod["Precio S/ IVA"] || 0;
-    const baseCodigo = prod["Referencia"] || "";
-    const detalle = Array.isArray(prod["Detalle"]) ? prod["Detalle"] : [];
-
-    detalle.forEach(d => {
-      const combinacion = (d.numeracion || "").trim();
-      const cantidad = d.cantidad || 0;
-      if (!combinacion) return;
-
-      // generar código reemplazando los últimos ceros por la combinación
-      const referencia = baseCodigo.replace(/0+$/, combinacion.padStart(3, "0"));
-
-      resultado.push({
-        "ID": idManual,
-        "Attribute (Name:Type:Position)*": "Número:radio:0",
-        "Value (Value:Position)*": `${combinacion}:0`,
-        "Referencia": referencia,
-        "Cantidad": cantidad,
-        "Precio S/ IVA": precio
-      });
-    });
-  });
-
-  if (!resultado.length) {
-    alert("No hay combinaciones válidas para procesar.");
-    return;
-  }
-
-  // guardar en memoria por si se exporta luego
-  window.resultadoCombinacionesProcesado = resultado;
-
-  // abrir modal de previsualización
-  abrirModalPrevisualizacionProcesado(resultado);
+  return "";
 }
+
+
 
 // === MOSTRAR MODAL DE PREVISUALIZACIÓN Y EXPORTAR ===
 function abrirModalPrevisualizacionProcesado(resultado) {
@@ -2364,4 +2095,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.2
+//V 1.6
