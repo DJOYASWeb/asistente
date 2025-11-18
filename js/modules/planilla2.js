@@ -1946,6 +1946,115 @@ async function comprimirImagenes() {
   btn.disabled = false;
 }
 
+function cargarImagenSinCORS(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous"; // no afecta si CORS no está habilitado
+
+    img.onload = () => {
+      // convertir la imagen a dataURL usando canvas
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+
+      canvas.toBlob(blob => {
+        if (!blob) return reject("No se pudo obtener blob");
+        resolve(blob);
+      }, "image/jpeg", 1); // calidad 100% al cargar
+    };
+
+    img.onerror = () => reject("No se pudo cargar imagen");
+    img.src = url + "&time=" + Date.now(); // evita cache
+  });
+}
+
+
+
+async function comprimirDebajo120(blobOriginal) {
+  const img = await new Promise(res => {
+    const image = new Image();
+    image.onload = () => res(image);
+    image.src = URL.createObjectURL(blobOriginal);
+  });
+
+  let canvas = document.createElement("canvas");
+  let ctx = canvas.getContext("2d");
+
+  canvas.width = img.width;
+  canvas.height = img.height;
+  ctx.drawImage(img, 0, 0);
+
+  let calidad = 0.9;
+  let blob;
+
+  while (calidad > 0.1) {
+    blob = await new Promise(res =>
+      canvas.toBlob(res, "image/jpeg", calidad)
+    );
+    if (blob.size / 1024 <= 120) break;
+    calidad -= 0.1;
+  }
+
+  return blob;
+}
+
+
+async function procesarImagen(url) {
+  const blob = await cargarImagenSinCORS(url); // Carga incluso desde Drive
+  const pesoKB = blob.size / 1024;
+
+  if (pesoKB <= 120) {
+    return blob; // deja tal cual
+  }
+
+  return await comprimirDebajo120(blob); // baja de tamaño
+}
+
+
+async function comprimirImagenes() {
+  const zip = new JSZip();
+  let completadas = 0;
+
+  for (const { codigo, url } of window.imagenesProcesadas) {
+    try {
+      const blobFinal = await procesarImagen(url);
+      zip.file(`${codigo}.jpg`, blobFinal);
+    } catch (err) {
+      console.error("Error en", codigo, err);
+    }
+
+    completadas++;
+    // actualización de progreso...
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  saveAs(zipBlob, "imagenes.zip");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 function normalizarUrlDrive(url) {
