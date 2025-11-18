@@ -1689,17 +1689,34 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
 }
 
 function extraerUrlFoto(row) {
-  // intenta leer múltiples nombres de columnas posibles
-  const claves = [
-    "foto", "FOTO",
-    "Foto Principal", "foto_principal", "FOTO PRINCIPAL",
+  if (!row) return "";
+
+  const posiblesColumnas = [
+    "foto", "FOTO", "Foto",
+    "foto_1", "FOTO_1",
+    "foto_principal", "FOTO PRINCIPAL", "Foto Principal",
     "imagen", "Imagen", "IMAGEN",
-    "URL Foto", "url_foto"
+    "url_foto", "URL FOTO", "Url Foto",
+    "URL IMAGEN PRINCIPAL",
+    "Foto Google", "foto_google",
+    "link_foto", "Link foto", "LINK FOTO",
+    "img", "IMG"
   ];
 
-  for (const k of claves) {
-    if (row[k] && row[k].toString().trim() !== "") {
-      return row[k].toString().trim();
+  for (const col of posiblesColumnas) {
+    if (row[col] && row[col].toString().trim() !== "") {
+      return row[col].toString().trim();
+    }
+  }
+
+  // Detectar dinámicamente si existe algún campo con "foto" o "imagen"
+  for (const key of Object.keys(row)) {
+    const normal = key.toLowerCase();
+    if (normal.includes("foto") || normal.includes("imagen") || normal.includes("img")) {
+      const v = row[key];
+      if (v && v.toString().trim() !== "") {
+        return v.toString().trim();
+      }
     }
   }
 
