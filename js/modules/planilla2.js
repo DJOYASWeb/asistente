@@ -1850,13 +1850,10 @@ async function procesarImagenes() {
 
 
 function registrarErrorImagen(codigo, img) {
-  img.src = "https://via.placeholder.com/200x200?text=Error";
-  if (!window.erroresImagenes) window.erroresImagenes = [];
-  if (!window.erroresImagenes.includes(codigo)) window.erroresImagenes.push(codigo);
-  document.getElementById("cantErrores").textContent = window.erroresImagenes.length;
-  document.getElementById("erroresLinea").classList.remove("d-none");
+  img.onerror = null; // ← evitar loop infinito
+  img.src = "https://via.placeholder.com/200x200?text=Sin+Imagen";
+  erroresImagenes.push(codigo);
 }
-
 function abrirModalErrores() {
   const listaUl = document.getElementById("listaErrores");
   listaUl.innerHTML = "";
