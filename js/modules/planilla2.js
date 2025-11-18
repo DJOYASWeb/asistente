@@ -1860,7 +1860,8 @@ function registrarErrorImagen(codigo, img) {
   window.erroresImagenes.push(codigo);
 
   // asignar un placeholder válido
-  img.src = "https://via.placeholder.com/200x200?text=Sin+Imagen";
+img.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='%23cccccc'/><text x='50' y='100' font-size='20' fill='%23000000'>Sin imagen</text></svg>";
+
 }
 
 
