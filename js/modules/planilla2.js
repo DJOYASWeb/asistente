@@ -1699,23 +1699,49 @@ function extraerUrlFoto(row) {
 
 
 function normalizarUrlDrive(url) {
-  if (!url) return "";
+  if (!url) return '';
 
-  url = url.trim().replace(/^"|"$/g, "");
+  // 🔹 Limpieza de posibles comillas o espacios
+  url = url.trim().replace(/^"|"$/g, '');
 
-  const id = driveIdFromUrl(url);
-  if (id) {
-    return `https://drive.google.com/uc?export=download&id=${id}`;
+  try {
+    const u = new URL(url);
+
+    // === 1️⃣ Si NO es de Google Drive ===
+    if (!u.host.includes("drive.google.com")) {
+      // Si termina en una extensión de imagen (jpg, jpeg, png, webp, gif)
+      if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
+        // Servidor propio (por ejemplo distribuidoradejoyas.cl): ir directo
+if (u.host.includes("distribuidoradejoyas.cl")) {
+  return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+}
+        // Otros dominios externos → pasar por proxy CORS
+        return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+      }
+
+      // Si no tiene extensión conocida, intentar igual con proxy
+      return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    }
+
+    // === 2️⃣ Si SÍ es de Google Drive ===
+    const id = driveIdFromUrl(url);
+    if (id) {
+      // Forzar descarga directa con proxy para evitar CORS
+      return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
+    }
+
+    // Si no se pudo extraer ID, devolver el original
+    return url;
+  } catch {
+    // Si no es una URL válida, devolver tal cual
+    return url;
   }
-
-  return url;
 }
 
 
 
-
 async function procesarImagenes() {
-  // Ocultar vista principal
+  // 🔹 Ocultar vista principal
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
@@ -1724,7 +1750,7 @@ async function procesarImagenes() {
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.add("d-none");
 
-  // Mostrar vista imágenes
+  // 🔹 Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   const barra = document.getElementById("barraProgreso");
@@ -1737,7 +1763,7 @@ async function procesarImagenes() {
   estado.textContent = "Procesando imágenes...";
   btnComprimir.classList.add("d-none");
 
-  // Obtener filas
+  // 🧩 Obtener filas
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -1747,6 +1773,8 @@ async function procesarImagenes() {
 
   const lista = [];
   const errores = [];
+  let livianas = 0;
+  let pesadas = 0;
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
@@ -1767,7 +1795,7 @@ async function procesarImagenes() {
     return;
   }
 
-  // Mostrar solo 6 imágenes
+  // 🖼️ Renderizar solo 6 imágenes
   lista.slice(0, 6).forEach(({ codigo, url }) => {
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-2";
@@ -1782,26 +1810,35 @@ async function procesarImagenes() {
     contenedor.appendChild(col);
   });
 
-  // Simular barra de progreso (sin HEAD)
+  // 🔹 Barra de progreso
   let completadas = 0;
   const total = lista.length;
 
-  for (const item of lista) {
+  for (const { url } of lista) {
+    try {
+      const resp = await fetch(url, { method: "HEAD" });
+      const size = resp.headers.get("content-length");
+      if (size) {
+        const kb = parseInt(size) / 1024;
+        if (kb < 100) livianas++;
+        else pesadas++;
+      }
+    } catch {}
     completadas++;
     const progreso = Math.round((completadas / total) * 100);
     barra.style.width = progreso + "%";
     barra.textContent = progreso + "%";
-    await new Promise(r => setTimeout(r, 5)); // animación suave
   }
 
-  // Fin
+  // ✅ Fin del proceso
+  barra.classList.remove("progress-bar-animated");
   barra.classList.add("bg-success");
   estado.textContent = "✅ Listo, imágenes cargadas.";
 
-  // Resumen (sin calcular peso porque no se puede con Drive)
+  // Actualizar resumen
   document.getElementById("cantProcesadas").textContent = lista.length;
-  document.getElementById("cantLivianas").textContent = 0;
-  document.getElementById("cantPesadas").textContent = 0;
+  document.getElementById("cantLivianas").textContent = livianas;
+  document.getElementById("cantPesadas").textContent = pesadas;
 
   if (errores.length) {
     document.getElementById("cantErrores").textContent = errores.length;
@@ -1811,6 +1848,7 @@ async function procesarImagenes() {
     document.getElementById("erroresLinea").classList.add("d-none");
   }
 
+  // Mostrar botón de comprimir
   btnComprimir.classList.remove("d-none");
 }
 
@@ -1818,24 +1856,13 @@ async function procesarImagenes() {
 
 
 function registrarErrorImagen(codigo, img) {
-  img.onerror = null; // evitar loops infinitos
-
+  img.src = "https://via.placeholder.com/200x200?text=Error";
   if (!window.erroresImagenes) window.erroresImagenes = [];
   if (!window.erroresImagenes.includes(codigo)) window.erroresImagenes.push(codigo);
-
   document.getElementById("cantErrores").textContent = window.erroresImagenes.length;
   document.getElementById("erroresLinea").classList.remove("d-none");
-
-  // placeholder interno que SIEMPRE funciona
-  img.src =
-    "data:image/svg+xml," +
-    encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
-        <rect width='200' height='200' fill='#cccccc'/>
-        <text x='20' y='100' font-size='20' fill='#000000'>Sin imagen</text>
-      </svg>
-    `);
 }
+
 
 
 
