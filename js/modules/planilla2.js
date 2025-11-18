@@ -1678,6 +1678,15 @@ function agregarCategoriaAdicional() {
   alert(`Categoría "${nuevaCat}" agregada correctamente a toda la planilla ✅`);
 }
 
+function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales, datosCombinaciones }) {
+  // Si estás viendo una tabla filtrada → usar esa
+  if (Array.isArray(datosFiltrados) && datosFiltrados.length > 0) {
+    return datosFiltrados;
+  }
+
+  // Si no hay filtro → usar todo lo cargado
+  return [...datosOriginales, ...datosCombinaciones];
+}
 
 // === FUNCIÓN NUEVA: PROCESAR IMÁGENES Y MOSTRAR VISTA ===
 async function procesarImagenes() {
