@@ -1698,42 +1698,32 @@ function extraerUrlFoto(row) {
 }
 
 
-function normalizarUrlDrive(url) {
-  if (!url) return '';
 
-  // 🔹 Limpieza de posibles comillas o espacios
-  url = url.trim().replace(/^"|"$/g, '');
+function normalizarUrlDrive(url) {
+  if (!url) return "";
+
+  url = url.trim().replace(/^"|"$/g, "");
 
   try {
     const u = new URL(url);
 
-    // === 1️⃣ Si NO es de Google Drive ===
-    if (!u.host.includes("drive.google.com")) {
-      // Si termina en una extensión de imagen (jpg, jpeg, png, webp, gif)
-      if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
-        // Servidor propio (por ejemplo distribuidoradejoyas.cl): ir directo
-if (u.host.includes("distribuidoradejoyas.cl")) {
-  return `https://corsproxy.io/?${encodeURIComponent(url)}`;
-}
-        // Otros dominios externos → pasar por proxy CORS
-        return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    // --- NO USAMOS PROXY, PROXY ROMPE TODO ---
+    // Google Drive normal
+    if (u.host.includes("drive.google.com")) {
+      const id = driveIdFromUrl(url);
+      if (id) {
+        return `https://drive.google.com/uc?export=download&id=${id}`;
       }
-
-      // Si no tiene extensión conocida, intentar igual con proxy
-      return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+      return url;
     }
 
-    // === 2️⃣ Si SÍ es de Google Drive ===
-    const id = driveIdFromUrl(url);
-    if (id) {
-      // Forzar descarga directa con proxy para evitar CORS
-      return `https://corsproxy.io/?https://drive.google.com/uc?export=download&id=${id}`;
+    // Si es una imagen directa (JPG/PNG/etc.) → dejarla tal cual
+    if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
+      return url;
     }
 
-    // Si no se pudo extraer ID, devolver el original
-    return url;
+    return url; // dejar cualquier otra URL normal
   } catch {
-    // Si no es una URL válida, devolver tal cual
     return url;
   }
 }
@@ -1856,10 +1846,15 @@ async function procesarImagenes() {
 
 
 function registrarErrorImagen(codigo, img) {
-  img.src = "https://via.placeholder.com/200x200?text=Error";
-  if (!window.erroresImagenes) window.erroresImagenes = [];
-  if (!window.erroresImagenes.includes(codigo)) window.erroresImagenes.push(codigo);
-  document.getElementById("cantErrores").textContent = window.erroresImagenes.length;
+  img.src = "https://dummyimage.com/200x200/cccccc/000000&text=Error";
+
+  if (!window.erroresImagenes) window.erroresImagenes = new Set();
+
+  window.erroresImagenes.add(codigo);
+
+  document.getElementById("cantErrores").textContent =
+    window.erroresImagenes.size;
+
   document.getElementById("erroresLinea").classList.remove("d-none");
 }
 
