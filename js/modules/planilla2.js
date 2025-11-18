@@ -2141,34 +2141,17 @@ function normalizarUrlDrive(url) {
 }
 
 
-function obtenerPesoDesdeImg(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-
-    img.onload = function () {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-
-        canvas.toBlob(blob => {
-          if (!blob) return reject("Blob vacío");
-          resolve(blob.size / 1024); // KB
-        }, "image/jpeg", 0.92);
-      } catch (e) {
-        reject(e);
-      }
-    };
-
-    img.onerror = () => reject("No se pudo cargar");
-
-img.src = PROXY_URL + "?url=" + encodeURIComponent(url);
-  });
+async function obtenerPesoDesdeImg(url) {
+  try {
+    const res = await fetch(url, { mode: "no-cors" });
+    const blob = await res.blob();
+    return blob.size / 1024; // KB
+  } catch (err) {
+    console.error("Error descargando imagen:", err);
+    throw err;
+  }
 }
+
 
 
 
