@@ -1793,7 +1793,6 @@ async function procesarImagenes() {
 }
 
 
-
 function registrarErrorImagen(codigo, img) {
   img.src = "https://via.placeholder.com/200x200?text=Error";
   if (!window.erroresImagenes) window.erroresImagenes = [];
