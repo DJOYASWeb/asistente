@@ -1972,6 +1972,30 @@ async function comprimirImagenes() {
 
 
 
+async function descargarImagenesZIP() {
+  if (!window.imagenesProcesadas?.length) {
+    alert("No hay imágenes para descargar.");
+    return;
+  }
+
+  const zip = new JSZip();
+  const total = window.imagenesProcesadas.length;
+  let completadas = 0;
+
+  for (const { codigo, url } of window.imagenesProcesadas) {
+    try {
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      zip.file(`${codigo}.jpg`, blob);
+    } catch (e) {
+      console.warn("Error descargando", codigo, e);
+    }
+    completadas++;
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
+}
 
 
 
