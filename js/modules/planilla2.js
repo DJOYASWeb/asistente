@@ -1731,22 +1731,25 @@ function normalizarUrlDrive(url) {
 
 
 
+const API_KEY = "AIzaSyAH8YhwszMb63zcnS6INe6DM-OXEglroY8";
+
 async function procesarImagenes() {
-  // 🔹 Ocultar vista principal
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
+
   const barraBotones = document.getElementById("botonesTipo");
   if (barraBotones) barraBotones.classList.add("d-none");
+
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.add("d-none");
 
-  // 🔹 Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   const barra = document.getElementById("barraProgreso");
   const estado = document.getElementById("estadoProgreso");
   const btnComprimir = document.getElementById("btnComprimir");
+
   vista.classList.remove("d-none");
   contenedor.innerHTML = "";
   barra.style.width = "0%";
@@ -1754,7 +1757,6 @@ async function procesarImagenes() {
   estado.textContent = "Procesando imágenes...";
   btnComprimir.classList.add("d-none");
 
-  // 🧩 Obtener filas
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -1763,19 +1765,24 @@ async function procesarImagenes() {
   });
 
   const lista = [];
-  const errores = [];
-  let livianas = 0;
-  let pesadas = 0;
+  let errores = [];
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
     const rawUrl = extraerUrlFoto(row);
+
     if (!codigo || !rawUrl) {
       errores.push(codigo || "(sin código)");
       continue;
     }
-    const url = normalizarUrlDrive(rawUrl);
-    lista.push({ codigo, url });
+
+    const id = driveIdFromUrl(rawUrl);
+    if (!id) {
+      errores.push(codigo);
+      continue;
+    }
+
+    lista.push({ codigo, id });
   }
 
   window.imagenesProcesadas = lista;
@@ -1786,13 +1793,14 @@ async function procesarImagenes() {
     return;
   }
 
-  // 🖼️ Renderizar solo 6 imágenes
-  lista.slice(0, 6).forEach(({ codigo, url }) => {
+  lista.slice(0, 6).forEach(({ codigo, id }) => {
+    const urlPreview = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${API_KEY}`;
+
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-2";
     col.innerHTML = `
       <div class="card shadow-sm h-100">
-        <img src="${url}" class="card-img-top" alt="${codigo}"
+        <img src="${urlPreview}" class="card-img-top" alt="${codigo}"
              onerror="registrarErrorImagen('${codigo}', this)">
         <div class="card-body p-2 text-center">
           <small class="text-muted">${codigo}</small>
@@ -1801,53 +1809,35 @@ async function procesarImagenes() {
     contenedor.appendChild(col);
   });
 
-  // 🔹 Barra de progreso
-  let completadas = 0;
-  const total = lista.length;
+  let livianas = 0;
+  let pesadas = 0;
+  let procesadas = 0;
 
-for (const { url } of lista) {
-
-    let sizeInfo = null;
-
-    // 1) Intentar con HEAD
+  for (const item of lista) {
     try {
-        const headResp = await fetch(url, { method: "HEAD" });
-        if (headResp.ok) {
-            sizeInfo = headResp.headers.get("content-length");
-        }
-    } catch {}
-
-    // 2) Si HEAD falló, intentar GET
-    if (!sizeInfo) {
-        try {
-            const getResp = await fetch(url, { method: "GET" });
-            if (getResp.ok) {
-                sizeInfo = getResp.headers.get("content-length");
-            }
-        } catch {}
+      const size = await obtenerPesoDrive(item.id);
+      if (!size) {
+        errores.push(item.codigo);
+      } else if (size < 120 * 1024) {
+        livianas++;
+      } else {
+        pesadas++;
+      }
+    } catch {
+      errores.push(item.codigo);
     }
 
-    // 3) Clasificación de peso
-    if (sizeInfo) {
-        const kb = parseInt(sizeInfo) / 1024;
-        if (kb < 100) livianas++;
-        else pesadas++;
-    }
-
-    // 4) Progreso
-    completadas++;
-    const progreso = Math.round((completadas / total) * 100);
+    procesadas++;
+    const progreso = Math.round((procesadas / lista.length) * 100);
     barra.style.width = progreso + "%";
     barra.textContent = progreso + "%";
-}
+  }
 
-
-  // ✅ Fin del proceso
   barra.classList.remove("progress-bar-animated");
   barra.classList.add("bg-success");
+
   estado.textContent = "✅ Listo, imágenes cargadas.";
 
-  // Actualizar resumen
   document.getElementById("cantProcesadas").textContent = lista.length;
   document.getElementById("cantLivianas").textContent = livianas;
   document.getElementById("cantPesadas").textContent = pesadas;
@@ -1860,8 +1850,39 @@ for (const { url } of lista) {
     document.getElementById("erroresLinea").classList.add("d-none");
   }
 
-  // Mostrar botón de comprimir
   btnComprimir.classList.remove("d-none");
+}
+
+async function obtenerPesoDrive(id) {
+  const url = `https://www.googleapis.com/drive/v3/files/${id}?fields=size&key=${API_KEY}`;
+  const resp = await fetch(url);
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  return data.size ? Number(data.size) : null;
+}
+
+function driveIdFromUrl(url) {
+  try {
+    const u = new URL(url);
+    if (!u.host.includes("drive.google.com")) return null;
+
+    const m1 = u.pathname.match(/\/file\/d\/([^/]+)/);
+    if (m1) return m1[1];
+
+    return u.searchParams.get("id");
+  } catch {
+    return null;
+  }
+}
+
+function registrarErrorImagen(codigo, img) {
+  img.src = "https://via.placeholder.com/200x200?text=Error";
+  if (!window.erroresImagenes) window.erroresImagenes = [];
+  if (!window.erroresImagenes.includes(codigo))
+    window.erroresImagenes.push(codigo);
+  document.getElementById("cantErrores").textContent =
+    window.erroresImagenes.length;
+  document.getElementById("erroresLinea").classList.remove("d-none");
 }
 
 
