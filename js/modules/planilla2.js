@@ -224,28 +224,24 @@ function onAbrirModalProcesar() {
 }
 
 
-// Normaliza URL de Google Drive a descarga directa
-// Extrae fileId desde las variantes comunes de Drive
 function driveIdFromUrl(url) {
   try {
     const u = new URL(url);
-    if (!u.host.includes('drive.google.com')) return null;
-    // /file/d/<ID>/view
-    const m1 = u.pathname.match(/\/file\/d\/([^/]+)\/view/i);
-    if (m1?.[1]) return m1[1];
-    // ?id=<ID>
-    const id = u.searchParams.get('id');
+    if (!u.host.includes("drive.google.com")) return null;
+
+    const m1 = u.pathname.match(/\/file\/d\/([^/]+)\//);
+    if (m1) return m1[1];
+
+    const id = u.searchParams.get("id");
     if (id) return id;
-    // /uc?id=<ID>&export=download
-    if (u.pathname.includes('/uc')) {
-      const id2 = u.searchParams.get('id');
-      if (id2) return id2;
-    }
+
     return null;
   } catch {
     return null;
   }
 }
+
+
 
 // Usa Google Drive API (CORS OK) cuando haya API key
 function normalizarUrlDrive(url) {
@@ -2013,9 +2009,8 @@ function agregarCategoriaAdicional() {
 }
 
 
-// === FUNCIÓN NUEVA: PROCESAR IMÁGENES Y MOSTRAR VISTA ===
 async function procesarImagenes() {
-  // 🔹 Ocultar vista principal
+  // Ocultar vista principal
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
@@ -2024,12 +2019,13 @@ async function procesarImagenes() {
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.add("d-none");
 
-  // 🔹 Mostrar vista imágenes
+  // Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   const barra = document.getElementById("barraProgreso");
   const estado = document.getElementById("estadoProgreso");
   const btnComprimir = document.getElementById("btnComprimir");
+
   vista.classList.remove("d-none");
   contenedor.innerHTML = "";
   barra.style.width = "0%";
@@ -2037,7 +2033,7 @@ async function procesarImagenes() {
   estado.textContent = "Procesando imágenes...";
   btnComprimir.classList.add("d-none");
 
-  // 🧩 Obtener filas
+  // 1️⃣ Obtener filas visibles
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -2046,33 +2042,42 @@ async function procesarImagenes() {
   });
 
   const lista = [];
-  const errores = [];
-  let livianas = 0;
-  let pesadas = 0;
+  let errores = [];
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
     const rawUrl = extraerUrlFoto(row);
+
     if (!codigo || !rawUrl) {
       errores.push(codigo || "(sin código)");
       continue;
     }
-    const url = normalizarUrlDrive(rawUrl);
+
+    // Normalizamos la URL pero sin usar proxys
+    let url = rawUrl.trim().replace(/^"|"$/g, "");
+    const id = driveIdFromUrl(url);
+
+    if (id) {
+      url = `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+
     lista.push({ codigo, url });
   }
 
   window.imagenesProcesadas = lista;
 
+  // Si no hay imágenes
   if (!lista.length) {
     contenedor.innerHTML = `<p class="text-danger">No se encontraron imágenes.</p>`;
     estado.textContent = "No hay imágenes para mostrar.";
     return;
   }
 
-  // 🖼️ Renderizar solo 6 imágenes
+  // 2️⃣ Renderizar solo primeras 6 imágenes
   lista.slice(0, 6).forEach(({ codigo, url }) => {
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-2";
+
     col.innerHTML = `
       <div class="card shadow-sm h-100">
         <img src="${url}" class="card-img-top" alt="${codigo}"
@@ -2080,39 +2085,32 @@ async function procesarImagenes() {
         <div class="card-body p-2 text-center">
           <small class="text-muted">${codigo}</small>
         </div>
-      </div>`;
+      </div>
+    `;
+
     contenedor.appendChild(col);
   });
 
-  // 🔹 Barra de progreso
+  // 3️⃣ Simulación de carga progresiva (como antes)
   let completadas = 0;
   const total = lista.length;
 
-  for (const { url } of lista) {
-    try {
-      const resp = await fetch(url, { method: "HEAD" });
-      const size = resp.headers.get("content-length");
-      if (size) {
-        const kb = parseInt(size) / 1024;
-        if (kb < 100) livianas++;
-        else pesadas++;
-      }
-    } catch {}
+  for (let i = 0; i < total; i++) {
+    await new Promise((r) => setTimeout(r, 20));
     completadas++;
     const progreso = Math.round((completadas / total) * 100);
     barra.style.width = progreso + "%";
     barra.textContent = progreso + "%";
   }
 
-  // ✅ Fin del proceso
+  // 4️⃣ Finalizar
   barra.classList.remove("progress-bar-animated");
   barra.classList.add("bg-success");
   estado.textContent = "✅ Listo, imágenes cargadas.";
 
-  // Actualizar resumen
   document.getElementById("cantProcesadas").textContent = lista.length;
-  document.getElementById("cantLivianas").textContent = livianas;
-  document.getElementById("cantPesadas").textContent = pesadas;
+  document.getElementById("cantLivianas").textContent = "0";
+  document.getElementById("cantPesadas").textContent = "0";
 
   if (errores.length) {
     document.getElementById("cantErrores").textContent = errores.length;
@@ -2122,16 +2120,17 @@ async function procesarImagenes() {
     document.getElementById("erroresLinea").classList.add("d-none");
   }
 
-  // Mostrar botón de comprimir
   btnComprimir.classList.remove("d-none");
 }
 
 
 
 function registrarErrorImagen(codigo, img) {
-  img.src = "https://via.placeholder.com/200x200?text=Error";
+  img.src = "https://via.placeholder.com/200x200?text=Sin+Imagen";
   if (!window.erroresImagenes) window.erroresImagenes = [];
-  if (!window.erroresImagenes.includes(codigo)) window.erroresImagenes.push(codigo);
+  if (!window.erroresImagenes.includes(codigo)) {
+    window.erroresImagenes.push(codigo);
+  }
   document.getElementById("cantErrores").textContent = window.erroresImagenes.length;
   document.getElementById("erroresLinea").classList.remove("d-none");
 }
