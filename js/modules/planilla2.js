@@ -38,31 +38,42 @@ async function obtenerPesoDesdeProxy(url) {
 }
 
 
-/**
- * Comprime imagen via proxy con calidad controlada
- */
 async function comprimirImagenDesdeProxy(url, quality = 0.75) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
+  // 1. Descargar blob desde Drive (no hay CORS aquí)
+  const res = await fetch(url, { mode: "no-cors" });
+  const blobOriginal = await res.blob();
 
-    img.onload = function () {
+  // 2. Cargar la imagen desde ese blob
+  return await new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => {
+      // 3. Dibujar en canvas
       const canvas = document.createElement("canvas");
       canvas.width = img.width;
       canvas.height = img.height;
 
-      canvas.getContext("2d").drawImage(img, 0, 0);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
 
-      canvas.toBlob(blob => {
-        if (!blob) return reject("No se pudo comprimir");
-        resolve(blob);
-      }, "image/jpeg", quality);
+      // 4. Comprimir
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) reject("Error al comprimir");
+          else resolve(blob);
+        },
+        "image/jpeg",
+        quality
+      );
     };
 
-    img.onerror = () => reject("Error al comprimir");
-    img.src = PROXY_URL + "?url=" + encodeURIComponent(url);
+    img.onerror = reject;
+
+    // MUY IMPORTANTE: cargar desde blob, NO desde Drive directo
+    img.src = URL.createObjectURL(blobOriginal);
   });
 }
+
 
 
 // Orden de columnas para la vista (encabezados de Fila A + "Categoría principal" al final)
@@ -2142,14 +2153,9 @@ function normalizarUrlDrive(url) {
 
 
 async function obtenerPesoDesdeImg(url) {
-  try {
-    const res = await fetch(url, { mode: "no-cors" });
-    const blob = await res.blob();
-    return blob.size / 1024; // KB
-  } catch (err) {
-    console.error("Error descargando imagen:", err);
-    throw err;
-  }
+  const res = await fetch(url, { mode: "no-cors" });
+  const blob = await res.blob();
+  return blob.size / 1024; // KB
 }
 
 
