@@ -1688,6 +1688,40 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
   return [...datosOriginales, ...datosCombinaciones];
 }
 
+function extraerUrlFoto(row) {
+  // intenta leer múltiples nombres de columnas posibles
+  const claves = [
+    "foto", "FOTO",
+    "Foto Principal", "foto_principal", "FOTO PRINCIPAL",
+    "imagen", "Imagen", "IMAGEN",
+    "URL Foto", "url_foto"
+  ];
+
+  for (const k of claves) {
+    if (row[k] && row[k].toString().trim() !== "") {
+      return row[k].toString().trim();
+    }
+  }
+
+  return "";
+}
+
+
+function normalizarUrlDrive(url) {
+  if (!url) return "";
+
+  // Si ya es un link de descarga directa
+  if (url.includes("uc?export=download")) return url;
+
+  // Drive share → convertir
+  const id = driveIdFromUrl(url);
+  if (id) {
+    return `https://drive.google.com/uc?export=download&id=${id}`;
+  }
+
+  return url; // fallback: dejar tal cual
+}
+
 // === FUNCIÓN NUEVA: PROCESAR IMÁGENES Y MOSTRAR VISTA ===
 async function procesarImagenes() {
   // 🔹 Ocultar vista principal
