@@ -1,4 +1,3 @@
-
 // js/modules/planilla.js
 
 window.zipDescargando = false;
@@ -1729,11 +1728,9 @@ function normalizarUrlDrive(url) {
   }
 }
 
-
-
-const API_KEY = "AIzaSyAH8YhwszMb63zcnS6INe6DM-OXEglroY8";
-
 async function procesarImagenes() {
+
+  // 🔹 Ocultar vista principal
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
@@ -1744,6 +1741,7 @@ async function procesarImagenes() {
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.add("d-none");
 
+  // 🔹 Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   const barra = document.getElementById("barraProgreso");
@@ -1757,6 +1755,7 @@ async function procesarImagenes() {
   estado.textContent = "Procesando imágenes...";
   btnComprimir.classList.add("d-none");
 
+  // Obtener filas
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -1765,7 +1764,9 @@ async function procesarImagenes() {
   });
 
   const lista = [];
-  let errores = [];
+  const errores = [];
+  let livianas = 0;
+  let pesadas = 0;
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
@@ -1776,13 +1777,8 @@ async function procesarImagenes() {
       continue;
     }
 
-    const id = driveIdFromUrl(rawUrl);
-    if (!id) {
-      errores.push(codigo);
-      continue;
-    }
-
-    lista.push({ codigo, id });
+    const url = normalizarUrlDrive(rawUrl);
+    lista.push({ codigo, url });
   }
 
   window.imagenesProcesadas = lista;
@@ -1793,14 +1789,13 @@ async function procesarImagenes() {
     return;
   }
 
-  lista.slice(0, 6).forEach(({ codigo, id }) => {
-    const urlPreview = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${API_KEY}`;
-
+  // Mostrar primeras 6 imágenes
+  lista.slice(0, 6).forEach(({ codigo, url }) => {
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-2";
     col.innerHTML = `
       <div class="card shadow-sm h-100">
-        <img src="${urlPreview}" class="card-img-top" alt="${codigo}"
+        <img src="${url}" class="card-img-top" alt="${codigo}"
              onerror="registrarErrorImagen('${codigo}', this)">
         <div class="card-body p-2 text-center">
           <small class="text-muted">${codigo}</small>
@@ -1809,35 +1804,35 @@ async function procesarImagenes() {
     contenedor.appendChild(col);
   });
 
-  let livianas = 0;
-  let pesadas = 0;
-  let procesadas = 0;
+  // 🔥🔥🔥 PROCESADOR REAL DE PESO (SIN API, SIN HEAD, SIN CORS) 🔥🔥🔥
+  let completadas = 0;
+  const total = lista.length;
 
-  for (const item of lista) {
+  for (const { url } of lista) {
     try {
-      const size = await obtenerPesoDrive(item.id);
-      if (!size) {
-        errores.push(item.codigo);
-      } else if (size < 120 * 1024) {
-        livianas++;
-      } else {
-        pesadas++;
-      }
-    } catch {
-      errores.push(item.codigo);
+      const resp = await fetch(url);  // DESCARGA REAL DE LA IMAGEN
+      const blob = await resp.blob();  
+      const sizeKB = blob.size / 1024;
+
+      if (sizeKB < 120) livianas++;
+      else pesadas++;
+
+    } catch (e) {
+      console.warn("Error descargando imagen:", url);
     }
 
-    procesadas++;
-    const progreso = Math.round((procesadas / lista.length) * 100);
+    completadas++;
+    const progreso = Math.round((completadas / total) * 100);
     barra.style.width = progreso + "%";
     barra.textContent = progreso + "%";
   }
 
+  // Fin del proceso
   barra.classList.remove("progress-bar-animated");
   barra.classList.add("bg-success");
-
   estado.textContent = "✅ Listo, imágenes cargadas.";
 
+  // Resumen
   document.getElementById("cantProcesadas").textContent = lista.length;
   document.getElementById("cantLivianas").textContent = livianas;
   document.getElementById("cantPesadas").textContent = pesadas;
@@ -1852,40 +1847,6 @@ async function procesarImagenes() {
 
   btnComprimir.classList.remove("d-none");
 }
-
-async function obtenerPesoDrive(id) {
-  const url = `https://www.googleapis.com/drive/v3/files/${id}?fields=size&key=${API_KEY}`;
-  const resp = await fetch(url);
-  if (!resp.ok) return null;
-  const data = await resp.json();
-  return data.size ? Number(data.size) : null;
-}
-
-function driveIdFromUrl(url) {
-  try {
-    const u = new URL(url);
-    if (!u.host.includes("drive.google.com")) return null;
-
-    const m1 = u.pathname.match(/\/file\/d\/([^/]+)/);
-    if (m1) return m1[1];
-
-    return u.searchParams.get("id");
-  } catch {
-    return null;
-  }
-}
-
-function registrarErrorImagen(codigo, img) {
-  img.src = "https://via.placeholder.com/200x200?text=Error";
-  if (!window.erroresImagenes) window.erroresImagenes = [];
-  if (!window.erroresImagenes.includes(codigo))
-    window.erroresImagenes.push(codigo);
-  document.getElementById("cantErrores").textContent =
-    window.erroresImagenes.length;
-  document.getElementById("erroresLinea").classList.remove("d-none");
-}
-
-
 
 
 function registrarErrorImagen(codigo, img) {
@@ -2116,4 +2077,4 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-//V 1.6
+//V 1
