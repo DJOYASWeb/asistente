@@ -1707,26 +1707,40 @@ function normalizarUrlDrive(url) {
   try {
     const u = new URL(url);
 
-    // --- NO USAMOS PROXY, PROXY ROMPE TODO ---
-    // Google Drive normal
+    // Drive normal → convertir a descarga directa
     if (u.host.includes("drive.google.com")) {
-      const id = driveIdFromUrl(url);
+      const id = url.match(/\/d\/([^/]+)/)?.[1] ||
+                u.searchParams.get("id");
       if (id) {
         return `https://drive.google.com/uc?export=download&id=${id}`;
       }
-      return url;
     }
 
-    // Si es una imagen directa (JPG/PNG/etc.) → dejarla tal cual
-    if (/\.(jpg|jpeg|png|webp|gif)$/i.test(u.pathname)) {
-      return url;
-    }
-
-    return url; // dejar cualquier otra URL normal
-  } catch {
+    return url;
+  } catch (e) {
     return url;
   }
 }
+
+async function obtenerPesoReal(url) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error("Error al descargar imagen");
+
+  const blob = await resp.blob();
+  return blob.size / 1024; // KB
+}
+
+function blobAImagen(blob) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(img.src);
+      resolve(img);
+    };
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
 
 async function procesarImagenes() {
   // ocultar interfaz
@@ -1881,6 +1895,7 @@ function volverAVistaPrincipal() {
   if (formulario) formulario.classList.remove("d-none");
 }
 
+
 async function comprimirImagenes() {
   const barra = document.getElementById("barraProgreso");
   const estado = document.getElementById("estadoProgreso");
@@ -1900,36 +1915,37 @@ async function comprimirImagenes() {
 
   for (const { codigo, url } of lista) {
     try {
-      const peso = await obtenerPesoDesdeImg(url);
+      const pesoKB = await obtenerPesoReal(url);
 
-      let blob;
+      // reglas de compresión
+      let quality;
+      if (pesoKB <= 120) quality = 0.92;  // casi sin pérdida
+      else if (pesoKB <= 300) quality = 0.75;
+      else quality = 0.45;               // compresión fuerte
 
-      if (peso <= 120) {
-        blob = await comprimirImagenDesdeImg(url, 0.92); // casi original
-      } else {
-        blob = await comprimirImagenDesdeImg(url, 0.45); // fuerte
-      }
+      const blob = await comprimirImagen(url, quality);
 
       zip.file(`${codigo}.jpg`, blob);
 
     } catch (e) {
-      console.warn("Error al comprimir:", codigo, e);
+      console.warn("Error al comprimir", codigo, e);
     }
 
+    // progreso visual
     completadas++;
     const pct = Math.round((completadas / lista.length) * 100);
     barra.style.width = pct + "%";
     barra.textContent = pct + "%";
   }
 
+  // Generar ZIP final
   const zipBlob = await zip.generateAsync({ type: "blob" });
   saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
 
-  barra.style.width = "100%";
-  barra.textContent = "100%";
-  estado.textContent = "✅ ZIP generado correctamente.";
+  estado.textContent = "ZIP generado correctamente.";
   btn.disabled = false;
 }
+
 
 
 function normalizarUrlDrive(url) {
@@ -1984,27 +2000,27 @@ function obtenerPesoDesdeImg(url) {
 
 
 
-function comprimirImagenDesdeImg(url, quality = 0.50) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
+async function comprimirImagen(url, quality = 0.45) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error("No se pudo descargar la imagen");
 
-    img.onload = function () {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
+  const originalBlob = await resp.blob();
+  const img = await blobAImagen(originalBlob);
 
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
 
-      canvas.toBlob(blob => {
-        if (!blob) return reject("No se pudo comprimir");
-        resolve(blob); // Blob comprimido
-      }, "image/jpeg", quality);
-    };
+  canvas.width = img.width;
+  canvas.height = img.height;
 
-    img.onerror = () => reject("Error al comprimir");
-    img.src = url;
+  ctx.drawImage(img, 0, 0);
+
+  return new Promise(resolve => {
+    canvas.toBlob(
+      blob => resolve(blob),
+      "image/jpeg",
+      quality
+    );
   });
 }
 
