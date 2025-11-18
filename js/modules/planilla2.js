@@ -1692,59 +1692,30 @@ function obtenerFilasActivas({ tipoSeleccionado, datosFiltrados, datosOriginales
 }
 
 function extraerUrlFoto(row) {
-  if (!row) return "";
-
-  const posiblesColumnas = [
-    "foto", "FOTO", "Foto",
-    "foto_1", "FOTO_1",
-    "foto_principal", "FOTO PRINCIPAL", "Foto Principal",
-    "imagen", "Imagen", "IMAGEN",
-    "url_foto", "URL FOTO", "Url Foto",
-    "URL IMAGEN PRINCIPAL",
-    "Foto Google", "foto_google",
-    "link_foto", "Link foto", "LINK FOTO",
-    "img", "IMG"
-  ];
-
-  for (const col of posiblesColumnas) {
-    if (row[col] && row[col].toString().trim() !== "") {
-      return row[col].toString().trim();
-    }
-  }
-
-  // Detectar dinámicamente si existe algún campo con "foto" o "imagen"
-  for (const key of Object.keys(row)) {
-    const normal = key.toLowerCase();
-    if (normal.includes("foto") || normal.includes("imagen") || normal.includes("img")) {
-      const v = row[key];
-      if (v && v.toString().trim() !== "") {
-        return v.toString().trim();
-      }
-    }
-  }
-
-  return "";
+  if (!row || typeof row !== "object") return "";
+  const url = row["FOTO LINK INDIVIDUAL"];
+  return typeof url === "string" ? url.trim() : "";
 }
 
 
 function normalizarUrlDrive(url) {
   if (!url) return "";
 
-  // Si ya es un link de descarga directa
-  if (url.includes("uc?export=download")) return url;
+  url = url.trim().replace(/^"|"$/g, "");
 
-  // Drive share → convertir
   const id = driveIdFromUrl(url);
   if (id) {
     return `https://drive.google.com/uc?export=download&id=${id}`;
   }
 
-  return url; // fallback: dejar tal cual
+  return url;
 }
 
-// === FUNCIÓN NUEVA: PROCESAR IMÁGENES Y MOSTRAR VISTA ===
+
+
+
 async function procesarImagenes() {
-  // 🔹 Ocultar vista principal
+  // Ocultar vista principal
   document.getElementById("tablaPreview").classList.add("d-none");
   document.getElementById("botonProcesar").classList.add("d-none");
   document.getElementById("botonProcesarImagenes").classList.add("d-none");
@@ -1753,7 +1724,7 @@ async function procesarImagenes() {
   const formulario = document.querySelector(".formulario");
   if (formulario) formulario.classList.add("d-none");
 
-  // 🔹 Mostrar vista imágenes
+  // Mostrar vista imágenes
   const vista = document.getElementById("vistaImagenes");
   const contenedor = document.getElementById("contenedorImagenes");
   const barra = document.getElementById("barraProgreso");
@@ -1766,7 +1737,7 @@ async function procesarImagenes() {
   estado.textContent = "Procesando imágenes...";
   btnComprimir.classList.add("d-none");
 
-  // 🧩 Obtener filas
+  // Obtener filas
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -1776,8 +1747,6 @@ async function procesarImagenes() {
 
   const lista = [];
   const errores = [];
-  let livianas = 0;
-  let pesadas = 0;
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
@@ -1798,7 +1767,7 @@ async function procesarImagenes() {
     return;
   }
 
-  // 🖼️ Renderizar solo 6 imágenes
+  // Mostrar solo 6 imágenes
   lista.slice(0, 6).forEach(({ codigo, url }) => {
     const col = document.createElement("div");
     col.className = "col-6 col-sm-4 col-md-2";
@@ -1813,28 +1782,26 @@ async function procesarImagenes() {
     contenedor.appendChild(col);
   });
 
-  // 🔹 Barra de progreso
+  // Simular barra de progreso (sin HEAD)
   let completadas = 0;
   const total = lista.length;
 
-  for (const { url } of lista) {
-  // No podemos medir tamaño por CORS, solo incrementamos progreso
-  completadas++;
-  const progreso = Math.round((completadas / total) * 100);
-  barra.style.width = progreso + "%";
-  barra.textContent = progreso + "%";
-}
+  for (const item of lista) {
+    completadas++;
+    const progreso = Math.round((completadas / total) * 100);
+    barra.style.width = progreso + "%";
+    barra.textContent = progreso + "%";
+    await new Promise(r => setTimeout(r, 5)); // animación suave
+  }
 
-
-  // ✅ Fin del proceso
-  barra.classList.remove("progress-bar-animated");
+  // Fin
   barra.classList.add("bg-success");
   estado.textContent = "✅ Listo, imágenes cargadas.";
 
-  // Actualizar resumen
+  // Resumen (sin calcular peso porque no se puede con Drive)
   document.getElementById("cantProcesadas").textContent = lista.length;
-  document.getElementById("cantLivianas").textContent = livianas;
-  document.getElementById("cantPesadas").textContent = pesadas;
+  document.getElementById("cantLivianas").textContent = 0;
+  document.getElementById("cantPesadas").textContent = 0;
 
   if (errores.length) {
     document.getElementById("cantErrores").textContent = errores.length;
@@ -1844,24 +1811,30 @@ async function procesarImagenes() {
     document.getElementById("erroresLinea").classList.add("d-none");
   }
 
-  // Mostrar botón de comprimir
   btnComprimir.classList.remove("d-none");
 }
 
+
+
+
 function registrarErrorImagen(codigo, img) {
-  // evitar bucle infinito
-  img.onerror = null;
+  img.onerror = null; // evitar loops infinitos
 
-  // solo registrar en variable global si existe
-  if (!window.erroresImagenes) {
-    window.erroresImagenes = [];
-  }
+  if (!window.erroresImagenes) window.erroresImagenes = [];
+  if (!window.erroresImagenes.includes(codigo)) window.erroresImagenes.push(codigo);
 
-  window.erroresImagenes.push(codigo);
+  document.getElementById("cantErrores").textContent = window.erroresImagenes.length;
+  document.getElementById("erroresLinea").classList.remove("d-none");
 
-  // asignar un placeholder válido
-img.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='%23cccccc'/><text x='50' y='100' font-size='20' fill='%23000000'>Sin imagen</text></svg>";
-
+  // placeholder interno que SIEMPRE funciona
+  img.src =
+    "data:image/svg+xml," +
+    encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
+        <rect width='200' height='200' fill='#cccccc'/>
+        <text x='20' y='100' font-size='20' fill='#000000'>Sin imagen</text>
+      </svg>
+    `);
 }
 
 
