@@ -203,7 +203,7 @@ function esProductoNuevo(row) {
 
 // Mostrar/ocultar botón según condición “1 fila activa y nueva”
 function onAbrirModalProcesar() {
-  const btnZip = document.getElementById('btncFotosZip');
+  const btnZip = document.getElementById('btnDescargarFotosZip');
   if (!btnZip) return;
 
   const filas = obtenerFilasActivas({
@@ -742,7 +742,7 @@ function construirCaracteristicas(row) {
   if (modelo) partes.push(`Modelo: ${modelo}`);
 
   // 💎 NUEVO: tipo de producto
-  if (tipoProducto) partes.push(`Categoría: ${tipoProducto}`);
+  if (tipoProducto) partes.push(`Tipo de producto: ${tipoProducto}`);
 
   // ⬇️ Dimensión
   if (dimension) {
