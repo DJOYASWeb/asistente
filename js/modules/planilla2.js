@@ -2019,6 +2019,56 @@ async function descargarImagenesZIP() {
 }
 
 
+async function descargarImagenesRenombradasZIP() {
+  const JSZip = window.JSZip;
+  const zip = new JSZip();
+
+  const filas = obtenerFilasActivas({
+    tipoSeleccionado,
+    datosFiltrados,
+    datosOriginales,
+    datosCombinaciones
+  });
+
+  const items = filas.map(row => ({
+    sku: extraerCodigo(row),
+    url: row["FOTO LINK INDIVIDUAL"]
+  }));
+
+  for (let item of items) {
+    let { sku, url } = item;
+    if (!sku || !url) continue;
+
+    // obtener ID del link de Drive
+    const match = url.match(/\/d\/([^\/]+)/);
+    if (!match) {
+      console.warn("No se pudo leer ID de:", url);
+      continue;
+    }
+
+    const id = match[1];
+    const direct = `https://drive.google.com/uc?export=download&id=${id}`;
+
+    // 🔥 Proxy que sí funciona HOY:
+    const proxied = `https://cors.isomorphic-git.org/${direct}`;
+
+    try {
+      const res = await fetch(proxied);
+      const blob = await res.blob();
+
+      zip.file(`${sku}.jpg`, blob);
+
+    } catch (e) {
+      console.error("Error con", sku, e);
+    }
+  }
+
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(zipBlob);
+  a.download = "imagenes_renombradas.zip";
+  a.click();
+}
 
 
 
@@ -2035,18 +2085,38 @@ function descargarImagenesDrive() {
     return;
   }
 
-  filas.forEach(row => {
-    const original = row["FOTO LINK INDIVIDUAL"];
-    if (!original) return;
+  // Crear iframe oculto
+  let frame = document.getElementById("frameDescargas");
+  if (!frame) {
+    frame = document.createElement("iframe");
+    frame.id = "frameDescargas";
+    frame.style.display = "none";
+    document.body.appendChild(frame);
+  }
 
-    const url = driveToDownloadUrl(original);
+  let index = 0;
 
-    // 👉 Esto NO usa fetch → NO genera CORS → descarga directa
-    window.open(url, "_blank");
-  });
+  function descargarSiguiente() {
+    if (index >= filas.length) {
+      alert("Descargas finalizadas.");
+      return;
+    }
 
-  alert("Descargas iniciadas.");
+    const original = filas[index]["FOTO LINK INDIVIDUAL"];
+    index++;
+
+    if (original) {
+      const url = driveToDownloadUrl(original);
+      frame.src = url;
+    }
+
+    // pequeña pausa entre descargas para evitar bloqueo
+    setTimeout(descargarSiguiente, 800);
+  }
+
+  descargarSiguiente();
 }
+
 
 
 
