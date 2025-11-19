@@ -812,18 +812,46 @@ function renderTablaConOrden(datos) {
     : Object.keys(datos[0]);
 
   let html = `<table class="table table-bordered table-sm align-middle"><thead><tr>`;
-  columnas.forEach(col => {
-    html += `<th class="small">${col}</th>`;
-  });
-  html += `</tr></thead><tbody>`;
+columnas.forEach(col => {
+  html += `<th class="small">${col}</th>`;
+});
+
+// 👉 Columna extra
+html += `<th class="small">Descargar</th>`;
 
   datos.forEach(fila => {
     html += `<tr style="height: 36px;">`;
-    columnas.forEach(col => {
-      const contenido = (fila[col] ?? "").toString();
-      const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
-      html += `<td class="small text-truncate" title="${contenido}" style="max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${previsual}</td>`;
-    });
+columnas.forEach(col => {
+  const contenido = (fila[col] ?? "").toString();
+
+  // 👉 HACER CLICK EN CODIGO PRODUCTO
+  if (col === "CODIGO PRODUCTO" || col === "codigo_producto") {
+
+    const sku = contenido;
+    const claseVerde = localStorage.getItem("sku_ok_" + sku) ? "bg-success text-white" : "";
+
+    html += `
+      <td class="small sku-copy ${claseVerde}" 
+          data-sku="${sku}"
+          style="cursor:pointer;">
+        ${sku}
+      </td>`;
+  } else {
+    const previsual = contenido.length > 60 ? contenido.substring(0, 60) + "..." : contenido;
+    html += `<td class="small text-truncate" title="${contenido}" ...>${previsual}</td>`;
+  }
+});
+
+// ➕ Columna extra: botón de descarga
+const url = convertirDriveADescarga(fila["FOTO LINK INDIVIDUAL"]);
+html += `
+  <td>
+    ${url 
+      ? `<a class="btn btn-sm btn-primary" href="${url}" target="_blank">Descargar</a>` 
+      : `<span class="text-muted">Sin foto</span>`
+    }
+  </td>`;
+
     html += `</tr>`;
   });
 
@@ -2070,6 +2098,11 @@ async function descargarImagenesRenombradasZIP() {
   a.click();
 }
 
+function convertirDriveADescarga(url) {
+  if (!url) return "";
+  const id = driveIdFromUrl(url);
+  return id ? `https://drive.google.com/uc?export=download&id=${id}` : "";
+}
 
 
 function descargarImagenesDrive() {
@@ -2118,7 +2151,23 @@ function descargarImagenesDrive() {
 }
 
 
+document.addEventListener("click", function(e) {
+  const celda = e.target.closest(".sku-copy");
+  if (!celda) return;
+
+  const sku = celda.dataset.sku;
+  if (!sku) return;
+
+  navigator.clipboard.writeText(sku).then(() => {
+    celda.classList.add("bg-success", "text-white");
+    localStorage.setItem("sku_ok_" + sku, true);
+  });
+});
+
+document.getElementById("botonProcesarImagenes").addEventListener("click", () => {
+  renderTablaConOrden(datosFiltrados);
+  alert("Vista actualizada con la columna de descarga.");
+});
 
 
-
-//V 1
+//V 2
