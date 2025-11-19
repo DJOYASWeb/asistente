@@ -2170,4 +2170,97 @@ document.getElementById("botonProcesarImagenes").addEventListener("click", () =>
 });
 
 
+function generarTablaImagenes() {
+  const contenedor = document.getElementById("tablaImagenes");
+  contenedor.innerHTML = ""; // limpiar antes
+
+  // obtener filas activas (ya tienes esta función hecha)
+  const filas = obtenerFilasActivas({
+    tipoSeleccionado,
+    datosFiltrados,
+    datosOriginales,
+    datosCombinaciones
+  });
+
+  if (!filas.length) {
+    contenedor.innerHTML = "<p class='text-muted'>No hay productos para procesar imágenes.</p>";
+    return;
+  }
+
+  let html = `
+    <h4 class="mt-4">Gestor de imágenes</h4>
+    <table class="table table-bordered table-sm mt-2">
+      <thead>
+        <tr>
+          <th>CODIGO PRODUCTO</th>
+          <th>NOMBRE PRODUCTO</th>
+          <th>Descargar</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  filas.forEach(row => {
+    const codigo = extraerCodigo(row);
+    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
+    const urlOriginal = row["FOTO LINK INDIVIDUAL"] || "";
+
+    const id = driveIdFromUrl(urlOriginal);
+    const urlDescarga = id ? `https://drive.google.com/uc?export=download&id=${id}` : "";
+
+    // verde si ya fue copiado antes
+    const claseVerde = localStorage.getItem("sku_ok_" + codigo) ? "bg-success text-white" : "";
+
+    html += `
+      <tr>
+        <td class="sku-copy ${claseVerde}" style="cursor:pointer;" data-sku="${codigo}">
+          ${codigo}
+        </td>
+        <td>${nombre}</td>
+        <td>
+          ${
+            urlDescarga
+              ? `<a class="btn btn-primary btn-sm" href="${urlDescarga}" target="_blank">Descargar</a>`
+              : `<span class="text-muted">Sin imagen</span>`
+          }
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+  contenedor.innerHTML = html;
+}
+
+
+document.addEventListener("click", function(e) {
+  const celda = e.target.closest(".sku-copy");
+  if (!celda) return;
+
+  const sku = celda.dataset.sku;
+  if (!sku) return;
+
+  navigator.clipboard.writeText(sku).then(() => {
+    celda.classList.add("bg-success", "text-white");
+    localStorage.setItem("sku_ok_" + sku, true);
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //V 2
