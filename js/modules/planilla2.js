@@ -238,6 +238,27 @@ function driveIdFromUrl(url) {
 }
 
 
+function driveToDownloadUrl(url) {
+  if (!url) return "";
+  url = url.trim().replace(/^"|"$/g, "");
+
+  try {
+    const u = new URL(url);
+
+    if (u.host.includes("drive.google.com")) {
+      const m = url.match(/\/d\/([^\/]+)/);
+      const id = m ? m[1] : u.searchParams.get("id");
+
+      if (id) {
+        return `https://drive.google.com/uc?export=download&id=${id}`;
+      }
+    }
+
+    return url;
+  } catch {
+    return url;
+  }
+}
 
 
 
@@ -2001,6 +2022,31 @@ async function descargarImagenesZIP() {
 
 
 
+function descargarImagenesDrive() {
+  const filas = obtenerFilasActivas({
+    tipoSeleccionado,
+    datosFiltrados,
+    datosOriginales,
+    datosCombinaciones
+  });
+
+  if (!Array.isArray(filas) || filas.length === 0) {
+    alert("No hay filas para descargar imágenes.");
+    return;
+  }
+
+  filas.forEach(row => {
+    const original = row["FOTO LINK INDIVIDUAL"];
+    if (!original) return;
+
+    const url = driveToDownloadUrl(original);
+
+    // 👉 Esto NO usa fetch → NO genera CORS → descarga directa
+    window.open(url, "_blank");
+  });
+
+  alert("Descargas iniciadas.");
+}
 
 
 
