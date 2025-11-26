@@ -611,7 +611,13 @@ categoriaDetectada = categoriaDetectada
   .replace(" enchapados", "")
   .trim();  // ahora "aros enchapado" → "aros"
 
-const tipoProductoFinal = obtenerTipoDeProducto(nombreProducto, categoriaDetectada);
+const tipoProductoFinal = obtenerTipoDeProducto(
+  nombreProducto,
+  categoriaDetectada,
+  row["PRODUCTO SUBTIPO"],
+  row["PRODUCTO TIPO"]
+);
+
 partes.push(`Tipo de Producto: ${tipoProductoFinal}`);
 }
 
