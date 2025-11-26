@@ -2385,21 +2385,28 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
     nombre.includes("bañada");
 
   // =====================================================
-  // 2) SI ES PLATA → mantener la lógica original
+  // 2) LÓGICA PARA PLATA (cuando NO es enchapado)
   // =====================================================
   if (!esEnchapado) {
 
-    // si trae subtipo, usarlo
-    if (subtipoOriginal && subtipoOriginal.trim() !== "" && subtipoOriginal.toLowerCase() !== "sin valor") {
+    // A) SI trae subtipoOriginal válido → usarlo tal cual
+    if (
+      subtipoOriginal &&
+      subtipoOriginal.trim() !== "" &&
+      subtipoOriginal.toLowerCase() !== "sin valor"
+    ) {
       return subtipoOriginal.trim();
     }
 
-    // si NO trae subtipo → usar categoría base (tal cual pediste)
-    if (categoriaPlata) return categoriaPlata;
+    // B) Si NO trae subtipoOriginal → usar categoríaPlata (de tu Excel)
+    if (categoriaPlata && categoriaPlata.trim() !== "") {
+      return categoriaPlata.trim();
+    }
 
-    // fallback
+    // C) Último fallback → categoría base normal
     return categoriaBase;
   }
+
 
   // =====================================================
   // 3) LÓGICA PARA ENCHAPADO (Regla 1 - sinónimos)
@@ -2418,7 +2425,7 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
     ],
 
     collares: [
-      { keys: ["corazon", "corazón", "corazones"], label: "Collares con Corazón" },
+      { keys: ["corazon", "corazón"], label: "Collares con Corazón" },
       { keys: ["cruz"], label: "Collares Cruz" },
       { keys: ["circon", "circón", "cristal"], label: "Collares con Circón" },
       { keys: ["perla"], label: "Collares con Perla" },
@@ -2500,7 +2507,6 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
 
   return nombresCategoriasEnchapado[categoriaBase] || "Enchapados";
 }
-
 
 
 
