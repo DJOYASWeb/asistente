@@ -2373,6 +2373,7 @@ document.addEventListener("click", function(e) {
 });
 
 
+
 function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoriaPlata) {
   nombre = nombre.toLowerCase();
 
@@ -2385,11 +2386,11 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
     nombre.includes("bañada");
 
   // =====================================================
-  // 2) LÓGICA PARA PLATA (cuando NO es enchapado)
+  // 2) LÓGICA COMPLETA PARA PLATA
   // =====================================================
   if (!esEnchapado) {
 
-    // A) SI trae subtipoOriginal válido → usarlo tal cual
+    // A) Si trae subtipo válido → usarlo tal cual
     if (
       subtipoOriginal &&
       subtipoOriginal.trim() !== "" &&
@@ -2398,15 +2399,14 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
       return subtipoOriginal.trim();
     }
 
-    // B) Si NO trae subtipoOriginal → usar categoríaPlata (de tu Excel)
+    // B) Si NO trae subtipo → usar categoría de plata
     if (categoriaPlata && categoriaPlata.trim() !== "") {
       return categoriaPlata.trim();
     }
 
-    // C) Último fallback → categoría base normal
+    // C) fallback (extremadamente raro)
     return categoriaBase;
   }
-
 
   // =====================================================
   // 3) LÓGICA PARA ENCHAPADO (Regla 1 - sinónimos)
@@ -2416,11 +2416,11 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
     aros: [
       { keys: ["circon", "circón", "circones", "cristal"], label: "Aros de Circón" },
       { keys: ["corazon", "corazón", "corazones"], label: "Aros de Corazón" },
-      { keys: ["estrella", "star"], label: "Aros Estrella" },
+      { keys: ["estrella"], label: "Aros Estrella" },
       { keys: ["perla"], label: "Aros Perla" },
       { keys: ["cuff", "trepador"], label: "Aros Cuff / Trepadores" },
       { keys: ["mariposa"], label: "Aros Mariposa" },
-      { keys: ["flor", "trebol", "trébol", "hoja"], label: "Aros Florales" },
+      { keys: ["flor", "trebol", "trébol"], label: "Aros Florales" },
       { keys: ["argolla"], label: "Aros Argolla" }
     ],
 
@@ -2437,7 +2437,6 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
       { keys: ["eslabon", "eslabón"], label: "Pulseras Eslabón" },
       { keys: ["circon", "circón"], label: "Pulseras con Circón" },
       { keys: ["piedra"], label: "Pulseras con Piedra" },
-      { keys: ["hombre"], label: "Pulseras de Hombre" },
       { keys: ["macrame", "macramé"], label: "Pulseras Macramé" },
       { keys: ["cadena"], label: "Pulseras Cadena" }
     ],
@@ -2446,7 +2445,6 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
       { keys: ["circon", "circón"], label: "Anillos con Circón" },
       { keys: ["piedra"], label: "Anillos Piedra Natural" },
       { keys: ["falange", "midi"], label: "Anillos MIDI / Falange" },
-      { keys: ["hombre"], label: "Anillos de Hombre" },
       { keys: ["marquesita"], label: "Anillos Marquesita" },
       { keys: ["liso"], label: "Anillos Lisos" }
     ],
