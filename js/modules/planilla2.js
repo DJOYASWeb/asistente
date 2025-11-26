@@ -599,9 +599,17 @@ if (tipoProducto) {
   partes.push(`Categoría: ${tipo}`);
   // ========== NUEVA CARACTERÍSTICA: Tipo de Producto ==========
 
-// --- Tipo de Producto (nuevo mapeo inteligente) ---
 const nombreProducto = (row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "").toString();
-const categoriaDetectada = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
+
+// categoriaDetectada viene como: "Aros Enchapado"
+// la normalizamos para obtener solo "aros"
+let categoriaDetectada = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
+
+// 🔥 FIX: normalizar categoría para que coincida con las claves
+categoriaDetectada = categoriaDetectada
+  .replace(" enchapado", "")
+  .replace(" enchapados", "")
+  .trim();  // ahora "aros enchapado" → "aros"
 
 const tipoProductoFinal = obtenerTipoDeProducto(nombreProducto, categoriaDetectada);
 partes.push(`Tipo de Producto: ${tipoProductoFinal}`);
