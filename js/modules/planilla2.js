@@ -2373,35 +2373,62 @@ document.addEventListener("click", function(e) {
 });
 
 
-
-function obtenerTipoDeProducto(nombre, categoriaBase) {
+function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoriaPlata) {
   nombre = nombre.toLowerCase();
 
-  // --- SINÓNIMOS REALES POR CATEGORÍA ---
+  // =====================================================
+  // 1) DETECTAR SI ES ENCHAPADO
+  // =====================================================
+  const esEnchapado =
+    nombre.includes("enchapad") ||
+    nombre.includes("bañado") ||
+    nombre.includes("bañada");
+
+  // =====================================================
+  // 2) SI ES PLATA → mantener la lógica original
+  // =====================================================
+  if (!esEnchapado) {
+
+    // si trae subtipo, usarlo
+    if (subtipoOriginal && subtipoOriginal.trim() !== "" && subtipoOriginal.toLowerCase() !== "sin valor") {
+      return subtipoOriginal.trim();
+    }
+
+    // si NO trae subtipo → usar categoría base (tal cual pediste)
+    if (categoriaPlata) return categoriaPlata;
+
+    // fallback
+    return categoriaBase;
+  }
+
+  // =====================================================
+  // 3) LÓGICA PARA ENCHAPADO (Regla 1 - sinónimos)
+  // =====================================================
+
   const subtiposPorCategoria = {
     aros: [
-      { keys: ["circon", "circón", "circones", "cristal", "cristales"], label: "Aros de Circón" },
-      { keys: ["corazon", "corazón", "corazones", "heart"], label: "Aros de Corazón" },
-      { keys: ["estrella", "estrellita", "star"], label: "Aros Estrella" },
-      { keys: ["perla", "perlitas"], label: "Aros Perla" },
-      { keys: ["cuff", "trepador", "trepadores"], label: "Aros Cuff / Trepadores" },
-      { keys: ["mariposa", "butterfly"], label: "Aros Mariposa" },
-      { keys: ["flor", "florales", "petalo", "pétalo", "trebol", "trébol", "hoja", "hojas"], label: "Aros Florales" },
+      { keys: ["circon", "circón", "circones", "cristal"], label: "Aros de Circón" },
+      { keys: ["corazon", "corazón", "corazones"], label: "Aros de Corazón" },
+      { keys: ["estrella", "star"], label: "Aros Estrella" },
+      { keys: ["perla"], label: "Aros Perla" },
+      { keys: ["cuff", "trepador"], label: "Aros Cuff / Trepadores" },
+      { keys: ["mariposa"], label: "Aros Mariposa" },
+      { keys: ["flor", "trebol", "trébol", "hoja"], label: "Aros Florales" },
       { keys: ["argolla"], label: "Aros Argolla" }
     ],
 
     collares: [
-      { keys: ["corazon", "corazón", "corazones", "heart"], label: "Collares con Corazón" },
+      { keys: ["corazon", "corazón", "corazones"], label: "Collares con Corazón" },
       { keys: ["cruz"], label: "Collares Cruz" },
-      { keys: ["circon", "circón", "circones", "cristal"], label: "Collares con Circón" },
-      { keys: ["perla", "perlita"], label: "Collares con Perla" },
+      { keys: ["circon", "circón", "cristal"], label: "Collares con Circón" },
+      { keys: ["perla"], label: "Collares con Perla" },
       { keys: ["dije", "colgante"], label: "Collares con Dije" },
       { keys: ["placa"], label: "Collares Placa" }
     ],
 
     pulseras: [
-      { keys: ["eslabon", "eslabón", "eslabones"], label: "Pulseras Eslabón" },
-      { keys: ["circon", "circón", "circones"], label: "Pulseras con Circón" },
+      { keys: ["eslabon", "eslabón"], label: "Pulseras Eslabón" },
+      { keys: ["circon", "circón"], label: "Pulseras con Circón" },
       { keys: ["piedra"], label: "Pulseras con Piedra" },
       { keys: ["hombre"], label: "Pulseras de Hombre" },
       { keys: ["macrame", "macramé"], label: "Pulseras Macramé" },
@@ -2409,12 +2436,12 @@ function obtenerTipoDeProducto(nombre, categoriaBase) {
     ],
 
     anillos: [
-      { keys: ["circon", "circón", "circones"], label: "Anillos con Circón" },
+      { keys: ["circon", "circón"], label: "Anillos con Circón" },
       { keys: ["piedra"], label: "Anillos Piedra Natural" },
       { keys: ["falange", "midi"], label: "Anillos MIDI / Falange" },
       { keys: ["hombre"], label: "Anillos de Hombre" },
       { keys: ["marquesita"], label: "Anillos Marquesita" },
-      { keys: ["liso", "lisa"], label: "Anillos Lisos" }
+      { keys: ["liso"], label: "Anillos Lisos" }
     ],
 
     colgantes: [
@@ -2422,8 +2449,7 @@ function obtenerTipoDeProducto(nombre, categoriaBase) {
       { keys: ["piedra"], label: "Colgantes Piedra Natural" },
       { keys: ["cruz"], label: "Colgantes Cruz" },
       { keys: ["placa"], label: "Colgantes Placa" },
-      { keys: ["lapidado"], label: "Colgantes Lapidado" },
-      { keys: ["niña", "niño"], label: "Colgantes Niño/Niña" }
+      { keys: ["niño", "niña"], label: "Colgantes Niño/Niña" }
     ],
 
     cadenas: [
@@ -2432,7 +2458,7 @@ function obtenerTipoDeProducto(nombre, categoriaBase) {
       { keys: ["rolo"], label: "Cadenas Rolo" },
       { keys: ["singapur"], label: "Cadenas Singapur" },
       { keys: ["veneciana"], label: "Cadenas Veneciana" },
-      { keys: ["eslabon"], label: "Cadenas Eslabón" }
+      { keys: ["eslabon", "eslabón"], label: "Cadenas Eslabón" }
     ],
 
     tobilleras: [
@@ -2442,8 +2468,8 @@ function obtenerTipoDeProducto(nombre, categoriaBase) {
     ],
 
     conjuntos: [
-      { keys: ["corazon", "corazón", "corazones"], label: "Conjuntos Corazón" },
-      { keys: ["circon", "circón", "circones"], label: "Conjuntos Circón" },
+      { keys: ["corazon", "corazón"], label: "Conjuntos Corazón" },
+      { keys: ["circon", "circón"], label: "Conjuntos Circón" },
       { keys: ["perla"], label: "Conjuntos Perla" },
       { keys: ["cruz"], label: "Conjuntos Cruz" }
     ]
@@ -2451,29 +2477,28 @@ function obtenerTipoDeProducto(nombre, categoriaBase) {
 
   const lista = subtiposPorCategoria[categoriaBase] || [];
 
-  // --- BÚSQUEDA REAL DE SUBTIPO ---
   for (const st of lista) {
-    for (const word of st.keys) {
-      if (nombre.includes(word)) {
-        return st.label;  // subtipo encontrado ✔
-      }
+    for (const k of st.keys) {
+      if (nombre.includes(k)) return st.label;
     }
   }
 
-// --- SI NO ENCUENTRA SUBTIPO → usar nombre oficial de categoría enchapada ---
-const nombresCategoriasEnchapado = {
-  anillos: "Anillos Enchapados",
-  aros: "Aros Enchapados",
-  cadenas: "Cadenas Enchapadas",
-  colgantes: "Colgantes Enchapados",
-  pulseras: "Pulseras Enchapadas",
-  tobilleras: "Tobilleras Enchapadas",
-  collares: "Collares Enchapados",
-  conjuntos: "Conjuntos Enchapados",
-  infantil: "Infantil Enchapados"
-};
+  // =====================================================
+  // 4) SI NO ENCUENTRA SUBTIPO → categoría enchapada final
+  // =====================================================
+  const nombresCategoriasEnchapado = {
+    anillos: "Anillos Enchapados",
+    aros: "Aros Enchapados",
+    cadenas: "Cadenas Enchapadas",
+    colgantes: "Colgantes Enchapados",
+    pulseras: "Pulseras Enchapadas",
+    tobilleras: "Tobilleras Enchapadas",
+    collares: "Collares Enchapados",
+    conjuntos: "Conjuntos Enchapados",
+    infantil: "Infantil Enchapados"
+  };
 
-return nombresCategoriasEnchapado[categoriaBase] || "Enchapados";
+  return nombresCategoriasEnchapado[categoriaBase] || "Enchapados";
 }
 
 
