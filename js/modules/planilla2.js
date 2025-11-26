@@ -2460,9 +2460,20 @@ function obtenerTipoDeProducto(nombre, categoriaBase) {
     }
   }
 
-  // --- SI NO ENCUENTRA → categoría base (NO primer subtipo) ---
-  // categoriaBase = "aros" → "Aros Enchapados"
-  return categoriaBase.charAt(0).toUpperCase() + categoriaBase.slice(1) + " Enchapados";
+// --- SI NO ENCUENTRA SUBTIPO → usar nombre oficial de categoría enchapada ---
+const nombresCategoriasEnchapado = {
+  anillos: "Anillos Enchapados",
+  aros: "Aros Enchapados",
+  cadenas: "Cadenas Enchapadas",
+  colgantes: "Colgantes Enchapados",
+  pulseras: "Pulseras Enchapadas",
+  tobilleras: "Tobilleras Enchapadas",
+  collares: "Collares Enchapados",
+  conjuntos: "Conjuntos Enchapados",
+  infantil: "Infantil Enchapados"
+};
+
+return nombresCategoriasEnchapado[categoriaBase] || "Enchapados";
 }
 
 
