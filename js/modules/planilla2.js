@@ -2377,84 +2377,94 @@ document.addEventListener("click", function(e) {
 function obtenerTipoDeProducto(nombre, categoriaBase) {
   nombre = nombre.toLowerCase();
 
+  // --- SINÓNIMOS REALES POR CATEGORÍA ---
   const subtiposPorCategoria = {
-    "aros": [
-      { key: "circon", label: "Aros de Circón" },
-      { key: "corazon", label: "Aros de Corazón" },
-      { key: "estrella", label: "Aros Estrella" },
-      { key: "perla", label: "Aros Perla" },
-      { key: "cuff", label: "Aros Cuff / Trepadores" },
-      { key: "ola", label: "Aros Figuritas" }
+    aros: [
+      { keys: ["circon", "circón", "circones", "cristal", "cristales"], label: "Aros de Circón" },
+      { keys: ["corazon", "corazón", "corazones", "heart"], label: "Aros de Corazón" },
+      { keys: ["estrella", "estrellita", "star"], label: "Aros Estrella" },
+      { keys: ["perla", "perlitas"], label: "Aros Perla" },
+      { keys: ["cuff", "trepador", "trepadores"], label: "Aros Cuff / Trepadores" },
+      { keys: ["mariposa", "butterfly"], label: "Aros Mariposa" },
+      { keys: ["flor", "florales", "petalo", "pétalo", "trebol", "trébol", "hoja", "hojas"], label: "Aros Florales" },
+      { keys: ["argolla"], label: "Aros Argolla" }
     ],
-    "collares": [
-      { key: "corazon", label: "Collares con Corazón" },
-      { key: "cruz", label: "Collares Cruz" },
-      { key: "circon", label: "Collares con Circón" },
-      { key: "perla", label: "Collares con Perla" },
-      { key: "dije", label: "Collares con Dije" },
-      { key: "placa", label: "Collares Placa" }
+
+    collares: [
+      { keys: ["corazon", "corazón", "corazones", "heart"], label: "Collares con Corazón" },
+      { keys: ["cruz"], label: "Collares Cruz" },
+      { keys: ["circon", "circón", "circones", "cristal"], label: "Collares con Circón" },
+      { keys: ["perla", "perlita"], label: "Collares con Perla" },
+      { keys: ["dije", "colgante"], label: "Collares con Dije" },
+      { keys: ["placa"], label: "Collares Placa" }
     ],
-    "pulseras": [
-      { key: "eslabon", label: "Pulseras Eslabón" },
-      { key: "circon", label: "Pulseras con Circón" },
-      { key: "piedra", label: "Pulseras con Piedra" },
-      { key: "hombre", label: "Pulseras de Hombre" },
-      { key: "macrame", label: "Pulseras Macramé" },
-      { key: "cadena", label: "Pulseras Cadena" }
+
+    pulseras: [
+      { keys: ["eslabon", "eslabón", "eslabones"], label: "Pulseras Eslabón" },
+      { keys: ["circon", "circón", "circones"], label: "Pulseras con Circón" },
+      { keys: ["piedra"], label: "Pulseras con Piedra" },
+      { keys: ["hombre"], label: "Pulseras de Hombre" },
+      { keys: ["macrame", "macramé"], label: "Pulseras Macramé" },
+      { keys: ["cadena"], label: "Pulseras Cadena" }
     ],
-    "anillos": [
-      { key: "circon", label: "Anillos con Circón" },
-      { key: "piedra", label: "Anillos Piedra Natural" },
-      { key: "falange", label: "Anillos MIDI / Falange" },
-      { key: "hombre", label: "Anillos de Hombre" },
-      { key: "marquesita", label: "Anillos Marquesita" },
-      { key: "liso", label: "Anillos Lisos" }
+
+    anillos: [
+      { keys: ["circon", "circón", "circones"], label: "Anillos con Circón" },
+      { keys: ["piedra"], label: "Anillos Piedra Natural" },
+      { keys: ["falange", "midi"], label: "Anillos MIDI / Falange" },
+      { keys: ["hombre"], label: "Anillos de Hombre" },
+      { keys: ["marquesita"], label: "Anillos Marquesita" },
+      { keys: ["liso", "lisa"], label: "Anillos Lisos" }
     ],
-    "colgantes": [
-      { key: "inicial", label: "Colgantes Inicial" },
-      { key: "piedra", label: "Colgantes Piedra Natural" },
-      { key: "cruz", label: "Colgantes Cruz" },
-      { key: "placa", label: "Colgantes Placa" },
-      { key: "lapidado", label: "Colgantes Lapidado" },
-      { key: "niño", label: "Colgantes Niño/Niña" }
+
+    colgantes: [
+      { keys: ["inicial", "letra"], label: "Colgantes Inicial" },
+      { keys: ["piedra"], label: "Colgantes Piedra Natural" },
+      { keys: ["cruz"], label: "Colgantes Cruz" },
+      { keys: ["placa"], label: "Colgantes Placa" },
+      { keys: ["lapidado"], label: "Colgantes Lapidado" },
+      { keys: ["niña", "niño"], label: "Colgantes Niño/Niña" }
     ],
-    "cadenas": [
-      { key: "cartier", label: "Cadenas Cartier" },
-      { key: "gucci", label: "Cadenas Gucci" },
-      { key: "rolo", label: "Cadenas Rolo" },
-      { key: "singapur", label: "Cadenas Singapur" },
-      { key: "veneciana", label: "Cadenas Veneciana" },
-      { key: "eslabon", label: "Cadenas Eslabón" }
+
+    cadenas: [
+      { keys: ["cartier"], label: "Cadenas Cartier" },
+      { keys: ["gucci"], label: "Cadenas Gucci" },
+      { keys: ["rolo"], label: "Cadenas Rolo" },
+      { keys: ["singapur"], label: "Cadenas Singapur" },
+      { keys: ["veneciana"], label: "Cadenas Veneciana" },
+      { keys: ["eslabon"], label: "Cadenas Eslabón" }
     ],
-    "tobilleras": [
-      { key: "perla", label: "Tobilleras con Perlas" },
-      { key: "cadena", label: "Tobilleras Cadena" },
-      { key: "dije", label: "Tobilleras con Dije" }
+
+    tobilleras: [
+      { keys: ["perla"], label: "Tobilleras con Perlas" },
+      { keys: ["cadena"], label: "Tobilleras Cadena" },
+      { keys: ["dije"], label: "Tobilleras con Dije" }
     ],
-    "conjuntos": [
-      { key: "corazon", label: "Conjuntos Corazón" },
-      { key: "circon", label: "Conjuntos Circón" },
-      { key: "perla", label: "Conjuntos Perla" },
-      { key: "cruz", label: "Conjuntos Cruz" }
-    ],
-    "piercings": [
-      { key: "", label: "Piercings Enchapados" }
+
+    conjuntos: [
+      { keys: ["corazon", "corazón", "corazones"], label: "Conjuntos Corazón" },
+      { keys: ["circon", "circón", "circones"], label: "Conjuntos Circón" },
+      { keys: ["perla"], label: "Conjuntos Perla" },
+      { keys: ["cruz"], label: "Conjuntos Cruz" }
     ]
   };
 
   const lista = subtiposPorCategoria[categoriaBase] || [];
 
+  // --- BÚSQUEDA REAL DE SUBTIPO ---
   for (const st of lista) {
-    if (st.key && nombre.includes(st.key)) {
-      return st.label;
+    for (const word of st.keys) {
+      if (nombre.includes(word)) {
+        return st.label;  // subtipo encontrado ✔
+      }
     }
   }
 
-  // Si no detectó palabra clave → devuelvo el primer subtipo
-  if (lista.length > 0) return lista[0].label;
-
-  return "Sin subtipo";
+  // --- SI NO ENCUENTRA → categoría base (NO primer subtipo) ---
+  // categoriaBase = "aros" → "Aros Enchapados"
+  return categoriaBase.charAt(0).toUpperCase() + categoriaBase.slice(1) + " Enchapados";
 }
+
 
 
 
