@@ -598,19 +598,7 @@ if (tipoProducto) {
 
   partes.push(`Categoría: ${tipo}`);
   // ========== NUEVA CARACTERÍSTICA: Tipo de Producto ==========
-let subtipo = (
-  row["PRODUCTO SUBTIPO"] ||
-  row["producto_subtipo"] ||
-  row["PRODUCTO SUBTIPO"] ||
-  ""
-).toString().trim();
 
-// Si está vacío o es "Sin valor", usar el tipo corregido
-if (!subtipo || subtipo.toLowerCase() === "sin valor") {
-  subtipo = tipo; // reutiliza el tipo ya corregido (Enchapados/Enchapadas)
-}
-
-partes.push(`Tipo de Producto: ${subtipo}`);
 // --- Tipo de Producto (nuevo mapeo inteligente) ---
 const nombreProducto = (row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "").toString();
 const categoriaDetectada = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
