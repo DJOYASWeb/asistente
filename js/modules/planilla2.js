@@ -611,7 +611,12 @@ if (!subtipo || subtipo.toLowerCase() === "sin valor") {
 }
 
 partes.push(`Tipo de Producto: ${subtipo}`);
+// --- Tipo de Producto (nuevo mapeo inteligente) ---
+const nombreProducto = (row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "").toString();
+const categoriaDetectada = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
 
+const tipoProductoFinal = obtenerTipoDeProducto(nombreProducto, categoriaDetectada);
+partes.push(`Tipo de Producto: ${tipoProductoFinal}`);
 }
 
 
@@ -2373,6 +2378,87 @@ document.addEventListener("click", function(e) {
 
 
 
+function obtenerTipoDeProducto(nombre, categoriaBase) {
+  nombre = nombre.toLowerCase();
+
+  const subtiposPorCategoria = {
+    "aros": [
+      { key: "circon", label: "Aros de Circón" },
+      { key: "corazon", label: "Aros de Corazón" },
+      { key: "estrella", label: "Aros Estrella" },
+      { key: "perla", label: "Aros Perla" },
+      { key: "cuff", label: "Aros Cuff / Trepadores" },
+      { key: "ola", label: "Aros Figuritas" }
+    ],
+    "collares": [
+      { key: "corazon", label: "Collares con Corazón" },
+      { key: "cruz", label: "Collares Cruz" },
+      { key: "circon", label: "Collares con Circón" },
+      { key: "perla", label: "Collares con Perla" },
+      { key: "dije", label: "Collares con Dije" },
+      { key: "placa", label: "Collares Placa" }
+    ],
+    "pulseras": [
+      { key: "eslabon", label: "Pulseras Eslabón" },
+      { key: "circon", label: "Pulseras con Circón" },
+      { key: "piedra", label: "Pulseras con Piedra" },
+      { key: "hombre", label: "Pulseras de Hombre" },
+      { key: "macrame", label: "Pulseras Macramé" },
+      { key: "cadena", label: "Pulseras Cadena" }
+    ],
+    "anillos": [
+      { key: "circon", label: "Anillos con Circón" },
+      { key: "piedra", label: "Anillos Piedra Natural" },
+      { key: "falange", label: "Anillos MIDI / Falange" },
+      { key: "hombre", label: "Anillos de Hombre" },
+      { key: "marquesita", label: "Anillos Marquesita" },
+      { key: "liso", label: "Anillos Lisos" }
+    ],
+    "colgantes": [
+      { key: "inicial", label: "Colgantes Inicial" },
+      { key: "piedra", label: "Colgantes Piedra Natural" },
+      { key: "cruz", label: "Colgantes Cruz" },
+      { key: "placa", label: "Colgantes Placa" },
+      { key: "lapidado", label: "Colgantes Lapidado" },
+      { key: "niño", label: "Colgantes Niño/Niña" }
+    ],
+    "cadenas": [
+      { key: "cartier", label: "Cadenas Cartier" },
+      { key: "gucci", label: "Cadenas Gucci" },
+      { key: "rolo", label: "Cadenas Rolo" },
+      { key: "singapur", label: "Cadenas Singapur" },
+      { key: "veneciana", label: "Cadenas Veneciana" },
+      { key: "eslabon", label: "Cadenas Eslabón" }
+    ],
+    "tobilleras": [
+      { key: "perla", label: "Tobilleras con Perlas" },
+      { key: "cadena", label: "Tobilleras Cadena" },
+      { key: "dije", label: "Tobilleras con Dije" }
+    ],
+    "conjuntos": [
+      { key: "corazon", label: "Conjuntos Corazón" },
+      { key: "circon", label: "Conjuntos Circón" },
+      { key: "perla", label: "Conjuntos Perla" },
+      { key: "cruz", label: "Conjuntos Cruz" }
+    ],
+    "piercings": [
+      { key: "", label: "Piercings Enchapados" }
+    ]
+  };
+
+  const lista = subtiposPorCategoria[categoriaBase] || [];
+
+  for (const st of lista) {
+    if (st.key && nombre.includes(st.key)) {
+      return st.label;
+    }
+  }
+
+  // Si no detectó palabra clave → devuelvo el primer subtipo
+  if (lista.length > 0) return lista[0].label;
+
+  return "Sin subtipo";
+}
 
 
 
