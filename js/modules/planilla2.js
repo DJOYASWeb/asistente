@@ -584,8 +584,21 @@ function construirCaracteristicas(row) {
 
   if (modelo) partes.push(`Modelo: ${modelo}`);
 
-  // 💎 NUEVO: tipo de producto
-  if (tipoProducto) partes.push(`Categoría: ${tipoProducto}`);
+if (tipoProducto) {
+  let tipo = tipoProducto.trim();
+
+  // --- Normalización para "Enchapado" ---
+  if (/enchapado$/i.test(tipo)) {
+    const palabras = tipo.split(" ");        // ejemplo: ["Anillos", "Enchapado"]
+    const base = palabras.slice(0, -1).join(" "); // "Anillos"
+    const genero = base.toLowerCase().endsWith("as") ? "Enchapadas" : "Enchapados";
+
+    tipo = `${base} ${genero}`;
+  }
+
+  partes.push(`Categoría: ${tipo}`);
+}
+
 
   // ⬇️ Dimensión
   if (dimension) {
