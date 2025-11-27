@@ -94,27 +94,31 @@ function activarPadreSegunPagina() {
 
 activarPadreSegunPagina();
 
-// Permite abrir un tab padre mientras la barra está colapsada
 document.querySelectorAll(".menu-toggle").forEach(toggle => {
-  toggle.addEventListener("click", function (e) {
-
+  toggle.addEventListener("click", function () {
     const sidebar = document.getElementById("sidebar");
+    const submenu = this.closest(".menu-group").querySelector(".submenu");
 
-    // 1) Si la sidebar está colapsada → la expandimos
+    // SI ESTÁ COLAPSADA → expandir + abrir submenú
     if (sidebar.classList.contains("mini")) {
 
-      // Expandir sidebar
+      // Expandimos sidebar
       sidebar.classList.remove("mini");
       document.body.classList.remove("sidebar-mini");
 
-      // Esperar un poquito para permitir la animación antes de abrir submenu
+      // Cerramos todos los submenus antes de animar
+      document.querySelectorAll(".submenu").forEach(s => {
+        s.classList.remove("active");
+      });
+
+      // Esperamos a que la sidebar termine de expandirse
       setTimeout(() => {
-        abrirSubmenu(this);
-      }, 150);
+        submenu.classList.add("active");
+      }, 200);
 
     } else {
-      // 2) Sidebar expandida → solo abrir/cerrar submenu
-      abrirSubmenu(this);
+      // SI YA ESTÁ EXPANDIDA → abrir/cerrar normal
+      submenu.classList.toggle("active");
     }
   });
 });
