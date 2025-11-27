@@ -174,18 +174,12 @@ if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
 function parseFecha(str) {
   if (!str || typeof str !== "string") return null;
 
-  // Dividir fecha y hora
   const [fechaPart] = str.trim().split(" ");
-
-  // Fecha YYYY-MM-DD
   const [y, m, d] = fechaPart.split("-").map(Number);
-
   if (!y || !m || !d) return null;
 
-  // Crear fecha sin hora (00:00:00)
   return new Date(y, m - 1, d);
 }
-
 
 // 🔍 Detectar fecha válida usando las 3 columnas
 function obtenerFechaCampo(c) {
