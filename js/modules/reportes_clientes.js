@@ -459,11 +459,14 @@ document.getElementById("tablaTopClientes").innerHTML =
 // =========================================
 document.querySelectorAll(".tab-reportes").forEach(btn => {
   btn.addEventListener("click", async () => {
-    localStorage.setItem("tab_activo_reportes", section);
+
+    const section = btn.getAttribute("data-section"); // ✅ definir primero
+
+    localStorage.setItem("tab_activo_reportes", section); // ✅ ahora sí existe
+
     document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    const section = btn.getAttribute("data-section");
     const main = document.getElementById("contenidoReportesMain");
     const seccionConfig = document.getElementById("seccion-configuracion");
 
