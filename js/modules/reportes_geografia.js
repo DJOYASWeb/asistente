@@ -20,14 +20,27 @@ async function cargarDashboardGeografia() {
     const text = await response.text();
     const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-    // Normalizar claves
-    const normalizado = data.map(row => {
-      const limpio = {};
-      for (let k of Object.keys(row)) {
-        limpio[k.trim().toLowerCase().replace(/\s+/g, "_")] = row[k];
-      }
-      return limpio;
-    });
+// ================================
+// NORMALIZAR CIUDAD Y PAÍS
+// ================================
+function normalizarTextoLugar(str) {
+  if (!str) return "";
+  str = str.trim().toLowerCase();
+
+  // Convertir cada palabra a Capital Letter
+  return str
+    .split(" ")
+    .filter(p => p.length > 0)
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
+
+// Aplicar normalización a cada fila
+normalizado.forEach(c => {
+  if (c.ciudad) c.ciudad = normalizarTextoLugar(c.ciudad);
+  if (c.pais) c.pais = normalizarTextoLugar(c.pais);
+});
+
 
     // --- Aplicar el mismo filtro de fecha que clientes ---
     const inicio = rangoPrincipal?.[0] || null;
