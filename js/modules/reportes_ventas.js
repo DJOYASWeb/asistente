@@ -20,9 +20,9 @@ async function cargarDashboardVentas() {
     const text = await response.text();
     const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
-    // ------------------------------------------
+    // -------------------------------------------------------
     // NORMALIZAR ENCABEZADOS
-    // ------------------------------------------
+    // -------------------------------------------------------
     const normalizado = data.map(row => {
       const limpio = {};
       for (let k of Object.keys(row)) {
@@ -31,20 +31,20 @@ async function cargarDashboardVentas() {
       return limpio;
     });
 
-    // ------------------------------------------
+    // -------------------------------------------------------
     // FUNCIÓN PARA PARSEAR FECHAS (sin hora)
-    // ------------------------------------------
+    // -------------------------------------------------------
     function parseFecha(str) {
       if (!str || typeof str !== "string") return null;
-      const [fechaPart] = str.trim().split(" ");
-      const [y, m, d] = fechaPart.split("-").map(Number);
+      const [f] = str.split(" ");
+      const [y, m, d] = f.split("-").map(Number);
       if (!y || !m || !d) return null;
       return new Date(y, m - 1, d);
     }
 
-    // ------------------------------------------
-    // FILTRADO POR RANGO
-    // ------------------------------------------
+    // -------------------------------------------------------
+    // FILTRADO POR RANGO DE FECHAS
+    // -------------------------------------------------------
     const inicio = rangoPrincipal?.[0] || null;
     const fin = rangoPrincipal?.[1] || null;
 
@@ -61,9 +61,9 @@ async function cargarDashboardVentas() {
       return;
     }
 
-    // ------------------------------------------
+    // -------------------------------------------------------
     // AGRUPACIÓN REAL POR ID DE PEDIDO
-    // ------------------------------------------
+    // -------------------------------------------------------
     const pedidosMap = {};
 
     filtrados.forEach(r => {
@@ -73,32 +73,44 @@ async function cargarDashboardVentas() {
         pedidosMap[id] = {
           id,
           fecha: r.fecha_y_hora,
-          metodo_pago: r.método_de_pago || r.metodo_de_pago,
+          metodo_pago: r.metodo_de_pago || r.método_de_pago,
           cliente: r.id_del_cliente || r.id_cliente,
-          total_pedido: Number(r.total || 0), // NO se suma, es único
+          total_pedido: Number(r.total || 0),
           transportista: r.transportista,
           productos: []
         };
       }
 
+      // Obtener cantidad
+      const cantidad = Number(r.cantidad_de_productos || r.cantidad || 1);
+
+      // Obtener valor total de la línea
+      const valorTotalLinea = Number(r.valor_del_producto || 0);
+
+      // Calcular valor unitario
+      const valorUnitario = cantidad > 0 ? valorTotalLinea / cantidad : 0;
+
+      // Categorías
+      const categorias = (r.categorías || r.categorias || r.categoria || "")
+        .split(",")
+        .map(c => c.trim())
+        .filter(c => c.length > 0);
+
       pedidosMap[id].productos.push({
         sku: r.sku,
         nombre: r.nombre_del_producto,
-        cantidad: Number(r.cantidad_de_productos || r.cantidad || 1),
-        categorias: (r.categorías || r.categoria || r.categorias || "")
-          .split(",")
-          .map(x => x.trim()),
-        valor_producto: Number(r.valor_del_producto || 0)
+        cantidad,
+        valor_unitario: valorUnitario,
+        categorias
       });
     });
 
     const pedidos = Object.values(pedidosMap);
 
-    // ------------------------------------------
-    // MÉTRICAS PRINCIPALES
-    // ------------------------------------------
+    // -------------------------------------------------------
+    // MÉTRICAS PRINCIPALES (YA CORREGIDAS)
+    // -------------------------------------------------------
     const revenueTotal = pedidos.reduce((t, p) => t + p.total_pedido, 0);
-
     const pedidosUnicos = pedidos.length;
 
     const productosVendidos = pedidos.reduce(
@@ -113,38 +125,41 @@ async function cargarDashboardVentas() {
 
     const aovCliente = clientesUnicos ? revenueTotal / clientesUnicos : 0;
 
-    // ------------------------------------------
+    // -------------------------------------------------------
     // REVENUE POR DÍA DEL MES
-    // ------------------------------------------
+    // -------------------------------------------------------
     const revenuePorDia = {};
     pedidos.forEach(p => {
       const fecha = parseFecha(p.fecha);
-      if (!fecha) return;
       const dia = fecha.getDate();
       revenuePorDia[dia] = (revenuePorDia[dia] || 0) + p.total_pedido;
     });
 
-    // ------------------------------------------
+    // -------------------------------------------------------
     // REVENUE POR HORA
-    // ------------------------------------------
+    // -------------------------------------------------------
     const revenuePorHora = {};
     pedidos.forEach(p => {
       const h = Number(p.fecha.split(" ")[1].split(":")[0]);
       revenuePorHora[h] = (revenuePorHora[h] || 0) + p.total_pedido;
     });
 
-    // ------------------------------------------
+    // -------------------------------------------------------
     // TOP PRODUCTOS
-    // ------------------------------------------
+    // -------------------------------------------------------
     const productosMap = {};
 
     pedidos.forEach(p => {
       p.productos.forEach(prod => {
         if (!productosMap[prod.nombre]) {
-          productosMap[prod.nombre] = { nombre: prod.nombre, cantidad: 0, revenue: 0 };
+          productosMap[prod.nombre] = {
+            nombre: prod.nombre,
+            cantidad: 0,
+            revenue: 0
+          };
         }
         productosMap[prod.nombre].cantidad += prod.cantidad;
-        productosMap[prod.nombre].revenue += prod.valor_producto * prod.cantidad;
+        productosMap[prod.nombre].revenue += prod.valor_unitario * prod.cantidad;
       });
     });
 
@@ -156,30 +171,30 @@ async function cargarDashboardVentas() {
       .sort((a, b) => b.cantidad - a.cantidad)
       .slice(0, 10);
 
-    // ------------------------------------------
+    // -------------------------------------------------------
     // TOP CATEGORÍAS
-    // ------------------------------------------
+    // -------------------------------------------------------
     const categoriasMap = {};
 
-    pedidos.forEach(p =>
-      p.productos.forEach(prod =>
+    pedidos.forEach(p => {
+      p.productos.forEach(prod => {
         prod.categorias.forEach(cat => {
           if (!categoriasMap[cat]) {
             categoriasMap[cat] = { categoria: cat, cantidad: 0, revenue: 0 };
           }
           categoriasMap[cat].cantidad += prod.cantidad;
-          categoriasMap[cat].revenue += prod.valor_producto * prod.cantidad;
-        })
-      )
-    );
+          categoriasMap[cat].revenue += prod.valor_unitario * prod.cantidad;
+        });
+      });
+    });
 
     const topCategorias = Object.values(categoriasMap)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 10);
 
-    // ------------------------------------------
+    // -------------------------------------------------------
     // RENDER DASHBOARD
-    // ------------------------------------------
+    // -------------------------------------------------------
     const main = document.getElementById("contenidoReportesMain");
     main.innerHTML = `
       <div class="ios-card">
