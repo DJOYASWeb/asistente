@@ -156,56 +156,60 @@ let inicioRango = null;
 let finRango = null;
 
 if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
-  inicioRango = rangoPrincipal[0];
-  finRango = rangoPrincipal[1];
-  console.log("✅ Filtro activo:", inicioRango, "→", finRango);
-} else {
-  console.log("⚠️ Sin rango seleccionado, mostrando todos los registros.");
+  inicioRango = new Date(
+    rangoPrincipal[0].getFullYear(),
+    rangoPrincipal[0].getMonth(),
+    rangoPrincipal[0].getDate()
+  );
+
+  finRango = new Date(
+    rangoPrincipal[1].getFullYear(),
+    rangoPrincipal[1].getMonth(),
+    rangoPrincipal[1].getDate()
+  );
 }
 
-// 🧩 Convertir string de fecha en Date robusto
+
+// 🧩 Convertir string "YYYY-MM-DD HH:mm:ss" a Date sin hora
 function parseFecha(str) {
-  if (!str) return null;
-  if (str instanceof Date) return str; // Si ya es Date, devolver tal cual
+  if (!str || typeof str !== "string") return null;
 
-  str = str.toString().trim();
+  // Dividir fecha y hora
+  const [fechaPart] = str.trim().split(" ");
 
-  // Formato YYYY-MM-DD o YYYY-MM-DD HH:mm:ss
-  if (/\d{4}-\d{2}-\d{2}/.test(str)) {
-    const parts = str.split(" ");
-    const [y, m, d] = parts[0].split("-").map(Number);
+  // Fecha YYYY-MM-DD
+  const [y, m, d] = fechaPart.split("-").map(Number);
 
-    let h = 0, min = 0, s = 0;
-    if (parts[1]) [h, min, s] = parts[1].split(":").map(Number);
+  if (!y || !m || !d) return null;
 
-    return new Date(y, m - 1, d, h, min, s);
-  }
-
-  // Formato europeo DD/MM/YYYY
-  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
-    const [d, m, y] = str.split("/").map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  // Intento final
-  const f = new Date(str);
-  return isNaN(f.getTime()) ? null : f;
+  // Crear fecha sin hora (00:00:00)
+  return new Date(y, m - 1, d);
 }
 
+
+// 🔍 Detectar fecha válida usando las 3 columnas
+function obtenerFechaCampo(c) {
+  const campos = ["fecha_registro", "primera_compra", "ultima_compra"];
+  for (let campo of campos) {
+    if (c[campo]) return c[campo];
+  }
+  return null;
+}
 
 // 🕓 Filtrar registros dentro del rango seleccionado
 const filtrados = normalizado.filter(c => {
-  const fecha = parseFecha(c.fecha_registro || c.primera_compra || "");
+  const rawFecha = obtenerFechaCampo(c);
+  const fecha = parseFecha(rawFecha);
+
   if (!fecha) return false;
 
-  // Si hay rango seleccionado, aplicar filtro
   if (inicioRango && finRango) {
     return fecha >= inicioRango && fecha <= finRango;
   }
 
-  // Si no hay rango, incluir todos
   return true;
 });
+
 
 console.log(`📊 Filtrados ${filtrados.length} de ${normalizado.length} registros dentro del rango.`);
 
