@@ -12,6 +12,39 @@ function showLoader() {
   }
 }
 
+// ===============================
+// 🎯 PRIORIDAD CATEGORÍAS PRINCIPALES
+// ===============================
+const categoriasPrincipalesPrioridad = [
+  "Black Friday",
+  "Cyber DJOYAS",
+  "Descuentos",
+  "Navidad",
+  "Joyas día de la madre",
+  "Colección Primavera",
+  "ACCESORIOS",
+  "ENCHAPADO",
+  "Joyas de plata por mayor"
+];
+
+// Devuelve la categoría principal según prioridad
+function detectarCategoriaPrincipal(categoriasTexto) {
+  if (!categoriasTexto) return null;
+
+  const lista = categoriasTexto
+    .split(",")
+    .map(c => c.trim().toLowerCase());
+
+  for (let cat of categoriasPrincipalesPrioridad) {
+    if (lista.includes(cat.toLowerCase())) {
+      return cat; // Categoría prioritaria encontrada
+    }
+  }
+
+  return null; 
+}
+
+
 function hideLoader() {
   // se sobreescribe cuando el dashboard termine de renderizar
 }
@@ -240,30 +273,39 @@ const SUBCATEGORIAS = new Set([
   "Joyeros"
 ]);
 
-      
+
 // ======================================================
-// 🟦 CATEGORÍAS PRINCIPALES
+// 🟦 CATEGORÍAS PRINCIPALES (CON PRIORIDAD REAL)
 // ======================================================
+
 const categoriasPrincipalesMap = {};
 
-pedidos.forEach(p =>
-  p.productos.forEach(prod =>
-    prod.categorias.forEach(cat => {
-      if (!CATEGORIAS_PRINCIPALES.has(cat)) return;
+pedidos.forEach(p => {
+  p.productos.forEach(prod => {
+    // Detectar categoría principal con prioridad
+    const catPrincipal = detectarCategoriaPrincipal(
+      prod.categorias.join(",")
+    );
 
-      if (!categoriasPrincipalesMap[cat]) {
-        categoriasPrincipalesMap[cat] = { categoria: cat, cantidad: 0, revenue: 0 };
-      }
+    if (!catPrincipal) return;
 
-      categoriasPrincipalesMap[cat].cantidad += prod.cantidad;
-      categoriasPrincipalesMap[cat].revenue += prod.valor_unitario * prod.cantidad;
-    })
-  )
-);
+    if (!categoriasPrincipalesMap[catPrincipal]) {
+      categoriasPrincipalesMap[catPrincipal] = {
+        categoria: catPrincipal,
+        cantidad: 0,
+        revenue: 0
+      };
+    }
+
+    categoriasPrincipalesMap[catPrincipal].cantidad += prod.cantidad;
+    categoriasPrincipalesMap[catPrincipal].revenue += prod.valor_unitario * prod.cantidad;
+  });
+});
 
 const topCategoriasPrincipales = Object.values(categoriasPrincipalesMap)
   .sort((a, b) => b.revenue - a.revenue)
   .slice(0, 10);
+
 
 // ======================================================
 // 🟩 SUBCATEGORÍAS
