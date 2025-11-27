@@ -102,9 +102,25 @@ aplicarFechas.addEventListener("click", async () => {
     textoRango.textContent =
       `${inicio.toLocaleDateString("es-ES", opciones)} – ${fin.toLocaleDateString("es-ES", opciones)}`;
 
-    // 🔁 Recargar dashboard clientes con el nuevo rango
-    console.log("📅 Nuevo rango aplicado:", inicio, "→", fin);
-    await cargarDashboardClientes();
+// 🔁 Recargar dashboard según el tab activo
+console.log("📅 Nuevo rango aplicado:", inicio, "→", fin);
+
+const activo = localStorage.getItem("tab_activo_reportes");
+
+// Cargar el dashboard correcto
+if (activo === "clientes") {
+  await cargarDashboardClientes();
+}
+else if (activo === "geografia") {
+  await cargarDashboardGeografia();
+}
+else if (activo === "ventas") {
+  await cargarDashboardVentas?.();
+}
+else if (activo === "categorias") {
+  await cargarDashboardCategorias?.();
+}
+
   } else {
     textoRango.textContent = "Selecciona un rango";
     console.warn("⚠️ Intento de aplicar rango sin fechas seleccionadas.");
@@ -443,6 +459,7 @@ document.getElementById("tablaTopClientes").innerHTML =
 // =========================================
 document.querySelectorAll(".tab-reportes").forEach(btn => {
   btn.addEventListener("click", async () => {
+    localStorage.setItem("tab_activo_reportes", section);
     document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
@@ -486,8 +503,13 @@ else if (section === "geografia") {
 });
 
   // === Seleccionar pestaña inicial ===
-  const tabInicial = document.querySelector('.tab-reportes[data-section="general"]');
-  if (tabInicial) tabInicial.click();
+// === Restaurar último tab activo ===
+const lastTab = localStorage.getItem("tab_activo_reportes");
+const tabToOpen = document.querySelector(`.tab-reportes[data-section="${lastTab}"]`)
+  || document.querySelector('.tab-reportes[data-section="general"]');
+
+if (tabToOpen) tabToOpen.click();
+
 });
 
 // === CONFIGURADOR MINIMALISTA DE ENLACES CSV ===

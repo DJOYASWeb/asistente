@@ -62,7 +62,9 @@ async function cargarDashboardGeografia() {
     const paises = {};
 
     filtrados.forEach(c => {
-      const ciudad = c.ciudad?.trim() || "Sin ciudad";
+const ciudad = (c.ciudad || "").trim();
+if (!ciudad) return; // ⛔ omitir este registro en ciudades
+
       const pais = c.pais?.trim() || "Sin Región";
       const total = parseFloat(c.total_gastado || 0);
       const pedidos = parseInt(c.cantidad_pedidos || 0);
