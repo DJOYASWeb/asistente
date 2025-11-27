@@ -2860,13 +2860,19 @@ body.sidebar-mini .main-content {
   width: 100%;
 }
 
-/* Cuando la sidebar está colapsada, ocultamos TODOS los submenús */
+/* Ocultar submenús cuando sidebar está mini */
 .sidebar.mini .submenu {
-  display: none !important;
-  max-height: 0 !important;
-  opacity: 0 !important;
-  overflow: hidden;
+  pointer-events: none;      /* no se pueden abrir */
+  max-height: 0 !important;  /* visualmente cerrados */
+  opacity: 0;                /* no visibles */
 }
+
+/* Cuando sidebar vuelve a normal → submenú puede animar */
+.sidebar .submenu {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+}
+
 
 /* También ocultamos las flechas */
 .sidebar.mini .arrow {
