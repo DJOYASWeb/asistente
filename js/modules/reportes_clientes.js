@@ -97,12 +97,12 @@ btnGuardarDrive.addEventListener("click", () => {
   else if (url.includes("drive.google.com")) {
     finalURL = `https://drive.google.com/uc?export=download&id=${fileId}`;
   }
-  // === Cualquier otra URL, guardar tal cual ===
+  // === Cualquier otra URL ===
   else {
     finalURL = url;
   }
 
-  // Guardar URL lista para cargar con fetch()
+  // Guardar URL lista para fetch()
   localStorage.setItem("csv_clientes", finalURL);
 
   if (statusDrive) statusDrive.textContent = "✅ Enlace convertido y guardado.";
