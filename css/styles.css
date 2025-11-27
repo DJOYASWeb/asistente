@@ -2850,3 +2850,14 @@ body.sidebar-mini .main-content {
   margin-left: 250px;
   transition: margin-left 0.25s ease;
 }
+
+.menu-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* ← evita que se vayan al final */
+  align-items: flex-start;
+}
+
+.menu-toggle {
+  width: 100%;
+}
