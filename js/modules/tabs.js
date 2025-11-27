@@ -70,8 +70,5 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function toggleSidebar() {
-  const sidebar = document.getElementById("sidebar");
-  const main = document.querySelector(".main-content");
-
-  sidebar.classList.toggle("mini");
+  document.getElementById("sidebar").classList.toggle("mini");
 }

@@ -65,17 +65,33 @@ body.protegido {
       display: none; /* Chrome, Safari y Edge */
     }
 
-    .sidebar {
-      background-color: var(--sidebar-bg);
-      color: var(--sidebar-text);
-      width: 250px;
-      min-width: 250px;
-      padding: 1rem 0.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: all 0.3s ease;
-    }
+.sidebar {
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  width: 250px;
+  min-width: 250px; /* <- este valor se anula cuando está mini */
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: width 0.25s ease;
+}
+
+/* === SIDEBAR MINI (solo iconos) === */
+.sidebar.mini {
+  width: 70px !important;
+  min-width: 70px !important; /* ← la línea clave */
+}
+
+.sidebar.mini .label {
+  display: none !important;
+}
+
+.sidebar.mini .menu-item,
+.sidebar.mini .menu-toggle {
+  justify-content: center;
+}
+
 
     .sidebar.collapsed {
       width: 90px;
