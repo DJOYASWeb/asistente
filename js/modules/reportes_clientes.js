@@ -474,10 +474,6 @@ localStorage.setItem("tab_activo_reportes", section);
 document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
 btn.classList.add("active");
 
-
-    document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
     const main = document.getElementById("contenidoReportesMain");
     const seccionConfig = document.getElementById("seccion-configuracion");
 
