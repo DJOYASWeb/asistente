@@ -473,9 +473,9 @@ document.querySelectorAll(".tab-reportes").forEach(btn => {
     else if (section === "categorias") {
       main.innerHTML = `<div class="ios-card"><p class="muted">🏷️ Reporte de Categorías aún no disponible.</p></div>`;
     } 
-    else if (section === "geografia") {
-      main.innerHTML = `<div class="ios-card"><p class="muted">🌎 Reporte geográfico en desarrollo.</p></div>`;
-    } 
+else if (section === "geografia") {
+  await cargarDashboardGeografia();
+}
     else if (section === "tendencias") {
       main.innerHTML = `<div class="ios-card"><p class="muted">📈 Reporte de tendencias en desarrollo.</p></div>`;
     } 
