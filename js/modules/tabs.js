@@ -95,51 +95,38 @@ function activarPadreSegunPagina() {
 activarPadreSegunPagina();
 
 document.querySelectorAll(".menu-toggle").forEach(toggle => {
-  toggle.addEventListener("click", function () {
-    const sidebar = document.getElementById("sidebar");
-    const submenu = this.closest(".menu-group").querySelector(".submenu");
+    toggle.addEventListener("click", function () {
+        const sidebar = document.getElementById("sidebar");
+        const submenu = this.closest(".menu-group").querySelector(".submenu");
 
-    // === SI LA SIDEBAR ESTÁ MINI ===
-    if (sidebar.classList.contains("mini")) {
+        // --- SI LA SIDEBAR ESTÁ MINI ---
+        if (sidebar.classList.contains("mini")) {
+            sidebar.classList.remove("mini");
+            document.body.classList.remove("sidebar-mini");
 
-      // Expandir sidebar
-      sidebar.classList.remove("mini");
-      document.body.classList.remove("sidebar-mini");
+            // NO ABRIMOS NINGÚN SUBMENÚ (como pediste)
+            return;
+        }
 
-      // Cerramos todos los submenús
-      document.querySelectorAll(".submenu").forEach(s => {
-        s.classList.remove("active");
-        s.style.maxHeight = null;  // <- clave
-      });
+        // --- SI LA SIDEBAR ESTÁ EXPANDIDA ---
 
-      // Esperar que termine la expansión
-      setTimeout(() => {
-        submenu.classList.add("active");
-        submenu.style.maxHeight = submenu.scrollHeight + "px";
-      }, 200);
+        // Cerrar otros submenús
+        document.querySelectorAll(".submenu").forEach(s => {
+            if (s !== submenu) {
+                s.classList.remove("active");
+                s.style.maxHeight = null;
+            }
+        });
 
-      return; // ← termina aquí
-    }
+        // Alternar el submenu actual
+        submenu.classList.toggle("active");
 
-    // === SI YA ESTÁ EXPANDIDA ===
-
-    // Cerrar todos los demás submenus
-    document.querySelectorAll(".submenu").forEach(s => {
-      if (s !== submenu) {
-        s.classList.remove("active");
-        s.style.maxHeight = null;
-      }
+        if (submenu.classList.contains("active")) {
+            submenu.style.maxHeight = submenu.scrollHeight + "px";
+        } else {
+            submenu.style.maxHeight = null;
+        }
     });
-
-    // Alternar el submenu actual
-    submenu.classList.toggle("active");
-
-    if (submenu.classList.contains("active")) {
-      submenu.style.maxHeight = submenu.scrollHeight + "px";
-    } else {
-      submenu.style.maxHeight = null;
-    }
-  });
 });
 
 
