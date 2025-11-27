@@ -2927,7 +2927,6 @@ body.sidebar-mini .main-content {
   align-items: center;
   height: 48px;
   padding: 0 1rem;
-  gap: 12px;
   cursor: pointer;
 }
 
@@ -2938,15 +2937,7 @@ body.sidebar-mini .main-content {
   white-space: nowrap;
 }
 
-.sidebar.mini .menu-item,
-.sidebar.mini .menu-toggle {
-  justify-content: center;
-}
 
-.main-content {
-  transition: margin-left 0.25s ease;
-  margin-left: 250px;
-}
 
 body.sidebar-mini .main-content {
   margin-left: 70px;
