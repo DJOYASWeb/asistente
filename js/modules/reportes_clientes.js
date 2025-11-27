@@ -487,9 +487,9 @@ document.querySelectorAll(".tab-reportes").forEach(btn => {
     if (section === "clientes") {
       await cargarDashboardClientes();
     } 
-    else if (section === "ventas") {
-      main.innerHTML = `<div class="ios-card"><p class="muted">📦 Próximamente: Reporte de Ventas.</p></div>`;
-    } 
+else if (section === "ventas") {
+  await cargarDashboardVentas();
+}
     else if (section === "categorias") {
       main.innerHTML = `<div class="ios-card"><p class="muted">🏷️ Reporte de Categorías aún no disponible.</p></div>`;
     } 
