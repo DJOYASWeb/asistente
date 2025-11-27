@@ -2889,4 +2889,66 @@ body.sidebar-mini .main-content {
   color: #fff;
 }
 
+.submenu {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.submenu.active {
+  opacity: 1;
+}
+
+.sidebar.mini .submenu {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.menu-toggle .arrow {
+  transition: transform 0.25s ease;
+}
+
+.menu-toggle.open .arrow {
+  transform: rotate(180deg);
+}
+
+.menu-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item,
+.menu-toggle {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 1rem;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.sidebar.mini .label {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar.mini .menu-item,
+.sidebar.mini .menu-toggle {
+  justify-content: center;
+}
+
+.main-content {
+  transition: margin-left 0.25s ease;
+  margin-left: 250px;
+}
+
+body.sidebar-mini .main-content {
+  margin-left: 70px;
+}
 
