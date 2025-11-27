@@ -101,16 +101,14 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
         const group = this.closest(".menu-group");
         const submenu = group.querySelector(".submenu");
 
-        // --- 1) SI LA SIDEBAR ESTÁ MINI → solo expandir ---
+        // --- 1) Si está mini → solo expandir sidebar ---
         if (sidebar.classList.contains("mini")) {
             sidebar.classList.remove("mini");
             document.body.classList.remove("sidebar-mini");
-            return; // NO abrimos el submenú aún
+            return;
         }
 
-        // --- 2) SIDEBAR EXPANDIDA → abrir/cerrar submenús normalmente ---
-
-        // Cerrar todos los submenús excepto este
+        // --- 2) Sidebar expandida → abrir/cerrar submenús ---
         document.querySelectorAll(".submenu").forEach(s => {
             if (s !== submenu) {
                 s.classList.remove("active");
@@ -118,12 +116,12 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
             }
         });
 
-        // Quitar flechitas activas de otros toggles
+        // Reset flechas
         document.querySelectorAll(".menu-toggle").forEach(t => {
             if (t !== this) t.classList.remove("open");
         });
 
-        // Abrir/cerrar el submenú clicado
+        // Toggle submenu
         submenu.classList.toggle("active");
         this.classList.toggle("open");
 
@@ -137,18 +135,4 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
 
 
 
-function abrirSubmenu(toggleBtn) {
-  const group = toggleBtn.closest(".menu-group");
-  const submenu = group.querySelector(".submenu");
 
-  // Cerrar otros submenus para evitar caos visual
-  document.querySelectorAll(".submenu").forEach(sm => {
-    if (sm !== submenu) sm.classList.remove("active");
-  });
-
-  // Abrir/cerrar el submenu seleccionado
-  submenu.classList.toggle("active");
-
-  // Mover flechita
-  toggleBtn.classList.toggle("open");
-}
