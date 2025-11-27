@@ -33,11 +33,67 @@ document.addEventListener("DOMContentLoaded", () => {
       onChange: d => (rangoPrincipal = d)
     });
 
-    document.querySelectorAll(".opcion-fecha").forEach(btn => {
-      btn.addEventListener("click", () => {
-        textoRango.textContent = btn.textContent.trim();
-      });
-    });
+document.querySelectorAll(".opcion-fecha").forEach(btn => {
+  btn.addEventListener("click", async () => {
+
+    const dias = parseInt(btn.dataset.range);
+    const tipo = btn.dataset.type;
+    const hoy = new Date();
+
+    let inicio = null;
+    let fin = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()); // sin hora
+
+    // ✔ 1) Rangos por días (7, 30, 365)
+    if (!isNaN(dias)) {
+      inicio = new Date();
+      inicio.setDate(fin.getDate() - dias);
+      inicio = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
+    }
+
+    // ✔ 2) Esta semana
+    else if (tipo === "semana") {
+      const diaSemana = hoy.getDay(); // 1=Lunes, 0=Domingo
+      const lunes = new Date(hoy);
+      lunes.setDate(hoy.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
+      inicio = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate());
+    }
+
+    // ✔ 3) Mes actual
+    else if (tipo === "mes") {
+      inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+    }
+
+    // ✔ 4) Mismo mes del año pasado
+    else if (tipo === "mes_pasado") {
+      const fy = hoy.getFullYear() - 1;
+      const fm = hoy.getMonth();
+      inicio = new Date(fy, fm, 1);
+      fin = new Date(fy, fm + 1, 0);
+    }
+
+    if (!inicio) return;
+
+    // Establecer rango global sin hora
+    rangoPrincipal = [
+      new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()),
+      new Date(fin.getFullYear(), fin.getMonth(), fin.getDate())
+    ];
+
+    // Mostrar texto limpio
+    const iniTxt = rangoPrincipal[0].toISOString().slice(0, 10);
+    const finTxt = rangoPrincipal[1].toISOString().slice(0, 10);
+    textoRango.textContent = `${iniTxt} – ${finTxt}`;
+
+    // Aplicar filtro inmediatamente
+    await cargarDashboardClientes();
+
+    // Cerrar menú
+    dropdownFechas.classList.remove("show");
+    btnRangoFechas.classList.remove("open");
+  });
+});
+
 
 aplicarFechas.addEventListener("click", async () => {
   if (rangoPrincipal && rangoPrincipal.length === 2) {
