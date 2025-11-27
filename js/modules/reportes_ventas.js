@@ -171,26 +171,104 @@ async function cargarDashboardVentas() {
       .sort((a, b) => b.cantidad - a.cantidad)
       .slice(0, 10);
 
-    // -------------------------------------------------------
-    // TOP CATEGORÍAS
-    // -------------------------------------------------------
-    const categoriasMap = {};
 
-    pedidos.forEach(p => {
-      p.productos.forEach(prod => {
-        prod.categorias.forEach(cat => {
-          if (!categoriasMap[cat]) {
-            categoriasMap[cat] = { categoria: cat, cantidad: 0, revenue: 0 };
-          }
-          categoriasMap[cat].cantidad += prod.cantidad;
-          categoriasMap[cat].revenue += prod.valor_unitario * prod.cantidad;
-        });
-      });
-    });
+// ===============================
+// 🎯 DEFINICIÓN DE CATEGORÍAS
+// ===============================
 
-    const topCategorias = Object.values(categoriasMap)
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 10);
+const CATEGORIAS_PRINCIPALES = new Set([
+  "Joyas de plata por mayor",
+  "ENCHAPADO",
+  "ACCESORIOS",
+  "Navidad",
+  "Cyber DJOYAS",
+  "Descuentos",
+  "Colección Primavera",
+  "Black Friday",
+  "Joyas día de la madre"
+]);
+
+const SUBCATEGORIAS = new Set([
+  "Anillos de Plata",
+  "Aros de Plata",
+  "Pulseras de Plata",
+  "Conjuntos de Plata",
+  "Colgantes de Plata",
+  "Cadenas de Plata",
+  "Infantil Plata",
+  "Collares de Plata",
+  "Swarovski Elements",
+  "Hombre",
+  "Pack de Joyas",
+  "Insumos de Plata",
+
+  "Aros Enchapado",
+  "Anillos Enchapado",
+  "Pulseras Enchapado",
+  "Cadenas Enchapado",
+  "Colgantes Enchapado",
+  "Infantil enchapado",
+  "Collares Enchapado",
+  "Conjuntos Enchapado",
+  "Tobilleras Enchapado",
+  "Insumos Enchapados",
+
+  "Accesorios",
+  "Bolsas",
+  "Cajas",
+  "Limpiadores",
+  "Joyeros"
+]);
+
+      
+// ======================================================
+// 🟦 CATEGORÍAS PRINCIPALES
+// ======================================================
+const categoriasPrincipalesMap = {};
+
+pedidos.forEach(p =>
+  p.productos.forEach(prod =>
+    prod.categorias.forEach(cat => {
+      if (!CATEGORIAS_PRINCIPALES.has(cat)) return;
+
+      if (!categoriasPrincipalesMap[cat]) {
+        categoriasPrincipalesMap[cat] = { categoria: cat, cantidad: 0, revenue: 0 };
+      }
+
+      categoriasPrincipalesMap[cat].cantidad += prod.cantidad;
+      categoriasPrincipalesMap[cat].revenue += prod.valor_unitario * prod.cantidad;
+    })
+  )
+);
+
+const topCategoriasPrincipales = Object.values(categoriasPrincipalesMap)
+  .sort((a, b) => b.revenue - a.revenue)
+  .slice(0, 10);
+
+// ======================================================
+// 🟩 SUBCATEGORÍAS
+// ======================================================
+const subcategoriasMap = {};
+
+pedidos.forEach(p =>
+  p.productos.forEach(prod =>
+    prod.categorias.forEach(cat => {
+      if (!SUBCATEGORIAS.has(cat)) return;
+
+      if (!subcategoriasMap[cat]) {
+        subcategoriasMap[cat] = { categoria: cat, cantidad: 0, revenue: 0 };
+      }
+
+      subcategoriasMap[cat].cantidad += prod.cantidad;
+      subcategoriasMap[cat].revenue += prod.valor_unitario * prod.cantidad;
+    })
+  )
+);
+
+const topSubcategorias = Object.values(subcategoriasMap)
+  .sort((a, b) => b.revenue - a.revenue)
+  .slice(0, 10);
+
 
     // -------------------------------------------------------
     // RENDER DASHBOARD
@@ -277,17 +355,42 @@ async function cargarDashboardVentas() {
           </tbody>
         </table>
 
-        <h4 style="margin-top:1rem;">Top 10 categorías</h4>
-        <table class="tabla-ios">
-          <thead><tr><th>Categoría</th><th>Cantidad</th><th>Revenue</th></tr></thead>
-          <tbody>
-            ${topCategorias
-              .map(c => `
-                <tr><td>${c.categoria}</td><td>${c.cantidad}</td><td>$${c.revenue.toLocaleString("es-CL")}</td></tr>
-              `)
-              .join("")}
-          </tbody>
-        </table>
+<h4 style="margin-top:1rem;">Top 10 Categorías Principales</h4>
+<table class="tabla-ios">
+  <thead>
+    <tr><th>Categoría</th><th>Cantidad</th><th>Revenue</th></tr>
+  </thead>
+  <tbody>
+    ${topCategoriasPrincipales
+      .map(c => `
+        <tr>
+          <td>${c.categoria}</td>
+          <td>${c.cantidad}</td>
+          <td>$${c.revenue.toLocaleString("es-CL")}</td>
+        </tr>
+      `)
+      .join("")}
+  </tbody>
+</table>
+
+<h4 style="margin-top:1rem;">Top 10 Subcategorías</h4>
+<table class="tabla-ios">
+  <thead>
+    <tr><th>Subcategoría</th><th>Cantidad</th><th>Revenue</th></tr>
+  </thead>
+  <tbody>
+    ${topSubcategorias
+      .map(c => `
+        <tr>
+          <td>${c.categoria}</td>
+          <td>${c.cantidad}</td>
+          <td>$${c.revenue.toLocaleString("es-CL")}</td>
+        </tr>
+      `)
+      .join("")}
+  </tbody>
+</table>
+
 
       </div>
     `;
