@@ -2707,7 +2707,7 @@ body.sidebar-mini .main-content {
 }
 
 /* Cuando está abierto */
-.menu-group .submenu.active {
+.submenu.active {
     opacity: 1;
     transition:
         max-height 0.35s ease,
