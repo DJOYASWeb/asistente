@@ -107,7 +107,6 @@ console.log("📅 Nuevo rango aplicado:", inicio, "→", fin);
 
 const activo = localStorage.getItem("tab_activo_reportes");
 
-// Cargar el dashboard correcto
 if (activo === "clientes") {
   await cargarDashboardClientes();
 }
@@ -115,11 +114,18 @@ else if (activo === "geografia") {
   await cargarDashboardGeografia();
 }
 else if (activo === "ventas") {
-  await cargarDashboardVentas?.();
+  await cargarDashboardVentas();
 }
 else if (activo === "categorias") {
   await cargarDashboardCategorias?.();
 }
+else if (activo === "tendencias") {
+  await cargarDashboardTendencias?.();
+}
+else if (activo === "general") {
+  await cargarDashboardGeneral?.();
+}
+
 
   } else {
     textoRango.textContent = "Selecciona un rango";
@@ -462,9 +468,12 @@ document.getElementById("tablaTopClientes").innerHTML =
 document.querySelectorAll(".tab-reportes").forEach(btn => {
   btn.addEventListener("click", async () => {
 
-    const section = btn.getAttribute("data-section"); // ✅ definir primero
+const section = btn.getAttribute("data-section");
+localStorage.setItem("tab_activo_reportes", section);
 
-    localStorage.setItem("tab_activo_reportes", section); // ✅ ahora sí existe
+document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
+btn.classList.add("active");
+
 
     document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
