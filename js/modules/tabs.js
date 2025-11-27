@@ -95,22 +95,22 @@ function activarPadreSegunPagina() {
 activarPadreSegunPagina();
 
 document.querySelectorAll(".menu-toggle").forEach(toggle => {
-    toggle.addEventListener("click", function (e) {
+    toggle.addEventListener("click", function () {
 
         const sidebar = document.getElementById("sidebar");
         const group = this.closest(".menu-group");
         const submenu = group.querySelector(".submenu");
 
-        // SI LA BARRA ESTÁ COLAPSADA → solo expandir, no abrir submenú
+        // --- 1) SI LA SIDEBAR ESTÁ MINI → solo expandir ---
         if (sidebar.classList.contains("mini")) {
             sidebar.classList.remove("mini");
             document.body.classList.remove("sidebar-mini");
-            return; 
+            return; // NO abrimos el submenú aún
         }
 
-        // --- SI LA SIDEBAR ESTÁ EXPANDIDA → abrir/cerrar submenús ---
+        // --- 2) SIDEBAR EXPANDIDA → abrir/cerrar submenús normalmente ---
 
-        // CERRAR TODOS LOS DEMÁS SUBMENÚS
+        // Cerrar todos los submenús excepto este
         document.querySelectorAll(".submenu").forEach(s => {
             if (s !== submenu) {
                 s.classList.remove("active");
@@ -118,16 +118,16 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
             }
         });
 
+        // Quitar flechitas activas de otros toggles
         document.querySelectorAll(".menu-toggle").forEach(t => {
             if (t !== this) t.classList.remove("open");
         });
 
-        // TOGGLE: abrir o cerrar ESTE submenú
+        // Abrir/cerrar el submenú clicado
         submenu.classList.toggle("active");
         this.classList.toggle("open");
 
         if (submenu.classList.contains("active")) {
-            // MEDIDA REAL para animación perfecta
             submenu.style.maxHeight = submenu.scrollHeight + "px";
         } else {
             submenu.style.maxHeight = null;
@@ -135,3 +135,20 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
     });
 });
 
+
+
+function abrirSubmenu(toggleBtn) {
+  const group = toggleBtn.closest(".menu-group");
+  const submenu = group.querySelector(".submenu");
+
+  // Cerrar otros submenus para evitar caos visual
+  document.querySelectorAll(".submenu").forEach(sm => {
+    if (sm !== submenu) sm.classList.remove("active");
+  });
+
+  // Abrir/cerrar el submenu seleccionado
+  submenu.classList.toggle("active");
+
+  // Mover flechita
+  toggleBtn.classList.toggle("open");
+}
