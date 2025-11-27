@@ -63,7 +63,7 @@ async function cargarDashboardGeografia() {
 
     filtrados.forEach(c => {
       const ciudad = c.ciudad?.trim() || "Sin ciudad";
-      const pais = c.pais?.trim() || "Sin país";
+      const pais = c.pais?.trim() || "Sin Región";
       const total = parseFloat(c.total_gastado || 0);
       const pedidos = parseInt(c.cantidad_pedidos || 0);
 
@@ -137,7 +137,7 @@ async function cargarDashboardGeografia() {
 
           <div class="card-metrica">
             <strong style="font-size:1.8rem;">${paisTop}</strong>
-            <p>País con más clientes</p>
+            <p>Región con más clientes</p>
           </div>
 
           <div class="card-metrica">
