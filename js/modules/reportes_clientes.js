@@ -72,23 +72,43 @@ aplicarFechas.addEventListener("click", async () => {
       inputDrive.value = `https://drive.google.com/file/d/${savedId}/view?usp=sharing`;
       if (statusDrive) statusDrive.textContent = "✅ Enlace guardado correctamente.";
     }
+btnGuardarDrive.addEventListener("click", () => {
+  const url = inputDrive.value.trim();
+  if (!url) {
+    alert("Por favor, pega un enlace válido.");
+    return;
+  }
 
-    btnGuardarDrive.addEventListener("click", () => {
-      const url = inputDrive.value.trim();
-      if (!url) {
-        alert("Por favor, pega el enlace de Google Drive del archivo CSV.");
-        return;
-      }
-      const match = url.match(/[-\w]{25,}/);
-      if (!match) {
-        alert("⚠️ El enlace de Google Drive no es válido.");
-        return;
-      }
-      const fileId = match[0];
-      localStorage.setItem("drive_csv_clientes", fileId);
-      if (statusDrive) statusDrive.textContent = "✅ Enlace guardado correctamente.";
-      alert("✅ Enlace de Google Drive guardado con éxito.");
-    });
+  // Detectar ID del archivo
+  const match = url.match(/[-\w]{25,}/);
+  if (!match) {
+    alert("⚠️ No se pudo detectar el ID del archivo.");
+    return;
+  }
+
+  const fileId = match[0];
+  let finalURL = "";
+
+  // === Si es Google Sheets ===
+  if (url.includes("docs.google.com/spreadsheets")) {
+    finalURL = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=csv`;
+  }
+  // === Si es Google Drive ===
+  else if (url.includes("drive.google.com")) {
+    finalURL = `https://drive.google.com/uc?export=download&id=${fileId}`;
+  }
+  // === Cualquier otra URL, guardar tal cual ===
+  else {
+    finalURL = url;
+  }
+
+  // Guardar URL lista para cargar con fetch()
+  localStorage.setItem("csv_clientes", finalURL);
+
+  if (statusDrive) statusDrive.textContent = "✅ Enlace convertido y guardado.";
+  alert("✅ El enlace fue guardado y convertido correctamente.");
+});
+
   }
 // =========================================
 // 📊 CARGAR DASHBOARD CLIENTES (Lee desde enlace guardado en localStorage)
