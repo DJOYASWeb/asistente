@@ -163,16 +163,35 @@ if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
   console.log("⚠️ Sin rango seleccionado, mostrando todos los registros.");
 }
 
-// 🧩 Convertir string "YYYY-MM-DD HH:mm:ss" a objeto Date
+// 🧩 Convertir string de fecha en Date robusto
 function parseFecha(str) {
-  if (!str || typeof str !== "string") return null;
-  const [fechaPart, horaPart] = str.trim().split(" ");
-  if (!fechaPart) return null;
-  const [y, m, d] = fechaPart.split("-").map(Number);
-  let h = 0, min = 0, s = 0;
-  if (horaPart) [h, min, s] = horaPart.split(":").map(Number);
-  return new Date(y, m - 1, d, h, min, s);
+  if (!str) return null;
+  if (str instanceof Date) return str; // Si ya es Date, devolver tal cual
+
+  str = str.toString().trim();
+
+  // Formato YYYY-MM-DD o YYYY-MM-DD HH:mm:ss
+  if (/\d{4}-\d{2}-\d{2}/.test(str)) {
+    const parts = str.split(" ");
+    const [y, m, d] = parts[0].split("-").map(Number);
+
+    let h = 0, min = 0, s = 0;
+    if (parts[1]) [h, min, s] = parts[1].split(":").map(Number);
+
+    return new Date(y, m - 1, d, h, min, s);
+  }
+
+  // Formato europeo DD/MM/YYYY
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+    const [d, m, y] = str.split("/").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  // Intento final
+  const f = new Date(str);
+  return isNaN(f.getTime()) ? null : f;
 }
+
 
 // 🕓 Filtrar registros dentro del rango seleccionado
 const filtrados = normalizado.filter(c => {
