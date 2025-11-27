@@ -85,8 +85,28 @@ document.querySelectorAll(".opcion-fecha").forEach(btn => {
     const finTxt = rangoPrincipal[1].toISOString().slice(0, 10);
     textoRango.textContent = `${iniTxt} – ${finTxt}`;
 
-    // Aplicar filtro inmediatamente
-    await cargarDashboardClientes();
+// Aplicar filtro al dashboard activo
+const activo = localStorage.getItem("tab_activo_reportes");
+
+if (activo === "clientes") {
+  await cargarDashboardClientes();
+}
+else if (activo === "geografia") {
+  await cargarDashboardGeografia();
+}
+else if (activo === "ventas") {
+  await cargarDashboardVentas();
+}
+else if (activo === "categorias") {
+  await cargarDashboardCategorias?.();
+}
+else if (activo === "tendencias") {
+  await cargarDashboardTendencias?.();
+}
+else if (activo === "general") {
+  await cargarDashboardGeneral?.();
+}
+
 
     // Cerrar menú
     dropdownFechas.classList.remove("show");
