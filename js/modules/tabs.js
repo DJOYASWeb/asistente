@@ -93,3 +93,45 @@ function activarPadreSegunPagina() {
 }
 
 activarPadreSegunPagina();
+
+// Permite abrir un tab padre mientras la barra está colapsada
+document.querySelectorAll(".menu-toggle").forEach(toggle => {
+  toggle.addEventListener("click", function (e) {
+
+    const sidebar = document.getElementById("sidebar");
+
+    // 1) Si la sidebar está colapsada → la expandimos
+    if (sidebar.classList.contains("mini")) {
+
+      // Expandir sidebar
+      sidebar.classList.remove("mini");
+      document.body.classList.remove("sidebar-mini");
+
+      // Esperar un poquito para permitir la animación antes de abrir submenu
+      setTimeout(() => {
+        abrirSubmenu(this);
+      }, 150);
+
+    } else {
+      // 2) Sidebar expandida → solo abrir/cerrar submenu
+      abrirSubmenu(this);
+    }
+  });
+});
+
+
+function abrirSubmenu(toggleBtn) {
+  const group = toggleBtn.closest(".menu-group");
+  const submenu = group.querySelector(".submenu");
+
+  // Cerrar otros submenus para evitar caos visual
+  document.querySelectorAll(".submenu").forEach(sm => {
+    if (sm !== submenu) sm.classList.remove("active");
+  });
+
+  // Abrir/cerrar el submenu seleccionado
+  submenu.classList.toggle("active");
+
+  // Mover flechita
+  toggleBtn.classList.toggle("open");
+}
