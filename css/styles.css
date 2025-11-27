@@ -2851,7 +2851,7 @@ body.sidebar-mini .main-content {
   transition: margin-left 0.25s ease;
 }
 
-.menu-group {
+.menu-group .menu-toggle {
   display: flex;
   flex-direction: column;
   justify-content: flex-start; /* ← evita que se vayan al final */
