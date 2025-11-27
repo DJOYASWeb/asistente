@@ -95,20 +95,24 @@ function activarPadreSegunPagina() {
 activarPadreSegunPagina();
 
 document.querySelectorAll(".menu-toggle").forEach(toggle => {
-    toggle.addEventListener("click", function () {
+    toggle.addEventListener("click", function (e) {
+
+        e.preventDefault();
+        e.stopPropagation();
 
         const sidebar = document.getElementById("sidebar");
         const group = this.closest(".menu-group");
         const submenu = group.querySelector(".submenu");
 
-        // --- 1) Si está mini → solo expandir sidebar ---
+        // --- 1) Si está MINI → solo expandir y permitir abrir después ---
         if (sidebar.classList.contains("mini")) {
             sidebar.classList.remove("mini");
             document.body.classList.remove("sidebar-mini");
-            return;
         }
 
-        // --- 2) Sidebar expandida → abrir/cerrar submenús ---
+        // --- 2) Sidebar expandida → abrir/cerrar normalmente ---
+
+        // Cerrar otros submenús
         document.querySelectorAll(".submenu").forEach(s => {
             if (s !== submenu) {
                 s.classList.remove("active");
@@ -116,15 +120,16 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
             }
         });
 
-        // Reset flechas
+        // Reset flechas de otros toggles
         document.querySelectorAll(".menu-toggle").forEach(t => {
             if (t !== this) t.classList.remove("open");
         });
 
-        // Toggle submenu
+        // Toggle del submenú actual
         submenu.classList.toggle("active");
         this.classList.toggle("open");
 
+        // Animación de altura
         if (submenu.classList.contains("active")) {
             submenu.style.maxHeight = submenu.scrollHeight + "px";
         } else {
