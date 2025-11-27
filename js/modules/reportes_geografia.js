@@ -150,7 +150,7 @@ if (!ciudad) return; // ⛔ omitir este registro en ciudades
 
           <div class="card-metrica">
             <strong style="font-size:2rem;">${totalPaises}</strong>
-            <p>Países activos</p>
+            <p>Regiones activas</p>
           </div>
 
           <div class="card-metrica">
