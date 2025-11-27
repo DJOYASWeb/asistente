@@ -1,7 +1,27 @@
+function showLoader() {
+  const main = document.getElementById("contenidoReportesMain");
+  if (main) {
+    main.innerHTML = `
+      <div class="ios-card">
+        <div class="loader-wrapper">
+          <div class="loader-ios"></div>
+        </div>
+        <p class="muted text-center">Cargando datos...</p>
+      </div>
+    `;
+  }
+}
+
+function hideLoader() {
+  // se sobreescribe cuando el dashboard termine de renderizar
+}
+
+
 // ==========================================================
 // 📦 DASHBOARD DE VENTAS (MODO PRO - AGRUPADO POR PEDIDOS)
 // ==========================================================
 async function cargarDashboardVentas() {
+    showLoader();
   try {
     const saved = localStorage.getItem("csv_ventas");
 
