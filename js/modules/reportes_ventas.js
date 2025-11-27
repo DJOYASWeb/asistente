@@ -1,5 +1,5 @@
 // ==========================================================
-// 📦 DASHBOARD DE VENTAS (MODO PRO)
+// 📦 DASHBOARD DE VENTAS (MODO PRO - AGRUPADO POR PEDIDOS)
 // ==========================================================
 async function cargarDashboardVentas() {
   try {
@@ -30,46 +30,26 @@ async function cargarDashboardVentas() {
       }
       return limpio;
     });
-console.log("ENCABEZADOS DETECTADOS:", Object.keys(normalizado[0]));
 
     // ------------------------------------------
-    // NORMALIZAR CATEGORÍAS
+    // FUNCIÓN PARA PARSEAR FECHAS (sin hora)
     // ------------------------------------------
-    function normalizarCategoria(str) {
-      if (!str) return "";
-      return str
-        .split(",")
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
+    function parseFecha(str) {
+      if (!str || typeof str !== "string") return null;
+      const [fechaPart] = str.trim().split(" ");
+      const [y, m, d] = fechaPart.split("-").map(Number);
+      if (!y || !m || !d) return null;
+      return new Date(y, m - 1, d);
     }
 
     // ------------------------------------------
-    // FILTRAR POR RANGO DE FECHAS (MISMO SISTEMA)
+    // FILTRADO POR RANGO
     // ------------------------------------------
-
-    console.log("Ejemplo de fila normalizada:", normalizado[0]);
-console.log("Valor de fecha_y_hora:", normalizado[0].fecha_y_hora);
-console.log("Valor parseado:", parseFecha(normalizado[0].fecha_y_hora));
-
-function parseFecha(str) {
-  if (!str || typeof str !== "string") return null;
-
-  // str = "2025-11-27 14:24:47"
-  const [fechaPart] = str.split(" ");
-
-  const [y, m, d] = fechaPart.split("-").map(n => Number(n));
-  if (!y || !m || !d) return null;
-
-  // retornar fecha normalizada sin hora
-  return new Date(y, m - 1, d, 0, 0, 0);
-}
-
-
     const inicio = rangoPrincipal?.[0] || null;
     const fin = rangoPrincipal?.[1] || null;
 
     const filtrados = normalizado.filter(r => {
-      const fecha = parseFecha(r.fecha_y_hora || r.fecha || r.date || "");
+      const fecha = parseFecha(r.fecha_y_hora);
       if (!fecha) return false;
       if (inicio && fin) return fecha >= inicio && fecha <= fin;
       return true;
@@ -82,22 +62,54 @@ function parseFecha(str) {
     }
 
     // ------------------------------------------
+    // AGRUPACIÓN REAL POR ID DE PEDIDO
+    // ------------------------------------------
+    const pedidosMap = {};
+
+    filtrados.forEach(r => {
+      const id = r.id_del_pedido || r.id_pedido;
+
+      if (!pedidosMap[id]) {
+        pedidosMap[id] = {
+          id,
+          fecha: r.fecha_y_hora,
+          metodo_pago: r.método_de_pago || r.metodo_de_pago,
+          cliente: r.id_del_cliente || r.id_cliente,
+          total_pedido: Number(r.total || 0), // NO se suma, es único
+          transportista: r.transportista,
+          productos: []
+        };
+      }
+
+      pedidosMap[id].productos.push({
+        sku: r.sku,
+        nombre: r.nombre_del_producto,
+        cantidad: Number(r.cantidad_de_productos || r.cantidad || 1),
+        categorias: (r.categorías || r.categoria || r.categorias || "")
+          .split(",")
+          .map(x => x.trim()),
+        valor_producto: Number(r.valor_del_producto || 0)
+      });
+    });
+
+    const pedidos = Object.values(pedidosMap);
+
+    // ------------------------------------------
     // MÉTRICAS PRINCIPALES
     // ------------------------------------------
-    const revenueTotal = filtrados.reduce((t, r) => t + Number(r.total || 0), 0);
+    const revenueTotal = pedidos.reduce((t, p) => t + p.total_pedido, 0);
 
-    const pedidosUnicos =
-      new Set(filtrados.map(r => r.id_del_pedido || r.id_pedido)).size;
+    const pedidosUnicos = pedidos.length;
 
-    const productosVendidos = filtrados.reduce(
-      (t, r) => t + Number(r.cantidad_de_productos || r.cantidad || 0),
+    const productosVendidos = pedidos.reduce(
+      (t, p) => t + p.productos.reduce((a, prod) => a + prod.cantidad, 0),
       0
     );
 
     const ticketPromedio = pedidosUnicos ? revenueTotal / pedidosUnicos : 0;
 
     const clientesUnicos =
-      new Set(filtrados.map(r => r.id_del_cliente || r.id_cliente)).size;
+      new Set(pedidos.map(p => p.cliente)).size;
 
     const aovCliente = clientesUnicos ? revenueTotal / clientesUnicos : 0;
 
@@ -105,22 +117,20 @@ function parseFecha(str) {
     // REVENUE POR DÍA DEL MES
     // ------------------------------------------
     const revenuePorDia = {};
-    filtrados.forEach(r => {
-      const fecha = parseFecha(r.fecha_y_hora);
+    pedidos.forEach(p => {
+      const fecha = parseFecha(p.fecha);
       if (!fecha) return;
       const dia = fecha.getDate();
-      revenuePorDia[dia] = (revenuePorDia[dia] || 0) + Number(r.total || 0);
+      revenuePorDia[dia] = (revenuePorDia[dia] || 0) + p.total_pedido;
     });
 
     // ------------------------------------------
     // REVENUE POR HORA
     // ------------------------------------------
     const revenuePorHora = {};
-    filtrados.forEach(r => {
-      const partes = (r.fecha_y_hora || "").split(" ");
-      const hora = partes[1] ? Number(partes[1].split(":")[0]) : null;
-      if (hora === null) return;
-      revenuePorHora[hora] = (revenuePorHora[hora] || 0) + Number(r.total || 0);
+    pedidos.forEach(p => {
+      const h = Number(p.fecha.split(" ")[1].split(":")[0]);
+      revenuePorHora[h] = (revenuePorHora[h] || 0) + p.total_pedido;
     });
 
     // ------------------------------------------
@@ -128,13 +138,14 @@ function parseFecha(str) {
     // ------------------------------------------
     const productosMap = {};
 
-    filtrados.forEach(r => {
-      const nombre = r.nombre_del_producto || r.producto || "Sin nombre";
-      if (!productosMap[nombre]) {
-        productosMap[nombre] = { nombre, cantidad: 0, revenue: 0 };
-      }
-      productosMap[nombre].cantidad += Number(r.cantidad_de_productos || r.cantidad || 0);
-      productosMap[nombre].revenue += Number(r.total || 0);
+    pedidos.forEach(p => {
+      p.productos.forEach(prod => {
+        if (!productosMap[prod.nombre]) {
+          productosMap[prod.nombre] = { nombre: prod.nombre, cantidad: 0, revenue: 0 };
+        }
+        productosMap[prod.nombre].cantidad += prod.cantidad;
+        productosMap[prod.nombre].revenue += prod.valor_producto * prod.cantidad;
+      });
     });
 
     const topProductosPorRevenue = Object.values(productosMap)
@@ -150,14 +161,17 @@ function parseFecha(str) {
     // ------------------------------------------
     const categoriasMap = {};
 
-    filtrados.forEach(r => {
-      const categorias = normalizarCategoria(r.categorías || r.categoria || r.categorias);
-      categorias.forEach(cat => {
-        if (!categoriasMap[cat]) categoriasMap[cat] = { categoria: cat, cantidad: 0, revenue: 0 };
-        categoriasMap[cat].cantidad += Number(r.cantidad_de_productos || 1);
-        categoriasMap[cat].revenue += Number(r.total || 0);
-      });
-    });
+    pedidos.forEach(p =>
+      p.productos.forEach(prod =>
+        prod.categorias.forEach(cat => {
+          if (!categoriasMap[cat]) {
+            categoriasMap[cat] = { categoria: cat, cantidad: 0, revenue: 0 };
+          }
+          categoriasMap[cat].cantidad += prod.cantidad;
+          categoriasMap[cat].revenue += prod.valor_producto * prod.cantidad;
+        })
+      )
+    );
 
     const topCategorias = Object.values(categoriasMap)
       .sort((a, b) => b.revenue - a.revenue)
