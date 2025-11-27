@@ -72,30 +72,10 @@ body.protegido {
     font-size: 18px!important;
 }
 
-    .sidebar nav a,
-    .bottom-links a,
-    .sidebar h2 {
-      color: var(--sidebar-text);
-      text-decoration: none;
-      margin: 0.1rem 0;
-      height: 48px;
-      padding: 0 1rem;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      position: relative;
-      transition: background 0.2s ease;
-    }
-
 
 a   {
           text-decoration: none;
          }
-
-    .sidebar nav a:hover,
-    .bottom-links a:hover {
-      background-color: var(--sidebar-hover);
-    }
 
     .sidebar .icon {
       width: 24px;
@@ -2662,20 +2642,6 @@ background:#ededed;border-radius: 15px;padding: 1rem;
   min-width: 70px;
 }
 
-/* --- Texto suavemente colapsable --- */
-.sidebar .label {
-  opacity: 1;
-  width: auto;
-  overflow: hidden;
-  white-space: nowrap;
-  transition: opacity 0.2s ease, width 0.2s ease;
-}
-
-.sidebar.mini .label {
-  opacity: 0;
-  width: 0;
-}
-
 /* --- Centrar íconos en modo mini --- */
 .sidebar .menu-item,
 .sidebar .menu-toggle {
@@ -2694,24 +2660,6 @@ background:#ededed;border-radius: 15px;padding: 1rem;
   align-items: center;
 }
 
-/* --- Enlaces --- */
-.sidebar nav a,
-.bottom-links a,
-.sidebar h2 {
-  color: var(--sidebar-text);
-  text-decoration: none;
-  margin: 0.1rem 0;
-  padding: 0 1rem;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  transition: background 0.2s ease;
-}
-
-.sidebar nav a:hover,
-.bottom-links a:hover {
-  background-color: var(--sidebar-hover);
-}
 
 /* --- Ajuste del contenido principal al colapsar --- */
 .main-content {
@@ -2727,19 +2675,12 @@ body.sidebar-mini .main-content {
 }
 
 
-.menu-group .menu-toggle {
-  display: flex;
-  justify-content: flex-start; /* ← evita que se vayan al final */
-}
+
 
 .menu-toggle {
   width: 100%;
 }
 
-
-.sidebar:not(.mini) .submenu {
-  pointer-events: auto;  /* <- ¡Clave para permitir abrir cuando expandimos! */
-}
 
 
 /* También ocultamos las flechas */
@@ -2754,36 +2695,6 @@ body.sidebar-mini .main-content {
   color: #fff;
 }
 
-.menu-toggle .arrow {
-  transition: transform 0.25s ease;
-}
-
-.menu-toggle.open .arrow {
-  transform: rotate(180deg);
-}
-
-
-.menu-item,
-.menu-toggle {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 0 1rem;
-  cursor: pointer;
-}
-
-.sidebar.mini .label {
-  width: 0;
-  opacity: 0;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-
-
-body.sidebar-mini .main-content {
-  margin-left: 70px;
-}
 
 
 .submenu {
