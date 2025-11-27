@@ -2800,3 +2800,41 @@ background:#ededed;border-radius: 15px;padding: 1rem;
     color: white;
     transform: scale(1.05);
   }
+
+  /* --- SIDEBAR MINI MODE --- */
+.sidebar {
+  width: 240px;
+  transition: width 0.25s ease;
+}
+
+.sidebar.mini {
+  width: 70px !important;
+}
+
+/* Ocultar textos cuando el sidebar es mini */
+.sidebar.mini .label {
+  display: none !important;
+}
+
+/* Centrar los iconos cuando está mini */
+.sidebar.mini .menu-item,
+.sidebar.mini .menu-toggle {
+  justify-content: center;
+}
+
+.sidebar .menu-item,
+.sidebar .menu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Ajustar el contenido principal */
+.main-content {
+  margin-left: 240px;
+  transition: margin-left 0.25s ease;
+}
+
+.sidebar.mini + .main-content {
+  margin-left: 70px !important;
+}

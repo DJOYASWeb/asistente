@@ -68,3 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 300); // ⏱ espera 300 ms para asegurarse que permisos-tabs ya terminó
 });
+
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const main = document.querySelector(".main-content");
+
+  sidebar.classList.toggle("mini");
+}
