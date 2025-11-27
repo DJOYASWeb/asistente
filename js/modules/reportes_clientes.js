@@ -161,24 +161,26 @@ btnGuardarDrive.addEventListener("click", () => {
   const fileId = match[0];
   let finalURL = "";
 
-  // === Si es Google Sheets ===
+  // === Caso Google Sheets (edit/view → export CSV)
   if (url.includes("docs.google.com/spreadsheets")) {
     finalURL = `https://docs.google.com/spreadsheets/d/${fileId}/export?format=csv`;
   }
-  // === Si es Google Drive ===
+
+  // === Caso Google Drive directo
   else if (url.includes("drive.google.com")) {
     finalURL = `https://drive.google.com/uc?export=download&id=${fileId}`;
   }
-  // === Cualquier otra URL ===
+
+  // === Otros casos
   else {
     finalURL = url;
   }
 
-  // Guardar URL lista para fetch()
-  localStorage.setItem("csv_clientes", finalURL);
+  // Guardar la URL final ya lista para fetch()
+  localStorage.setItem("csv_ventas", finalURL);
 
   if (statusDrive) statusDrive.textContent = "✅ Enlace convertido y guardado.";
-  alert("✅ El enlace fue guardado y convertido correctamente.");
+  alert("✅ Enlace convertido exitosamente a formato CSV.");
 });
 
   }
