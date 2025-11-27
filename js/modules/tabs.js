@@ -135,19 +135,3 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
     });
 });
 
-
-function abrirSubmenu(toggleBtn) {
-  const group = toggleBtn.closest(".menu-group");
-  const submenu = group.querySelector(".submenu");
-
-  // Cerrar otros submenus para evitar caos visual
-  document.querySelectorAll(".submenu").forEach(sm => {
-    if (sm !== submenu) sm.classList.remove("active");
-  });
-
-  // Abrir/cerrar el submenu seleccionado
-  submenu.classList.toggle("active");
-
-  // Mover flechita
-  toggleBtn.classList.toggle("open");
-}
