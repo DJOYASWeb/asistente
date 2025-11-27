@@ -1858,64 +1858,25 @@ textarea.form-control.inspira{
   display: flex;
   flex-direction: column;
 }
-.menu-group .submenu {
-  display: none;
-  flex-direction: column;
-  margin-left: 40px;
-}
-.menu-group .submenu.active {
-  display: flex;
-}
-.menu-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-}
-.menu-toggle .arrow {
-  transition: transform 0.2s ease;
-}
+
 .menu-toggle.open .arrow {
   transform: rotate(180deg);
 }
 
 
-/* INICIO estilos colapsables v2 */
-.menu-item, .submenu-item {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: inherit;
-  padding: 8px 10px;
-  transition: background 0.2s;
-}
 
 .menu-item:hover, .submenu-item:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.menu-item .icon {
-  width: 15%;
-  text-align: center;
-}
+
 
 .menu-item .label {
   width: 85%;
 }
 
-.submenu {
-  display: none;
-  flex-direction: column;
-  margin-left: 0;
-}
 
-.submenu.active {
-  display: flex;
-}
 
-.submenu-item {
-  padding-left: 15%; /* deja espacio vacío donde iría el ícono */
-}
 
 .submenu-item .label {
   width: 85%;
@@ -1926,20 +1887,6 @@ textarea.form-control.inspira{
 }
 /* FIN estilos colapsables v2 */
 
-.submenu {
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  display: flex;
-  flex-direction: column;
-  margin-left: 0;
-  transition: max-height 0.4s ease, opacity 0.3s ease;
-}
-
-.submenu.active {
-  max-height: 500px; /* suficiente para mostrar los enlaces */
-  opacity: 1;
-}
 
 
 /* INICIO estilo flechas sutiles para colapsables */
@@ -1963,11 +1910,6 @@ textarea.form-control.inspira{
 
 .menu-toggle:hover .arrow {
   opacity: 0.9;
-}
-
-/* Rotación suave cuando se abre */
-.menu-toggle.open .arrow {
-  transform: rotate(180deg);
 }
 
 /* Espacio para que el texto no se superponga con la flecha */
@@ -2856,20 +2798,9 @@ body.sidebar-mini .main-content {
   width: 100%;
 }
 
-.sidebar.mini .submenu {
-  pointer-events: none;  /* No se puede abrir estando mini */
-  max-height: 0;         /* Oculto */
-  opacity: 0;
-}
 
 .sidebar:not(.mini) .submenu {
   pointer-events: auto;  /* <- ¡Clave para permitir abrir cuando expandimos! */
-}
-
-/* Cuando sidebar vuelve a normal → submenú puede animar */
-.sidebar .submenu {
-  overflow: hidden;
-  transition: max-height 0.35s ease, opacity 0.25s ease;
 }
 
 
@@ -2885,25 +2816,6 @@ body.sidebar-mini .main-content {
   color: #fff;
 }
 
-.submenu {
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  transition: max-height 0.35s ease, opacity 0.25s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.submenu.active {
-  opacity: 1;
-}
-
-.sidebar.mini .submenu {
-  max-height: 0 !important;
-  opacity: 0 !important;
-  pointer-events: none;
-}
-
 .menu-toggle .arrow {
   transition: transform 0.25s ease;
 }
@@ -2912,10 +2824,6 @@ body.sidebar-mini .main-content {
   transform: rotate(180deg);
 }
 
-.menu-group {
-  display: flex;
-  flex-direction: column;
-}
 
 .menu-item,
 .menu-toggle {
