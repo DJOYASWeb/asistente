@@ -30,6 +30,7 @@ async function cargarDashboardVentas() {
       }
       return limpio;
     });
+console.log("ENCABEZADOS DETECTADOS:", Object.keys(normalizado[0]));
 
     // ------------------------------------------
     // NORMALIZAR CATEGORÍAS
@@ -45,6 +46,11 @@ async function cargarDashboardVentas() {
     // ------------------------------------------
     // FILTRAR POR RANGO DE FECHAS (MISMO SISTEMA)
     // ------------------------------------------
+
+    console.log("Ejemplo de fila normalizada:", normalizado[0]);
+console.log("Valor de fecha_y_hora:", normalizado[0].fecha_y_hora);
+console.log("Valor parseado:", parseFecha(normalizado[0].fecha_y_hora));
+
 function parseFecha(str) {
   if (!str || typeof str !== "string") return null;
 
