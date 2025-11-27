@@ -71,6 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("mini");
+  document.body.classList.toggle("sidebar-mini");
 }
 
 function activarPadreSegunPagina() {
