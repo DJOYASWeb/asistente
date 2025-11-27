@@ -2801,7 +2801,7 @@ background:#ededed;border-radius: 15px;padding: 1rem;
 .sidebar .menu-toggle {
   display: flex;
   align-items: center;
-  gap: 12px;
+
   height: 48px;
 }
 
