@@ -125,11 +125,13 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
         submenu.classList.toggle("active");
         this.classList.toggle("open");
 
-        if (submenu.classList.contains("active")) {
-            submenu.style.maxHeight = submenu.scrollHeight + "px";
-        } else {
-            submenu.style.maxHeight = null;
-        }
+if (submenu.classList.contains("active")) {
+    submenu.style.maxHeight = submenu.scrollHeight + "px";
+    submenu.style.opacity = "1";   // 👈 SIEMPRE visible cuando está abierto
+} else {
+    submenu.style.maxHeight = null;
+    submenu.style.opacity = "0";   // 👈 invisible cuando se cierra
+}
     });
 });
 
