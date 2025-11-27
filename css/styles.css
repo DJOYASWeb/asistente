@@ -2847,7 +2847,6 @@ background:#ededed;border-radius: 15px;padding: 1rem;
 
 /* Ajustar el contenido principal */
 .main-content {
-  margin-left: 240px;
   transition: margin-left 0.25s ease;
 }
 
