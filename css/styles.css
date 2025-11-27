@@ -1853,70 +1853,8 @@ textarea.form-control.inspira{
   opacity: 1;
 }
 
-/* INICIO estilo colapsables */
-.menu-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.menu-toggle.open .arrow {
-  transform: rotate(180deg);
-}
 
 
-
-.menu-item:hover, .submenu-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-
-
-.menu-item .label {
-  width: 85%;
-}
-
-
-
-
-.submenu-item .label {
-  width: 85%;
-}
-
-.menu-toggle {
-  cursor: pointer;
-}
-/* FIN estilos colapsables v2 */
-
-
-
-/* INICIO estilo flechas sutiles para colapsables */
-.menu-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  position: relative;
-}
-
-/* Flecha pequeña y minimalista */
-.menu-toggle .arrow {
-  font-size: 0.65rem; /* más pequeño */
-  color: var(--sidebar-text);
-  opacity: 0.6;
-  transition: transform 0.25s ease, opacity 0.2s ease;
-  position: absolute;
-  right: 10px;
-}
-
-.menu-toggle:hover .arrow {
-  opacity: 0.9;
-}
-
-/* Espacio para que el texto no se superponga con la flecha */
-.menu-item .label {
-  width: calc(85% - 12px);
-}
-/* FIN estilo flechas sutiles para colapsables */
 
 /* INICIO estilo selector de fechas compacto */
 .selector-fechas {
@@ -2847,3 +2785,17 @@ body.sidebar-mini .main-content {
   margin-left: 70px;
 }
 
+
+.submenu {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.submenu.active {
+  max-height: 500px;
+  opacity: 1;
+}
