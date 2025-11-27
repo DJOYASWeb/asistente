@@ -45,13 +45,19 @@ async function cargarDashboardVentas() {
     // ------------------------------------------
     // FILTRAR POR RANGO DE FECHAS (MISMO SISTEMA)
     // ------------------------------------------
-    function parseFecha(str) {
-      if (!str || typeof str !== "string") return null;
-      const [fechaPart] = str.trim().split(" ");
-      const [y, m, d] = fechaPart.split("-").map(Number);
-      if (!y || !m || !d) return null;
-      return new Date(y, m - 1, d);
-    }
+function parseFecha(str) {
+  if (!str || typeof str !== "string") return null;
+
+  // str = "2025-11-27 14:24:47"
+  const [fechaPart] = str.split(" ");
+
+  const [y, m, d] = fechaPart.split("-").map(n => Number(n));
+  if (!y || !m || !d) return null;
+
+  // retornar fecha normalizada sin hora
+  return new Date(y, m - 1, d, 0, 0, 0);
+}
+
 
     const inicio = rangoPrincipal?.[0] || null;
     const fin = rangoPrincipal?.[1] || null;
