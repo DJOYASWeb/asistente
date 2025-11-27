@@ -2846,10 +2846,6 @@ body.sidebar-mini .main-content {
   margin-left: 70px;
 }
 
-.main-content {
-  margin-left: 250px;
-  transition: margin-left 0.25s ease;
-}
 
 .menu-group .menu-toggle {
   display: flex;
