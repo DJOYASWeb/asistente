@@ -192,7 +192,7 @@ if (!ciudad) return; // ⛔ omitir este registro en ciudades
           </tbody>
         </table>
 
-        <h4 style="margin-top:2rem;">Top 10 Países</h4>
+        <h4 style="margin-top:2rem;">Top 10 Regiones</h4>
         <table class="tabla-ios">
           <thead>
             <tr>
