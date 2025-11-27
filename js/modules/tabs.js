@@ -95,22 +95,22 @@ function activarPadreSegunPagina() {
 activarPadreSegunPagina();
 
 document.querySelectorAll(".menu-toggle").forEach(toggle => {
-    toggle.addEventListener("click", function () {
-        const sidebar = document.getElementById("sidebar");
-        const submenu = this.closest(".menu-group").querySelector(".submenu");
+    toggle.addEventListener("click", function (e) {
 
-        // --- SI LA SIDEBAR ESTÁ MINI ---
+        const sidebar = document.getElementById("sidebar");
+        const group = this.closest(".menu-group");
+        const submenu = group.querySelector(".submenu");
+
+        // SI LA BARRA ESTÁ COLAPSADA → solo expandir, no abrir submenú
         if (sidebar.classList.contains("mini")) {
             sidebar.classList.remove("mini");
             document.body.classList.remove("sidebar-mini");
-
-            // NO ABRIMOS NINGÚN SUBMENÚ (como pediste)
-            return;
+            return; 
         }
 
-        // --- SI LA SIDEBAR ESTÁ EXPANDIDA ---
+        // --- SI LA SIDEBAR ESTÁ EXPANDIDA → abrir/cerrar submenús ---
 
-        // Cerrar otros submenús
+        // CERRAR TODOS LOS DEMÁS SUBMENÚS
         document.querySelectorAll(".submenu").forEach(s => {
             if (s !== submenu) {
                 s.classList.remove("active");
@@ -118,10 +118,16 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
             }
         });
 
-        // Alternar el submenu actual
+        document.querySelectorAll(".menu-toggle").forEach(t => {
+            if (t !== this) t.classList.remove("open");
+        });
+
+        // TOGGLE: abrir o cerrar ESTE submenú
         submenu.classList.toggle("active");
+        this.classList.toggle("open");
 
         if (submenu.classList.contains("active")) {
+            // MEDIDA REAL para animación perfecta
             submenu.style.maxHeight = submenu.scrollHeight + "px";
         } else {
             submenu.style.maxHeight = null;
