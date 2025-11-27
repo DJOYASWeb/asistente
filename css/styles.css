@@ -74,7 +74,7 @@ body.protegido {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: width 0.25s ease;
+
 }
 
 /* === SIDEBAR MINI (solo iconos) === */
@@ -2820,18 +2820,26 @@ background:#ededed;border-radius: 15px;padding: 1rem;
   /* --- SIDEBAR MINI MODE --- */
 .sidebar {
   width: 240px;
-  transition: width 0.25s ease;
+
 }
 
 .sidebar.mini {
   width: 70px !important;
 }
 
-/* Ocultar textos cuando el sidebar es mini */
-.sidebar.mini .label {
-  display: none !important;
+/* Ocultar suavemente */
+.sidebar .label {
+  opacity: 1;
+  width: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, width 0.2s ease;
 }
 
+.sidebar.mini .label {
+  opacity: 0;
+  width: 0;
+}
 /* Centrar los iconos cuando está mini */
 .sidebar.mini .menu-item,
 .sidebar.mini .menu-toggle {
