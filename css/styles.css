@@ -2853,11 +2853,29 @@ body.sidebar-mini .main-content {
 
 .menu-group .menu-toggle {
   display: flex;
-  flex-direction: column;
   justify-content: flex-start; /* ← evita que se vayan al final */
-  align-items: flex-start;
 }
 
 .menu-toggle {
   width: 100%;
+}
+
+/* Cuando la sidebar está colapsada, ocultamos TODOS los submenús */
+.sidebar.mini .submenu {
+  display: none !important;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden;
+}
+
+/* También ocultamos las flechas */
+.sidebar.mini .arrow {
+  display: none !important;
+}
+
+.menu-toggle.activo,
+.menu-item.activo,
+.submenu-item.activo {
+  background-color: #000;
+  color: #fff;
 }

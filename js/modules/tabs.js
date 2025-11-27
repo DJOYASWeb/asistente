@@ -72,3 +72,23 @@ document.addEventListener("DOMContentLoaded", () => {
 function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("mini");
 }
+
+function activarPadreSegunPagina() {
+  const paginaActual = window.location.pathname.split("/").pop();
+
+  document.querySelectorAll(".submenu-item").forEach(item => {
+    if (item.getAttribute("href") === paginaActual) {
+      
+      // Marcar el hijo
+      item.classList.add("activo");
+
+      // Marcar el padre
+      const parent = item.closest(".menu-group");
+      if (parent) {
+        parent.querySelector(".menu-toggle").classList.add("activo");
+      }
+    }
+  });
+}
+
+activarPadreSegunPagina();
