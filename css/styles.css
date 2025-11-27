@@ -2860,11 +2860,14 @@ body.sidebar-mini .main-content {
   width: 100%;
 }
 
-/* Ocultar submenús cuando sidebar está mini */
 .sidebar.mini .submenu {
-  pointer-events: none;      /* no se pueden abrir */
-  max-height: 0 !important;  /* visualmente cerrados */
-  opacity: 0;                /* no visibles */
+  pointer-events: none;  /* No se puede abrir estando mini */
+  max-height: 0;         /* Oculto */
+  opacity: 0;
+}
+
+.sidebar:not(.mini) .submenu {
+  pointer-events: auto;  /* <- ¡Clave para permitir abrir cuando expandimos! */
 }
 
 /* Cuando sidebar vuelve a normal → submenú puede animar */

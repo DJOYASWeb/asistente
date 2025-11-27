@@ -99,26 +99,45 @@ document.querySelectorAll(".menu-toggle").forEach(toggle => {
     const sidebar = document.getElementById("sidebar");
     const submenu = this.closest(".menu-group").querySelector(".submenu");
 
-    // SI ESTÁ COLAPSADA → expandir + abrir submenú
+    // === SI LA SIDEBAR ESTÁ MINI ===
     if (sidebar.classList.contains("mini")) {
 
-      // Expandimos sidebar
+      // Expandir sidebar
       sidebar.classList.remove("mini");
       document.body.classList.remove("sidebar-mini");
 
-      // Cerramos todos los submenus antes de animar
+      // Cerramos todos los submenús
       document.querySelectorAll(".submenu").forEach(s => {
         s.classList.remove("active");
+        s.style.maxHeight = null;  // <- clave
       });
 
-      // Esperamos a que la sidebar termine de expandirse
+      // Esperar que termine la expansión
       setTimeout(() => {
         submenu.classList.add("active");
+        submenu.style.maxHeight = submenu.scrollHeight + "px";
       }, 200);
 
+      return; // ← termina aquí
+    }
+
+    // === SI YA ESTÁ EXPANDIDA ===
+
+    // Cerrar todos los demás submenus
+    document.querySelectorAll(".submenu").forEach(s => {
+      if (s !== submenu) {
+        s.classList.remove("active");
+        s.style.maxHeight = null;
+      }
+    });
+
+    // Alternar el submenu actual
+    submenu.classList.toggle("active");
+
+    if (submenu.classList.contains("active")) {
+      submenu.style.maxHeight = submenu.scrollHeight + "px";
     } else {
-      // SI YA ESTÁ EXPANDIDA → abrir/cerrar normal
-      submenu.classList.toggle("active");
+      submenu.style.maxHeight = null;
     }
   });
 });
