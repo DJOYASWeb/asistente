@@ -297,7 +297,10 @@ function formatoCL(valor) {
 function generarGraficoDias(data) {
   limpiarDiv("#graficoDiasCampana");
 
-const porDia = {};
+  // ✔ AGRUPAR POR PEDIDO REAL
+  const pedidos = agruparVentasPorPedido(data);
+
+  const porDia = {};
   pedidos.forEach(p => {
     if (!p.fecha) return;
     if (!porDia[p.fecha]) porDia[p.fecha] = 0;
@@ -307,26 +310,25 @@ const porDia = {};
   const fechas = Object.keys(porDia).sort();
   const valores = fechas.map(f => porDia[f]);
 
-new ApexCharts(document.querySelector("#graficoDiasCampana"), {
-  chart: { type: "line", height: 300 },
-  series: [{ name: "Revenue", data: valores }],
-  xaxis: { categories: fechas },
-  yaxis: {
-    labels: {
-      formatter: (v) => formatoCL(v)
-    }
-  },
-  tooltip: {
-    y: {
-      formatter: (v) => "$" + formatoCL(v)
-    }
-  },
-  stroke: { curve: "smooth", width: 3 }
-}).render();
+  new ApexCharts(document.querySelector("#graficoDiasCampana"), {
+    chart: { type: "line", height: 300 },
+    series: [{ name: "Revenue", data: valores }],
+    xaxis: { categories: fechas },
+    yaxis: {
+      labels: { formatter: v => formatoCL(v) }
+    },
+    tooltip: {
+      y: { formatter: v => "$" + formatoCL(v) }
+    },
+    stroke: { curve: "smooth", width: 3 }
+  }).render();
 }
 
 function generarGraficoHistorico(data) {
   limpiarDiv("#graficoHistoricoCampana");
+
+  // ✔ AGRUPAR POR PEDIDO REAL
+  const pedidos = agruparVentasPorPedido(data);
 
   const porDia = {};
   pedidos.forEach(p => {
@@ -340,87 +342,82 @@ function generarGraficoHistorico(data) {
   let acumulado = 0;
   const valores = fechas.map(f => (acumulado += porDia[f]));
 
-new ApexCharts(document.querySelector("#graficoHistoricoCampana"), {
-  chart: { type: "area", height: 300 },
-  series: [{ name: "Revenue acumulado", data: valores }],
-  xaxis: { categories: fechas },
-  yaxis: {
-    labels: {
-      formatter: (v) => formatoCL(v)
-    }
-  },
-  tooltip: {
-    y: {
-      formatter: (v) => "$" + formatoCL(v)
-    }
-  },
-  stroke: { curve: "smooth" },
-  fill: { opacity: 0.3 }
-}).render();
-
+  new ApexCharts(document.querySelector("#graficoHistoricoCampana"), {
+    chart: { type: "area", height: 300 },
+    series: [{ name: "Revenue acumulado", data: valores }],
+    xaxis: { categories: fechas },
+    yaxis: {
+      labels: { formatter: v => formatoCL(v) }
+    },
+    tooltip: {
+      y: { formatter: v => "$" + formatoCL(v) }
+    },
+    stroke: { curve: "smooth" },
+    fill: { opacity: 0.3 }
+  }).render();
 }
 
 function generarGraficoSubcategorias(data) {
   limpiarDiv("#graficoSubcategoriasCampana");
 
-const mapa = {};
+  // ✔ AGRUPAR POR PEDIDO REAL
+  const pedidos = agruparVentasPorPedido(data);
 
-pedidos.forEach(p => {
-  // Cada pedido tiene varios productos
-  p.productos.forEach(prod => {
-    const cats = prod.categorias.split(" ");
+  const mapa = {};
 
-    cats.forEach(c => {
-      if (!c) return;
-      if (!mapa[c]) mapa[c] = 0;
+  pedidos.forEach(p => {
+    const totalCant = p.productos.reduce((a, b) => a + b.cantidad, 0) || 1;
 
-      // Sumar proporcionalmente al revenue del pedido
-      // Esto evita inflar y reparte revenue según cantidad
-      const proporcion = prod.cantidad / p.productos.reduce((a, b) => a + b.cantidad, 0);
+    p.productos.forEach(prod => {
+      const cats = prod.categorias.split(" ");
 
-      mapa[c] += p.total * proporcion;
+      cats.forEach(c => {
+        if (!c) return;
+        if (!mapa[c]) mapa[c] = 0;
+
+        const proporcion = prod.cantidad / totalCant;
+        mapa[c] += p.total * proporcion;
+      });
     });
   });
-});
 
   const labels = Object.keys(mapa);
   const valores = labels.map(l => mapa[l]);
 
-new ApexCharts(document.querySelector("#graficoSubcategoriasCampana"), {
-  chart: { type: "donut", height: 300 },
-  labels,
-  series: valores,
-  tooltip: {
-    y: {
-      formatter: (v) => "$" + formatoCL(v)
+  new ApexCharts(document.querySelector("#graficoSubcategoriasCampana"), {
+    chart: { type: "donut", height: 300 },
+    labels,
+    series: valores,
+    tooltip: {
+      y: { formatter: v => "$" + formatoCL(v) }
+    },
+    dataLabels: {
+      formatter: (val, opts) =>
+        formatoCL(opts.w.config.series[opts.seriesIndex])
     }
-  },
-  dataLabels: {
-    formatter: (val, opts) => formatoCL(opts.w.config.series[opts.seriesIndex])
-  }
-}).render();
-
+  }).render();
 }
 
 function generarGraficoProductos(data) {
   limpiarDiv("#graficoProductosCampana");
 
-const mapa = {};
+  // ✔ AGRUPAR POR PEDIDO REAL
+  const pedidos = agruparVentasPorPedido(data);
 
-pedidos.forEach(p => {
-  const totalCant = p.productos.reduce((a, b) => a + b.cantidad, 0) || 1;
+  const mapa = {};
 
-  p.productos.forEach(prod => {
-    if (!prod.producto) return;
+  pedidos.forEach(p => {
+    const totalCant = p.productos.reduce((a, b) => a + b.cantidad, 0) || 1;
 
-    if (!mapa[prod.producto]) mapa[prod.producto] = 0;
+    p.productos.forEach(prod => {
+      if (!prod.producto) return;
 
-    // Proporción según cantidad dentro del pedido
-    const proporcion = prod.cantidad / totalCant;
+      if (!mapa[prod.producto]) mapa[prod.producto] = 0;
 
-    mapa[prod.producto] += p.total * proporcion;
+      const proporcion = prod.cantidad / totalCant;
+      mapa[prod.producto] += p.total * proporcion;
+    });
   });
-});
 
   const top = Object.entries(mapa)
     .sort((a, b) => b[1] - a[1])
@@ -429,27 +426,20 @@ pedidos.forEach(p => {
   const labels = top.map(t => t[0]);
   const valores = top.map(t => t[1]);
 
-new ApexCharts(document.querySelector("#graficoProductosCampana"), {
-  chart: { type: "bar", height: 300 },
-  series: [{ name: "Revenue", data: valores }],
-  xaxis: {
-    categories: labels,
-    labels: {
-      formatter: (v) => formatoCL(v)
-    }
-  },
-  yaxis: {
-    labels: {
-      formatter: (v) => formatoCL(v)
-    }
-  },
-  tooltip: {
-    y: {
-      formatter: (v) => "$" + formatoCL(v)
-    }
-  },
-  plotOptions: { bar: { horizontal: true } }
-}).render();
-
+  new ApexCharts(document.querySelector("#graficoProductosCampana"), {
+    chart: { type: "bar", height: 300 },
+    series: [{ name: "Revenue", data: valores }],
+    xaxis: {
+      categories: labels,
+      labels: { formatter: v => formatoCL(v) }
+    },
+    yaxis: {
+      labels: { formatter: v => formatoCL(v) }
+    },
+    tooltip: {
+      y: { formatter: v => "$" + formatoCL(v) }
+    },
+    plotOptions: { bar: { horizontal: true } }
+  }).render();
 }
 
