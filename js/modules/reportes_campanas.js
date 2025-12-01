@@ -244,22 +244,6 @@ async function cargarDashboardCampanas() {
     generarGraficoSubcategorias(filtradas);
     generarGraficoProductos(filtradas);
 
-    // Tabla del rango padre
-    const tbody = document.querySelector("#tablaDetalleCampana tbody");
-    tbody.innerHTML = filtradas.map(v => `
-      <tr>
-        <td>${v.sku}</td>
-        <td>${v.producto}</td>
-        <td>${v.cantidad}</td>
-        <td>$${v.total.toLocaleString("es-CL")}</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-      </tr>
-    `).join("");
-
-
-
   } catch (err) {
     console.error("❌ Error campañas:", err);
   }
