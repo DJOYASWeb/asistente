@@ -257,6 +257,11 @@ window.cargarDashboardCampanas = cargarDashboardCampanas;
 // 📌 3. GRÁFICOS (ApexCharts)
 // ===============================================================
 
+function formatoCL(valor) {
+  return Number(valor).toLocaleString("es-CL");
+}
+
+
 function generarGraficoDias(data) {
   limpiarDiv("#graficoDiasCampana");
 
@@ -270,12 +275,22 @@ function generarGraficoDias(data) {
   const fechas = Object.keys(porDia).sort();
   const valores = fechas.map(f => porDia[f]);
 
-  new ApexCharts(document.querySelector("#graficoDiasCampana"), {
-    chart: { type: "line", height: 300 },
-    series: [{ name: "Revenue", data: valores }],
-    xaxis: { categories: fechas },
-    stroke: { curve: "smooth", width: 3 }
-  }).render();
+new ApexCharts(document.querySelector("#graficoDiasCampana"), {
+  chart: { type: "line", height: 300 },
+  series: [{ name: "Revenue", data: valores }],
+  xaxis: { categories: fechas },
+  yaxis: {
+    labels: {
+      formatter: (v) => formatoCL(v)
+    }
+  },
+  tooltip: {
+    y: {
+      formatter: (v) => "$" + formatoCL(v)
+    }
+  },
+  stroke: { curve: "smooth", width: 3 }
+}).render();
 }
 
 function generarGraficoHistorico(data) {
@@ -293,13 +308,24 @@ function generarGraficoHistorico(data) {
   let acumulado = 0;
   const valores = fechas.map(f => (acumulado += porDia[f]));
 
-  new ApexCharts(document.querySelector("#graficoHistoricoCampana"), {
-    chart: { type: "area", height: 300 },
-    series: [{ name: "Revenue acumulado", data: valores }],
-    xaxis: { categories: fechas },
-    stroke: { curve: "smooth" },
-    fill: { opacity: 0.3 }
-  }).render();
+new ApexCharts(document.querySelector("#graficoHistoricoCampana"), {
+  chart: { type: "area", height: 300 },
+  series: [{ name: "Revenue acumulado", data: valores }],
+  xaxis: { categories: fechas },
+  yaxis: {
+    labels: {
+      formatter: (v) => formatoCL(v)
+    }
+  },
+  tooltip: {
+    y: {
+      formatter: (v) => "$" + formatoCL(v)
+    }
+  },
+  stroke: { curve: "smooth" },
+  fill: { opacity: 0.3 }
+}).render();
+
 }
 
 function generarGraficoSubcategorias(data) {
@@ -318,11 +344,20 @@ function generarGraficoSubcategorias(data) {
   const labels = Object.keys(mapa);
   const valores = labels.map(l => mapa[l]);
 
-  new ApexCharts(document.querySelector("#graficoSubcategoriasCampana"), {
-    chart: { type: "donut", height: 300 },
-    labels,
-    series: valores
-  }).render();
+new ApexCharts(document.querySelector("#graficoSubcategoriasCampana"), {
+  chart: { type: "donut", height: 300 },
+  labels,
+  series: valores,
+  tooltip: {
+    y: {
+      formatter: (v) => "$" + formatoCL(v)
+    }
+  },
+  dataLabels: {
+    formatter: (val, opts) => formatoCL(opts.w.config.series[opts.seriesIndex])
+  }
+}).render();
+
 }
 
 function generarGraficoProductos(data) {
@@ -342,11 +377,27 @@ function generarGraficoProductos(data) {
   const labels = top.map(t => t[0]);
   const valores = top.map(t => t[1]);
 
-  new ApexCharts(document.querySelector("#graficoProductosCampana"), {
-    chart: { type: "bar", height: 300 },
-    series: [{ name: "Revenue", data: valores }],
-    xaxis: { categories: labels },
-    plotOptions: { bar: { horizontal: true } }
-  }).render();
+new ApexCharts(document.querySelector("#graficoProductosCampana"), {
+  chart: { type: "bar", height: 300 },
+  series: [{ name: "Revenue", data: valores }],
+  xaxis: {
+    categories: labels,
+    labels: {
+      formatter: (v) => formatoCL(v)
+    }
+  },
+  yaxis: {
+    labels: {
+      formatter: (v) => formatoCL(v)
+    }
+  },
+  tooltip: {
+    y: {
+      formatter: (v) => "$" + formatoCL(v)
+    }
+  },
+  plotOptions: { bar: { horizontal: true } }
+}).render();
+
 }
 
