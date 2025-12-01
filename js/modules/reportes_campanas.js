@@ -1,232 +1,143 @@
-// =============================================================
-// 📊 DASHBOARD DE CAMPAÑAS — LEE CSV + FILTRA POR FECHAS
-// =============================================================
 async function cargarDashboardCampanas() {
   try {
-    // 1. Obtener URL guardada
-    const saved = localStorage.getItem("csv_campanas");
 
-    if (!saved) {
+    // ===========================
+    // 1) Cargar CSV campañas
+    // ===========================
+    const urlCampanas = localStorage.getItem("csv_campanas");
+    const txtCampanas = await fetch(urlCampanas).then(r => r.text());
+    const campanasRaw = Papa.parse(txtCampanas, { header: true, skipEmptyLines: true }).data;
+
+    const campanas = campanasRaw.map(c => ({
+      id: c.id,
+      nombre: c.nombre,
+      cat: (c.categoria_principal || "").toLowerCase(),
+      subcat: (c.subcategoria || "").toLowerCase(),
+      etiquetas: (c.etiquetas || "").toLowerCase().split(",").map(e => e.trim()),
+      inicio: c.fecha_inicio,
+      fin: c.fecha_fin,
+      notas: c.notas
+    }));
+
+
+    // ===========================
+    // 2) Cargar CSV ventas OG
+    // ===========================
+    const urlVentas = localStorage.getItem("csv_ventas");
+    const txtVentas = await fetch(urlVentas).then(r => r.text());
+    const ventasRaw = Papa.parse(txtVentas, { header: true, skipEmptyLines: true }).data;
+
+    // Normalizar ventas
+    const ventas = ventasRaw.map(v => ({
+      fecha: v["Fecha y hora"]?.split(" ")[0],  // "2024-01-01"
+      total: parseFloat(v["Total"] || 0),
+      cantidad: parseInt(v["Cantidad de productos"] || 0),
+      sku: v["SKU"] || "",
+      producto: v["Nombre del producto"] || "",
+      categorias: (v["Categorías."] || "").toLowerCase()
+    }));
+
+
+    // ===========================
+    // 3) Detectar campaña seleccionada
+    // ===========================
+    const idSeleccionado = document.getElementById("selectCampanas").value;
+    const campana = campanas.find(c => c.id == idSeleccionado);
+
+    if (!campana) {
       document.getElementById("campanasKPIs").innerHTML = `
-        <div class="ios-card">
-          <p class="muted">⚠️ No hay enlace CSV configurado para Campañas.</p>
-        </div>`;
+        <div class="ios-card"><p class="muted">Selecciona una campaña.</p></div>`;
       return;
     }
 
-    // 2. Cargar archivo CSV
-    const response = await fetch(saved);
-    if (!response.ok) throw new Error("No se pudo cargar el CSV de campañas.");
 
-    const text = await response.text();
-    let data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+    // ===========================
+    // 4) Filtrar ventas por campaña
+    // ===========================
+    const matchCampana = venta => {
+      const cat = venta.categorias;
 
-    // 3. Normalizar claves
-    data = data.map(row => {
-      const limpio = {};
-      for (let k of Object.keys(row)) {
-        limpio[k.trim().toLowerCase().replace(/\s+/g, "_")] = row[k];
-      }
-      return limpio;
-    });
+      return (
+        (campana.cat && cat.includes(campana.cat)) ||
+        (campana.subcat && cat.includes(campana.subcat)) ||
+        campana.etiquetas.some(e => e && cat.includes(e))
+      );
+    };
 
-    // ---------------------------------
-    // 4. Filtrar por rango principal
-    // ---------------------------------
-    const inicio = rangoPrincipal?.[0] || null;
-    const fin = rangoPrincipal?.[1] || null;
+    let filtradas = ventas.filter(matchCampana);
 
-    function parseFecha(str) {
-      if (!str) return null;
-      const [f] = str.split(" ");
-      const [y,m,d] = f.split("-").map(Number);
-      return new Date(y, m-1, d);
+
+    // ===========================
+    // 5) Filtrar por rango de fechas (global)
+    // ===========================
+    if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
+      const [ini, fin] = rangoPrincipal.map(d =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate())
+      );
+
+      filtradas = filtradas.filter(v => {
+        if (!v.fecha) return false;
+        const f = new Date(v.fecha);
+        return f >= ini && f <= fin;
+      });
     }
 
-    const filtrados = data.filter(c => {
-      if (!c.fecha) return false;
-      const f = parseFecha(c.fecha);
-      if (!inicio || !fin) return true;
-      return f >= inicio && f <= fin;
-    });
 
-    console.log("📊 Campañas filtradas:", filtrados.length);
+    // ===========================
+    // 6) MÉTRICAS
+    // ===========================
+    const totalRevenue = filtradas.reduce((s, v) => s + v.total, 0);
+    const totalCantidad = filtradas.reduce((s, v) => s + v.cantidad, 0);
+    const totalProductos = new Set(filtradas.map(v => v.sku)).size;
 
-    // ---------------------------------
-    // 5. Métricas principales
-    // ---------------------------------
-    const totalVentas = filtrados.reduce((a,c) => a + (parseFloat(c.revenue)||0), 0);
-    const totalSkus = filtrados.length;
-    const totalCantidad = filtrados.reduce((a,c) => a + (parseInt(c.cantidad)||0), 0);
 
-    // ---------------------------------
-    // 6. Render métricas principales
-    // ---------------------------------
     document.getElementById("campanasKPIs").innerHTML = `
-      <div class="ios-card">
-        <div class="metricas-grid">
-
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${totalSkus}</strong>
-            <p>SKUs vendidos</p>
-          </div>
-
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${totalCantidad}</strong>
-            <p>Cantidad total</p>
-          </div>
-
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">$${totalVentas.toLocaleString("es-CL")}</strong>
-            <p>Revenue total</p>
-          </div>
-
+      <div class="metricas-grid">
+        <div class="card-metrica">
+          <strong style="font-size:2rem;">${totalProductos}</strong>
+          <p>SKUs vendidos</p>
+        </div>
+        <div class="card-metrica">
+          <strong style="font-size:2rem;">${totalCantidad}</strong>
+          <p>Unidades</p>
+        </div>
+        <div class="card-metrica">
+          <strong style="font-size:2rem;">$${totalRevenue.toLocaleString("es-CL")}</strong>
+          <p>Revenue total</p>
         </div>
       </div>
     `;
 
-    // ---------------------------------
-    // 7. Gráficos
-    // ---------------------------------
-    generarGraficoDias(filtrados);
-    generarGraficoHistorico(filtrados);
-    generarGraficoSubcategorias(filtrados);
-    generarGraficoProductos(filtrados);
 
-    // ---------------------------------
-    // 8. Tabla detalle
-    // ---------------------------------
+    // ===========================
+    // 7) Gráficos
+    // ===========================
+    generarGraficoDias(filtradas);
+    generarGraficoHistorico(filtradas);
+    generarGraficoSubcategorias(filtradas);
+    generarGraficoProductos(filtradas);
+
+
+    // ===========================
+    // 8) Tabla detalle
+    // ===========================
     const tbody = document.querySelector("#tablaDetalleCampana tbody");
-
-    tbody.innerHTML = filtrados.map(c => `
+    tbody.innerHTML = filtradas.map(v => `
       <tr>
-        <td>${c.sku}</td>
-        <td>${c.producto}</td>
-        <td>${c.cantidad}</td>
-        <td>$${Number(c.revenue).toLocaleString("es-CL")}</td>
-        <td>${c.categoria || "-"}</td>
-        <td>${c.subcategoria || "-"}</td>
-        <td>${c.etiquetas || "-"}</td>
+        <td>${v.sku}</td>
+        <td>${v.producto}</td>
+        <td>${v.cantidad}</td>
+        <td>$${v.total.toLocaleString("es-CL")}</td>
+        <td>${campana.cat}</td>
+        <td>${campana.subcat}</td>
+        <td>${campana.etiquetas.join(", ")}</td>
       </tr>
     `).join("");
 
   } catch (err) {
-    console.error("❌ Error cargando campañas:", err);
-    document.getElementById("campanasKPIs").innerHTML = `
-      <div class="ios-card">
-        <p class="text-danger">❌ Error: ${err.message}</p>
-      </div>`;
+    console.error("❌ Error campañas:", err);
   }
 }
 
-function generarGraficoDias(data) {
-  const dias = {};
-
-  data.forEach(c => {
-    const d = c.fecha?.split(" ")[0];
-    if (!d) return;
-    if (!dias[d]) dias[d] = 0;
-    dias[d] += parseFloat(c.revenue || 0);
-  });
-
-  const fechas = Object.keys(dias).sort();
-  const valores = fechas.map(f => dias[f]);
-
-  const chart = new ApexCharts(document.querySelector("#graficoDiasCampana"), {
-    chart: { type: "line", height: 300 },
-    series: [{ name: "Revenue", data: valores }],
-    xaxis: { categories: fechas },
-    stroke: { curve: "smooth", width: 3 },
-    yaxis: { labels: { formatter: v => "$" + v.toLocaleString("es-CL") } }
-  });
-
-  chart.render();
-}
-
-function generarGraficoHistorico(data) {
-  const dias = {};
-
-  data.forEach(c => {
-    const d = c.fecha?.split(" ")[0];
-    if (!d) return;
-    if (!dias[d]) dias[d] = 0;
-    dias[d] += parseFloat(c.revenue || 0);
-  });
-
-  const fechas = Object.keys(dias).sort();
-
-  let acumulado = 0;
-  const valores = fechas.map(f => {
-    acumulado += dias[f];
-    return acumulado;
-  });
-
-  const chart = new ApexCharts(document.querySelector("#graficoHistoricoCampana"), {
-    chart: { type: "area", height: 300 },
-    series: [{ name: "Revenue Acumulado", data: valores }],
-    xaxis: { categories: fechas },
-    stroke: { curve: "smooth" },
-    yaxis: { labels: { formatter: v => "$" + v.toLocaleString("es-CL") } },
-    fill: { opacity: 0.3 }
-  });
-
-  chart.render();
-}
-
-function generarGraficoSubcategorias(data) {
-  const mapa = {};
-
-  data.forEach(c => {
-    const s = c.subcategoria || "Sin Subcategoría";
-    const rev = parseFloat(c.revenue || 0);
-    if (!mapa[s]) mapa[s] = 0;
-    mapa[s] += rev;
-  });
-
-  const labels = Object.keys(mapa);
-  const valores = labels.map(l => mapa[l]);
-
-  const chart = new ApexCharts(document.querySelector("#graficoSubcategoriasCampana"), {
-    chart: { type: "donut", height: 300 },
-    labels,
-    series: valores,
-    legend: { position: "bottom" }
-  });
-
-  chart.render();
-}
-
-
-function generarGraficoProductos(data) {
-  const mapa = {};
-
-  data.forEach(c => {
-    const p = c.producto || "Sin nombre";
-    if (!mapa[p]) mapa[p] = 0;
-    mapa[p] += parseFloat(c.revenue || 0);
-  });
-
-  const top = Object.entries(mapa)
-    .sort((a,b) => b[1] - a[1])
-    .slice(0, 10);
-
-  const labels = top.map(t => t[0]);
-  const valores = top.map(t => t[1]);
-
-  const chart = new ApexCharts(document.querySelector("#graficoProductosCampana"), {
-    chart: { type: "bar", height: 300 },
-    series: [{ name: "Revenue", data: valores }],
-    xaxis: { categories: labels },
-    plotOptions: {
-      bar: { horizontal: true }
-    },
-    dataLabels: { enabled: false },
-    yaxis: { labels: { style: { fontSize: "13px" } } }
-  });
-
-  chart.render();
-}
-
-
-
+// Exponer función global
 window.cargarDashboardCampanas = cargarDashboardCampanas;
