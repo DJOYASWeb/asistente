@@ -99,9 +99,29 @@ async function cargarDashboardCampanas() {
     // ==== Cargar ventas ====
     const respVen = await fetch(urlVentas);
     const textVen = await respVen.text();
-    const ventas = Papa.parse(textVen, { header: true, skipEmptyLines: true }).data;
+    const ventasRaw = Papa.parse(textVen, { header: true, skipEmptyLines: true }).data;
 
-    // Detectar rango padre
+    // ==== Normalizar ventas ====
+    const ventas = ventasRaw.map(v => {
+
+      let fecha = null;
+      if (v["Fecha y hora"]) {
+        // formato: YYYY-MM-DD HH:MM:SS
+        fecha = v["Fecha y hora"].split(" ")[0];
+      }
+
+      return {
+        id: v["ID del pedido"],
+        fecha,
+        total: parseFloat(v["Total"]) || 0,
+        sku: v["SKU"],
+        producto: v["Nombre del producto"],
+        cantidad: parseInt(v["Cantidad de productos"] || 0),
+        categorias: v["Categorías"] || ""
+      };
+    });
+
+    // ==== Detectar rango padre ====
     const inicio = rangoPrincipal?.[0];
     const fin = rangoPrincipal?.[1];
 
@@ -117,14 +137,16 @@ async function cargarDashboardCampanas() {
       const ff = parseFecha(c.fecha_fin);
       if (!fi || !ff) return false;
 
+      // si hay un rango global padre (calendario principal)
       if (inicio && fin) {
+        // campaña activa si se cruza con el rango padre
         return ff >= inicio && fi <= fin;
       }
 
       return true;
     });
 
-    // ==== Renderizar lista de campañas ====
+    // ==== Renderizar lista de campañas activas ====
     const cont = document.getElementById("bloqueCampanasActivas");
 
     if (activas.length === 0) {
@@ -147,26 +169,25 @@ async function cargarDashboardCampanas() {
       </div>
     `;
 
-    /* 
-    ====================================================
-    🔥 AQUI MISMO VA TU BLOQUE NUEVO (justo después de
-       mostrar la lista, antes del catch)
-    ====================================================
-    */
-
-    // ----- Filtrar ventas según el período padre -----
+    // ============================================================
+    // 🔥 FILTRAR VENTAS POR RANGO PADRE
+    // ============================================================
     const ventasFiltradas = ventas.filter(v => {
-      if (!v["Fecha y hora"]) return false;
-
-      const f = new Date(v["Fecha y hora"].split(" ")[0]);
-
+      if (!v.fecha) return false;
+      const f = new Date(v.fecha);
       if (inicio && fin) return f >= inicio && f <= fin;
       return true;
     });
 
-    // ----- Generar gráfico comparativo -----
-    generarGraficoComparacionCampanas(activas, ventasFiltradas);
+    // ============================================================
+    // 🔥 AGRUPAR POR PEDIDO (fundamental para evitar duplicaciones)
+    // ============================================================
+    const pedidos = agruparVentasPorPedido(ventasFiltradas);
 
+    // ============================================================
+    // 🔥 GENERAR GRÁFICO COMPARATIVO
+    // ============================================================
+    generarGraficoComparacionCampanas(activas, pedidos);
 
   } catch (err) {
     console.error("❌ Error campañas:", err);
@@ -176,6 +197,7 @@ async function cargarDashboardCampanas() {
       </div>`;
   }
 }
+
 
 
 
@@ -192,17 +214,10 @@ function formatoCL(valor) {
 }
 
 
-function generarGraficoComparacionCampanas(campanas, ventasFiltradas) {
+function generarGraficoComparacionCampanas(campanas, pedidos) {
   const div = document.querySelector("#graficoComparacionCampanas");
+  div.innerHTML = "";
 
-  if (!div) return;
-
-  div.innerHTML = ""; // limpiar
-
-  // Agrupar ventas por pedido
-  const pedidos = agruparVentasPorPedido(ventasFiltradas);
-
-  // Mapa campaña → cantidad total vendida
   const mapa = {};
 
   campanas.forEach(c => {
@@ -212,41 +227,26 @@ function generarGraficoComparacionCampanas(campanas, ventasFiltradas) {
     const ff = new Date(c.fecha_fin);
 
     pedidos.forEach(p => {
-      const fechaPedido = new Date(p.fecha);
-
-      // Pedido dentro del rango de esa campaña
-      if (fechaPedido >= fi && fechaPedido <= ff) {
-        const totalCantidad = p.productos.reduce((a, b) => a + b.cantidad, 0);
-        mapa[c.nombre] += totalCantidad;
+      const fp = new Date(p.fecha);
+      if (fp >= fi && fp <= ff) {
+        const cant = p.productos.reduce((s, pr) => s + pr.cantidad, 0);
+        mapa[c.nombre] += cant;
       }
     });
   });
 
   const labels = Object.keys(mapa);
-  const valores = labels.map(k => mapa[k]);
+  const valores = labels.map(l => mapa[l]);
 
   new ApexCharts(div, {
-    chart: {
-      type: "bar",
-      height: 350
-    },
+    chart: { type: "bar", height: 350 },
     series: [{
-      name: "Cant. productos vendidos",
+      name: "Productos vendidos",
       data: valores
     }],
-    xaxis: {
-      categories: labels
-    },
-    plotOptions: {
-      bar: {
-        horizontal: true
-      }
-    },
-    tooltip: {
-      y: {
-        formatter: v => formatoCL(v)
-      }
-    }
+    xaxis: { categories: labels },
+    plotOptions: { bar: { horizontal: true } },
+    tooltip: { y: { formatter: v => formatoCL(v) } }
   }).render();
 }
 
