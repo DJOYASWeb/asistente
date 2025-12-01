@@ -226,3 +226,7 @@ function generarGraficoProductos(data) {
 
   chart.render();
 }
+
+
+
+window.cargarDashboardCampanas = cargarDashboardCampanas;
