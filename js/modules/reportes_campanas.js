@@ -111,15 +111,16 @@ async function cargarDashboardCampanas() {
         fecha = v["Fecha y hora"].split(" ")[0];
       }
 
-      return {
-        id: v["ID del pedido"],
-        fecha,
-        total: parseFloat(v["Total"]) || 0,
-        sku: v["SKU"],
-        producto: v["Nombre del producto"],
-        cantidad: parseInt(v["Cantidad de productos"] || 0),
-        categorias: v["Categorías"] || ""
-      };
+return {
+  id: v["ID del pedido"],
+  fecha,
+  total: parseFloat(v["Total"]) || 0,
+  sku: v["SKU"],
+  producto: v["Nombre del producto"],
+  cantidad: parseInt(v["Cantidad de productos"] || 0),
+  categorias: v["Categorías"] || "",
+  subcategoria: v["subcategoria"] || v["Subcategoria"] || v["Subcategoría"] || "" // 🔥 AHORA SÍ
+};
     });
 
     // ==== Detectar rango padre ====
@@ -190,11 +191,6 @@ async function cargarDashboardCampanas() {
     // ============================================================
     generarGraficoComparacionCampanas(activas, pedidos);
 
-
-// ============================================================
-// 🔥 GENERAR GRÁFICO SEMANAL POR CATEGORÍAS
-// ============================================================
-generarGraficoSemanalCategorias(pedidos);
 
 // ============================================================
 // 🔥 GENERAR GRÁFICO SEMANAL POR CATEGORÍAS (SOLO CAMPAÑAS ACTIVAS)
