@@ -347,7 +347,7 @@ function generarDatosSemanalCategorias(pedidos) {
 
     // recorrer productos dentro del pedido
     p.productos.forEach(prod => {
-      const categorias = prod.categorias.split(" ").filter(Boolean);
+      const categorias = prod.subcategoria.split(" ").filter(Boolean);
       if (categorias.length === 0) return;
 
       categorias.forEach(cat => {
@@ -370,7 +370,6 @@ function obtenerCategoriasCampanas(campanas) {
   const set = new Set();
 
   campanas.forEach(c => {
-    if (c.categoria_principal) set.add(c.categoria_principal.trim());
     if (c.subcategoria) set.add(c.subcategoria.trim());
 
     if (c.etiquetas) {
