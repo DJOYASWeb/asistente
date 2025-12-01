@@ -1,3 +1,30 @@
+function agruparVentasPorPedido(data) {
+  const mapa = {};
+
+  data.forEach(v => {
+    const id = v["ID del pedido"];
+    if (!id) return;
+
+    if (!mapa[id]) {
+      mapa[id] = {
+        total: parseFloat(v["Total"] || 0),
+        fecha: v.fecha,
+        productos: []
+      };
+    }
+
+    mapa[id].productos.push({
+      sku: v.sku,
+      producto: v.producto,
+      cantidad: v.cantidad,
+      categorias: v.categorias
+    });
+  });
+
+  return Object.values(mapa);
+}
+
+
 // ===============================================================
 // 📌 DASHBOARD DE CAMPAÑAS — versión completa y funcional
 // ===============================================================
@@ -129,8 +156,13 @@ async function cargarDashboardCampanas() {
       // ======================================================
       //  D. KPIs — campaña seleccionada
       // ======================================================
-      const totalRevenue = filtradas.reduce((s, v) => s + v.total, 0);
-      const totalCantidad = filtradas.reduce((s, v) => s + v.cantidad, 0);
+const pedidos = agruparVentasPorPedido(filtradas);
+const totalRevenue = pedidos.reduce((s, p) => s + p.total, 0);
+
+const totalCantidad = pedidos.reduce((s, p) => {
+  return s + p.productos.reduce((a, b) => a + b.cantidad, 0);
+}, 0);
+
       const totalSKUs = new Set(filtradas.map(v => v.sku)).size;
 
       document.getElementById("campanasKPIs").innerHTML = `
