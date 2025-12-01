@@ -1,3 +1,4 @@
+console.log("🔥 JS cargado correctamente");
 // =========================================
 // ✅ LECTURA DE CSV DESDE GOOGLE DRIVE – reportes_clientes.js (versión limpia)
 // =========================================
