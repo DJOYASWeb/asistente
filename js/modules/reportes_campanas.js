@@ -190,6 +190,13 @@ async function cargarDashboardCampanas() {
     // ============================================================
     generarGraficoComparacionCampanas(activas, pedidos);
 
+
+// ============================================================
+// 🔥 GENERAR GRÁFICO SEMANAL POR CATEGORÍAS
+// ============================================================
+generarGraficoSemanalCategorias(pedidos);
+
+
   } catch (err) {
     console.error("❌ Error campañas:", err);
     document.getElementById("bloqueCampanasActivas").innerHTML = `
@@ -270,6 +277,47 @@ function generarGraficoComparacionCampanas(campanas, pedidos) {
 
 
 
+function generarGraficoSemanalCategorias(pedidos) {
+  limpiarDiv("#graficoSemanalCategorias");
+
+  const mapa = generarDatosSemanalCategorias(pedidos);
+
+  const categorias = Object.keys(mapa);  
+  const dias = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+  const series = categorias.map(cat => ({
+    name: cat,
+    data: dias.map(d => mapa[cat][d])
+  }));
+
+  new ApexCharts(document.querySelector("#graficoSemanalCategorias"), {
+    chart: {
+      type: "bar",
+      stacked: true,
+      height: 350
+    },
+    series,
+    xaxis: {
+      categories: dias
+    },
+    yaxis: {
+      labels: {
+        formatter: v => formatoCL(v)
+      }
+    },
+    tooltip: {
+      y: {
+        formatter: v => formatoCL(v)
+      }
+    },
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        borderRadius: 3
+      }
+    }
+  }).render();
+}
 
 
 
