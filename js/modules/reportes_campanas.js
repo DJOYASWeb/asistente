@@ -370,12 +370,8 @@ function obtenerCategoriasCampanas(campanas) {
   const set = new Set();
 
   campanas.forEach(c => {
-    if (c.subcategoria) set.add(c.subcategoria.trim());
-
-    if (c.etiquetas) {
-      c.etiquetas.split(" ").forEach(e => {
-        if (e.trim()) set.add(e.trim());
-      });
+    if (c.subcategoria) {
+      set.add(c.subcategoria.trim());
     }
   });
 
@@ -383,42 +379,6 @@ function obtenerCategoriasCampanas(campanas) {
 }
 
 
-function generarDatosSemanalCategoriasCampanas(pedidos, categoriasPermitidas) {
-  const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-  const mapa = {};
-
-  pedidos.forEach(p => {
-    if (!p.fecha) return;
-
-    const fecha = new Date(p.fecha);
-    const dia = diasSemana[fecha.getDay() === 0 ? 6 : fecha.getDay() - 1];
-
-    p.productos.forEach(prod => {
-
-      // ✔ USAR SOLO SUBCATEGORÍA
-      const cat = (prod.subcategoria || "").trim();
-      if (!cat) return;
-
-      // ✔ Coincide si está en la lista de campañas activas
-      const coincide = categoriasPermitidas.some(key =>
-        cat.toLowerCase() === key.toLowerCase()
-      );
-
-      if (!coincide) return;
-
-      if (!mapa[cat]) {
-        mapa[cat] = {
-          Lun: 0, Mar: 0, Mié: 0,
-          Jue: 0, Vie: 0, Sáb: 0, Dom: 0
-        };
-      }
-
-      mapa[cat][dia] += prod.cantidad;
-    });
-  });
-
-  return mapa;
-}
 
 
 function generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas) {
