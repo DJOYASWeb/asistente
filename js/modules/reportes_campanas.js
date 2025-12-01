@@ -190,6 +190,7 @@ return {
     // 🔥 GENERAR GRÁFICO COMPARATIVO
     // ============================================================
     generarGraficoComparacionCampanas(activas, pedidos);
+generarTablaRendimientoSemanal(pedidos, activas);
 
 
 // ============================================================
@@ -266,6 +267,122 @@ function generarGraficoComparacionCampanas(campanas, pedidos) {
 }
 
 
+function generarTablaRendimientoSemanal(pedidos, campanas) {
+  const div = document.querySelector("#tablaRendimientoSemanal");
+  div.innerHTML = "";
+
+  if (!pedidos.length) {
+    div.innerHTML = "<p class='muted'>No hay ventas en este período.</p>";
+    return;
+  }
+
+  // --------------------------------------------
+  // 1️⃣ AGRUPAR LOS PEDIDOS POR SEMANA
+  // --------------------------------------------
+  const semanas = {};
+
+  pedidos.forEach(p => {
+    const fecha = new Date(p.fecha);
+    const semana = getSemanaDelAnio(fecha);
+
+    if (!semanas[semana]) semanas[semana] = { pedidos: [], fechas: [] };
+    semanas[semana].pedidos.push(p);
+    semanas[semana].fechas.push(p.fecha);
+  });
+
+  // --------------------------------------------
+  // 2️⃣ ARMAR RANGO DE FECHAS POR SEMANA (COLUMNA)
+  // --------------------------------------------
+  const columnas = [];
+
+  Object.keys(semanas).forEach(sem => {
+    const fechas = semanas[sem].fechas
+      .map(f => new Date(f))
+      .sort((a, b) => a - b);
+
+    const ini = fechas[0];
+    const fin = fechas[fechas.length - 1];
+
+    const format = d =>
+      `${d.getDate().toString().padStart(2, "0")}-${(d.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}-${d.getFullYear()}`;
+
+    columnas.push({
+      semana: sem,
+      titulo: `${format(ini)} / ${format(fin)}`,
+      pedidos: semanas[sem].pedidos
+    });
+  });
+
+  // --------------------------------------------
+  // 3️⃣ ARMAR TABLA
+  // --------------------------------------------
+
+  let html = `
+    <table class="tabla-ios">
+      <thead>
+        <tr>
+          <th>Campaña</th>
+  `;
+
+  columnas.forEach(col => {
+    html += `<th>${col.titulo}</th>`;
+  });
+
+  html += `</tr></thead><tbody>`;
+
+  // --------------------------------------------
+  // 4️⃣ FILAS POR CAMPAÑA
+  // --------------------------------------------
+  campanas.forEach(c => {
+    html += `<tr><td><strong>${c.nombre}</strong></td>`;
+
+    columnas.forEach(col => {
+      let totalSemana = 0;
+      let totalCampana = 0;
+
+      col.pedidos.forEach(p => {
+        const fechaPedido = new Date(p.fecha);
+        const fi = new Date(c.fecha_inicio);
+        const ff = new Date(c.fecha_fin);
+
+        // Total semana
+        totalSemana += p.productos.reduce((a, b) => a + b.cantidad, 0);
+
+        // Solo sumamos productos si pertenecen a la campaña
+        if (fechaPedido >= fi && fechaPedido <= ff) {
+          p.productos.forEach(prod => {
+            if (prod.subcategoria?.toLowerCase() === c.subcategoria?.toLowerCase()) {
+              totalCampana += prod.cantidad;
+            }
+          });
+        }
+      });
+
+      if (totalSemana === 0) {
+        html += `<td>-</td>`;
+      } else {
+        const pct = ((totalCampana / totalSemana) * 100).toFixed(1);
+        html += `<td>${pct}% (${totalCampana})</td>`;
+      }
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+
+  div.innerHTML = html;
+}
+
+function getSemanaDelAnio(fecha) {
+  const f = new Date(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()));
+  const diaSemana = f.getUTCDay() || 7;
+  f.setUTCDate(f.getUTCDate() + 4 - diaSemana);
+  const inicioAno = new Date(Date.UTC(f.getUTCFullYear(), 0, 1));
+  return Math.ceil(((f - inicioAno) / 86400000 + 1) / 7);
+}
 
 
 
