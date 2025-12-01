@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { tipo: "ventas", input: "inputVentas", info: "infoVentas" },
     { tipo: "clientes", input: "inputClientes", info: "infoClientes" },
     { tipo: "pedidos", input: "inputPedidos", info: "infoPedidos" }
+    
   ];
 
   tipos.forEach(cfg => {

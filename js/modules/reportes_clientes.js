@@ -567,7 +567,8 @@ if (tabToOpen) tabToOpen.click();
 const enlaces = [
   { id: "Clientes", key: "csv_clientes" },
   { id: "Ventas", key: "csv_ventas" },
-  { id: "Pedidos", key: "csv_pedidos" }
+  { id: "Pedidos", key: "csv_pedidos" },
+    { id: "Campanas", key: "csv_campanas" }
 ];
 
 enlaces.forEach(item => {
