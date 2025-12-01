@@ -1,3 +1,72 @@
+// ==============================
+// 1. Determinar campaña seleccionada
+// ==============================
+const idCampana = document.getElementById("selectCampanas").value;
+const campanaSeleccionada = campanas.find(c => c.id == idCampana);
+
+// ==============================
+// 2. Decidir modo:
+//    A) Campaña seleccionada (modo estricto)
+//    B) Sin campaña seleccionada (usar rango padre)
+// ==============================
+
+let filtradas = [];
+
+if (campanaSeleccionada) {
+  console.log("📌 Modo campaña estricta:", campanaSeleccionada.nombre);
+
+  // Aplicar filtro SOLO por campaña
+  filtradas = ventas.filter(v => {
+    const cats = v.categorias;
+
+    return (
+      (campanaSeleccionada.cat && cats.includes(campanaSeleccionada.cat)) ||
+      (campanaSeleccionada.subcat && cats.includes(campanaSeleccionada.subcat)) ||
+      campanaSeleccionada.etiquetas.some(e => e && cats.includes(e))
+    );
+  });
+
+  // Filtrar por fecha propia de campaña
+  filtradas = filtradas.filter(v => {
+    if (!v.fecha) return false;
+
+    const f = new Date(v.fecha);
+    const ini = new Date(campanaSeleccionada.inicio);
+    const fin = new Date(campanaSeleccionada.fin);
+
+    return f >= ini && f <= fin;
+  });
+
+} else {
+  console.log("📌 Modo rango padre / sin campaña seleccionada");
+
+  // 1) Obtener campañas activas en el rango padre
+  if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
+    const [ini, fin] = rangoPrincipal;
+    const campañasActivas = campanas.filter(c => {
+      const cIni = new Date(c.inicio);
+      const cFin = new Date(c.fin);
+      return cFin >= ini && cIni <= fin;
+    });
+
+    console.log("📌 Campañas activas:", campañasActivas);
+
+    // 2) Mostrar solo campañas activas
+    document.getElementById("campanasKPIs").innerHTML = `
+      <div class="ios-card">
+        <h3>Campañas activas en el período</h3>
+        <ul>
+          ${campañasActivas.map(c => `<li>${c.nombre}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+
+    // 3) No cruzar ventas todavía si no hay campaña seleccionada
+    return;
+  }
+}
+
+
 // ===========================================================
 // 📌 CARGAR SELECTOR DE CAMPAÑAS DESDE CSV
 // ===========================================================
