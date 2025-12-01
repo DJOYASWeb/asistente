@@ -1,5 +1,5 @@
 // ===============================================================
-// 📌 DASHBOARD DE CAMPAÑAS — versión completa
+// 📌 DASHBOARD DE CAMPAÑAS — versión completa y funcional
 // ===============================================================
 
 // Utilidad para limpiar gráficos anteriores
@@ -29,7 +29,7 @@ async function cargarSelectorCampanas() {
       select.appendChild(opt);
     });
 
-    // Restaurar campaña seleccionada
+    // Restaurar selección
     const last = localStorage.getItem("campana_activa");
     if (last) select.value = last;
 
@@ -98,6 +98,8 @@ async function cargarDashboardCampanas() {
 
     let filtradas = [];
 
+
+
     // ======================================================
     // ✔ MODO 1 — Campaña seleccionada → ignorar filtro padre
     // ======================================================
@@ -121,12 +123,11 @@ async function cargarDashboardCampanas() {
         return f >= new Date(campana.inicio) && f <= new Date(campana.fin);
       });
 
-      console.log("📊 Ventas filtradas:", filtradas.slice(0, 10));
-      window.__VENTAS_FILTRADAS = filtradas;
+      console.log("📊 Ventas filtradas (campaña):", filtradas.slice(0, 10));
 
 
       // ======================================================
-      //  D. Mostrar KPIs
+      //  D. KPIs — campaña seleccionada
       // ======================================================
       const totalRevenue = filtradas.reduce((s, v) => s + v.total, 0);
       const totalCantidad = filtradas.reduce((s, v) => s + v.cantidad, 0);
@@ -152,7 +153,7 @@ async function cargarDashboardCampanas() {
       `;
 
       // ======================================================
-      //  E. Gráficos
+      //  E. Gráficos — campaña seleccionada
       // ======================================================
       limpiarDiv("#graficoDiasCampana");
       limpiarDiv("#graficoHistoricoCampana");
@@ -188,7 +189,7 @@ async function cargarDashboardCampanas() {
     // ======================================================
     // ✔ MODO 2 — SIN campaña seleccionada → aplicar rango padre
     // ======================================================
-    console.log("📌 Modo rango padre (sin campaña seleccionada)");
+    console.log("📌 Modo rango padre — sin campaña seleccionada");
 
     const panel = document.getElementById("campanasKPIs");
 
@@ -208,14 +209,72 @@ async function cargarDashboardCampanas() {
       return cFin >= ini && cIni <= fin;
     });
 
+    // Filtrar ventas por el rango padre
+    filtradas = ventas.filter(v => {
+      if (!v.fecha) return false;
+      const f = new Date(v.fecha);
+      return f >= ini && f <= fin;
+    });
+
+    console.log("📊 Ventas filtradas (rango padre):", filtradas.slice(0, 10));
+
+    // KPIs del rango padre
+    const totalRevenue = filtradas.reduce((s, v) => s + v.total, 0);
+    const totalCantidad = filtradas.reduce((s, v) => s + v.cantidad, 0);
+    const totalSKUs = new Set(filtradas.map(v => v.sku)).size;
+
     panel.innerHTML = `
-      <div class="ios-card">
-        <h4>Campañas activas en este período</h4>
-        <ul>
-          ${activas.map(a => `<li>${a.nombre} (${a.inicio} → ${a.fin})</li>`).join("")}
-        </ul>
+      <div class="metricas-grid">
+
+        <div class="card-metrica">
+          <strong style="font-size:2rem;">${totalSKUs}</strong>
+          <p>SKUs vendidos</p>
+        </div>
+
+        <div class="card-metrica">
+          <strong style="font-size:2rem;">${totalCantidad}</strong>
+          <p>Unidades</p>
+        </div>
+
+        <div class="card-metrica">
+          <strong style="font-size:2rem;">$${totalRevenue.toLocaleString("es-CL")}</strong>
+          <p>Revenue</p>
+        </div>
+
+        <div class="ios-card" style="grid-column: 1 / -1;">
+          <h4>Campañas activas en este período</h4>
+          <ul>
+            ${activas.map(a => `<li>${a.nombre} (${a.inicio} → ${a.fin})</li>`).join("")}
+          </ul>
+        </div>
       </div>
     `;
+
+    // Gráficos del rango padre
+    limpiarDiv("#graficoDiasCampana");
+    limpiarDiv("#graficoHistoricoCampana");
+    limpiarDiv("#graficoSubcategoriasCampana");
+    limpiarDiv("#graficoProductosCampana");
+
+    generarGraficoDias(filtradas);
+    generarGraficoHistorico(filtradas);
+    generarGraficoSubcategorias(filtradas);
+    generarGraficoProductos(filtradas);
+
+    // Tabla del rango padre
+    const tbody = document.querySelector("#tablaDetalleCampana tbody");
+    tbody.innerHTML = filtradas.map(v => `
+      <tr>
+        <td>${v.sku}</td>
+        <td>${v.producto}</td>
+        <td>${v.cantidad}</td>
+        <td>$${v.total.toLocaleString("es-CL")}</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+    `).join("");
+
 
 
   } catch (err) {
@@ -306,7 +365,7 @@ function generarGraficoProductos(data) {
   data.forEach(v => {
     if (!v.producto) return;
     if (!mapa[v.producto]) mapa[v.producto] = 0;
-    mapa[vproducto] += v.total;
+    mapa[v.producto] += v.total;
   });
 
   const top = Object.entries(mapa)
