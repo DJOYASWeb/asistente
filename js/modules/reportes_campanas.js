@@ -191,3 +191,20 @@ async function cargarDashboardCampanas() {
 
 // Exponer función global
 window.cargarDashboardCampanas = cargarDashboardCampanas;
+
+
+function generarGraficoDias(data) {
+  console.log("⚠️ generarGraficoDias aún no implementado");
+}
+
+function generarGraficoHistorico(data) {
+  console.log("⚠️ generarGraficoHistorico aún no implementado");
+}
+
+function generarGraficoSubcategorias(data) {
+  console.log("⚠️ generarGraficoSubcategorias aún no implementado");
+}
+
+function generarGraficoProductos(data) {
+  console.log("⚠️ generarGraficoProductos aún no implementado");
+}
