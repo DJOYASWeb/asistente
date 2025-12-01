@@ -238,18 +238,19 @@ return p.productos.some(prod => {
       </div>
     `;
 
-    // ==========================
-    // 9) GENERAR TABLA Y GRÁFICOS
-    // ==========================
-    generarGraficoComparacionCampanas(activas, pedidos);
+ // ==========================
+// 9) GENERAR TABLA Y GRÁFICOS
+// ==========================
 
+// GRÁFICO 1
+generarGraficoComparacionCampanas(activas, pedidos);
 
-
-
-  function generarSemanasDesdePedidos(pedidos) {
+// ==========================
+// 9.1) Generar semanas desde ventas filtradas
+// ==========================
+function generarSemanasDesdePedidos(pedidos) {
   if (!pedidos.length) return [];
 
-  // obtener fechas
   const fechas = pedidos
     .map(p => new Date(p.fecha))
     .sort((a, b) => a - b);
@@ -257,9 +258,8 @@ return p.productos.some(prod => {
   let ini = new Date(fechas[0]);
   let fin = new Date(fechas[fechas.length - 1]);
 
-  // Normalizar a lunes
   function lunesDe(f) {
-    const dia = f.getDay(); // 0 = domingo
+    const dia = f.getDay();
     const lunes = new Date(f);
     lunes.setDate(f.getDate() - (dia === 0 ? 6 : dia - 1));
     lunes.setHours(0, 0, 0, 0);
@@ -292,14 +292,20 @@ return p.productos.some(prod => {
 
   return semanas;
 }
-  
+
+// generar semanas reales
 const semanas = generarSemanasDesdePedidos(ventasFiltradas);
+
+// ==========================
+// 9.2) Tabla rendimiento semanal
+// ==========================
 generarTablaRendimientoSemanal(pedidos, activas, semanas);
 
-    generarTablaRendimientoSemanal(pedidos, activas);
-
-    const categoriasCampanas = obtenerCategoriasCampanas(activas);
-    generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas);
+// ==========================
+// 9.3) Gráfico subcategorías campañas
+// ==========================
+const categoriasCampanas = obtenerCategoriasCampanas(activas);
+generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas);
 
   } catch (err) {
     console.error("❌ Error campañas:", err);
@@ -607,6 +613,7 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
     const semanaIndex = semanas.findIndex(
       s => fecha >= s.inicio && fecha <= s.fin
     );
+
     if (semanaIndex === -1) return;
 
     p.productos.forEach(prod => {
@@ -614,20 +621,21 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
 
       categorias.forEach(cat => {
         campanas.forEach(camp => {
-          if (coincideCategoriaCampania(camp.subcategoria, cat) ||
-              coincideCategoriaCampania(camp.etiquetas, cat) ||
-              coincideCategoriaCampania(camp.nombre, cat)) 
-          {
-            salida[camp.nombre][semanaIndex].cantidad += prod.cantidad;
+if (
+  coincideCategoria(camp.subcategoria || "", cat) ||
+  coincideCategoria(camp.etiquetas || "", cat) ||
+  coincideCategoria(camp.nombre || "", cat)
+) {
+  salida[camp.nombre][semanaIndex].cantidad += prod.cantidad;
           }
         });
       });
     });
-
   });
 
   return salida;
 }
+
 
 function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   const data = generarRendimientoSemanal(pedidos, campanas, semanas);
