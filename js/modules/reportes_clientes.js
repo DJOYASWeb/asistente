@@ -502,6 +502,10 @@ btn.classList.add("active");
       main.style.display = "none";
       seccionConfig.style.display = "block";
       return;
+// Ocultar panel de campañas cuando el tab NO es campanas
+document.getElementById("tab-campanas").style.display = "none";
+
+
     } else {
       seccionConfig.style.display = "none";
       main.style.display = "block";
