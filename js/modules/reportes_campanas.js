@@ -297,11 +297,11 @@ function formatoCL(valor) {
 function generarGraficoDias(data) {
   limpiarDiv("#graficoDiasCampana");
 
-  const porDia = {};
-  data.forEach(v => {
-    if (!v.fecha) return;
-    if (!porDia[v.fecha]) porDia[v.fecha] = 0;
-    porDia[v.fecha] += v.total;
+const porDia = {};
+  pedidos.forEach(p => {
+    if (!p.fecha) return;
+    if (!porDia[p.fecha]) porDia[p.fecha] = 0;
+    porDia[p.fecha] += p.total;
   });
 
   const fechas = Object.keys(porDia).sort();
@@ -329,10 +329,10 @@ function generarGraficoHistorico(data) {
   limpiarDiv("#graficoHistoricoCampana");
 
   const porDia = {};
-  data.forEach(v => {
-    if (!v.fecha) return;
-    if (!porDia[v.fecha]) porDia[v.fecha] = 0;
-    porDia[v.fecha] += v.total;
+  pedidos.forEach(p => {
+    if (!p.fecha) return;
+    if (!porDia[p.fecha]) porDia[p.fecha] = 0;
+    porDia[p.fecha] += p.total;
   });
 
   const fechas = Object.keys(porDia).sort();
@@ -363,15 +363,25 @@ new ApexCharts(document.querySelector("#graficoHistoricoCampana"), {
 function generarGraficoSubcategorias(data) {
   limpiarDiv("#graficoSubcategoriasCampana");
 
-  const mapa = {};
-  data.forEach(v => {
-    const cats = v.categorias.split(" ");
+const mapa = {};
+
+pedidos.forEach(p => {
+  // Cada pedido tiene varios productos
+  p.productos.forEach(prod => {
+    const cats = prod.categorias.split(" ");
+
     cats.forEach(c => {
       if (!c) return;
       if (!mapa[c]) mapa[c] = 0;
-      mapa[c] += v.total;
+
+      // Sumar proporcionalmente al revenue del pedido
+      // Esto evita inflar y reparte revenue según cantidad
+      const proporcion = prod.cantidad / p.productos.reduce((a, b) => a + b.cantidad, 0);
+
+      mapa[c] += p.total * proporcion;
     });
   });
+});
 
   const labels = Object.keys(mapa);
   const valores = labels.map(l => mapa[l]);
@@ -395,12 +405,22 @@ new ApexCharts(document.querySelector("#graficoSubcategoriasCampana"), {
 function generarGraficoProductos(data) {
   limpiarDiv("#graficoProductosCampana");
 
-  const mapa = {};
-  data.forEach(v => {
-    if (!v.producto) return;
-    if (!mapa[v.producto]) mapa[v.producto] = 0;
-    mapa[v.producto] += v.total;
+const mapa = {};
+
+pedidos.forEach(p => {
+  const totalCant = p.productos.reduce((a, b) => a + b.cantidad, 0) || 1;
+
+  p.productos.forEach(prod => {
+    if (!prod.producto) return;
+
+    if (!mapa[prod.producto]) mapa[prod.producto] = 0;
+
+    // Proporción según cantidad dentro del pedido
+    const proporcion = prod.cantidad / totalCant;
+
+    mapa[prod.producto] += p.total * proporcion;
   });
+});
 
   const top = Object.entries(mapa)
     .sort((a, b) => b[1] - a[1])
