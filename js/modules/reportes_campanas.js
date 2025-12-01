@@ -18,7 +18,7 @@ function agruparVentasPorPedido(data) {
       sku: v.sku,
       producto: v.producto,
       cantidad: v.cantidad,
-      categorias: v.categorias
+  subcategoria: v.subcategoria
     });
   });
 
@@ -399,26 +399,32 @@ function generarDatosSemanalCategoriasCampanas(pedidos, categoriasPermitidas) {
     const dia = diasSemana[fecha.getDay() === 0 ? 6 : fecha.getDay() - 1];
 
     p.productos.forEach(prod => {
-      const cats = prod.categorias.split(" ").map(c => c.trim()).filter(Boolean);
 
-      cats.forEach(cat => {
-        // ⛔ Solo incluir categorías pertenecientes a campañas activas
-        if (!categoriasPermitidas.includes(cat)) return;
+      // ✔ USAR SOLO SUBCATEGORÍA
+      const cat = (prod.subcategoria || "").trim();
+      if (!cat) return;
 
-        if (!mapa[cat]) {
-          mapa[cat] = {
-            Lun: 0, Mar: 0, Mié: 0, 
-            Jue: 0, Vie: 0, Sáb: 0, Dom: 0
-          };
-        }
+      // ✔ Coincide si está en la lista de campañas activas
+      const coincide = categoriasPermitidas.some(key =>
+        cat.toLowerCase() === key.toLowerCase()
+      );
 
-        mapa[cat][dia] += prod.cantidad;
-      });
+      if (!coincide) return;
+
+      if (!mapa[cat]) {
+        mapa[cat] = {
+          Lun: 0, Mar: 0, Mié: 0,
+          Jue: 0, Vie: 0, Sáb: 0, Dom: 0
+        };
+      }
+
+      mapa[cat][dia] += prod.cantidad;
     });
   });
 
   return mapa;
 }
+
 
 function generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas) {
   const div = document.querySelector("#graficoSemanalCategorias");
