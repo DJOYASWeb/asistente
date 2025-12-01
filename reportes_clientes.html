@@ -137,9 +137,30 @@
     </div>
 
 
+<!-- CONTENIDO PRINCIPAL -->
+<div class="main-content">
 
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
+    <div class="profile-section">
+      <img src="https://i.pravatar.cc/300" class="profile-img" id="avatar" onclick="toggleDropdown()">
+      <div class="dropdown-menu" id="dropdown">
+        <div class="user-info">
+          <div class="user-name"><strong id="userName">Juan Pérez</strong></div>
+          <div class="user-email"><span id="userEmail">juan@correo.com</span></div>
+        </div>
+        <div class="theme-switch" onclick="toggleTheme()">
+          <span id="theme-icon">🌙</span><span>Modo oscuro</span>
+        </div>
+        <a href="settings.html">Configuración</a>
+        <a href="#" onclick="logout()">Cerrar sesión</a>
+      </div>
+    </div>
+  </div>
 
- <div class="main-reportes">
+  <!-- MAIN REPORTES -->
+  <div class="main-reportes">
 
   <!-- TOPBAR -->
 <div class="topbar-reportes">
@@ -187,28 +208,29 @@
 </div>
 <!-- FIN bloque selector -->
 
-
-    <!-- CONTENEDOR DE SECCIONES -->
+    <!-- CONTENEDOR PRINCIPAL -->
     <div id="contenidoReportes">
-<!-- === PANEL DE REPORTES === -->
-<div class="panel-reportes">
-  <!-- Sidebar interno -->
-  <aside class="sidebar-reportes">
-    <button class="tab-reportes active" data-section="general"><i class="fa-solid fa-chart-line"></i> General</button>
-    <button class="tab-reportes" data-section="clientes"><i class="fa-solid fa-user-group"></i> Clientes</button>
-    <button class="tab-reportes" data-section="ventas"><i class="fa-solid fa-cart-shopping"></i> Ventas</button>
-    <button class="tab-reportes" data-section="categorias"><i class="fa-solid fa-tags"></i> Categorías</button>
-    <button class="tab-reportes" data-section="geografia"><i class="fa-solid fa-earth-americas"></i> Geografía</button>
-    <button class="tab-reportes" data-section="tendencias"><i class="fa-solid fa-chart-area"></i> Tendencias</button>
-        <button class="tab-reportes" data-section="campanas"><i class="fa-solid fa-bullhorn"></i> Campañas</button>
-    <button class="tab-reportes" data-section="config"><i class="fa-solid fa-gear"></i> Configuración</button>
+      <div class="panel-reportes">
 
-    
-  </aside>
+        <!-- SIDEBAR INTERNO -->
+        <aside class="sidebar-reportes">
+          <button class="tab-reportes active" data-section="general">General</button>
+          <button class="tab-reportes" data-section="clientes">Clientes</button>
+          <button class="tab-reportes" data-section="ventas">Ventas</button>
+          <button class="tab-reportes" data-section="categorias">Categorías</button>
+          <button class="tab-reportes" data-section="geografia">Geografía</button>
+          <button class="tab-reportes" data-section="tendencias">Tendencias</button>
+          <button class="tab-reportes" data-section="campanas">Campañas</button>
+          <button class="tab-reportes" data-section="config">Configuración</button>
+        </aside>
 
-<!-- Contenido dinámico -->
-<div class="contenido-reportes" id="contenidoReportesMain"></div>
+        <!-- 🚨 AQUÍ LA CORRECCIÓN IMPORTANTE 🚨 -->
+        <div class="contenido-reportes">
 
+          <!-- ▶ CONTENIDO DINÁMICO -->
+          <div id="contenidoReportesMain" class="seccion-reportes"></div>
+
+          <!-- ▶ CONFIGURACIÓN -->
 <!-- CONFIGURACIÓN -->
 <div id="seccion-configuracion" class="seccion-reportes" style="display:none;">
   <div class="ios-card mt-4 p-3">
@@ -241,7 +263,7 @@
   </div>
 </div>
 
-<!-- === CAMPANAS (UBICACIÓN CORRECTA) === -->
+          <!-- ▶ CAMPANAS -->
 <div id="tab-campanas" class="seccion-reportes" style="display:none;">
 
   <div class="ios-card">
@@ -311,13 +333,14 @@
   </div>
 
 </div>
-<!-- === FIN CAMPANAS === -->
 
-</div> <!-- ⬅️ CIERRE REAL DE panel-reportes -->
+        </div> <!-- cierre contenido-reportes -->
 
-</div> <!-- cierre de contenidoReportes -->
-</div> <!-- cierre de main-reportes -->
-</div> <!-- cierre de main-content -->
+      </div> <!-- cierre panel-reportes -->
+    </div> <!-- cierre contenidoReportes -->
+
+  </div> <!-- cierre main-reportes -->
+</div> <!-- cierre main-content -->
 
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -347,3 +370,4 @@
 
 </body>
 </html>
+
