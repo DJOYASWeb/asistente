@@ -176,15 +176,22 @@ async function cargarDashboardCampanas() {
 return p.productos.some(prod => {
   if (!prod.subcategoria) return false;
 
-  const categoriasVenta = prod.subcategoria
+  const venta = prod.subcategoria
     .toLowerCase()
-    .split(" ")
-    .filter(Boolean);
+    .replace(/\s+de\s+/g, " ")  // "Aros de Plata" → "Aros Plata"
+    .replace(/\s+/g, " ")
+    .trim();
 
-  const subCampana = sub.toLowerCase().trim();
+  const camp = sub
+    .toLowerCase()
+    .replace(/\s+de\s+/g, " ")  // "Conjuntos de Plata" → "Conjuntos Plata"
+    .replace(/\s+/g, " ")
+    .trim();
 
-  return categoriasVenta.includes(subCampana);
+  // Match inteligente
+  return venta.includes(camp) || camp.includes(venta);
 });
+
 
       });
 
