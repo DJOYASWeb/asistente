@@ -164,23 +164,6 @@ async function cargarDashboardCampanas() {
       generarGraficoHistorico(filtradas);
       generarGraficoSubcategorias(filtradas);
       generarGraficoProductos(filtradas);
-
-      // ======================================================
-      //  F. Tabla detalle
-      // ======================================================
-      const tbody = document.querySelector("#tablaDetalleCampana tbody");
-      tbody.innerHTML = filtradas.map(v => `
-        <tr>
-          <td>${v.sku}</td>
-          <td>${v.producto}</td>
-          <td>${v.cantidad}</td>
-          <td>$${v.total.toLocaleString("es-CL")}</td>
-          <td>${campana.cat}</td>
-          <td>${campana.subcat}</td>
-          <td>${campana.etiquetas.join(", ")}</td>
-        </tr>
-      `).join("");
-
       return;
     }
 
