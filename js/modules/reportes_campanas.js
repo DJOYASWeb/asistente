@@ -92,42 +92,62 @@ async function cargarDashboardCampanas() {
       return;
     }
 
-    // ==== Cargar campañas ====
+    // ==========================
+    // 1) Cargar campañas
+    // ==========================
     const respCamp = await fetch(url);
     const textCamp = await respCamp.text();
     const campanas = Papa.parse(textCamp, { header: true, skipEmptyLines: true }).data;
 
-    // ==== Cargar ventas ====
+    // ==========================
+    // 2) Cargar ventas
+    // ==========================
     const respVen = await fetch(urlVentas);
     const textVen = await respVen.text();
     const ventasRaw = Papa.parse(textVen, { header: true, skipEmptyLines: true }).data;
 
-    // ==== Normalizar ventas ====
+    // ==========================
+    // 3) Normalizar ventas
+    // ==========================
     const ventas = ventasRaw.map(v => {
-
       let fecha = null;
-      if (v["Fecha y hora"]) {
-        // formato: YYYY-MM-DD HH:MM:SS
-        fecha = v["Fecha y hora"].split(" ")[0];
-      }
+      if (v["Fecha y hora"]) fecha = v["Fecha y hora"].split(" ")[0];
 
-return {
-  id: v["ID del pedido"],
-  fecha,
-  total: parseFloat(v["Total"]) || 0,
-  sku: v["SKU"],
-  producto: v["Nombre del producto"],
-  cantidad: parseInt(v["Cantidad de productos"] || 0),
-  categorias: v["Categorías"] || "",
-  subcategoria: v["subcategoria"] || v["Subcategoria"] || v["Subcategoría"] || "" // 🔥 AHORA SÍ
-};
+      return {
+        id: v["ID del pedido"],
+        fecha,
+        total: parseFloat(v["Total"]) || 0,
+        sku: v["SKU"],
+        producto: v["Nombre del producto"],
+        cantidad: parseInt(v["Cantidad de productos"] || 0),
+        subcategoria: v["subcategoria"] || v["Subcategoria"] || ""
+      };
     });
 
-    // ==== Detectar rango padre ====
+    // ==========================
+    // 4) Determinar rango padre
+    // ==========================
     const inicio = rangoPrincipal?.[0];
     const fin = rangoPrincipal?.[1];
 
-    // ==== Filtrar campañas activas ====
+    // ==========================
+    // 5) Filtrar ventas por rango padre
+    // ==========================
+    const ventasFiltradas = ventas.filter(v => {
+      if (!v.fecha) return false;
+      const f = new Date(v.fecha);
+      if (inicio && fin) return f >= inicio && f <= fin;
+      return true;
+    });
+
+    // ==========================
+    // 6) AGRUPAR PEDIDOS (ANTES DE FILTRAR CAMPAÑAS)
+    // ==========================
+    const pedidos = agruparVentasPorPedido(ventasFiltradas);
+
+    // ==========================
+    // 7) FILTRAR CAMPAÑAS ACTIVAS USANDO PEDIDOS
+    // ==========================
     function parseFecha(str) {
       if (!str) return null;
       const [y, m, d] = str.split("-").map(Number);
@@ -135,41 +155,41 @@ return {
     }
 
     const activas = campanas.filter(c => {
-  const fi = parseFecha(c.fecha_inicio);
-  const ff = parseFecha(c.fecha_fin);
-  if (!fi || !ff) return false;
+      const fi = parseFecha(c.fecha_inicio);
+      const ff = parseFecha(c.fecha_fin);
+      if (!fi || !ff) return false;
 
-  // 1️⃣ Coincide con el rango padre
-  const coincideRangoPadre = inicio && fin
-    ? ff >= inicio && fi <= fin
-    : true;
+      // 1) Debe cruzar con rango padre
+      const cruzaRango = inicio && fin ? ff >= inicio && fi <= fin : true;
+      if (!cruzaRango) return false;
 
-  if (!coincideRangoPadre) return false;
+      // 2) Debe tener subcategoria válida
+      const sub = (c.subcategoria || "").trim();
+      if (!sub) return false;
 
-  // 2️⃣ Tiene subcategoría válida
-  const sub = (c.subcategoria || "").trim();
-  if (!sub) return false;
+      // 3) Debe tener ventas asociadas
+      const tieneVentas = pedidos.some(p => {
+        const fp = new Date(p.fecha);
+        if (fp < fi || fp > ff) return false;
 
-  // 3️⃣ Tiene ventas en esa subcategoría dentro de su rango
-  const tieneVentas = pedidos.some(p => {
-    const fp = new Date(p.fecha);
-    if (fp < fi || fp > ff) return false;
+        return p.productos.some(prod =>
+          prod.subcategoria?.toLowerCase() === sub.toLowerCase()
+        );
+      });
 
-    return p.productos.some(prod =>
-      prod.subcategoria?.toLowerCase() === sub.toLowerCase()
-    );
-  });
+      return tieneVentas;
+    });
 
-  return tieneVentas;
-});
-    // ==== Renderizar lista de campañas activas ====
+    // ==========================
+    // 8) Renderizar lista de campañas activas
+    // ==========================
     const cont = document.getElementById("bloqueCampanasActivas");
 
     if (activas.length === 0) {
       cont.innerHTML = `
         <div class="ios-card" style="grid-column: 1 / -1;">
           <h4>Campañas activas en este período</h4>
-          <p class="muted">No hay campañas en el rango seleccionado.</p>
+          <p class="muted">No hay campañas activas con ventas.</p>
         </div>`;
       return;
     }
@@ -185,47 +205,20 @@ return {
       </div>
     `;
 
-    // ============================================================
-    // 🔥 FILTRAR VENTAS POR RANGO PADRE
-    // ============================================================
-    const ventasFiltradas = ventas.filter(v => {
-      if (!v.fecha) return false;
-      const f = new Date(v.fecha);
-      if (inicio && fin) return f >= inicio && f <= fin;
-      return true;
-    });
-
-    // ============================================================
-    // 🔥 AGRUPAR POR PEDIDO (fundamental para evitar duplicaciones)
-    // ============================================================
-    const pedidos = agruparVentasPorPedido(ventasFiltradas);
-
-    // ============================================================
-    // 🔥 GENERAR GRÁFICO COMPARATIVO
-    // ============================================================
+    // ==========================
+    // 9) GENERAR TABLA Y GRÁFICOS
+    // ==========================
     generarGraficoComparacionCampanas(activas, pedidos);
     generarTablaRendimientoSemanal(pedidos, activas);
 
-// ============================================================
-// 🔥 GENERAR GRÁFICO SEMANAL POR CATEGORÍAS (SOLO CAMPAÑAS ACTIVAS)
-// ============================================================
-
-// 1. Obtener categorías asociadas a campañas activas
-const categoriasCampanas = obtenerCategoriasCampanas(activas);
-
-// 2. Generar gráfico semanal comparativo
-generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas);
-
-
+    const categoriasCampanas = obtenerCategoriasCampanas(activas);
+    generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas);
 
   } catch (err) {
     console.error("❌ Error campañas:", err);
-    document.getElementById("bloqueCampanasActivas").innerHTML = `
-      <div class="ios-card">
-        <p class="text-danger">Error cargando campañas: ${err.message}</p>
-      </div>`;
   }
 }
+
 
 
 
