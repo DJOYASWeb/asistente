@@ -526,6 +526,23 @@ else if (section === "geografia") {
     else if (section === "tendencias") {
       main.innerHTML = `<div class="ios-card"><p class="muted">📈 Reporte de tendencias en desarrollo.</p></div>`;
     } 
+    else if (section === "campanas") {
+
+  // Ocultar main y mostrar el panel de campañas
+  main.style.display = "none";
+
+  // Mostrar el contenedor del tab campañas
+  document.getElementById("tab-campanas").style.display = "block";
+
+  // Cargar módulo de campañas (cuando terminemos el código)
+  if (typeof cargarDashboardCampanas === "function") {
+    await cargarDashboardCampanas();
+  } else {
+    console.warn("⚠️ Falta cargar módulo reportes_campanas.js");
+  }
+
+}
+
     else if (section === "general") {
       main.innerHTML = `<div class="ios-card"><p class="muted">📊 Resumen general en desarrollo.</p></div>`;
     }
