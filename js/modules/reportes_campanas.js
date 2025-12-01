@@ -117,7 +117,6 @@ async function cargarDashboardCampanas() {
       const ff = parseFecha(c.fecha_fin);
       if (!fi || !ff) return false;
 
-      // Si hay selección global → filtrar
       if (inicio && fin) {
         return ff >= inicio && fi <= fin;
       }
@@ -138,9 +137,7 @@ async function cargarDashboardCampanas() {
     }
 
     const items = activas
-      .map(c => {
-        return `<li>${c.nombre} (${c.fecha_inicio} → ${c.fecha_fin})</li>`;
-      })
+      .map(c => `<li>${c.nombre} (${c.fecha_inicio} → ${c.fecha_fin})</li>`)
       .join("");
 
     cont.innerHTML = `
@@ -150,6 +147,27 @@ async function cargarDashboardCampanas() {
       </div>
     `;
 
+    /* 
+    ====================================================
+    🔥 AQUI MISMO VA TU BLOQUE NUEVO (justo después de
+       mostrar la lista, antes del catch)
+    ====================================================
+    */
+
+    // ----- Filtrar ventas según el período padre -----
+    const ventasFiltradas = ventas.filter(v => {
+      if (!v["Fecha y hora"]) return false;
+
+      const f = new Date(v["Fecha y hora"].split(" ")[0]);
+
+      if (inicio && fin) return f >= inicio && f <= fin;
+      return true;
+    });
+
+    // ----- Generar gráfico comparativo -----
+    generarGraficoComparacionCampanas(activas, ventasFiltradas);
+
+
   } catch (err) {
     console.error("❌ Error campañas:", err);
     document.getElementById("bloqueCampanasActivas").innerHTML = `
@@ -158,6 +176,7 @@ async function cargarDashboardCampanas() {
       </div>`;
   }
 }
+
 
 
 window.cargarDashboardCampanas = cargarDashboardCampanas;
@@ -172,5 +191,63 @@ function formatoCL(valor) {
   return Number(valor).toLocaleString("es-CL");
 }
 
+
+function generarGraficoComparacionCampanas(campanas, ventasFiltradas) {
+  const div = document.querySelector("#graficoComparacionCampanas");
+
+  if (!div) return;
+
+  div.innerHTML = ""; // limpiar
+
+  // Agrupar ventas por pedido
+  const pedidos = agruparVentasPorPedido(ventasFiltradas);
+
+  // Mapa campaña → cantidad total vendida
+  const mapa = {};
+
+  campanas.forEach(c => {
+    mapa[c.nombre] = 0;
+
+    const fi = new Date(c.fecha_inicio);
+    const ff = new Date(c.fecha_fin);
+
+    pedidos.forEach(p => {
+      const fechaPedido = new Date(p.fecha);
+
+      // Pedido dentro del rango de esa campaña
+      if (fechaPedido >= fi && fechaPedido <= ff) {
+        const totalCantidad = p.productos.reduce((a, b) => a + b.cantidad, 0);
+        mapa[c.nombre] += totalCantidad;
+      }
+    });
+  });
+
+  const labels = Object.keys(mapa);
+  const valores = labels.map(k => mapa[k]);
+
+  new ApexCharts(div, {
+    chart: {
+      type: "bar",
+      height: 350
+    },
+    series: [{
+      name: "Cant. productos vendidos",
+      data: valores
+    }],
+    xaxis: {
+      categories: labels
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true
+      }
+    },
+    tooltip: {
+      y: {
+        formatter: v => formatoCL(v)
+      }
+    }
+  }).render();
+}
 
 
