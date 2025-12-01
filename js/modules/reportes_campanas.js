@@ -135,19 +135,33 @@ return {
     }
 
     const activas = campanas.filter(c => {
-      const fi = parseFecha(c.fecha_inicio);
-      const ff = parseFecha(c.fecha_fin);
-      if (!fi || !ff) return false;
+  const fi = parseFecha(c.fecha_inicio);
+  const ff = parseFecha(c.fecha_fin);
+  if (!fi || !ff) return false;
 
-      // si hay un rango global padre (calendario principal)
-      if (inicio && fin) {
-        // campaña activa si se cruza con el rango padre
-        return ff >= inicio && fi <= fin;
-      }
+  // 1️⃣ Coincide con el rango padre
+  const coincideRangoPadre = inicio && fin
+    ? ff >= inicio && fi <= fin
+    : true;
 
-      return true;
-    });
+  if (!coincideRangoPadre) return false;
 
+  // 2️⃣ Tiene subcategoría válida
+  const sub = (c.subcategoria || "").trim();
+  if (!sub) return false;
+
+  // 3️⃣ Tiene ventas en esa subcategoría dentro de su rango
+  const tieneVentas = pedidos.some(p => {
+    const fp = new Date(p.fecha);
+    if (fp < fi || fp > ff) return false;
+
+    return p.productos.some(prod =>
+      prod.subcategoria?.toLowerCase() === sub.toLowerCase()
+    );
+  });
+
+  return tieneVentas;
+});
     // ==== Renderizar lista de campañas activas ====
     const cont = document.getElementById("bloqueCampanasActivas");
 
@@ -190,8 +204,7 @@ return {
     // 🔥 GENERAR GRÁFICO COMPARATIVO
     // ============================================================
     generarGraficoComparacionCampanas(activas, pedidos);
-generarTablaRendimientoSemanal(pedidos, activas);
-
+    generarTablaRendimientoSemanal(pedidos, activas);
 
 // ============================================================
 // 🔥 GENERAR GRÁFICO SEMANAL POR CATEGORÍAS (SOLO CAMPAÑAS ACTIVAS)
