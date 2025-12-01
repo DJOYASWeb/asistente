@@ -242,6 +242,60 @@ return p.productos.some(prod => {
     // 9) GENERAR TABLA Y GRÁFICOS
     // ==========================
     generarGraficoComparacionCampanas(activas, pedidos);
+
+
+
+
+  function generarSemanasDesdePedidos(pedidos) {
+  if (!pedidos.length) return [];
+
+  // obtener fechas
+  const fechas = pedidos
+    .map(p => new Date(p.fecha))
+    .sort((a, b) => a - b);
+
+  let ini = new Date(fechas[0]);
+  let fin = new Date(fechas[fechas.length - 1]);
+
+  // Normalizar a lunes
+  function lunesDe(f) {
+    const dia = f.getDay(); // 0 = domingo
+    const lunes = new Date(f);
+    lunes.setDate(f.getDate() - (dia === 0 ? 6 : dia - 1));
+    lunes.setHours(0, 0, 0, 0);
+    return lunes;
+  }
+
+  const semanas = [];
+  let cursorIni = lunesDe(ini);
+
+  while (cursorIni <= fin) {
+    let cursorFin = new Date(cursorIni);
+    cursorFin.setDate(cursorIni.getDate() + 6);
+    cursorFin.setHours(23, 59, 59, 999);
+
+    const formato = d =>
+      `${d.getDate().toString().padStart(2, "0")}-${(d.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}-${d.getFullYear()}`;
+
+    semanas.push({
+      inicio: cursorIni,
+      fin: cursorFin,
+      inicioTxt: formato(cursorIni),
+      finTxt: formato(cursorFin)
+    });
+
+    cursorIni = new Date(cursorIni);
+    cursorIni.setDate(cursorIni.getDate() + 7);
+  }
+
+  return semanas;
+}
+  
+const semanas = generarSemanasDesdePedidos(ventasFiltradas);
+generarTablaRendimientoSemanal(pedidos, activas, semanas);
+
     generarTablaRendimientoSemanal(pedidos, activas);
 
     const categoriasCampanas = obtenerCategoriasCampanas(activas);
