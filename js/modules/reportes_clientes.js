@@ -488,70 +488,86 @@ document.getElementById("tablaTopClientes").innerHTML =
 document.querySelectorAll(".tab-reportes").forEach(btn => {
   btn.addEventListener("click", async () => {
 
-const section = btn.getAttribute("data-section");
-localStorage.setItem("tab_activo_reportes", section);
+    const section = btn.getAttribute("data-section");
+    localStorage.setItem("tab_activo_reportes", section);
 
-document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
-btn.classList.add("active");
+    // Activar tab seleccionado
+    document.querySelectorAll(".tab-reportes").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
 
     const main = document.getElementById("contenidoReportesMain");
     const seccionConfig = document.getElementById("seccion-configuracion");
+    const campanasPanel = document.getElementById("tab-campanas");
 
-    // Ocultar/mostrar secciones
+    // 🔥 SIEMPRE ocultar campañas al cambiar de tab
+    campanasPanel.style.display = "none";
+
+    // ================================
+    // 🔧 TAB CONFIGURACIÓN
+    // ================================
     if (section === "config") {
       main.style.display = "none";
       seccionConfig.style.display = "block";
-      return;
-// Ocultar panel de campañas cuando el tab NO es campanas
-document.getElementById("tab-campanas").style.display = "none";
-
-
-    } else {
-      seccionConfig.style.display = "none";
-      main.style.display = "block";
+      return; // ⛔ detener ejecución
     }
 
-    // Limpiar contenido anterior
+    // ================================
+    // 🔧 Cualquier otro tab (NO config)
+    // ================================
+    seccionConfig.style.display = "none";
+    main.style.display = "block";
+
+    // Mensaje de carga
     main.innerHTML = `<div class="ios-card"><p class="muted">Cargando ${section}...</p></div>`;
 
-    // === Control individual por pestaña ===
+    // ================================
+    // 🔥 CONTROL DE TABS INDIVIDUALES
+    // ================================
     if (section === "clientes") {
       await cargarDashboardClientes();
-    } 
-else if (section === "ventas") {
-  await cargarDashboardVentas();
-}
+    }
+    else if (section === "ventas") {
+      await cargarDashboardVentas();
+    }
     else if (section === "categorias") {
       main.innerHTML = `<div class="ios-card"><p class="muted">🏷️ Reporte de Categorías aún no disponible.</p></div>`;
-    } 
-else if (section === "geografia") {
-  await cargarDashboardGeografia();
-}
+    }
+    else if (section === "geografia") {
+      await cargarDashboardGeografia();
+    }
     else if (section === "tendencias") {
       main.innerHTML = `<div class="ios-card"><p class="muted">📈 Reporte de tendencias en desarrollo.</p></div>`;
-    } 
+    }
+
+    // ================================
+    // 🎯 TAB CAMPAÑAS
+    // ================================
     else if (section === "campanas") {
 
-  // Ocultar main y mostrar el panel de campañas
-  main.style.display = "none";
+      // Ocultar contenido principal
+      main.style.display = "none";
 
-  // Mostrar el contenedor del tab campañas
-  document.getElementById("tab-campanas").style.display = "block";
+      // Mostrar campañas
+      campanasPanel.style.display = "block";
 
-  // Cargar módulo de campañas (cuando terminemos el código)
-  if (typeof cargarDashboardCampanas === "function") {
-    await cargarDashboardCampanas();
-  } else {
-    console.warn("⚠️ Falta cargar módulo reportes_campanas.js");
-  }
+      // Cargar dashboard
+      if (typeof cargarDashboardCampanas === "function") {
+        await cargarDashboardCampanas();
+      } else {
+        console.warn("⚠️ Falta cargar módulo reportes_campanas.js");
+      }
+    }
 
-}
-
+    // ================================
+    // 📊 GENERAL
+    // ================================
     else if (section === "general") {
       main.innerHTML = `<div class="ios-card"><p class="muted">📊 Resumen general en desarrollo.</p></div>`;
     }
+
   });
 });
+
 
   // === Seleccionar pestaña inicial ===
 // === Restaurar último tab activo ===
