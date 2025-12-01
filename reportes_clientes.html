@@ -208,12 +208,35 @@
 
   <!-- Contenido dinámico -->
   <div class="contenido-reportes" id="contenidoReportesMain">
-    <!-- Aquí se cargará el contenido dinámico -->
-     <!-- ========================================= -->
-<!-- 🟣 TAB CAMPAÑAS (PANEL COMPLETO)          -->
-<!-- ========================================= -->
+  </div>
 
-<div id="tab-campanas" class="seccion-reportes" style="display:none;">
+<div id="seccion-configuracion" class="seccion-reportes" style="display:none;">
+<div class="ios-card mt-4 p-3">
+  <h4><i class="fa-solid fa-link"></i> Enlaces CSV</h4>
+  <p class="text-muted small">Pega los enlaces CSV públicos (Google Sheets o Drive) para cada reporte.</p>
+
+  <div class="d-flex flex-column gap-2 mt-3">
+    <div class="d-flex gap-2">
+      <input id="linkClientes" type="url" class="form-control form-control-sm" placeholder="Clientes – enlace CSV">
+      <button id="btnGuardarClientes" class="btn btn-sm btn-primary">💾</button>
+    </div>
+    <div class="d-flex gap-2">
+      <input id="linkVentas" type="url" class="form-control form-control-sm" placeholder="Ventas – enlace CSV">
+      <button id="btnGuardarVentas" class="btn btn-sm btn-primary">💾</button>
+    </div>
+    <div class="d-flex gap-2">
+      <input id="linkPedidos" type="url" class="form-control form-control-sm" placeholder="Pedidos – enlace CSV">
+      <button id="btnGuardarPedidos" class="btn btn-sm btn-primary">💾</button>
+    </div>
+  </div>
+
+  <p id="statusLinks" class="text-muted small mt-2"></p>
+</div>
+
+</div>
+
+
+    <div id="tab-campanas" class="seccion-reportes" style="display:none;">
 
   <div class="ios-card">
     <h2><i class="fa-solid fa-bullhorn"></i> Campañas de Marketing</h2>
@@ -292,38 +315,7 @@
 
 </div>
 
-  </div>
 
-<!-- ========================================= -->
-<!-- 🔧 CENTRO DE DATOS – CARGA Y GESTIÓN LOCAL -->
-<!-- ========================================= -->
-<div id="seccion-configuracion" class="seccion-reportes" style="display:none;">
-<div class="ios-card mt-4 p-3">
-  <h4><i class="fa-solid fa-link"></i> Enlaces CSV</h4>
-  <p class="text-muted small">Pega los enlaces CSV públicos (Google Sheets o Drive) para cada reporte.</p>
-
-  <div class="d-flex flex-column gap-2 mt-3">
-    <div class="d-flex gap-2">
-      <input id="linkClientes" type="url" class="form-control form-control-sm" placeholder="Clientes – enlace CSV">
-      <button id="btnGuardarClientes" class="btn btn-sm btn-primary">💾</button>
-    </div>
-    <div class="d-flex gap-2">
-      <input id="linkVentas" type="url" class="form-control form-control-sm" placeholder="Ventas – enlace CSV">
-      <button id="btnGuardarVentas" class="btn btn-sm btn-primary">💾</button>
-    </div>
-    <div class="d-flex gap-2">
-      <input id="linkPedidos" type="url" class="form-control form-control-sm" placeholder="Pedidos – enlace CSV">
-      <button id="btnGuardarPedidos" class="btn btn-sm btn-primary">💾</button>
-    </div>
-  </div>
-
-  <p id="statusLinks" class="text-muted small mt-2"></p>
-</div>
-
-</div>
-<!-- ========================================= -->
-<!-- 🔚 FIN CENTRO DE DATOS -->
-<!-- ========================================= -->
 
 
 </div>
