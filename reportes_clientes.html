@@ -201,11 +201,95 @@
     <button class="tab-reportes" data-section="geografia"><i class="fa-solid fa-earth-americas"></i> Geografía</button>
     <button class="tab-reportes" data-section="tendencias"><i class="fa-solid fa-chart-area"></i> Tendencias</button>
     <button class="tab-reportes" data-section="config"><i class="fa-solid fa-gear"></i> Configuración</button>
+    
   </aside>
 
   <!-- Contenido dinámico -->
   <div class="contenido-reportes" id="contenidoReportesMain">
     <!-- Aquí se cargará el contenido dinámico -->
+     <!-- ========================================= -->
+<!-- 🟣 TAB CAMPAÑAS (PANEL COMPLETO)          -->
+<!-- ========================================= -->
+
+<div id="tab-campanas" class="seccion-reportes" style="display:none;">
+
+  <div class="ios-card">
+    <h2><i class="fa-solid fa-bullhorn"></i> Campañas de Marketing</h2>
+
+    <!-- 🔷 Selector de campaña -->
+    <div class="d-flex gap-3 mt-3 align-items-center">
+      <div class="w-50">
+        <label class="form-label"><strong>Seleccionar campaña</strong></label>
+        <select id="selectCampanas" class="form-select">
+          <option value="">Cargando campañas...</option>
+        </select>
+      </div>
+
+      <div class="w-50">
+        <label class="form-label"><strong>Rango de fechas</strong></label>
+        <input type="text" id="rangoCampana" class="form-control" placeholder="Seleccione fechas">
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔶 KPIs -->
+  <div id="campanasKPIs" class="metricas-grid mt-3"></div>
+
+  <!-- 🔵 Gráficos -->
+  <div class="ios-card mt-4">
+    <h3>Gráfico de Ventas por Día</h3>
+    <div id="graficoDiasCampana" style="height:300px;"></div>
+  </div>
+
+  <div class="ios-card mt-4">
+    <h3>Evolución Histórica</h3>
+    <div id="graficoHistoricoCampana" style="height:300px;"></div>
+  </div>
+
+  <div class="ios-card mt-4">
+    <h3>Participación por Subcategorías</h3>
+    <div id="graficoSubcategoriasCampana" style="height:300px;"></div>
+  </div>
+
+  <div class="ios-card mt-4">
+    <h3>Top Productos</h3>
+    <div id="graficoProductosCampana" style="height:300px;"></div>
+  </div>
+
+  <!-- 🟢 Tabla Detalle -->
+  <div class="ios-card mt-4">
+    <h3>Detalle de Ventas (SKU)</h3>
+    <div class="table-responsive">
+      <table class="tabla-ios" id="tablaDetalleCampana">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Revenue</th>
+            <th>Categoría</th>
+            <th>Subcategoría</th>
+            <th>Etiquetas</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 🟡 Administración de campañas -->
+  <div class="ios-card mt-4">
+    <h3><i class="fa-solid fa-pen-to-square"></i> Administrar campañas</h3>
+
+    <button id="btnNuevaCampana" class="btn btn-primary btn-sm mt-2">+ Nueva campaña</button>
+
+    <ul id="listaCampanas" class="list-group mt-3">
+      <!-- Se cargan desde Firestore -->
+    </ul>
+  </div>
+
+</div>
+
   </div>
 
 <!-- ========================================= -->
@@ -266,6 +350,8 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
+<script type="module" src="js/modules/campanas_manager.js"></script>
+<script type="module" src="js/modules/reportes_campanas.js"></script>
 <script src="js/modules/reportes_manager.js"></script>
 <script src="js/modules/reportes_clientes.js"></script>
 <script src="js/modules/reportes_geografia.js"></script>
