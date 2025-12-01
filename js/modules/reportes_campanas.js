@@ -613,28 +613,42 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
     const semanaIndex = semanas.findIndex(
       s => fecha >= s.inicio && fecha <= s.fin
     );
-
     if (semanaIndex === -1) return;
 
     p.productos.forEach(prod => {
       const categorias = obtenerSubcategoriasProducto(prod);
+      if (categorias.length === 0) return;
 
-      categorias.forEach(cat => {
-        campanas.forEach(camp => {
-if (
-  coincideCategoria(camp.subcategoria || "", cat) ||
-  coincideCategoria(camp.etiquetas || "", cat) ||
-  coincideCategoria(camp.nombre || "", cat)
-) {
-  salida[camp.nombre][semanaIndex].cantidad += prod.cantidad;
-          }
-        });
+      // 🔥 Encontrar campaña más relevante
+      let mejorCampania = null;
+      let mejorScore = 0;
+
+      campanas.forEach(camp => {
+        const score = categorias.reduce((acc, cat) => {
+          let s = 0;
+          if (coincideCategoria(camp.subcategoria || "", cat)) s++;
+          if (coincideCategoria(camp.etiquetas || "", cat)) s++;
+          if (coincideCategoria(camp.nombre || "", cat)) s++;
+          return acc + s;
+        }, 0);
+
+        if (score > mejorScore) {
+          mejorScore = score;
+          mejorCampania = camp.nombre.trim();
+        }
       });
+
+      // Si no coincide con ninguna campaña → ignorar
+      if (!mejorCampania || mejorScore === 0) return;
+
+      // ✔ Sumamos SOLO a la campaña más probable
+      salida[mejorCampania][semanaIndex].cantidad += prod.cantidad;
     });
   });
 
   return salida;
 }
+
 
 
 function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
