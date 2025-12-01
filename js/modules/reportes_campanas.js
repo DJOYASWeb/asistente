@@ -66,3 +66,25 @@ export function parseFecha(str) {
   const [H, M, S] = hora.split(":").map(Number);
   return new Date(y, m - 1, d, H, M, S);
 }
+
+
+// ================================================================
+// 🟣 FUNCIÓN PRINCIPAL TEMPORAL – evitar errores hasta cargar el módulo completo
+// ================================================================
+window.cargarDashboardCampanas = async function () {
+
+  const panel = document.getElementById("tab-campanas");
+  if (!panel) {
+    console.warn("⚠️ No se encontró el panel de campañas en el DOM");
+    return;
+  }
+
+  // Limpia contenido dinámico por si acaso
+  panel.querySelector("#campanasKPIs").innerHTML = `
+    <div class="ios-card"><p class="muted">Cargando campaña...</p></div>
+  `;
+
+  console.log("🟣 cargarDashboardCampanas() ejecutada correctamente.");
+};
+
+
