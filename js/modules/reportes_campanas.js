@@ -484,15 +484,8 @@ function generarGraficoSemanalCategorias(pedidos) {
 
 
 
-
 function generarDatosSemanalCategorias(pedidos) {
   const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-
-  // estructura final:
-  // {
-  //   Aros: { Lun: 10, Mar: 5, ... },
-  //   Conjuntos: { Lun: 0, Mar: 9, ... },
-  // }
   const mapa = {};
 
   pedidos.forEach(p => {
@@ -501,10 +494,14 @@ function generarDatosSemanalCategorias(pedidos) {
     const fecha = new Date(p.fecha);
     const dia = diasSemana[fecha.getDay() === 0 ? 6 : fecha.getDay() - 1];
 
-    // recorrer productos dentro del pedido
     p.productos.forEach(prod => {
-      const categorias = prod.subcategoria.split(" ").filter(Boolean);
-      if (categorias.length === 0) return;
+      if (!prod.subcategoria) return;
+
+      // ✔ CATEGORÍAS CORRECTAS: separadas por coma
+      const categorias = prod.subcategoria
+        .split(",")
+        .map(c => c.trim())
+        .filter(c => c.length > 0);
 
       categorias.forEach(cat => {
         if (!mapa[cat]) {
@@ -522,6 +519,8 @@ function generarDatosSemanalCategorias(pedidos) {
   return mapa;
 }
 
+
+
 function obtenerCategoriasCampanas(campanas) {
   const set = new Set();
 
@@ -538,7 +537,6 @@ function obtenerCategoriasCampanas(campanas) {
   return Array.from(set);
 }
 
-
 function generarDatosSemanalCategoriasCampanas(pedidos, categoriasPermitidas) {
   const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
   const mapa = {};
@@ -550,26 +548,29 @@ function generarDatosSemanalCategoriasCampanas(pedidos, categoriasPermitidas) {
     const dia = diasSemana[fecha.getDay() === 0 ? 6 : fecha.getDay() - 1];
 
     p.productos.forEach(prod => {
+      if (!prod.subcategoria) return;
 
-      // ✔ USAR SOLO SUBCATEGORÍA
-      const cat = (prod.subcategoria || "").trim();
-      if (!cat) return;
+      const categorias = prod.subcategoria
+        .split(",")
+        .map(c => c.trim())
+        .filter(c => c.length > 0);
 
-      // ✔ Coincide si está en la lista de campañas activas
-      const coincide = categoriasPermitidas.some(key =>
-        cat.toLowerCase() === key.toLowerCase()
-      );
+      categorias.forEach(cat => {
+        const coincide = categoriasPermitidas.some(key =>
+          key.toLowerCase() === cat.toLowerCase()
+        );
 
-      if (!coincide) return;
+        if (!coincide) return;
 
-      if (!mapa[cat]) {
-        mapa[cat] = {
-          Lun: 0, Mar: 0, Mié: 0,
-          Jue: 0, Vie: 0, Sáb: 0, Dom: 0
-        };
-      }
+        if (!mapa[cat]) {
+          mapa[cat] = {
+            Lun: 0, Mar: 0, Mié: 0,
+            Jue: 0, Vie: 0, Sáb: 0, Dom: 0
+          };
+        }
 
-      mapa[cat][dia] += prod.cantidad;
+        mapa[cat][dia] += prod.cantidad;
+      });
     });
   });
 
