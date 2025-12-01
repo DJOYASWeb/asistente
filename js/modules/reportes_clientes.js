@@ -106,6 +106,9 @@ else if (activo === "tendencias") {
 else if (activo === "general") {
   await cargarDashboardGeneral?.();
 }
+else if (activo === "campanas") {
+  await cargarDashboardCampanas();
+}
 
 
     // Cerrar menú
