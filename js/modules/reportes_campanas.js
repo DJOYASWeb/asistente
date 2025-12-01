@@ -192,19 +192,122 @@ async function cargarDashboardCampanas() {
 // Exponer función global
 window.cargarDashboardCampanas = cargarDashboardCampanas;
 
+function limpiarDiv(id) {
+  const el = document.querySelector(id);
+  if (el) el.innerHTML = "";
+}
+
 
 function generarGraficoDias(data) {
-  console.log("⚠️ generarGraficoDias aún no implementado");
+  const porDia = {};
+
+  data.forEach(v => {
+    if (!v.fecha) return;
+    if (!porDia[v.fecha]) porDia[v.fecha] = 0;
+    porDia[v.fecha] += v.total;
+  });
+
+  const fechas = Object.keys(porDia).sort();
+  const valores = fechas.map(f => porDia[f]);
+
+  new ApexCharts(
+    document.querySelector("#graficoDiasCampana"),
+    {
+      chart: { type: "line", height: 300 },
+      series: [{ name: "Revenue", data: valores }],
+      xaxis: { categories: fechas },
+      stroke: { curve: "smooth", width: 3 },
+      yaxis: { labels: { formatter: v => "$" + v.toLocaleString("es-CL") } }
+    }
+  ).render();
 }
 
 function generarGraficoHistorico(data) {
-  console.log("⚠️ generarGraficoHistorico aún no implementado");
+  const porDia = {};
+
+  data.forEach(v => {
+    if (!v.fecha) return;
+    if (!porDia[v.fecha]) porDia[v.fecha] = 0;
+    porDia[v.fecha] += v.total;
+  });
+
+  const fechas = Object.keys(porDia).sort();
+
+  let acumulado = 0;
+  const valores = fechas.map(f => {
+    acumulado += porDia[f];
+    return acumulado;
+  });
+
+  new ApexCharts(
+    document.querySelector("#graficoHistoricoCampana"),
+    {
+      chart: { type: "area", height: 300 },
+      series: [{ name: "Revenue acumulado", data: valores }],
+      xaxis: { categories: fechas },
+      stroke: { curve: "smooth" },
+      fill: { opacity: 0.3 },
+      yaxis: { labels: { formatter: v => "$" + v.toLocaleString("es-CL") } }
+    }
+  ).render();
 }
+
 
 function generarGraficoSubcategorias(data) {
-  console.log("⚠️ generarGraficoSubcategorias aún no implementado");
+  const mapa = {};
+
+  data.forEach(v => {
+    const cats = v.categorias.split(" ");
+    cats.forEach(c => {
+      if (!c) return;
+      if (!mapa[c]) mapa[c] = 0;
+      mapa[c] += v.total;
+    });
+  });
+
+  const labels = Object.keys(mapa);
+  const valores = labels.map(l => mapa[l]);
+
+  new ApexCharts(
+    document.querySelector("#graficoSubcategoriasCampana"),
+    {
+      chart: { type: "donut", height: 300 },
+      labels,
+      series: valores,
+      legend: { position: "bottom" }
+    }
+  ).render();
 }
 
+
 function generarGraficoProductos(data) {
-  console.log("⚠️ generarGraficoProductos aún no implementado");
+  const mapa = {};
+
+  data.forEach(v => {
+    if (!v.producto) return;
+    if (!mapa[v.producto]) mapa[v.producto] = 0;
+    mapa[v.producto] += v.total;
+  });
+
+  const top = Object.entries(mapa)
+    .sort((a,b) => b[1] - a[1])
+    .slice(0, 10);
+
+  const labels = top.map(t => t[0]);
+  const valores = top.map(t => t[1]);
+
+  new ApexCharts(
+    document.querySelector("#graficoProductosCampana"),
+    {
+      chart: { type: "bar", height: 300 },
+      series: [{ name: "Revenue", data: valores }],
+      xaxis: { categories: labels },
+      plotOptions: {
+        bar: { horizontal: true }
+      },
+      dataLabels: { enabled: false }
+    }
+  ).render();
 }
+
+
