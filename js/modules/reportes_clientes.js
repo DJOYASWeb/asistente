@@ -542,21 +542,29 @@ document.querySelectorAll(".tab-reportes").forEach(btn => {
     // ================================
     // 🎯 TAB CAMPAÑAS
     // ================================
-    else if (section === "campanas") {
+else if (section === "campanas") {
 
-      // Ocultar contenido principal
-      main.style.display = "none";
+  // Ocultar contenido principal
+  main.style.display = "none";
 
-      // Mostrar campañas
-      campanasPanel.style.display = "block";
+  // Mostrar el contenedor de campañas
+  campanasPanel.style.display = "block";
 
-      // Cargar dashboard
-      if (typeof cargarDashboardCampanas === "function") {
-        await cargarDashboardCampanas();
-      } else {
-        console.warn("⚠️ Falta cargar módulo reportes_campanas.js");
-      }
-    }
+  // 1️⃣ Cargar select de campañas
+  if (typeof cargarSelectorCampanas === "function") {
+    await cargarSelectorCampanas();
+  } else {
+    console.warn("⚠️ Falta cargar función cargarSelectorCampanas");
+  }
+
+  // 2️⃣ Cargar dashboard (revenue, kpIs, gráficos, tabla…)
+  if (typeof cargarDashboardCampanas === "function") {
+    await cargarDashboardCampanas();
+  } else {
+    console.warn("⚠️ Falta cargar función cargarDashboardCampanas");
+  }
+}
+
 
     // ================================
     // 📊 GENERAL
