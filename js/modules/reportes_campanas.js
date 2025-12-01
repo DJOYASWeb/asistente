@@ -118,3 +118,8 @@ async function cargarDashboardCampanas() {
       </div>`;
   }
 }
+
+function generarGraficoDias(data) { /* luego lo llenamos */ }
+function generarGraficoHistorico(data) { /* luego lo llenamos */ }
+function generarGraficoSubcategorias(data) { /* luego lo llenamos */ }
+function generarGraficoProductos(data) { /* luego lo llenamos */ }
