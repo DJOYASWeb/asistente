@@ -1,3 +1,53 @@
+// ===========================================================
+// 📌 CARGAR SELECTOR DE CAMPAÑAS DESDE CSV
+// ===========================================================
+async function cargarSelectorCampanas() {
+  try {
+    const urlCampanas = localStorage.getItem("csv_campanas");
+    if (!urlCampanas) {
+      console.warn("⚠️ No hay CSV de campañas configurado.");
+      return;
+    }
+
+    const txt = await fetch(urlCampanas).then(r => r.text());
+    const raw = Papa.parse(txt, { header: true, skipEmptyLines: true }).data;
+
+    const select = document.getElementById("selectCampanas");
+    select.innerHTML = ""; // limpiar options
+
+    // Crear opciones
+    raw.forEach(c => {
+      const opcion = document.createElement("option");
+      opcion.value = c.id;
+
+      const inicio = c.fecha_inicio || "-";
+      const fin = c.fecha_fin || "-";
+
+      opcion.textContent = `${c.nombre} (${inicio} → ${fin})`;
+
+      select.appendChild(opcion);
+    });
+
+    // Restaurar última campaña seleccionada
+    const last = localStorage.getItem("campana_activa");
+    if (last) select.value = last;
+
+    // Cuando cambia, actualizar dashboard
+    select.addEventListener("change", () => {
+      const id = select.value;
+      localStorage.setItem("campana_activa", id);
+      cargarDashboardCampanas();
+    });
+
+  } catch (err) {
+    console.error("❌ Error cargando selector de campañas:", err);
+  }
+}
+
+// Exponer global
+window.cargarSelectorCampanas = cargarSelectorCampanas;
+
+
 async function cargarDashboardCampanas() {
   try {
 
