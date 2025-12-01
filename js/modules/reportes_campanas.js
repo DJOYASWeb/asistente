@@ -176,21 +176,36 @@ async function cargarDashboardCampanas() {
 return p.productos.some(prod => {
   if (!prod.subcategoria) return false;
 
+  // Normalizar
   const venta = prod.subcategoria
     .toLowerCase()
-    .replace(/\s+de\s+/g, " ")  // "Aros de Plata" → "Aros Plata"
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-  const camp = sub
+  const campania = sub
     .toLowerCase()
-    .replace(/\s+de\s+/g, " ")  // "Conjuntos de Plata" → "Conjuntos Plata"
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-  // Match inteligente
-  return venta.includes(camp) || camp.includes(venta);
+  // Stopwords innecesarias
+  const stopwords = new Set([
+    "de", "del", "la", "el", "los", "las",
+    "por", "para", "mayor", "en", "y",
+    "joyas", "joya"
+  ]);
+
+  // Tokenizar
+  const tVenta = venta.split(" ").filter(t => t && !stopwords.has(t));
+  const tCamp = campania.split(" ").filter(t => t && !stopwords.has(t));
+
+  // Intersección (cualquier palabra coincide)
+  return tCamp.some(t => tVenta.includes(t));
 });
+
 
 
       });
@@ -590,6 +605,35 @@ function generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas) {
     plotOptions: { bar: { horizontal: false, borderRadius: 3 }},
     yaxis: { labels: { formatter: v => formatoCL(v) }}
   }).render();
+}
+
+function normalizarTexto(str) {
+  return str
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quitar tildes
+    .replace(/[^a-z0-9\s]/g, " ") // quitar símbolos
+    .replace(/\s+/g, " ") // espacios dobles
+    .trim();
+}
+
+const STOPWORDS = new Set([
+  "de", "del", "la", "el", "los", "las", "por", "para", "mayor",
+  "joyas", "joya", "plata925", "925", "en", "y", "por"
+]);
+
+function tokensCategoria(str) {
+  const limpio = normalizarTexto(str);
+  return limpio
+    .split(" ")
+    .filter(tok => tok && !STOPWORDS.has(tok));
+}
+
+function coincideCategoria(campania, venta) {
+  const tokCamp = tokensCategoria(campania);
+  const tokVenta = tokensCategoria(venta);
+
+  // Intersección
+  return tokCamp.some(tok => tokVenta.includes(tok));
 }
 
 
