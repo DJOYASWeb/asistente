@@ -173,9 +173,19 @@ async function cargarDashboardCampanas() {
         const fp = new Date(p.fecha);
         if (fp < fi || fp > ff) return false;
 
-        return p.productos.some(prod =>
-          prod.subcategoria?.toLowerCase() === sub.toLowerCase()
-        );
+return p.productos.some(prod => {
+  if (!prod.subcategoria) return false;
+
+  const categoriasVenta = prod.subcategoria
+    .toLowerCase()
+    .split(" ")
+    .filter(Boolean);
+
+  const subCampana = sub.toLowerCase().trim();
+
+  return categoriasVenta.includes(subCampana);
+});
+
       });
 
       return tieneVentas;
