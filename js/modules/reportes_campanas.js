@@ -2,13 +2,14 @@ function agruparVentasPorPedido(data) {
   const mapa = {};
 
   data.forEach(v => {
-    const id = v["ID del pedido"];
+    const id = v.id; // ✔ AHORA sí usamos la propiedad correcta
     if (!id) return;
 
     if (!mapa[id]) {
       mapa[id] = {
-        total: parseFloat(v["Total"] || 0),
+        id,
         fecha: v.fecha,
+        total: v.total,
         productos: []
       };
     }
