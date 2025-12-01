@@ -637,5 +637,79 @@ function coincideCategoria(campania, venta) {
   return tokCamp.some(tok => tokVenta.includes(tok));
 }
 
+function obtenerSubcategoriasProducto(prod) {
+  if (!prod.subcategoria) return [];
 
+  return prod.subcategoria
+    .split(",")       // ⭐ COMA EN VEZ DE ESPACIO
+    .map(c => c.trim())
+    .filter(c => c.length > 0);
+}
 
+function generarRendimientoSemanal(pedidos, campanas, semanas) {
+  const salida = {};
+
+  campanas.forEach(c => {
+    const nombre = c.nombre.trim();
+    salida[nombre] = semanas.map(() => ({ cantidad: 0 }));
+  });
+
+  pedidos.forEach(p => {
+    if (!p.fecha) return;
+
+    const fecha = new Date(p.fecha);
+    const semanaIndex = semanas.findIndex(
+      s => fecha >= s.inicio && fecha <= s.fin
+    );
+    if (semanaIndex === -1) return;
+
+    p.productos.forEach(prod => {
+      const categorias = obtenerSubcategoriasProducto(prod);
+
+      categorias.forEach(cat => {
+        campanas.forEach(camp => {
+          if (coincideCategoriaCampania(camp.subcategoria, cat) ||
+              coincideCategoriaCampania(camp.etiquetas, cat) ||
+              coincideCategoriaCampania(camp.nombre, cat)) 
+          {
+            salida[camp.nombre][semanaIndex].cantidad += prod.cantidad;
+          }
+        });
+      });
+    });
+
+  });
+
+  return salida;
+}
+
+function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
+  const data = generarRendimientoSemanal(pedidos, campanas, semanas);
+
+  let html = `
+    <table class="tabla-ios">
+      <thead>
+        <tr>
+          <th>Campaña</th>
+          ${semanas.map(s => 
+            `<th>${s.inicioTxt} / ${s.finTxt}</th>`
+          ).join("")}
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  Object.keys(data).forEach(nombre => {
+    html += `<tr><td><strong>${nombre}</strong></td>`;
+
+    data[nombre].forEach(item => {
+      html += `<td>${item.cantidad}</td>`;
+    });
+
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+
+  document.getElementById("tablaRendimientoSemanal").innerHTML = html;
+}
