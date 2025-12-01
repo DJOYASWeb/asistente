@@ -120,7 +120,7 @@ async function cargarDashboardCampanas() {
         sku: v["SKU"],
         producto: v["Nombre del producto"],
         cantidad: parseInt(v["Cantidad de productos"] || 0),
-subcategoria: v["Categorías"] || v["subcategoria"] || v["Subcategoria"] || ""
+        subcategoria: v["Categorías"] || v["subcategoria"] || v["Subcategoria"] || ""
 
       };
     });
