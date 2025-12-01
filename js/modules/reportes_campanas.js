@@ -196,6 +196,17 @@ async function cargarDashboardCampanas() {
 // ============================================================
 generarGraficoSemanalCategorias(pedidos);
 
+// ============================================================
+// 🔥 GENERAR GRÁFICO SEMANAL POR CATEGORÍAS (SOLO CAMPAÑAS ACTIVAS)
+// ============================================================
+
+// 1. Obtener categorías asociadas a campañas activas
+const categoriasCampanas = obtenerCategoriasCampanas(activas);
+
+// 2. Generar gráfico semanal comparativo
+generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas);
+
+
 
   } catch (err) {
     console.error("❌ Error campañas:", err);
@@ -358,3 +369,86 @@ function generarDatosSemanalCategorias(pedidos) {
 
   return mapa;
 }
+
+function obtenerCategoriasCampanas(campanas) {
+  const set = new Set();
+
+  campanas.forEach(c => {
+    if (c.categoria_principal) set.add(c.categoria_principal.trim());
+    if (c.subcategoria) set.add(c.subcategoria.trim());
+
+    if (c.etiquetas) {
+      c.etiquetas.split(" ").forEach(e => {
+        if (e.trim()) set.add(e.trim());
+      });
+    }
+  });
+
+  return Array.from(set);
+}
+
+
+function generarDatosSemanalCategoriasCampanas(pedidos, categoriasPermitidas) {
+  const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+  const mapa = {};
+
+  pedidos.forEach(p => {
+    if (!p.fecha) return;
+
+    const fecha = new Date(p.fecha);
+    const dia = diasSemana[fecha.getDay() === 0 ? 6 : fecha.getDay() - 1];
+
+    p.productos.forEach(prod => {
+      const cats = prod.categorias.split(" ").map(c => c.trim()).filter(Boolean);
+
+      cats.forEach(cat => {
+        // ⛔ Solo incluir categorías pertenecientes a campañas activas
+        if (!categoriasPermitidas.includes(cat)) return;
+
+        if (!mapa[cat]) {
+          mapa[cat] = {
+            Lun: 0, Mar: 0, Mié: 0, 
+            Jue: 0, Vie: 0, Sáb: 0, Dom: 0
+          };
+        }
+
+        mapa[cat][dia] += prod.cantidad;
+      });
+    });
+  });
+
+  return mapa;
+}
+
+function generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas) {
+  const div = document.querySelector("#graficoSemanalCategorias");
+  if (!div) return;
+  div.innerHTML = "";
+
+  const mapa = generarDatosSemanalCategoriasCampanas(pedidos, categoriasCampanas);
+  const categorias = Object.keys(mapa);
+
+  if (categorias.length === 0) {
+    div.innerHTML = "<p class='muted'>No hay ventas asociadas a campañas en este período.</p>";
+    return;
+  }
+
+  const dias = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
+  const series = categorias.map(cat => ({
+    name: cat,
+    data: dias.map(d => mapa[cat][d])
+  }));
+
+  new ApexCharts(div, {
+    chart: { type: "bar", stacked: true, height: 380 },
+    series,
+    xaxis: { categories: dias },
+    tooltip: { y: { formatter: v => formatoCL(v) }},
+    plotOptions: { bar: { horizontal: false, borderRadius: 3 }},
+    yaxis: { labels: { formatter: v => formatoCL(v) }}
+  }).render();
+}
+
+
+
