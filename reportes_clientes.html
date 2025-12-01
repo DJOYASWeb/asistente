@@ -241,50 +241,26 @@
   </div>
 </div>
 
-          <!-- ▶ CAMPANAS -->
-<div id="tab-campanas" class="seccion-reportes" style="display:none;">
+<div id="tab-campanas" class="seccion-reportes" style="display: none;">
 
   <div class="ios-card">
     <h2><i class="fa-solid fa-bullhorn"></i> Campañas de Marketing</h2>
 
-<div class="w-50">
-  <label class="form-label"><strong>Seleccionar campaña</strong></label>
-  <select id="selectCampanas" class="form-select">
-    <option value="">Todas las campañas</option>
-  </select>
+    <div class="d-flex gap-3 mt-3 align-items-center">
+      <div class="w-50">
+        <label class="form-label"><strong>Seleccionar campaña</strong></label>
+        <select id="selectCampanas" class="form-select">
+          <option value="">Todas las campañas</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔥 Aquí se insertará SOLO la lista -->
+  <div id="bloqueCampanasActivas"></div>
+
 </div>
 
-  </div>
-
-  <div id="campanasKPIs" class="metricas-grid mt-3"></div>
-
-  <div class="ios-card mt-4">
-    <h3>Gráfico de Ventas por Día</h3>
-    <div id="graficoDiasCampana" style="height:300px;"></div>
-  </div>
-
-  <div class="ios-card mt-4">
-    <h3>Evolución Histórica</h3>
-    <div id="graficoHistoricoCampana" style="height:300px;"></div>
-  </div>
-
-  <div class="ios-card mt-4">
-    <h3>Participación por Subcategorías</h3>
-    <div id="graficoSubcategoriasCampana" style="height:300px;"></div>
-  </div>
-
-  <div class="ios-card mt-4">
-    <h3>Top Productos</h3>
-    <div id="graficoProductosCampana" style="height:300px;"></div>
-  </div>
-
-  <div class="ios-card mt-4">
-    <h3><i class="fa-solid fa-pen-to-square"></i> Administrar campañas</h3>
-    <button id="btnNuevaCampana" class="btn btn-primary btn-sm mt-2">+ Nueva campaña</button>
-    <ul id="listaCampanas" class="list-group mt-3"></ul>
-  </div>
-
-</div>
 
         </div> <!-- cierre contenido-reportes -->
       </div> <!-- cierre panel-reportes -->
