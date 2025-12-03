@@ -2786,6 +2786,7 @@ body.sidebar-mini .main-content {
   cursor: pointer;
   color: var(--text);
   transition: background .2s;
+    list-style: none;
 }
 
 .sidebar-doc-list li:hover {
@@ -2796,3 +2797,4 @@ body.sidebar-mini .main-content {
   background: #000;
   color: #fff;
 }
+
