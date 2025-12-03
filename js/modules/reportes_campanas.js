@@ -750,124 +750,6 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
 
 
 
-
-
-
-
-
-
-
-
-//pdf
-
-async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF();
-
-  // TÍTULO
-  pdf.setFontSize(20);
-  pdf.text("Reporte Mensual de Marketing", 14, 20);
-
-  // FECHA ACTUAL
-  pdf.setFontSize(10);
-  pdf.text("Generado: " + new Date().toLocaleString("es-CL"), 14, 28);
-
-  // ============================
-  // SECCIÓN 1 — VENTAS TOTALES
-  // ============================
-  let totalVentas = 0;
-  let totalProductos = 0;
-
-  pedidos.forEach(p => {
-    totalVentas += p.total;
-    p.productos.forEach(x => totalProductos += x.cantidad);
-  });
-
-  pdf.setFontSize(14);
-  pdf.text("1. Resumen General", 14, 40);
-
-  pdf.setFontSize(11);
-  pdf.text(`• Ventas totales: $${totalVentas.toLocaleString("es-CL")}`, 14, 48);
-  pdf.text(`• Productos vendidos: ${totalProductos.toLocaleString("es-CL")}`, 14, 54);
-  pdf.text(`• Campañas activas: ${campanas.length}`, 14, 60);
-
-  // ============================
-  // SECCIÓN 2 — RENDIMIENTO CAMPAÑAS
-  // ============================
-  pdf.setFontSize(14);
-  pdf.text("2. Rendimiento por Campaña", 14, 75);
-
-  let y = 85;
-
-  campanas.forEach(c => {
-    const fi = c.fecha_inicio;
-    const ff = c.fecha_fin;
-
-    pdf.setFontSize(12);
-    pdf.text(`${c.nombre} (${fi} → ${ff})`, 14, y);
-
-    y += 6;
-
-    const totalCamp = pedidos.reduce((sum, p) => {
-      const fecha = new Date(p.fecha);
-      const fiD = new Date(fi);
-      const ffD = new Date(ff);
-
-      if (fecha < fiD || fecha > ffD) return sum;
-
-      return sum + p.productos.reduce((s, prod) => {
-        return prod.subcategoria?.toLowerCase().includes(c.subcategoria.toLowerCase())
-          ? s + prod.cantidad
-          : s;
-      }, 0);
-    }, 0);
-
-    pdf.setFontSize(11);
-    pdf.text(`• Total productos vendidos: ${totalCamp}`, 20, y);
-
-    y += 8;
-    if (y > 270) { pdf.addPage(); y = 20; }
-  });
-
-  // ============================
-  // SECCIÓN 3 — TOP PRODUCTOS
-  // ============================
-  pdf.addPage();
-  pdf.setFontSize(14);
-  pdf.text("3. Top Productos Vendidos", 14, 20);
-
-  const mapa = {};
-
-  pedidos.forEach(p => {
-    p.productos.forEach(prod => {
-      if (!mapa[prod.producto]) mapa[prod.producto] = 0;
-      mapa[prod.producto] += prod.cantidad;
-    });
-  });
-
-  const top = Object.entries(mapa)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 15);
-
-  let y2 = 35;
-
-  top.forEach(([producto, cant]) => {
-    pdf.setFontSize(11);
-    pdf.text(`• ${producto}: ${cant}`, 14, y2);
-    y2 += 7;
-  });
-
-  // ============================
-  // GUARDAR PDF
-  // ============================
-  pdf.save("reporte_marketing.pdf");
-}
-
-
-
-
-
-
 // ===============================================
 // 📤 EXPORTADOR XLSX — SOLO "Aros de Plata"
 // ===============================================
@@ -915,39 +797,6 @@ function exportarArosDePlataXLSX(pedidos) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function obtenerProductosQueGraficoCuentaComoAros(pedidos) {
   const normalizar = str => (str || "")
     .toLowerCase()
@@ -989,4 +838,227 @@ function exportarProductosQueElGraficoCuenta(pedidos) {
   XLSX.utils.book_append_sheet(wb, ws, "Aros que cuenta el gráfico");
 
   XLSX.writeFile(wb, "aros_grafico.xlsx");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: "landscape", unit: "pt" });
+
+  // -------------------------------
+  //  CONFIGURACIÓN TEMA APPLE CLARO
+  // -------------------------------
+  const colorTitulo = "#000000";
+  const colorTexto = "#6E6E73";
+  const colorLinea = "#E5E5EA";
+  const colorAccent = "#007AFF"; // azul iOS
+
+  pdf.setFont("helvetica", "normal");
+
+  // ================================
+  //  PAGINA 1 — PORTADA
+  // ================================
+
+  pdf.setFontSize(28);
+  pdf.setTextColor(colorTitulo);
+  pdf.text("Reporte Mensual de Marketing", 40, 80);
+
+  pdf.setFontSize(16);
+  pdf.setTextColor(colorTexto);
+  pdf.text("Noviembre 2025", 40, 110);
+
+  pdf.setFontSize(12);
+  pdf.text("Joyas de Plata — E-commerce Analytics Dashboard", 40, 150);
+
+  pdf.setFontSize(10);
+  pdf.text("Generado automáticamente el " + new Date().toLocaleDateString("es-CL"), 40, 170);
+
+  // línea decorativa Apple
+  pdf.setDrawColor(colorLinea);
+  pdf.setLineWidth(1);
+  pdf.line(40, 190, 780, 190);
+
+  // ================================
+  //  PAGINA 2 — RESUMEN EJECUTIVO
+  // ================================
+  pdf.addPage();
+
+  pdf.setFontSize(22);
+  pdf.setTextColor(colorTitulo);
+  pdf.text("1. Resumen Ejecutivo", 40, 60);
+
+  // Datos
+  let totalVentas = 0;
+  let totalProductos = 0;
+
+  pedidos.forEach(p => {
+    totalVentas += p.total;
+    p.productos.forEach(x => totalProductos += x.cantidad);
+  });
+
+  const ticketPromedio = totalProductos > 0 ? totalVentas / totalProductos : 0;
+
+  const resumen = [
+    `Ventas totales del mes: $${totalVentas.toLocaleString("es-CL")}`,
+    `Total productos vendidos: ${totalProductos.toLocaleString("es-CL")}`,
+    `Ticket promedio: $${ticketPromedio.toLocaleString("es-CL")}`,
+    `Campañas activas: ${campanas.length}`,
+    `Día con mayores ventas: (pendiente)`,
+    `Categoría más vendida: (pendiente)`
+  ];
+
+  pdf.setFontSize(13);
+  let y = 100;
+
+  resumen.forEach(item => {
+    pdf.setTextColor(colorAccent);
+    pdf.text("▨", 40, y);
+
+    pdf.setTextColor(colorTexto);
+    pdf.text(item, 55, y);
+
+    y += 26;
+  });
+
+  // ================================
+  //  PAGINA 3 — RENDIMIENTO CAMPAÑAS
+  // ================================
+  pdf.addPage();
+
+  pdf.setFontSize(22);
+  pdf.setTextColor(colorTitulo);
+  pdf.text("2. Rendimiento por campaña", 40, 60);
+
+  // Tabla estilo Apple
+  pdf.setFontSize(13);
+  pdf.setTextColor(colorTexto);
+
+  let ty = 100;
+
+  pdf.text("Campaña", 40, ty);
+  pdf.text("Rango", 170, ty);
+  pdf.text("Vendidos", 340, ty);
+  pdf.text("% del mes", 440, ty);
+
+  pdf.setDrawColor(colorLinea);
+  pdf.line(40, ty + 10, 780, ty + 10);
+
+  const totalMes = totalProductos;
+
+  ty += 40;
+
+  campanas.forEach(c => {
+    const fi = new Date(c.fecha_inicio);
+    const ff = new Date(c.fecha_fin);
+
+    let vendidos = 0;
+
+    pedidos.forEach(p => {
+      const fecha = new Date(p.fecha);
+      if (fecha >= fi && fecha <= ff) {
+        p.productos.forEach(prod => {
+          if (prod.subcategoria?.toLowerCase().includes(c.subcategoria.toLowerCase())) {
+            vendidos += prod.cantidad;
+          }
+        });
+      }
+    });
+
+    const pct = totalMes > 0 ? (vendidos / totalMes) * 100 : 0;
+
+    pdf.text(c.nombre, 40, ty);
+    pdf.text(`${c.fecha_inicio} → ${c.fecha_fin}`, 170, ty);
+    pdf.text(vendidos.toString(), 350, ty);
+    pdf.text(pct.toFixed(1) + "%", 450, ty);
+
+    ty += 28;
+  });
+
+  // ================================
+  //  PAGINA 4 — TOP PRODUCTOS
+  // ================================
+  pdf.addPage();
+
+  pdf.setFontSize(22);
+  pdf.setTextColor(colorTitulo);
+  pdf.text("3. Top Productos del Mes", 40, 60);
+
+  let map = {};
+
+  pedidos.forEach(p => {
+    p.productos.forEach(prod => {
+      if (!map[prod.producto]) map[prod.producto] = 0;
+      map[prod.producto] += prod.cantidad;
+    });
+  });
+
+  const top = Object.entries(map)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15);
+
+  pdf.setFontSize(13);
+  pdf.setTextColor(colorTexto);
+
+  let ry = 100;
+
+  let num = 1;
+  top.forEach(([nombre, cant]) => {
+    pdf.setTextColor(colorAccent);
+    pdf.text(num + ".", 40, ry);
+
+    pdf.setTextColor(colorTexto);
+    pdf.text(`${nombre} — ${cant}`, 60, ry);
+
+    ry += 26;
+    num++;
+  });
+
+  // ================================
+  //  PAGINA 5 — AROS DE PLATA
+  // ================================
+
+  pdf.addPage();
+  pdf.setFontSize(22);
+  pdf.setTextColor(colorTitulo);
+  pdf.text("4. Análisis: Aros de Plata", 40, 60);
+
+  let totalAros = 0;
+
+  pedidos.forEach(p => {
+    p.productos.forEach(prod => {
+      if (prod.subcategoria?.toLowerCase().includes("aros de plata")) {
+        totalAros += prod.cantidad;
+      }
+    });
+  });
+
+  const aros = [
+    `Total vendidos: ${totalAros.toLocaleString("es-CL")}`,
+    `Participación en el mes: ${(totalAros / totalMes * 100).toFixed(1)}%`
+  ];
+
+  let ay = 100;
+  aros.forEach(item => {
+    pdf.setTextColor(colorAccent);
+    pdf.text("▨", 40, ay);
+
+    pdf.setTextColor(colorTexto);
+    pdf.text(item, 55, ay);
+
+    ay += 26;
+  });
+
+  pdf.save("reporte_marketing.pdf");
 }
