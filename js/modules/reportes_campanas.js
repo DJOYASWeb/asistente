@@ -178,7 +178,8 @@ document.getElementById("btnExportarGrafico").onclick = () => {
     // ==========================
     // 6) AGRUPAR PEDIDOS (ANTES DE FILTRAR CAMPAÑAS)
     // ==========================
-    const pedidos = agruparVentasPorPedido(ventasFiltradas);
+window.pedidos = agruparVentasPorPedido(ventasFiltradas);
+
     // Activar botón exportador
 const btn = document.getElementById("btnExportarAros");
 if (btn) {
