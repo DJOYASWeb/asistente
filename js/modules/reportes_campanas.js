@@ -851,212 +851,176 @@ function exportarProductosQueElGraficoCuenta(pedidos) {
 
 
 
-async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation: "landscape", unit: "pt" });
+// ============================================================
+// FUNCIÓN AUXILIAR PARA CAPTURAR GRÁFICOS COMO IMAGEN
+// ============================================================
+async function capturarGraficoAImagen(selector) {
+  const el = document.querySelector(selector);
+  if (!el) return null;
 
-  // -------------------------------
-  //  CONFIGURACIÓN TEMA APPLE CLARO
-  // -------------------------------
-  const colorTitulo = "#000000";
-  const colorTexto = "#6E6E73";
-  const colorLinea = "#E5E5EA";
-  const colorAccent = "#007AFF"; // azul iOS
+  return await html2canvas(el, {
+    backgroundColor: null,
+    scale: 2
+  }).then(canvas => canvas.toDataURL("image/png"));
+}
+
+
+
+// ============================================================
+// GENERADOR PDF — ESTILO APPLE — PÁGINAS 1 A 4
+// ============================================================
+async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
+
+  const { jsPDF } = window.jspdf;
+
+  const pdf = new jsPDF({
+    orientation: "landscape",
+    unit: "pt",
+    format: "a4"
+  });
+
+  // PALETA APPLE
+  const COLOR_TITLE = "#000000";
+  const COLOR_TEXT = "#6E6E73";
+  const COLOR_GRAY_BG = "#F2F2F7";
+  const COLOR_LINE = "#E5E5EA";
+  const COLOR_BLUE = "#007AFF";
 
   pdf.setFont("helvetica", "normal");
 
-  // ================================
-  //  PAGINA 1 — PORTADA
-  // ================================
+  // =================================================================
+  // PÁGINA 1 — PORTADA
+  // =================================================================
+  pdf.setFontSize(34);
+  pdf.setTextColor(COLOR_TITLE);
+  pdf.text("Reporte Mensual de Marketing", 40, 100);
 
-  pdf.setFontSize(50);
-  pdf.setTextColor(colorTitulo);
-  pdf.text("Reporte Mensual de Marketing", 40, 80);
+  pdf.setFontSize(20);
+  pdf.setTextColor(COLOR_TEXT);
+  pdf.text("Análisis completo del desempeño mensual", 40, 140);
 
-  pdf.setFontSize(16);
-  pdf.setTextColor(colorTexto);
-  pdf.text("Noviembre 2025", 40, 110);
-
-  pdf.setFontSize(12);
-  pdf.text("Joyas de Plata — E-commerce Analytics Dashboard", 40, 150);
-
-  pdf.setFontSize(10);
-  pdf.text("Generado automáticamente el " + new Date().toLocaleDateString("es-CL"), 40, 170);
-
-  // línea decorativa Apple
-  pdf.setDrawColor(colorLinea);
+  pdf.setDrawColor(COLOR_LINE);
   pdf.setLineWidth(1);
-  pdf.line(40, 190, 780, 190);
+  pdf.line(40, 160, 800, 160);
 
-  // ================================
-  //  PAGINA 2 — RESUMEN EJECUTIVO
-  // ================================
+  // Caja gris de resumen
+  pdf.setFillColor(COLOR_GRAY_BG);
+  pdf.roundedRect(40, 180, 750, 160, 14, 14, "F");
+
+  pdf.setFontSize(14);
+  pdf.setTextColor(COLOR_TEXT);
+  pdf.text("Resumen del mes", 60, 210);
+
+  pdf.setFontSize(11);
+  pdf.text(
+    `Generado automáticamente: ${new Date().toLocaleDateString("es-CL")}`,
+    60,
+    240
+  );
+
+
+
+  // =================================================================
+  // PÁGINA 2 — KPIs PRINCIPALES
+  // =================================================================
   pdf.addPage();
 
-  pdf.setFontSize(22);
-  pdf.setTextColor(colorTitulo);
-  pdf.text("1. Resumen Ejecutivo", 40, 60);
+  pdf.setFontSize(28);
+  pdf.setTextColor(COLOR_TITLE);
+  pdf.text("1. KPIs principales", 40, 80);
 
-  // Datos
   let totalVentas = 0;
   let totalProductos = 0;
 
   pedidos.forEach(p => {
     totalVentas += p.total;
-    p.productos.forEach(x => totalProductos += x.cantidad);
+    p.productos.forEach(prod => totalProductos += prod.cantidad);
   });
 
   const ticketPromedio = totalProductos > 0 ? totalVentas / totalProductos : 0;
 
-  const resumen = [
-    `Ventas totales del mes: $${totalVentas.toLocaleString("es-CL")}`,
-    `Total productos vendidos: ${totalProductos.toLocaleString("es-CL")}`,
-    `Ticket promedio: $${ticketPromedio.toLocaleString("es-CL")}`,
-    `Campañas activas: ${campanas.length}`,
-    `Día con mayores ventas: (pendiente)`,
-    `Categoría más vendida: (pendiente)`
+  const KPIS = [
+    { titulo: "Ventas totales", valor: "$" + totalVentas.toLocaleString("es-CL") },
+    { titulo: "Productos vendidos", valor: totalProductos.toLocaleString("es-CL") },
+    { titulo: "Ticket promedio", valor: "$" + ticketPromedio.toLocaleString("es-CL") },
+    { titulo: "Pedidos realizados", valor: pedidos.length.toString() },
+    { titulo: "Clientes nuevos", valor: "—" },
+    { titulo: "Clientes recurrentes", valor: "—" }
   ];
 
-  pdf.setFontSize(13);
-  let y = 100;
+  let x = 40;
+  let y = 130;
 
-  resumen.forEach(item => {
-    pdf.setTextColor(colorAccent);
-    pdf.text("▨", 40, y);
+  KPIS.forEach((k, i) => {
 
-    pdf.setTextColor(colorTexto);
-    pdf.text(item, 55, y);
+    // Bloque gris Apple
+    pdf.setFillColor(COLOR_GRAY_BG);
+    pdf.roundedRect(x, y, 230, 120, 16, 16, "F");
 
-    y += 26;
+    // Título KPI
+    pdf.setFontSize(12);
+    pdf.setTextColor(COLOR_TEXT);
+    pdf.text(k.titulo, x + 20, y + 30);
+
+    // Valor KPI
+    pdf.setFontSize(26);
+    pdf.setTextColor(COLOR_TITLE);
+    pdf.text(k.valor, x + 20, y + 80);
+
+    // Posición siguiente
+    x += 250;
+    if ((i + 1) % 3 === 0) {
+      x = 40;
+      y += 150;
+    }
   });
 
-  // ================================
-  //  PAGINA 3 — RENDIMIENTO CAMPAÑAS
-  // ================================
+
+
+  // =================================================================
+  // PÁGINA 3 — GRÁFICO DE VENTAS DIARIAS
+  // =================================================================
   pdf.addPage();
 
-  pdf.setFontSize(22);
-  pdf.setTextColor(colorTitulo);
-  pdf.text("2. Rendimiento por campaña", 40, 60);
+  pdf.setFontSize(28);
+  pdf.setTextColor(COLOR_TITLE);
+  pdf.text("2. Ventas diarias", 40, 80);
 
-  // Tabla estilo Apple
-  pdf.setFontSize(13);
-  pdf.setTextColor(colorTexto);
+  const imgVentas = await capturarGraficoAImagen("#graficoVentasDiarias");
 
-  let ty = 100;
+  if (imgVentas) {
+    pdf.addImage(imgVentas, "PNG", 40, 120, 750, 300);
+  } else {
+    pdf.setFontSize(14);
+    pdf.setTextColor("#ff0000");
+    pdf.text("No se encontró el gráfico #graficoVentasDiarias", 40, 140);
+  }
 
-  pdf.text("Campaña", 40, ty);
-  pdf.text("Rango", 170, ty);
-  pdf.text("Vendidos", 340, ty);
-  pdf.text("% del mes", 440, ty);
 
-  pdf.setDrawColor(colorLinea);
-  pdf.line(40, ty + 10, 780, ty + 10);
 
-  const totalMes = totalProductos;
-
-  ty += 40;
-
-  campanas.forEach(c => {
-    const fi = new Date(c.fecha_inicio);
-    const ff = new Date(c.fecha_fin);
-
-    let vendidos = 0;
-
-    pedidos.forEach(p => {
-      const fecha = new Date(p.fecha);
-      if (fecha >= fi && fecha <= ff) {
-        p.productos.forEach(prod => {
-          if (prod.subcategoria?.toLowerCase().includes(c.subcategoria.toLowerCase())) {
-            vendidos += prod.cantidad;
-          }
-        });
-      }
-    });
-
-    const pct = totalMes > 0 ? (vendidos / totalMes) * 100 : 0;
-
-    pdf.text(c.nombre, 40, ty);
-    pdf.text(`${c.fecha_inicio} → ${c.fecha_fin}`, 170, ty);
-    pdf.text(vendidos.toString(), 350, ty);
-    pdf.text(pct.toFixed(1) + "%", 450, ty);
-
-    ty += 28;
-  });
-
-  // ================================
-  //  PAGINA 4 — TOP PRODUCTOS
-  // ================================
+  // =================================================================
+  // PÁGINA 4 — GRÁFICO DE PEDIDOS DIARIOS
+  // =================================================================
   pdf.addPage();
 
-  pdf.setFontSize(22);
-  pdf.setTextColor(colorTitulo);
-  pdf.text("3. Top Productos del Mes", 40, 60);
+  pdf.setFontSize(28);
+  pdf.setTextColor(COLOR_TITLE);
+  pdf.text("3. Pedidos diarios", 40, 80);
 
-  let map = {};
+  const imgPedidos = await capturarGraficoAImagen("#graficoPedidosDiarios");
 
-  pedidos.forEach(p => {
-    p.productos.forEach(prod => {
-      if (!map[prod.producto]) map[prod.producto] = 0;
-      map[prod.producto] += prod.cantidad;
-    });
-  });
+  if (imgPedidos) {
+    pdf.addImage(imgPedidos, "PNG", 40, 120, 750, 300);
+  } else {
+    pdf.setFontSize(14);
+    pdf.setTextColor("#ff0000");
+    pdf.text("No se encontró el gráfico #graficoPedidosDiarios", 40, 140);
+  }
 
-  const top = Object.entries(map)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 15);
 
-  pdf.setFontSize(13);
-  pdf.setTextColor(colorTexto);
 
-  let ry = 100;
-
-  let num = 1;
-  top.forEach(([nombre, cant]) => {
-    pdf.setTextColor(colorAccent);
-    pdf.text(num + ".", 40, ry);
-
-    pdf.setTextColor(colorTexto);
-    pdf.text(`${nombre} — ${cant}`, 60, ry);
-
-    ry += 26;
-    num++;
-  });
-
-  // ================================
-  //  PAGINA 5 — AROS DE PLATA
-  // ================================
-
-  pdf.addPage();
-  pdf.setFontSize(22);
-  pdf.setTextColor(colorTitulo);
-  pdf.text("4. Análisis: Aros de Plata", 40, 60);
-
-  let totalAros = 0;
-
-  pedidos.forEach(p => {
-    p.productos.forEach(prod => {
-      if (prod.subcategoria?.toLowerCase().includes("aros de plata")) {
-        totalAros += prod.cantidad;
-      }
-    });
-  });
-
-  const aros = [
-    `Total vendidos: ${totalAros.toLocaleString("es-CL")}`,
-    `Participación en el mes: ${(totalAros / totalMes * 100).toFixed(1)}%`
-  ];
-
-  let ay = 100;
-  aros.forEach(item => {
-    pdf.setTextColor(colorAccent);
-    pdf.text("▨", 40, ay);
-
-    pdf.setTextColor(colorTexto);
-    pdf.text(item, 55, ay);
-
-    ay += 26;
-  });
-
+  // =================================================================
+  // EXPORTAR PDF
+  // =================================================================
   pdf.save("reporte_marketing.pdf");
 }
