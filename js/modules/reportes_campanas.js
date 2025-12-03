@@ -285,53 +285,45 @@ return p.productos.some(prod => {
 // GRÁFICO 1
 generarGraficoComparacionCampanas(activas, pedidos);
 
-// ==========================
-// 9.1) Generar semanas desde ventas filtradas
-// ==========================
 function generarSemanasDesdePedidos(pedidos) {
   if (!pedidos.length) return [];
 
-  const fechas = pedidos
-    .map(p => new Date(p.fecha))
-    .sort((a, b) => a - b);
+  // El filtro del usuario define el rango real
+  const inicio = new Date(rangoPrincipal[0]);
+  const fin = new Date(rangoPrincipal[1]);
 
-  let ini = new Date(fechas[0]);
-  let fin = new Date(fechas[fechas.length - 1]);
-
-  function lunesDe(f) {
-    const dia = f.getDay();
-    const lunes = new Date(f);
-    lunes.setDate(f.getDate() - (dia === 0 ? 6 : dia - 1));
-    lunes.setHours(0, 0, 0, 0);
-    return lunes;
-  }
+  inicio.setHours(0, 0, 0, 0);
+  fin.setHours(23, 59, 59, 999);
 
   const semanas = [];
-  let cursorIni = lunesDe(ini);
+
+  let cursorIni = new Date(inicio);
+
+  function formato(d) {
+    return `${d.getDate().toString().padStart(2, "0")}-${(d.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${d.getFullYear()}`;
+  }
 
   while (cursorIni <= fin) {
     let cursorFin = new Date(cursorIni);
     cursorFin.setDate(cursorIni.getDate() + 6);
-    cursorFin.setHours(23, 59, 59, 999);
 
-    const formato = d =>
-      `${d.getDate().toString().padStart(2, "0")}-${(d.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}-${d.getFullYear()}`;
+    if (cursorFin > fin) cursorFin = new Date(fin);
 
     semanas.push({
-      inicio: cursorIni,
-      fin: cursorFin,
+      inicio: new Date(cursorIni),
+      fin: new Date(cursorFin),
       inicioTxt: formato(cursorIni),
       finTxt: formato(cursorFin)
     });
 
-    cursorIni = new Date(cursorIni);
     cursorIni.setDate(cursorIni.getDate() + 7);
   }
 
   return semanas;
 }
+
 
 // generar semanas reales
 const semanas = generarSemanasDesdePedidos(ventasFiltradas);
