@@ -97,9 +97,9 @@ else if (activo === "geografia") {
 else if (activo === "ventas") {
   await cargarDashboardVentas();
 }
-else if (activo === "categorias") {
-  await cargarDashboardCategorias?.();
-}
+ // quitar  temporal (activo === "categorias") {  await cargarDashboardCategorias?.(); } 
+
+
 else if (activo === "tendencias") {
   await cargarDashboardTendencias?.();
 }
