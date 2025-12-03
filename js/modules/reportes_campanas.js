@@ -734,10 +734,10 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   document.getElementById("tablaRendimientoSemanal").innerHTML = html;
 }
 
-// ========================================================
-// 📤 EXPORTAR AROS DE PLATA A EXCEL (XLSX)
-// ========================================================
-async function exportarArosDePlataXLSX(pedidos) {
+// ===============================================
+// 📤 EXPORTADOR XLSX — SOLO "Aros de Plata"
+// ===============================================
+function exportarArosDePlataXLSX(pedidos) {
 
   function normalizarExacto(str) {
     return (str || "")
@@ -748,7 +748,6 @@ async function exportarArosDePlataXLSX(pedidos) {
   }
 
   const objetivo = normalizarExacto("Aros de Plata");
-
   const lista = [];
 
   pedidos.forEach(p => {
@@ -771,12 +770,12 @@ async function exportarArosDePlataXLSX(pedidos) {
     });
   });
 
-  // Crear XLSX usando SheetJS
+  // Generar XLSX — requiere SheetJS
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(lista);
   XLSX.utils.book_append_sheet(wb, ws, "Aros de Plata");
 
   XLSX.writeFile(wb, "aros_de_plata.xlsx");
 
-  alert("Archivo aros_de_plata.xlsx generado correctamente.");
+  alert("Archivo generado: aros_de_plata.xlsx");
 }
