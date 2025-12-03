@@ -653,47 +653,47 @@ function obtenerSubcategoriasProducto(prod) {
 
 function generarRendimientoSemanal(pedidos, campanas, semanas) {
 
-  function normalizarExacto(str) {
+  // Normalizador de texto para coincidencia exacta
+  function normalizar(str) {
     return (str || "")
       .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g," ")
       .trim();
   }
 
   const salida = {};
 
+  // Inicializar por campaña
   campanas.forEach(c => {
     salida[c.nombre] = semanas.map(() => 0);
   });
 
+  // Procesar ventas
   pedidos.forEach(p => {
     const fecha = new Date(p.fecha);
 
     p.productos.forEach(prod => {
 
-      const categorias = (prod.subcategoria || "")
+      const categoriasProd = (prod.subcategoria || "")
         .split(",")
-        .map(s => normalizarExacto(s.trim()));
+        .map(s => normalizar(s.trim()));
 
-      campanas.forEach((c, indexCamp) => {
+      campanas.forEach((camp, campIndex) => {
 
-        const campCat = normalizarExacto(c.subcategoria);
-        if(!categorias.includes(campCat)) return;
+        const catCamp = normalizar(camp.subcategoria);
 
-        const fi = new Date(c.fecha_inicio);
-        const ff = new Date(c.fecha_fin);
+        // Solo contar si pertenece a la campaña
+        if (!categoriesProd.includes(catCamp)) return;
 
-        // Solo considerar ventas dentro del rango de campaña
-        if(fecha < fi || fecha > ff) return;
-
-        // Encontrar semana
-        const semanaIndex = semanas.findIndex(s => 
+        // Buscar semana
+        const idxSemana = semanas.findIndex(s =>
           fecha >= s.inicio && fecha <= s.fin
         );
-        if(semanaIndex === -1) return;
+        if (idxSemana === -1) return;
 
-        salida[c.nombre][semanaIndex] += prod.cantidad;
+        // Registrar cantidad
+        salida[camp.nombre][idxSemana] += prod.cantidad;
 
       });
 
@@ -702,6 +702,7 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
 
   return salida;
 }
+
 
 
 
