@@ -180,9 +180,16 @@ async function cargarDashboardCampanas() {
     // 6) AGRUPAR PEDIDOS (ANTES DE FILTRAR CAMPAÑAS)
     // ==========================
     const pedidos = agruparVentasPorPedido(ventasFiltradas);
+    // Activar botón exportador
+const btn = document.getElementById("btnExportarAros");
+if (btn) {
+  btn.onclick = () => exportarArosDePlataXLSX(pedidos);
+}
+
 // 🔍 REVISAR PRODUCTOS "Aros de Plata"
 mostrarProductosArosDePlata(pedidos);
 exportarArosDePlataXLSX(pedidos);
+
     // ==========================
     // 7) FILTRAR CAMPAÑAS ACTIVAS USANDO PEDIDOS
     // ==========================
