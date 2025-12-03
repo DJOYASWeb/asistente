@@ -2780,13 +2780,12 @@ body.sidebar-mini .main-content {
   padding-left: 0;
 }
 
- ul{
+.sidebar-doc-list li {
   padding: 0.45rem 0.5rem;
   border-radius: 10px;
   cursor: pointer;
   color: var(--text);
   transition: background .2s;
-    list-style: none;
 }
 
 .sidebar-doc-list li:hover {
@@ -2797,4 +2796,3 @@ body.sidebar-mini .main-content {
   background: #000;
   color: #fff;
 }
-
