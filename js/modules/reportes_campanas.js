@@ -869,7 +869,7 @@ async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
   //  PAGINA 1 — PORTADA
   // ================================
 
-  pdf.setFontSize(100);
+  pdf.setFontSize(50);
   pdf.setTextColor(colorTitulo);
   pdf.text("Reporte Mensual de Marketing", 40, 80);
 
