@@ -322,9 +322,11 @@ function generarSemanasDesdeFiltro(inicioFiltro, finFiltro) {
   return semanas;
 }
 
-
-
-const semanas = generarSemanasDesdeFiltro(rangoPrincipal[0], rangoPrincipal[1]);
+const semanas = generarSemanasDesdeCampanasActivas(
+  activas,
+  rangoPrincipal[0],
+  rangoPrincipal[1]
+);
 
 
 // ==========================
@@ -343,6 +345,39 @@ generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas);
   }
 }
 
+
+function generarSemanasDesdeCampanasActivas(campanas, inicioFiltro, finFiltro) {
+
+  function parseFecha(str) {
+    const [y, m, d] = str.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  const semanas = [];
+
+  campanas.forEach(c => {
+    const fi = parseFecha(c.fecha_inicio);
+    const ff = parseFecha(c.fecha_fin);
+
+    // intersectar con filtro
+    const inicio = fi < inicioFiltro ? inicioFiltro : fi;
+    const fin    = ff > finFiltro    ? finFiltro    : ff;
+
+    if (inicio <= fin) {
+      semanas.push({
+        inicio,
+        fin,
+        inicioTxt: inicio.toLocaleDateString("es-CL"),
+        finTxt: fin.toLocaleDateString("es-CL")
+      });
+    }
+  });
+
+  // ordenar ascendente
+  semanas.sort((a,b) => a.inicio - b.inicio);
+
+  return semanas;
+}
 
 
 
