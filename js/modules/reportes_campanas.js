@@ -186,10 +186,6 @@ if (btn) {
   btn.onclick = () => exportarArosDePlataXLSX(pedidos);
 }
 
-// 🔍 REVISAR PRODUCTOS "Aros de Plata"
-
-exportarArosDePlataXLSX(pedidos);
-
     // ==========================
     // 7) FILTRAR CAMPAÑAS ACTIVAS USANDO PEDIDOS
     // ==========================
