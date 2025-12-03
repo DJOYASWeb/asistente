@@ -95,6 +95,37 @@ async function cargarDashboardCampanas() {
       return;
     }
 
+
+
+
+
+
+
+
+
+
+document.getElementById("btnExportarGrafico").onclick = () => {
+  exportarProductosQueElGraficoCuenta(pedidos);
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ==========================
     // 1) Cargar campañas
     // ==========================
@@ -256,60 +287,6 @@ return p.productos.some(prod => {
 
 // GRÁFICO 1
 generarGraficoComparacionCampanas(activas, pedidos);
-
-// =============================
-// 🔍 DIAGNÓSTICO "Aros de Plata"
-// =============================
-(function () {
-  const normalizar = str => (str || "")
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const objetivo = normalizar("Aros de Plata");
-
-  let totalGrafico = 0;
-  let filasGrafico = 0;
-
-  pedidos.forEach(p => {
-    p.productos.forEach(prod => {
-      const subs = (prod.subcategoria || "")
-        .split(",")
-        .map(s => normalizar(s.trim()))
-        .filter(s => s !== "");
-
-      if (subs.includes(objetivo)) {
-        filasGrafico++;
-        totalGrafico += prod.cantidad;
-      }
-    });
-  });
-
-  console.log("=== DIAGNÓSTICO AROS DE PLATA ===");
-  console.log("Filas que el gráfico realmente está usando:", filasGrafico);
-  console.log("Total de productos que el gráfico está sumando:", totalGrafico);
-})();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ==========================
 // 9.1) Generar semanas desde ventas filtradas
@@ -807,4 +784,81 @@ function exportarArosDePlataXLSX(pedidos) {
   XLSX.writeFile(wb, "aros_de_plata.xlsx");
 
   alert("Archivo generado: aros_de_plata.xlsx");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function obtenerProductosQueGraficoCuentaComoAros(pedidos) {
+  const normalizar = str => (str || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const objetivo = normalizar("Aros de Plata");
+  const lista = [];
+
+  pedidos.forEach(p => {
+    p.productos.forEach(prod => {
+      const subs = (prod.subcategoria || "")
+        .split(",")
+        .map(s => normalizar(s.trim()))
+        .filter(s => s !== "");
+
+      if (subs.includes(objetivo)) {
+        lista.push({
+          ID_Pedido: p.id,
+          Fecha: p.fecha,
+          SKU: prod.sku,
+          Producto: prod.producto,
+          Subcategoria: prod.subcategoria,
+          Cantidad: prod.cantidad
+        });
+      }
+    });
+  });
+
+  return lista;
+}
+
+function exportarProductosQueElGraficoCuenta(pedidos) {
+  const lista = obtenerProductosQueGraficoCuentaComoAros(pedidos);
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(lista);
+  XLSX.utils.book_append_sheet(wb, ws, "Aros que cuenta el gráfico");
+
+  XLSX.writeFile(wb, "aros_grafico.xlsx");
 }
