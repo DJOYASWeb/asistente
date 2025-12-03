@@ -2780,7 +2780,7 @@ body.sidebar-mini .main-content {
   padding-left: 0;
 }
 
- ul .sidebar-doc-list {
+ ul{
   padding: 0.45rem 0.5rem;
   border-radius: 10px;
   cursor: pointer;
@@ -2798,6 +2798,3 @@ body.sidebar-mini .main-content {
   color: #fff;
 }
 
-.sidebar-doc .ios-card .sidebar-doc-list{
-background: aqua;  
-}
