@@ -284,49 +284,31 @@ return p.productos.some(prod => {
 
 // GRÁFICO 1
 generarGraficoComparacionCampanas(activas, pedidos);
+const semanas = generarColumnasPorCampaña(activas);
 
 
 
-function generarSemanasDesdeFiltro(inicioFiltro, finFiltro) {
+function generarColumnasPorCampaña(campanasActivas) {
 
-  let inicio = new Date(inicioFiltro);
-  let fin    = new Date(finFiltro);
-
-  inicio.setHours(0,0,0,0);
-  fin.setHours(23,59,59,999);
-
-  const semanas = [];
-  let cursorIni = new Date(inicio);
-
-  function formato(d){
-    return `${d.getDate().toString().padStart(2,"0")}-${(d.getMonth()+1)
-      .toString().padStart(2,"0")}-${d.getFullYear()}`;
+  function parseFecha(str) {
+    const [y, m, d] = str.split("-").map(Number);
+    return new Date(y, m - 1, d);
   }
 
-  while(cursorIni <= fin){
-    let cursorFin = new Date(cursorIni);
-    cursorFin.setDate(cursorIni.getDate() + 6);
-
-    if (cursorFin > fin) cursorFin = new Date(fin);
-
-    semanas.push({
-      inicio: new Date(cursorIni),
-      fin: new Date(cursorFin),
-      inicioTxt: formato(cursorIni),
-      finTxt: formato(cursorFin)
-    });
-
-    cursorIni.setDate(cursorIni.getDate() + 7);
-  }
-
-  return semanas;
+  return campanasActivas
+    .map(c => ({
+      nombre: c.nombre,
+      inicio: parseFecha(c.fecha_inicio),
+      fin: parseFecha(c.fecha_fin),
+      inicioTxt: c.fecha_inicio,
+      finTxt: c.fecha_fin
+    }))
+    .sort((a, b) => a.inicio - b.inicio);
 }
 
-const semanas = generarSemanasDesdeCampanasActivas(
-  activas,
-  rangoPrincipal[0],
-  rangoPrincipal[1]
-);
+
+
+
 
 
 // ==========================
@@ -346,38 +328,7 @@ generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas);
 }
 
 
-function generarSemanasDesdeCampanasActivas(campanas, inicioFiltro, finFiltro) {
 
-  function parseFecha(str) {
-    const [y, m, d] = str.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
-
-  const semanas = [];
-
-  campanas.forEach(c => {
-    const fi = parseFecha(c.fecha_inicio);
-    const ff = parseFecha(c.fecha_fin);
-
-    // intersectar con filtro
-    const inicio = fi < inicioFiltro ? inicioFiltro : fi;
-    const fin    = ff > finFiltro    ? finFiltro    : ff;
-
-    if (inicio <= fin) {
-      semanas.push({
-        inicio,
-        fin,
-        inicioTxt: inicio.toLocaleDateString("es-CL"),
-        finTxt: fin.toLocaleDateString("es-CL")
-      });
-    }
-  });
-
-  // ordenar ascendente
-  semanas.sort((a,b) => a.inicio - b.inicio);
-
-  return semanas;
-}
 
 
 
@@ -738,20 +689,16 @@ if (!categoriasProd.includes(catCamp)) return;
 }
 
 
-
 function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
 
   const data = generarRendimientoSemanal(pedidos, campanas, semanas);
 
-  // Total de productos vendidos cada semana
   const totalesSemana = semanas.map(sem => {
     let total = 0;
     pedidos.forEach(p => {
       const f = new Date(p.fecha);
       if (f >= sem.inicio && f <= sem.fin) {
-        p.productos.forEach(prod => {
-          total += prod.cantidad;
-        });
+        p.productos.forEach(prod => total += prod.cantidad);
       }
     });
     return total;
@@ -762,7 +709,7 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
       <thead>
         <tr>
           <th>Campaña</th>
-          ${semanas.map(s => `<th>${s.inicioTxt}<br>${s.finTxt}</th>`).join("")}
+          ${semanas.map(s => `<th>${s.inicioTxt} → ${s.finTxt}</th>`).join("")}
         </tr>
       </thead>
       <tbody>
@@ -772,10 +719,10 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
 
     html += `<tr><td><strong>${c.nombre}</strong></td>`;
 
-    const fi = new Date(c.fecha_inicio);
-    const ff = new Date(c.fecha_fin);
-
     data[c.nombre].forEach((cantidad, i) => {
+
+      const fi = new Date(c.fecha_inicio);
+      const ff = new Date(c.fecha_fin);
 
       const totalSemana = totalesSemana[i];
       const pct = totalSemana > 0 ? (cantidad / totalSemana) * 100 : 0;
@@ -796,6 +743,7 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
 
   document.getElementById("tablaRendimientoSemanal").innerHTML = html;
 }
+
 
 
 
