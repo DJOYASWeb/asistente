@@ -373,33 +373,60 @@ function formatoCL(valor) {
 
 
 function generarGraficoComparacionCampanas(campanas, pedidos) {
-  const div = document.querySelector("#graficoComparacionCampanas");
-  div.innerHTML = "";
 
-  const mapa = {};
+  function normalizarExacto(str) {
+    return (str || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
 
+  const objetivo = normalizarExacto("Aros de Plata");
+
+  const totalPorCampana = {};
+
+  // Inicializar mapa con campañas
   campanas.forEach(c => {
-    mapa[c.nombre] = 0;
+    totalPorCampana[c.nombre] = 0;
+  });
 
-    const fi = new Date(c.fecha_inicio);
-    const ff = new Date(c.fecha_fin);
+  pedidos.forEach(p => {
+    p.productos.forEach(prod => {
 
-    pedidos.forEach(p => {
-      const fp = new Date(p.fecha);
-      if (fp >= fi && fp <= ff) {
-        const cant = p.productos.reduce((s, pr) => s + pr.cantidad, 0);
-        mapa[c.nombre] += cant;
-      }
+      // procesar subcategorías:
+      const subs = (prod.subcategoria || "")
+        .split(",")
+        .map(s => normalizarExacto(s.trim()));
+
+      // Si NO incluye la categoría exacta → NO sumar
+      if (!subs.includes(objetivo)) return;
+
+      // Sumar producto a TODAS las campañas que estén vigentes por fecha
+      campanas.forEach(c => {
+        const fi = new Date(c.fecha_inicio);
+        const ff = new Date(c.fecha_fin);
+        const fp = new Date(p.fecha);
+
+        if (fp >= fi && fp <= ff) {
+          totalPorCampana[c.nombre] += prod.cantidad;
+        }
+      });
+
     });
   });
 
-  const labels = Object.keys(mapa);
-  const valores = labels.map(l => mapa[l]);
+  // Preparar datos para gráfico
+  const labels = Object.keys(totalPorCampana);
+  const valores = labels.map(l => totalPorCampana[l]);
+
+  const div = document.querySelector("#graficoComparacionCampanas");
+  div.innerHTML = "";
 
   new ApexCharts(div, {
     chart: { type: "bar", height: 350 },
     series: [{
-      name: "Productos vendidos",
+      name: "Productos vendidos — Aros de Plata",
       data: valores
     }],
     xaxis: { categories: labels },
@@ -407,6 +434,7 @@ function generarGraficoComparacionCampanas(campanas, pedidos) {
     tooltip: { y: { formatter: v => formatoCL(v) } }
   }).render();
 }
+
 
 
 
