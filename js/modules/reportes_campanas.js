@@ -26,16 +26,6 @@ function agruparVentasPorPedido(data) {
 }
 
 
-// ===============================
-// 🔍 INSPECCIÓN "Aros de Plata"
-// ===============================
-function normalizarExacto(str) {
-  return (str || "")
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 function mostrarProductosArosDePlata(pedidos) {
   const objetivo = normalizarExacto("Aros de Plata");
