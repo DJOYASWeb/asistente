@@ -705,18 +705,19 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
 
 
 
-
 function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
 
   const data = generarRendimientoSemanal(pedidos, campanas, semanas);
 
-  // total de productos vendidos por semana (todas las categorías)
-  const totalesSemana = semanas.map((sem, idx) => {
+  // Total de productos vendidos cada semana
+  const totalesSemana = semanas.map(sem => {
     let total = 0;
     pedidos.forEach(p => {
       const f = new Date(p.fecha);
-      if(f >= sem.inicio && f <= sem.fin){
-        p.productos.forEach(prod => total += prod.cantidad);
+      if (f >= sem.inicio && f <= sem.fin) {
+        p.productos.forEach(prod => {
+          total += prod.cantidad;
+        });
       }
     });
     return total;
@@ -734,24 +735,24 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   `;
 
   campanas.forEach(c => {
+
     html += `<tr><td><strong>${c.nombre}</strong></td>`;
 
-    // campaña rango
     const fi = new Date(c.fecha_inicio);
     const ff = new Date(c.fecha_fin);
 
-    data[c.nombre].forEach((cant, i) => {
-      const total = totalesSemana[i];
-      const pct = total > 0 ? (cant / total) * 100 : 0;
+    data[c.nombre].forEach((cantidad, i) => {
 
-      // semana activa?
-      const esActiva = !(semanas[i].fin < fi || semanas[i].inicio > ff);
+      const totalSemana = totalesSemana[i];
+      const pct = totalSemana > 0 ? (cantidad / totalSemana) * 100 : 0;
 
-      const texto = `${cant} (${pct.toFixed(1)}%)`;
+      const esSemanaActiva =
+        !(semanas[i].fin < fi || semanas[i].inicio > ff);
 
-      html += `<td style="font-weight:${esActiva ? 'bold' : 'normal'}">
-        ${texto}
-      </td>`;
+      html += `
+        <td style="font-weight:${esSemanaActiva ? 'bold' : 'normal'}">
+          ${cantidad} (${pct.toFixed(1)}%)
+        </td>`;
     });
 
     html += `</tr>`;
