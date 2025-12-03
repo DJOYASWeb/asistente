@@ -703,12 +703,21 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
 function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   const data = generarRendimientoSemanal(pedidos, campanas, semanas);
 
+  // 1) Calcular totales por semana
+  const totalesSemana = semanas.map((_, semanaIndex) => {
+    let total = 0;
+    Object.keys(data).forEach(nombreCampana => {
+      total += data[nombreCampana][semanaIndex];
+    });
+    return total;
+  });
+
   let html = `
     <table class="tabla-ios">
       <thead>
         <tr>
           <th>Campaña</th>
-          ${semanas.map(s => `<th>${s.inicioTxt} / ${s.finTxt}</th>`).join("")}
+          ${semanas.map(s => `<th>${s.inicioTxt}<br>${s.finTxt}</th>`).join("")}
         </tr>
       </thead>
       <tbody>
@@ -717,8 +726,16 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   Object.keys(data).forEach(nombre => {
     html += `<tr><td><strong>${nombre}</strong></td>`;
 
-    data[nombre].forEach((cant) => {
-      html += `<td>${cant}</td>`;
+    data[nombre].forEach((cant, semanaIndex) => {
+      const totalSemana = totalesSemana[semanaIndex] || 0;
+
+      // 2) Calcular porcentaje
+      let pct = 0;
+      if (totalSemana > 0) {
+        pct = (cant / totalSemana) * 100;
+      }
+
+      html += `<td>${cant} (${pct.toFixed(1)}%)</td>`;
     });
 
     html += `</tr>`;
@@ -728,6 +745,7 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
 
   document.getElementById("tablaRendimientoSemanal").innerHTML = html;
 }
+
 
 
 // ===============================================
