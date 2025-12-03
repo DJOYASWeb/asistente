@@ -379,11 +379,8 @@ function generarGraficoComparacionCampanas(campanas, pedidos) {
       .trim();
   }
 
-  const objetivo = normalizarExacto("Aros de Plata");
-
   const totalPorCampana = {};
 
-  // Inicializar mapa con campañas
   campanas.forEach(c => {
     totalPorCampana[c.nombre] = 0;
   });
@@ -391,21 +388,16 @@ function generarGraficoComparacionCampanas(campanas, pedidos) {
   pedidos.forEach(p => {
     p.productos.forEach(prod => {
 
-      // procesar subcategorías:
-      const subs = (prod.subcategoria || "")
+      const categorias = (prod.subcategoria || "")
         .split(",")
-        .map(s => normalizarExacto(s.trim()));
+        .map(s => normalizarExacto(s.trim()))
+        .filter(s => s.length > 0);
 
-      // Si NO incluye la categoría exacta → NO sumar
-      if (!subs.includes(objetivo)) return;
-
-      // Sumar producto a TODAS las campañas que estén vigentes por fecha
       campanas.forEach(c => {
-        const fi = new Date(c.fecha_inicio);
-        const ff = new Date(c.fecha_fin);
-        const fp = new Date(p.fecha);
+        const sub = normalizarExacto(c.subcategoria || "");
 
-        if (fp >= fi && fp <= ff) {
+        // Solo coincide si la subcategoría de campaña está en el producto
+        if (categorias.includes(sub)) {
           totalPorCampana[c.nombre] += prod.cantidad;
         }
       });
@@ -413,7 +405,6 @@ function generarGraficoComparacionCampanas(campanas, pedidos) {
     });
   });
 
-  // Preparar datos para gráfico
   const labels = Object.keys(totalPorCampana);
   const valores = labels.map(l => totalPorCampana[l]);
 
@@ -423,7 +414,7 @@ function generarGraficoComparacionCampanas(campanas, pedidos) {
   new ApexCharts(div, {
     chart: { type: "bar", height: 350 },
     series: [{
-      name: "Productos vendidos — Aros de Plata",
+      name: "Productos vendidos (según filtro de fecha)",
       data: valores
     }],
     xaxis: { categories: labels },
@@ -431,6 +422,7 @@ function generarGraficoComparacionCampanas(campanas, pedidos) {
     tooltip: { y: { formatter: v => formatoCL(v) } }
   }).render();
 }
+
 
 
 
