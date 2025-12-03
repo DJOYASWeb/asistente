@@ -127,8 +127,6 @@ document.getElementById("btnReporteMarketing").onclick = () => {
 
 
 
-
-
     // ==========================
     // 1) Cargar campañas
     // ==========================
@@ -871,7 +869,7 @@ async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
   //  PAGINA 1 — PORTADA
   // ================================
 
-  pdf.setFontSize(28);
+  pdf.setFontSize(100);
   pdf.setTextColor(colorTitulo);
   pdf.text("Reporte Mensual de Marketing", 40, 80);
 
