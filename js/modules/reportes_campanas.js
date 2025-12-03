@@ -285,19 +285,12 @@ return p.productos.some(prod => {
 // GRÁFICO 1
 generarGraficoComparacionCampanas(activas, pedidos);
 
-function generarSemanasDesdeCampanas(campanas) {
 
-  function parseFecha(str) {
-    if (!str) return null;
-    const [y, m, d] = str.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
 
-  const inicioMin = Math.min(...campanas.map(c => parseFecha(c.fecha_inicio)));
-  const finMax    = Math.max(...campanas.map(c => parseFecha(c.fecha_fin)));
+function generarSemanasDesdeFiltro(inicioFiltro, finFiltro) {
 
-  let inicio = new Date(inicioMin);
-  let fin    = new Date(finMax);
+  let inicio = new Date(inicioFiltro);
+  let fin    = new Date(finFiltro);
 
   inicio.setHours(0,0,0,0);
   fin.setHours(23,59,59,999);
@@ -313,7 +306,8 @@ function generarSemanasDesdeCampanas(campanas) {
   while(cursorIni <= fin){
     let cursorFin = new Date(cursorIni);
     cursorFin.setDate(cursorIni.getDate() + 6);
-    if(cursorFin > fin) cursorFin = new Date(fin);
+
+    if (cursorFin > fin) cursorFin = new Date(fin);
 
     semanas.push({
       inicio: new Date(cursorIni),
@@ -329,8 +323,8 @@ function generarSemanasDesdeCampanas(campanas) {
 }
 
 
-// generar semanas reales
-const semanas = generarSemanasDesdeCampanas(activas);
+
+const semanas = generarSemanasDesdeFiltro(rangoPrincipal[0], rangoPrincipal[1]);
 
 
 // ==========================
