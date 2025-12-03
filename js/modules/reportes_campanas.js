@@ -574,20 +574,22 @@ const STOPWORDS = new Set([
   "joyas", "joya", "plata925", "925", "en", "y", "por"
 ]);
 
-function tokensCategoria(str) {
-  const limpio = normalizarTexto(str);
-  return limpio
-    .split(" ")
-    .filter(tok => tok && !STOPWORDS.has(tok));
+
+function normalizarExacto(str) {
+  return (str || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function coincideCategoria(campania, venta) {
-  const tokCamp = tokensCategoria(campania);
-  const tokVenta = tokensCategoria(venta);
-
-  // Intersección
-  return tokCamp.some(tok => tokVenta.includes(tok));
+function coincideCategoria(camp, venta) {
+  const c = normalizarExacto(camp);
+  const v = normalizarExacto(venta);
+  return c === v; // coincidencia exacta
 }
+
+
 
 function obtenerSubcategoriasProducto(prod) {
   if (!prod.subcategoria) return [];
@@ -624,18 +626,18 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
       let mejorScore = 0;
 
       campanas.forEach(camp => {
-        const score = categorias.reduce((acc, cat) => {
-          let s = 0;
-          if (coincideCategoria(camp.subcategoria || "", cat)) s++;
-          if (coincideCategoria(camp.etiquetas || "", cat)) s++;
-          if (coincideCategoria(camp.nombre || "", cat)) s++;
-          return acc + s;
-        }, 0);
+categorias.forEach(cat => {
+  const catNorm = normalizarExacto(cat);
 
-        if (score > mejorScore) {
-          mejorScore = score;
-          mejorCampania = camp.nombre.trim();
-        }
+  campanas.forEach(camp => {
+    const campNorm = normalizarExacto(camp.subcategoria || "");
+
+    if (catNorm === campNorm) {
+      salida[camp.nombre.trim()][semanaIndex].cantidad += prod.cantidad;
+    }
+  });
+});
+
       });
 
       // Si no coincide con ninguna campaña → ignorar
