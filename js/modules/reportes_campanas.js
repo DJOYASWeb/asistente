@@ -661,50 +661,45 @@ function obtenerSubcategoriasProducto(prod) {
 }
 
 function generarRendimientoSemanal(pedidos, campanas, semanas) {
+
+  function normalizarExacto(str) {
+    return (str || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   const salida = {};
 
+  // Inicializar campaña → semanas
   campanas.forEach(c => {
-    const nombre = c.nombre.trim();
-    salida[nombre] = semanas.map(() => ({ cantidad: 0 }));
+    salida[c.nombre] = semanas.map(() => 0);
   });
 
   pedidos.forEach(p => {
-    if (!p.fecha) return;
-
     const fecha = new Date(p.fecha);
-    const semanaIndex = semanas.findIndex(
-      s => fecha >= s.inicio && fecha <= s.fin
+
+    const semanaIndex = semanas.findIndex(s =>
+      fecha >= s.inicio && fecha <= s.fin
     );
     if (semanaIndex === -1) return;
 
     p.productos.forEach(prod => {
-      const categorias = obtenerSubcategoriasProducto(prod);
-      if (categorias.length === 0) return;
+      const categorias = (prod.subcategoria || "")
+        .split(",")
+        .map(s => normalizarExacto(s.trim()))
+        .filter(s => s.length > 0);
 
-      // 🔥 Encontrar campaña más relevante
-      let mejorCampania = null;
-      let mejorScore = 0;
+      campanas.forEach(c => {
+        const subCamp = normalizarExacto(c.subcategoria || "");
 
-      campanas.forEach(camp => {
-categorias.forEach(cat => {
-  const catNorm = normalizarExacto(cat);
-
-  campanas.forEach(camp => {
-    const campNorm = normalizarExacto(camp.subcategoria || "");
-
-    if (catNorm === campNorm) {
-      salida[camp.nombre.trim()][semanaIndex].cantidad += prod.cantidad;
-    }
-  });
-});
-
+        // Coincidencia exacta con subcategoría
+        if (categorias.includes(subCamp)) {
+          salida[c.nombre][semanaIndex] += prod.cantidad;
+        }
       });
 
-      // Si no coincide con ninguna campaña → ignorar
-      if (!mejorCampania || mejorScore === 0) return;
-
-      // ✔ Sumamos SOLO a la campaña más probable
-      salida[mejorCampania][semanaIndex].cantidad += prod.cantidad;
     });
   });
 
@@ -715,15 +710,6 @@ categorias.forEach(cat => {
 
 function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   const data = generarRendimientoSemanal(pedidos, campanas, semanas);
-
-  // 1) Calcular totales por semana
-  const totalesSemana = semanas.map((_, i) => {
-    let total = 0;
-    Object.keys(data).forEach(camp => {
-      total += data[camp][i].cantidad;
-    });
-    return total;
-  });
 
   let html = `
     <table class="tabla-ios">
@@ -739,14 +725,8 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   Object.keys(data).forEach(nombre => {
     html += `<tr><td><strong>${nombre}</strong></td>`;
 
-    data[nombre].forEach((item, i) => {
-      const cant = item.cantidad;
-      const total = totalesSemana[i];
-
-      let pct = 0;
-      if (total > 0) pct = (cant / total) * 100;
-
-      html += `<td>${pct.toFixed(1)}% (${cant})</td>`;
+    data[nombre].forEach((cant) => {
+      html += `<td>${cant}</td>`;
     });
 
     html += `</tr>`;
@@ -756,6 +736,7 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
 
   document.getElementById("tablaRendimientoSemanal").innerHTML = html;
 }
+
 
 // ===============================================
 // 📤 EXPORTADOR XLSX — SOLO "Aros de Plata"
