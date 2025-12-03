@@ -703,12 +703,22 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
 function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   const data = generarRendimientoSemanal(pedidos, campanas, semanas);
 
-  // 1) Calcular totales por semana
+  // 1) Calcular TOTAL SEMANAL DE TODOS LOS PRODUCTOS (NO solo campañas)
   const totalesSemana = semanas.map((_, semanaIndex) => {
     let total = 0;
-    Object.keys(data).forEach(nombreCampana => {
-      total += data[nombreCampana][semanaIndex];
+
+    pedidos.forEach(p => {
+      const fecha = new Date(p.fecha);
+      const inicio = semanas[semanaIndex].inicio;
+      const fin = semanas[semanaIndex].fin;
+
+      if (fecha >= inicio && fecha <= fin) {
+        p.productos.forEach(prod => {
+          total += prod.cantidad; // <-- suma todos los productos
+        });
+      }
     });
+
     return total;
   });
 
@@ -723,13 +733,14 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
       <tbody>
   `;
 
+  // 2) Renderizar filas por campaña
   Object.keys(data).forEach(nombre => {
     html += `<tr><td><strong>${nombre}</strong></td>`;
 
     data[nombre].forEach((cant, semanaIndex) => {
       const totalSemana = totalesSemana[semanaIndex] || 0;
 
-      // 2) Calcular porcentaje
+      // 3) Calcular porcentaje contra TODOS los productos de la semana
       let pct = 0;
       if (totalSemana > 0) {
         pct = (cant / totalSemana) * 100;
@@ -745,6 +756,7 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
 
   document.getElementById("tablaRendimientoSemanal").innerHTML = html;
 }
+
 
 
 
