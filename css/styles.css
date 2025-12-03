@@ -2798,3 +2798,6 @@ body.sidebar-mini .main-content {
   color: #fff;
 }
 
+.sidebar-doc .ios-card ul{
+background: aqua;  
+}
