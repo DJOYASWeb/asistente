@@ -684,7 +684,7 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
         const catCamp = normalizar(camp.subcategoria);
 
         // Solo contar si pertenece a la campaña
-        if (!categoriesProd.includes(catCamp)) return;
+if (!categoriesProd.includes(catCamp)) return;
 
         // Buscar semana
         const idxSemana = semanas.findIndex(s =>
