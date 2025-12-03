@@ -2780,7 +2780,7 @@ body.sidebar-mini .main-content {
   padding-left: 0;
 }
 
-.sidebar-doc ul {
+ ul .sidebar-doc-list {
   padding: 0.45rem 0.5rem;
   border-radius: 10px;
   cursor: pointer;
