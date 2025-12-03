@@ -257,6 +257,60 @@ return p.productos.some(prod => {
 // GRÁFICO 1
 generarGraficoComparacionCampanas(activas, pedidos);
 
+// =============================
+// 🔍 DIAGNÓSTICO "Aros de Plata"
+// =============================
+(function () {
+  const normalizar = str => (str || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const objetivo = normalizar("Aros de Plata");
+
+  let totalGrafico = 0;
+  let filasGrafico = 0;
+
+  pedidos.forEach(p => {
+    p.productos.forEach(prod => {
+      const subs = (prod.subcategoria || "")
+        .split(",")
+        .map(s => normalizar(s.trim()))
+        .filter(s => s !== "");
+
+      if (subs.includes(objetivo)) {
+        filasGrafico++;
+        totalGrafico += prod.cantidad;
+      }
+    });
+  });
+
+  console.log("=== DIAGNÓSTICO AROS DE PLATA ===");
+  console.log("Filas que el gráfico realmente está usando:", filasGrafico);
+  console.log("Total de productos que el gráfico está sumando:", totalGrafico);
+})();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================
 // 9.1) Generar semanas desde ventas filtradas
 // ==========================
