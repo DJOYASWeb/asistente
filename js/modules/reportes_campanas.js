@@ -83,6 +83,21 @@ window.cargarSelectorCampanas = cargarSelectorCampanas;
 // 📌 2. DASHBOARD PRINCIPAL DE CAMPAÑAS
 // ===============================================================
 async function cargarDashboardCampanas() {
+
+
+// ==========================
+// Cargar clientes (para KPIs del PDF)
+// ==========================
+const urlClientes = localStorage.getItem("csv_clientes");
+let clientesRaw = [];
+
+if (urlClientes) {
+  const txtClientes = await fetch(urlClientes).then(r => r.text());
+  clientesRaw = Papa.parse(txtClientes, { header: true, skipEmptyLines: true }).data;
+}
+
+
+
   try {
     const url = localStorage.getItem("csv_campanas");
     const urlVentas = localStorage.getItem("csv_ventas");
@@ -111,7 +126,7 @@ document.getElementById("btnExportarGrafico").onclick = () => {
 
 
 document.getElementById("btnReporteMarketing").onclick = () => {
-  generarReporteMarketingPDF(pedidos, activas, semanas);
+  generarReporteMarketingPDF(pedidos, activas, semanas, ventasRaw, clientesRaw);
 };
 
 
@@ -869,7 +884,7 @@ async function capturarGraficoAImagen(selector) {
 // ============================================================
 // GENERADOR PDF — ESTILO APPLE — PÁGINAS 1 A 4
 // ============================================================
-async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
+async function generarReporteMarketingPDF(pedidos, campanas, semanas, ventasRaw, clientesRaw) {
 
   const { jsPDF } = window.jspdf;
 
