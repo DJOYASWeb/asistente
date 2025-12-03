@@ -26,6 +26,9 @@ function agruparVentasPorPedido(data) {
 }
 
 
+
+
+
 // ===============================================================
 // 📌 DASHBOARD DE CAMPAÑAS — versión completa y funcional
 // ===============================================================
@@ -152,7 +155,7 @@ if (btn) {
 }
 
 // 🔍 REVISAR PRODUCTOS "Aros de Plata"
-mostrarProductosArosDePlata(pedidos);
+
 exportarArosDePlataXLSX(pedidos);
 
     // ==========================
