@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Blog</title>
+  <title>Biblioteca</title>
   <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -129,76 +129,114 @@
 
 <div class="container mt-4">
 
-  <!-- Encabezado principal -->
-  <div class="ios-card">
-    <h1 class="mb-3">Introducción</h1>
-    <p class="muted mb-2">Versión de documentación personalizada para DJOYAS.</p>
-    <p>
-      Aquí podrás agregar información general sobre tu framework, tus herramientas internas o cualquier guía de inicio rápida.
-      Este bloque replica la cabecera de Bootstrap, pero con tu estilo iOS.
-    </p>
-  </div>
+    <div class="documentacion-wrapper" style="display:flex; gap:2rem; padding-top:1rem;">
 
-  <!-- Sección 1 -->
-  <div class="ios-card mt-4">
-    <h2>¿Qué es este módulo?</h2>
-    <p class="muted">Texto editable por ti.</p>
+  <!-- =============== SIDEBAR =============== -->
+  <aside class="sidebar-doc ios-card" style="width:260px; height:80vh; overflow-y:auto; padding:1rem;">
 
-    <p>
-      Aquí puedes colocar una descripción general, igual que el apartado “Bootstrap is the world’s most popular…”.
-      Tu contenido puede explicar el propósito del módulo o sistema.
-    </p>
+    <h5 class="muted">Getting started</h5>
+    <ul class="sidebar-doc-list">
+      <li data-doc="intro">Introduction</li>
+      <li data-doc="download">Download</li>
+      <li data-doc="contents">Contents</li>
+      <li data-doc="browsers">Browsers & devices</li>
+      <li data-doc="javascript">JavaScript</li>
+      <li data-doc="webpack">Webpack</li>
+      <li data-doc="parcel">Parcel</li>
+      <li data-doc="vite">Vite</li>
+      <li data-doc="accessibility">Accessibility</li>
+      <li data-doc="rfs">RFS</li>
+      <li data-doc="rtl">RTL</li>
+      <li data-doc="contribute">Contribute</li>
+    </ul>
 
-    <!-- Bloque placeholder -->
-    <div class="borde p-3 rounded mt-3" style="background: #fafafa;">
-      <strong>📌 Espacio para insertar una imagen o video</strong>
-      <p class="muted mb-0">Puedes reemplazar este bloque por un diseño real.</p>
-    </div>
-  </div>
+    <h5 class="muted mt-3">Customize</h5>
+    <ul class="sidebar-doc-list">
+      <li data-doc="custom-overview">Overview</li>
+      <li data-doc="sass">Sass</li>
+      <li data-doc="options">Options</li>
+      <li data-doc="color">Color</li>
+      <li data-doc="color-modes">Color modes</li>
+      <li data-doc="components">Components</li>
+      <li data-doc="css-vars">CSS variables</li>
+      <li data-doc="optimize">Optimize</li>
+    </ul>
 
-  <!-- Sección 2 -->
-  <div class="ios-card mt-4">
-    <h2>Instalación</h2>
-    <p class="muted">Guía o pasos — edítala a tu gusto.</p>
+    <h5 class="muted mt-3">Layout</h5>
+    <ul class="sidebar-doc-list">
+      <li data-doc="breakpoints">Breakpoints</li>
+      <li data-doc="containers">Containers</li>
+      <li data-doc="grid">Grid</li>
+      <li data-doc="columns">Columns</li>
+      <li data-doc="gutters">Gutters</li>
+    </ul>
 
-    <p>Aquí puedes replicar exactamente como Bootstrap muestra sus formas de instalación.</p>
+    <h5 class="muted mt-3">Content</h5>
+    <ul class="sidebar-doc-list">
+      <li data-doc="reboot">Reboot</li>
+      <li data-doc="typography">Typography</li>
+      <li data-doc="images">Images</li>
+      <li data-doc="tables">Tables</li>
+      <li data-doc="figures">Figures</li>
+    </ul>
 
-    <h4 class="mt-3">CDN</h4>
-    <pre><code>&lt;link rel="stylesheet" href="TU_URL.css"&gt;</code></pre>
+    <h5 class="muted mt-3">Forms</h5>
+    <ul class="sidebar-doc-list">
+      <li data-doc="forms-overview">Overview</li>
+      <li data-doc="form-control">Form control</li>
+      <li data-doc="select">Select</li>
+      <li data-doc="checks-radios">Checks & radios</li>
+      <li data-doc="range">Range</li>
+      <li data-doc="input-group">Input group</li>
+      <li data-doc="floating-labels">Floating labels</li>
+      <li data-doc="forms-layout">Layout</li>
+      <li data-doc="validation">Validation</li>
+    </ul>
 
-    <button class="btn btn-outline-primary btn-copy mt-2" onclick="copiarCodigo(this)">Copiar</button>
+    <h5 class="muted mt-3">Components</h5>
+    <ul class="sidebar-doc-list">
+      <li data-doc="accordion">Accordion</li>
+      <li data-doc="alerts">Alerts</li>
+      <li data-doc="badge">Badge</li>
+      <li data-doc="breadcrumb">Breadcrumb</li>
+      <li data-doc="buttons">Buttons</li>
+      <li data-doc="button-group">Button group</li>
+      <li data-doc="card">Card</li>
+      <li data-doc="carousel">Carousel</li>
+      <li data-doc="close-button">Close button</li>
+      <li data-doc="collapse">Collapse</li>
+      <li data-doc="dropdowns">Dropdowns</li>
+      <li data-doc="list-group">List group</li>
+      <li data-doc="modal">Modal</li>
+      <li data-doc="navbar">Navbar</li>
+      <li data-doc="navs-tabs">Navs & tabs</li>
+      <li data-doc="offcanvas">Offcanvas</li>
+      <li data-doc="pagination">Pagination</li>
+      <li data-doc="placeholders">Placeholders</li>
+      <li data-doc="popovers">Popovers</li>
+      <li data-doc="progress">Progress</li>
+      <li data-doc="scrollspy">Scrollspy</li>
+      <li data-doc="spinners">Spinners</li>
+      <li data-doc="toasts">Toasts</li>
+      <li data-doc="tooltips">Tooltips</li>
+    </ul>
 
-    <h4 class="mt-4">NPM</h4>
-    <pre><code>npm install tu-modulo</code></pre>
-    <button class="btn btn-outline-primary btn-copy mt-2" onclick="copiarCodigo(this)">Copiar</button>
-  </div>
+  </aside>
 
-  <!-- Sección 3 -->
-  <div class="ios-card mt-4">
-    <h2>Contenido básico</h2>
-    <p>Espacios visuales como los de Bootstrap donde tú podrás insertar tus componentes.</p>
+  <!-- =============== CONTENIDO PRINCIPAL =============== -->
+  <main class="contenido-doc ios-card" style="flex:1; padding:2rem;">
 
-    <div class="seccion-preview mt-3">
-      <div class="col-preview">Columna izquierda</div>
-      <div class="col-preview">Columna derecha</div>
-    </div>
+      <!-- Aquí cambiará todo el contenido dinámicamente -->
+      <div id="doc-content">
+          <h2>Bienvenido</h2>
+          <p>Selecciona un tema en la barra lateral para ver la documentación.</p>
+      </div>
 
-    <p class="muted mt-2">Puedes reemplazar esta sección por ejemplos reales.</p>
-  </div>
+  </main>
 
-  <!-- Sección 4 -->
-  <div class="ios-card mt-4 mb-5">
-    <h2>Cómo comenzar</h2>
-    <p>Aquí puedes colocar instrucciones iniciales, igual que la guía "Getting Started".</p>
+</div>
 
-    <div class="bloque-preview">
-      <strong>📌 Ejemplo básico de uso:</strong>
-      <pre><code>&lt;div class="ejemplo"&gt;Tu código aquí&lt;/div&gt;</code></pre>
-    </div>
-
-    <button class="btn btn-primary mt-3">Acción o Enlace Principal</button>
-  </div>
-
+ 
 </div>
 
 

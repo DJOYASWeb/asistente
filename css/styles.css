@@ -2774,3 +2774,25 @@ body.sidebar-mini .main-content {
   justify-content: center;
   padding: 40px 0;
 }
+
+.sidebar-doc-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sidebar-doc-list li {
+  padding: 0.45rem 0.5rem;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text);
+  transition: background .2s;
+}
+
+.sidebar-doc-list li:hover {
+  background: #e5e5ea;
+}
+
+.sidebar-doc-list li.active {
+  background: #000;
+  color: #fff;
+}
