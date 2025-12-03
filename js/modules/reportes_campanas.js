@@ -110,6 +110,9 @@ document.getElementById("btnExportarGrafico").onclick = () => {
 
 
 
+document.getElementById("btnReporteMarketing").onclick = () => {
+  generarReporteMarketingPDF(pedidos, activas, semanas);
+};
 
 
 
@@ -742,6 +745,122 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   html += "</tbody></table>";
 
   document.getElementById("tablaRendimientoSemanal").innerHTML = html;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//pdf
+
+async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+
+  // TÍTULO
+  pdf.setFontSize(20);
+  pdf.text("Reporte Mensual de Marketing", 14, 20);
+
+  // FECHA ACTUAL
+  pdf.setFontSize(10);
+  pdf.text("Generado: " + new Date().toLocaleString("es-CL"), 14, 28);
+
+  // ============================
+  // SECCIÓN 1 — VENTAS TOTALES
+  // ============================
+  let totalVentas = 0;
+  let totalProductos = 0;
+
+  pedidos.forEach(p => {
+    totalVentas += p.total;
+    p.productos.forEach(x => totalProductos += x.cantidad);
+  });
+
+  pdf.setFontSize(14);
+  pdf.text("1. Resumen General", 14, 40);
+
+  pdf.setFontSize(11);
+  pdf.text(`• Ventas totales: $${totalVentas.toLocaleString("es-CL")}`, 14, 48);
+  pdf.text(`• Productos vendidos: ${totalProductos.toLocaleString("es-CL")}`, 14, 54);
+  pdf.text(`• Campañas activas: ${campanas.length}`, 14, 60);
+
+  // ============================
+  // SECCIÓN 2 — RENDIMIENTO CAMPAÑAS
+  // ============================
+  pdf.setFontSize(14);
+  pdf.text("2. Rendimiento por Campaña", 14, 75);
+
+  let y = 85;
+
+  campanas.forEach(c => {
+    const fi = c.fecha_inicio;
+    const ff = c.fecha_fin;
+
+    pdf.setFontSize(12);
+    pdf.text(`${c.nombre} (${fi} → ${ff})`, 14, y);
+
+    y += 6;
+
+    const totalCamp = pedidos.reduce((sum, p) => {
+      const fecha = new Date(p.fecha);
+      const fiD = new Date(fi);
+      const ffD = new Date(ff);
+
+      if (fecha < fiD || fecha > ffD) return sum;
+
+      return sum + p.productos.reduce((s, prod) => {
+        return prod.subcategoria?.toLowerCase().includes(c.subcategoria.toLowerCase())
+          ? s + prod.cantidad
+          : s;
+      }, 0);
+    }, 0);
+
+    pdf.setFontSize(11);
+    pdf.text(`• Total productos vendidos: ${totalCamp}`, 20, y);
+
+    y += 8;
+    if (y > 270) { pdf.addPage(); y = 20; }
+  });
+
+  // ============================
+  // SECCIÓN 3 — TOP PRODUCTOS
+  // ============================
+  pdf.addPage();
+  pdf.setFontSize(14);
+  pdf.text("3. Top Productos Vendidos", 14, 20);
+
+  const mapa = {};
+
+  pedidos.forEach(p => {
+    p.productos.forEach(prod => {
+      if (!mapa[prod.producto]) mapa[prod.producto] = 0;
+      mapa[prod.producto] += prod.cantidad;
+    });
+  });
+
+  const top = Object.entries(mapa)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 15);
+
+  let y2 = 35;
+
+  top.forEach(([producto, cant]) => {
+    pdf.setFontSize(11);
+    pdf.text(`• ${producto}: ${cant}`, 14, y2);
+    y2 += 7;
+  });
+
+  // ============================
+  // GUARDAR PDF
+  // ============================
+  pdf.save("reporte_marketing.pdf");
 }
 
 
