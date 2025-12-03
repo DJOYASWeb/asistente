@@ -26,41 +26,6 @@ function agruparVentasPorPedido(data) {
 }
 
 
-
-function mostrarProductosArosDePlata(pedidos) {
-  const objetivo = normalizarExacto("Aros de Plata");
-
-  const lista = [];
-
-  pedidos.forEach(p => {
-    p.productos.forEach(prod => {
-      const subs = (prod.subcategoria || "")
-        .split(",")
-        .map(s => normalizarExacto(s.trim()))
-        .filter(s => s.length > 0);
-
-      if (subs.includes(objetivo)) {
-        lista.push({
-          id: p.id,
-          fecha: p.fecha,
-          sku: prod.sku,
-          producto: prod.producto,
-          subcategoria: prod.subcategoria,
-          cantidad: prod.cantidad
-        });
-      }
-    });
-  });
-
-  console.table(lista);
-
-  const total = lista.reduce((acc, item) => acc + item.cantidad, 0);
-  console.log("TOTAL AROS DE PLATA =", total);
-
-  return lista;
-}
-
-
 // ===============================================================
 // 📌 DASHBOARD DE CAMPAÑAS — versión completa y funcional
 // ===============================================================
