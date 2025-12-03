@@ -929,24 +929,57 @@ async function generarReporteMarketingPDF(pedidos, campanas, semanas) {
   pdf.setTextColor(COLOR_TITLE);
   pdf.text("1. KPIs principales", 40, 80);
 
-  let totalVentas = 0;
-  let totalProductos = 0;
+// =======================
+// DATOS DESDE VENTAS
+// =======================
+const idsUnicos = new Set();
+let totalVentas = 0;
+let totalProductos = 0;
 
-  pedidos.forEach(p => {
-    totalVentas += p.total;
-    p.productos.forEach(prod => totalProductos += prod.cantidad);
-  });
+ventasRaw.forEach(v => {
+  if (v["ID del pedido"]) idsUnicos.add(v["ID del pedido"]);
+  totalVentas += parseFloat(v["Total"] || 0);
+  totalProductos += parseInt(v["Cantidad de productos"] || 0);
+});
 
-  const ticketPromedio = totalProductos > 0 ? totalVentas / totalProductos : 0;
+const cantidadPedidos = idsUnicos.size;
 
-  const KPIS = [
-    { titulo: "Ventas totales", valor: "$" + totalVentas.toLocaleString("es-CL") },
-    { titulo: "Productos vendidos", valor: totalProductos.toLocaleString("es-CL") },
-    { titulo: "Ticket promedio", valor: "$" + ticketPromedio.toLocaleString("es-CL") },
-    { titulo: "Pedidos realizados", valor: pedidos.length.toString() },
-    { titulo: "Clientes nuevos", valor: "—" },
-    { titulo: "Clientes recurrentes", valor: "—" }
-  ];
+const ticketPromedio = cantidadPedidos > 0
+  ? totalVentas / cantidadPedidos
+  : 0;
+
+const ticketUnitario = totalProductos > 0
+  ? totalVentas / totalProductos
+  : 0;
+
+
+// =======================
+// DATOS DESDE CLIENTES
+// =======================
+let clientesNuevos = 0;
+let clientesRecurrentes = 0;
+
+clientesRaw.forEach(c => {
+
+  // ⚠️ Aquí debes decirme cómo se llama esta columna:
+  const esNuevo = c["Es nuevo"] || c["Cliente nuevo"] || c["First order"];
+
+  if (esNuevo === "Si" || esNuevo === "sí" || esNuevo === "Yes" || esNuevo === "true") {
+    clientesNuevos++;
+  } else {
+    clientesRecurrentes++;
+  }
+});
+
+const KPIS = [
+  { titulo: "Ventas totales", valor: "$" + totalVentas.toLocaleString("es-CL") },
+  { titulo: "Pedidos realizados", valor: cantidadPedidos.toLocaleString("es-CL") },
+  { titulo: "Productos vendidos", valor: totalProductos.toLocaleString("es-CL") },
+  { titulo: "Ticket promedio", valor: "$" + ticketPromedio.toLocaleString("es-CL") },
+  { titulo: "Clientes nuevos", valor: clientesNuevos.toString() },
+  { titulo: "Clientes recurrentes", valor: clientesRecurrentes.toString() }
+];
+
 
   let x = 40;
   let y = 130;
