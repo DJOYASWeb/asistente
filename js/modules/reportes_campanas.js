@@ -182,7 +182,7 @@ async function cargarDashboardCampanas() {
     const pedidos = agruparVentasPorPedido(ventasFiltradas);
 // 🔍 REVISAR PRODUCTOS "Aros de Plata"
 mostrarProductosArosDePlata(pedidos);
-
+exportarArosDePlataXLSX(pedidos);
     // ==========================
     // 7) FILTRAR CAMPAÑAS ACTIVAS USANDO PEDIDOS
     // ==========================
@@ -734,3 +734,49 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
   document.getElementById("tablaRendimientoSemanal").innerHTML = html;
 }
 
+// ========================================================
+// 📤 EXPORTAR AROS DE PLATA A EXCEL (XLSX)
+// ========================================================
+async function exportarArosDePlataXLSX(pedidos) {
+
+  function normalizarExacto(str) {
+    return (str || "")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  const objetivo = normalizarExacto("Aros de Plata");
+
+  const lista = [];
+
+  pedidos.forEach(p => {
+    p.productos.forEach(prod => {
+      const subs = (prod.subcategoria || "")
+        .split(",")
+        .map(s => normalizarExacto(s.trim()))
+        .filter(s => s.length > 0);
+
+      if (subs.includes(objetivo)) {
+        lista.push({
+          ID_Pedido: p.id,
+          Fecha: p.fecha,
+          SKU: prod.sku,
+          Producto: prod.producto,
+          Subcategoria: prod.subcategoria,
+          Cantidad: prod.cantidad
+        });
+      }
+    });
+  });
+
+  // Crear XLSX usando SheetJS
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(lista);
+  XLSX.utils.book_append_sheet(wb, ws, "Aros de Plata");
+
+  XLSX.writeFile(wb, "aros_de_plata.xlsx");
+
+  alert("Archivo aros_de_plata.xlsx generado correctamente.");
+}
