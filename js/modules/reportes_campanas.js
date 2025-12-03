@@ -285,31 +285,35 @@ return p.productos.some(prod => {
 // GRÁFICO 1
 generarGraficoComparacionCampanas(activas, pedidos);
 
-function generarSemanasDesdePedidos(pedidos) {
-  if (!pedidos.length) return [];
+function generarSemanasDesdeCampanas(campanas) {
 
-  // El filtro del usuario define el rango real
-  const inicio = new Date(rangoPrincipal[0]);
-  const fin = new Date(rangoPrincipal[1]);
-
-  inicio.setHours(0, 0, 0, 0);
-  fin.setHours(23, 59, 59, 999);
-
-  const semanas = [];
-
-  let cursorIni = new Date(inicio);
-
-  function formato(d) {
-    return `${d.getDate().toString().padStart(2, "0")}-${(d.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}-${d.getFullYear()}`;
+  function parseFecha(str) {
+    if (!str) return null;
+    const [y, m, d] = str.split("-").map(Number);
+    return new Date(y, m - 1, d);
   }
 
-  while (cursorIni <= fin) {
+  const inicioMin = Math.min(...campanas.map(c => parseFecha(c.fecha_inicio)));
+  const finMax    = Math.max(...campanas.map(c => parseFecha(c.fecha_fin)));
+
+  let inicio = new Date(inicioMin);
+  let fin    = new Date(finMax);
+
+  inicio.setHours(0,0,0,0);
+  fin.setHours(23,59,59,999);
+
+  const semanas = [];
+  let cursorIni = new Date(inicio);
+
+  function formato(d){
+    return `${d.getDate().toString().padStart(2,"0")}-${(d.getMonth()+1)
+      .toString().padStart(2,"0")}-${d.getFullYear()}`;
+  }
+
+  while(cursorIni <= fin){
     let cursorFin = new Date(cursorIni);
     cursorFin.setDate(cursorIni.getDate() + 6);
-
-    if (cursorFin > fin) cursorFin = new Date(fin);
+    if(cursorFin > fin) cursorFin = new Date(fin);
 
     semanas.push({
       inicio: new Date(cursorIni),
@@ -326,7 +330,8 @@ function generarSemanasDesdePedidos(pedidos) {
 
 
 // generar semanas reales
-const semanas = generarSemanasDesdePedidos(ventasFiltradas);
+const semanas = generarSemanasDesdeCampanas(activas);
+
 
 // ==========================
 // 9.2) Tabla rendimiento semanal
@@ -657,14 +662,13 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
   function normalizarExacto(str) {
     return (str || "")
       .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, " ")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/\s+/g," ")
       .trim();
   }
 
   const salida = {};
 
-  // Inicializar campaña → semanas
   campanas.forEach(c => {
     salida[c.nombre] = semanas.map(() => 0);
   });
@@ -672,24 +676,31 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
   pedidos.forEach(p => {
     const fecha = new Date(p.fecha);
 
-    const semanaIndex = semanas.findIndex(s =>
-      fecha >= s.inicio && fecha <= s.fin
-    );
-    if (semanaIndex === -1) return;
-
     p.productos.forEach(prod => {
+
       const categorias = (prod.subcategoria || "")
         .split(",")
-        .map(s => normalizarExacto(s.trim()))
-        .filter(s => s.length > 0);
+        .map(s => normalizarExacto(s.trim()));
 
-      campanas.forEach(c => {
-        const subCamp = normalizarExacto(c.subcategoria || "");
+      campanas.forEach((c, indexCamp) => {
 
-        // Coincidencia exacta con subcategoría
-        if (categorias.includes(subCamp)) {
-          salida[c.nombre][semanaIndex] += prod.cantidad;
-        }
+        const campCat = normalizarExacto(c.subcategoria);
+        if(!categorias.includes(campCat)) return;
+
+        const fi = new Date(c.fecha_inicio);
+        const ff = new Date(c.fecha_fin);
+
+        // Solo considerar ventas dentro del rango de campaña
+        if(fecha < fi || fecha > ff) return;
+
+        // Encontrar semana
+        const semanaIndex = semanas.findIndex(s => 
+          fecha >= s.inicio && fecha <= s.fin
+        );
+        if(semanaIndex === -1) return;
+
+        salida[c.nombre][semanaIndex] += prod.cantidad;
+
       });
 
     });
@@ -701,24 +712,18 @@ function generarRendimientoSemanal(pedidos, campanas, semanas) {
 
 
 function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
+
   const data = generarRendimientoSemanal(pedidos, campanas, semanas);
 
-  // 1) Calcular TOTAL SEMANAL DE TODOS LOS PRODUCTOS (NO solo campañas)
-  const totalesSemana = semanas.map((_, semanaIndex) => {
+  // total de productos vendidos por semana (todas las categorías)
+  const totalesSemana = semanas.map((sem, idx) => {
     let total = 0;
-
     pedidos.forEach(p => {
-      const fecha = new Date(p.fecha);
-      const inicio = semanas[semanaIndex].inicio;
-      const fin = semanas[semanaIndex].fin;
-
-      if (fecha >= inicio && fecha <= fin) {
-        p.productos.forEach(prod => {
-          total += prod.cantidad; // <-- suma todos los productos
-        });
+      const f = new Date(p.fecha);
+      if(f >= sem.inicio && f <= sem.fin){
+        p.productos.forEach(prod => total += prod.cantidad);
       }
     });
-
     return total;
   });
 
@@ -733,29 +738,35 @@ function generarTablaRendimientoSemanal(pedidos, campanas, semanas) {
       <tbody>
   `;
 
-  // 2) Renderizar filas por campaña
-  Object.keys(data).forEach(nombre => {
-    html += `<tr><td><strong>${nombre}</strong></td>`;
+  campanas.forEach(c => {
+    html += `<tr><td><strong>${c.nombre}</strong></td>`;
 
-    data[nombre].forEach((cant, semanaIndex) => {
-      const totalSemana = totalesSemana[semanaIndex] || 0;
+    // campaña rango
+    const fi = new Date(c.fecha_inicio);
+    const ff = new Date(c.fecha_fin);
 
-      // 3) Calcular porcentaje contra TODOS los productos de la semana
-      let pct = 0;
-      if (totalSemana > 0) {
-        pct = (cant / totalSemana) * 100;
-      }
+    data[c.nombre].forEach((cant, i) => {
+      const total = totalesSemana[i];
+      const pct = total > 0 ? (cant / total) * 100 : 0;
 
-      html += `<td>${cant} (${pct.toFixed(1)}%)</td>`;
+      // semana activa?
+      const esActiva = !(semanas[i].fin < fi || semanas[i].inicio > ff);
+
+      const texto = `${cant} (${pct.toFixed(1)}%)`;
+
+      html += `<td style="font-weight:${esActiva ? 'bold' : 'normal'}">
+        ${texto}
+      </td>`;
     });
 
     html += `</tr>`;
   });
 
-  html += `</tbody></table>`;
+  html += "</tbody></table>";
 
   document.getElementById("tablaRendimientoSemanal").innerHTML = html;
 }
+
 
 
 
