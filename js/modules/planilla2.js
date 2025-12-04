@@ -1626,37 +1626,32 @@ function guardarIDsAsignados() {
 
   inputs.forEach(input => {
     const id = input.value.trim();
-    const skuIngresado = input.dataset.sku;
+    const sku = input.dataset.sku;
+    if (!sku) return;
 
-    if (!skuIngresado || !id) return;
+    // Buscar el producto EXACTO en todas las listas
+    const listas = [datosOriginales, datosCombinaciones, datosReposicion];
 
-    // 1️⃣ Identificar prefijo
-    const pref = prefijoPadre(skuIngresado);
-    const codigoPadre = `${pref}000`;
-
-    // 2️⃣ Asignar ID a padre y a todos los que compartan el prefijo
-    [...datosOriginales, ...datosCombinaciones, ...datosReposicion].forEach(row => {
-      const codigo = extraerCodigo(row);
-      if (!codigo) return;
-
-      const prefRow = prefijoPadre(codigo);
-      const padreEs = `${prefRow}000`;
-
-      // si es el padre o uno de sus hijos → asignar ID
-      if (padreEs === codigoPadre) {
-        row["prestashop_id"] = id;
-      }
+    listas.forEach(lista => {
+      lista.forEach(row => {
+        const codigo = extraerCodigo(row);
+        if (codigo === sku) {
+          row["prestashop_id"] = id;        // guardar ID normal
+          row["PRESTASHOP ID"] = id;        // por si viene con otro nombre
+          row["ID"] = id;                   // compatibilidad
+        }
+      });
     });
-
   });
 
-  alert("IDs asignados correctamente a padres e hijos.");
+  alert("IDs asignados correctamente.");
 
-  // Refrescar tabla
+  // refrescar vista actual
   renderTablaConOrden(
     datosFiltrados.length ? datosFiltrados : [...datosOriginales, ...datosCombinaciones]
   );
 }
+
 
 
 
