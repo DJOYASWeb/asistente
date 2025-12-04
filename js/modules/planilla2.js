@@ -203,12 +203,8 @@ function onAbrirModalProcesar() {
   // Mostrar el botón si hay al menos 1 fila activa
   const show = Array.isArray(filas) && filas.length > 0;
 
-  console.log('[zip] evaluar botón →', {
-    btnZip: !!btnZip,
-    tipoSeleccionado,
-    filas: Array.isArray(filas) ? filas.length : 0,
-    show
-  });
+mostrarNotificacion(`ZIP: ${filas.length} filas activas.`, "exito");
+
 
   btnZip.style.display = show ? 'inline-block' : 'none';
 }
@@ -1603,9 +1599,10 @@ document.addEventListener("click", e => {
     // Marcar el actual
     td.classList.add("bg-success", "text-white");
 
-    console.log(`Código ${codigo} copiado al portapapeles ✅`);
+mostrarNotificacion(`Código ${codigo} copiado al portapapeles`, "exito");
+
   }).catch(err => {
-    console.error("No se pudo copiar al portapapeles", err);
+mostrarNotificacion("No se pudo copiar al portapapeles", "error");
     alert("No se pudo copiar al portapapeles");
   });
 });
@@ -1636,21 +1633,22 @@ function guardarIDsAsignados() {
       lista.forEach(row => {
         const codigo = extraerCodigo(row);
         if (codigo === sku) {
-          row["prestashop_id"] = id;        // guardar ID normal
-          row["PRESTASHOP ID"] = id;        // por si viene con otro nombre
-          row["ID"] = id;                   // compatibilidad
+          row["prestashop_id"] = id;
+          row["PRESTASHOP ID"] = id;
+          row["ID"] = id;
         }
       });
     });
   });
 
-  alert("IDs asignados correctamente.");
+  mostrarNotificacion("IDs asignados correctamente", "exito");
 
   // refrescar vista actual
   renderTablaConOrden(
     datosFiltrados.length ? datosFiltrados : [...datosOriginales, ...datosCombinaciones]
   );
 }
+
 
 
 
@@ -2028,7 +2026,8 @@ async function comprimirImagenes() {
       const blobFinal = await procesarImagen(url);
       zip.file(`${codigo}.jpg`, blobFinal);
     } catch (e) {
-      console.warn("Error con", codigo, e);
+mostrarNotificacion(`Error procesando imagen ${codigo}`, "alerta");
+
     }
 
     completadas++;
@@ -2100,7 +2099,8 @@ async function descargarImagenesRenombradasZIP() {
     // obtener ID del link de Drive
     const match = url.match(/\/d\/([^\/]+)/);
     if (!match) {
-      console.warn("No se pudo leer ID de:", url);
+mostrarNotificacion(`No se pudo leer el ID de la imagen`, "alerta");
+
       continue;
     }
 
