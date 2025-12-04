@@ -1537,50 +1537,53 @@ function obtenerPadresDesdeSKUs() {
 }
 
 
-// Construye la tabla del modal (precargando IDs si ya existen)
 function abrirModalIngresarID() {
-  const padres = obtenerPadresDesdeSKUs();
   const tbody = document.getElementById("tablaIngresarID");
   tbody.innerHTML = "";
 
-  if (padres.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No se encontraron padres en los SKUs cargados.</td></tr>`;
+  // 🔹 Tomamos todos los productos cargados
+  const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
+
+  if (todos.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="2" class="text-muted">No hay productos cargados.</td></tr>`;
     return;
   }
 
-  padres.forEach(codigoPadre => {
-    let idExistente = "";
+  todos.forEach(row => {
+    const sku = extraerCodigo(row);
+    if (!sku) return;
 
-    // Buscar en padre e hijos si ya existe un prestashop_id
-    [...datosOriginales, ...datosCombinaciones].forEach(row => {
-      const codigoRow = extraerCodigo(row);
-      if (!codigoRow) return;
-      const prefijo = prefijoPadre(codigoRow);
-      const padreEsperado = `${prefijo}000`;
+    // Detectar ID ya existente
+    const idExistente =
+      row["prestashop_id"] ||
+      row["PRESTASHOP ID"] ||
+      row["ID"] ||
+      row["id"] ||
+      "";
 
-      if (padreEsperado === codigoPadre || codigoRow === codigoPadre) {
-        if (row["prestashop_id"]) {
-          idExistente = row["prestashop_id"]; // siempre se queda con el último encontrado
-        }
-      }
-    });
+    // Crear fila
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="text-primary sku-copy" 
+          style="cursor:pointer;" 
+          data-sku="${sku}"
+          title="Haz clic para copiar SKU">
+          ${sku}
+      </td>
 
-const tr = document.createElement("tr");
-tr.innerHTML = `
-  <td class="codigo-padre text-primary" 
-      style="cursor:pointer;" 
-      data-codigo="${codigoPadre}" 
-      title="Haz clic para copiar">${codigoPadre}</td>
-  <td>
-    <input type="text" class="form-control form-control-sm"
-           data-codigo="${codigoPadre}" 
-           value="${idExistente}" 
-           placeholder="Ej: 1234">
-  </td>
-`;
-tbody.appendChild(tr);
+      <td>
+        <input type="text" class="form-control form-control-sm"
+               data-sku="${sku}"
+               value="${idExistente}"
+               placeholder="Ej: 12345">
+      </td>
+    `;
+
+    tbody.appendChild(tr);
   });
 }
+
+
 
 // Copiar código padre al hacer clic
 document.addEventListener("click", e => {
@@ -1618,35 +1621,30 @@ document.addEventListener("click", e => {
 });
 
 
-// Guarda IDs y los propaga a todos los hijos + padre
 function guardarIDsAsignados() {
   const inputs = document.querySelectorAll("#tablaIngresarID input");
+
   inputs.forEach(input => {
     const id = input.value.trim();
-    const codigoPadre = input.dataset.codigo;
-    if (!id) return;
+    const sku = input.dataset.sku;
+    if (!sku) return;
 
-    // Asignamos en padre e hijos que compartan el prefijo
-    [...datosOriginales, ...datosCombinaciones].forEach(row => {
+    // Buscar todas las filas que tengan este SKU
+    [...datosOriginales, ...datosCombinaciones, ...datosReposicion].forEach(row => {
       const codigo = extraerCodigo(row);
-      if (!codigo) return;
-
-      const prefijo = prefijoPadre(codigo);
-      const padreEsperado = `${prefijo}000`;
-
-      if (padreEsperado === codigoPadre || codigo === codigoPadre) {
-        row["prestashop_id"] = id; // siempre sobrescribe
+      if (codigo === sku) {
+        row["prestashop_id"] = id; // Guardar el ID nuevo
       }
     });
   });
 
-  alert("IDs asignados/actualizados correctamente.");
+  alert("IDs asignados correctamente.");
 
-  // 🔄 Refrescar la tabla de preview para ver cambios
-  if (Array.isArray(datosFiltrados) && datosFiltrados.length > 0) {
-    renderTablaConOrden(datosFiltrados);
-  }
+  // Refrescar la vista actual
+  renderTablaConOrden(datosFiltrados.length ? datosFiltrados : [...datosOriginales, ...datosCombinaciones]);
 }
+
+
 
 // Eventos
 document.addEventListener("DOMContentLoaded", () => {
