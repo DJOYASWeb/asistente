@@ -1,5 +1,5 @@
 // ==========================================================
-// 🔁 DASHBOARD RECOMPRA — CLIENTAS
+// 🔁 DASHBOARD RECOMPRA — CORREGIDO (AGRUPA POR PEDIDO)
 // ==========================================================
 
 async function cargarDashboardRecompra() {
@@ -34,7 +34,7 @@ async function cargarDashboardRecompra() {
     });
 
     // ==================================================
-    // 🕒 Parsear fecha
+    // 🕒 Parse fecha
     // ==================================================
     function parseFecha(str) {
       if (!str) return null;
@@ -45,7 +45,7 @@ async function cargarDashboardRecompra() {
     }
 
     // ==================================================
-    // 📅 Filtrar por rango activo
+    // 📅 Filtrar por rango
     // ==================================================
     const inicio = rangoPrincipal?.[0] || null;
     const fin = rangoPrincipal?.[1] || null;
@@ -66,36 +66,52 @@ async function cargarDashboardRecompra() {
     }
 
     // ==================================================
-    // 👩‍🦰 AGRUPAR POR CLIENTA
+    // 📦 AGRUPAR POR PEDIDO (CLAVE 🔑)
+    // ==================================================
+    const pedidosMap = {};
+
+    filtrados.forEach(r => {
+      const pedidoId = r.id_del_pedido || r.id_pedido;
+      if (!pedidoId) return;
+
+      if (!pedidosMap[pedidoId]) {
+        pedidosMap[pedidoId] = {
+          pedido: pedidoId,
+          cliente: r.id_del_cliente || r.id_cliente,
+          fecha: parseFecha(r.fecha_y_hora)
+        };
+      }
+    });
+
+    const pedidos = Object.values(pedidosMap);
+
+    // ==================================================
+    // 👩‍🦰 AGRUPAR POR CLIENTA (USANDO PEDIDOS)
     // ==================================================
     const clientesMap = {};
 
-    filtrados.forEach(r => {
-      const cliente = r.id_del_cliente || r.id_cliente;
-      if (!cliente) return;
+    pedidos.forEach(p => {
+      if (!p.cliente || !p.fecha) return;
 
-      const fecha = parseFecha(r.fecha_y_hora);
-      if (!fecha) return;
-
-      if (!clientesMap[cliente]) {
-        clientesMap[cliente] = {
-          cliente,
+      if (!clientesMap[p.cliente]) {
+        clientesMap[p.cliente] = {
+          cliente: p.cliente,
           compras: 0,
-          ultimaCompra: fecha
+          ultimaCompra: p.fecha
         };
       }
 
-      clientesMap[cliente].compras += 1;
+      clientesMap[p.cliente].compras += 1;
 
-      if (fecha > clientesMap[cliente].ultimaCompra) {
-        clientesMap[cliente].ultimaCompra = fecha;
+      if (p.fecha > clientesMap[p.cliente].ultimaCompra) {
+        clientesMap[p.cliente].ultimaCompra = p.fecha;
       }
     });
 
     const clientes = Object.values(clientesMap);
 
     // ==================================================
-    // 📊 SEGMENTACIÓN
+    // 📊 SEGMENTACIÓN CORRECTA
     // ==================================================
     const hoy = new Date();
     const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
@@ -115,7 +131,7 @@ async function cargarDashboardRecompra() {
     const clientasTotal = clientes.length;
 
     // ==================================================
-    // 🧩 HELPER TABLAS (TOP 10)
+    // 🧩 HELPER TABLAS
     // ==================================================
     function renderTablaClientes(titulo, lista, mostrarDias = false) {
       return `
@@ -124,7 +140,7 @@ async function cargarDashboardRecompra() {
           <thead>
             <tr>
               <th>ID Cliente</th>
-              <th>Compras</th>
+              <th>Pedidos</th>
               <th>Última compra</th>
               ${mostrarDias ? "<th>Días sin comprar</th>" : ""}
             </tr>
@@ -160,7 +176,6 @@ async function cargarDashboardRecompra() {
         <h2><i class="fa-solid fa-rotate-right"></i> Recompra</h2>
 
         <div class="metricas-grid">
-
           <div class="card-metrica">
             <strong style="font-size:2rem;">${clientasTotal}</strong>
             <p>Total clientas que compraron</p>
@@ -168,12 +183,12 @@ async function cargarDashboardRecompra() {
 
           <div class="card-metrica">
             <strong style="font-size:2rem;">${unaCompra.length}</strong>
-            <p>Clientas con 1 compra</p>
+            <p>1 pedido</p>
           </div>
 
           <div class="card-metrica">
             <strong style="font-size:2rem;">${dosCompras.length}</strong>
-            <p>Clientas con 2 compras</p>
+            <p>2 pedidos</p>
           </div>
 
           <div class="card-metrica">
@@ -185,12 +200,11 @@ async function cargarDashboardRecompra() {
             <strong style="font-size:2rem;">${fugadas.length}</strong>
             <p>Clientas fugadas (+6 meses)</p>
           </div>
-
         </div>
 
         ${renderTablaClientes("Clientas fugadas (top 10)", fugadas, true)}
-        ${renderTablaClientes("Clientas con 1 compra (top 10)", unaCompra)}
-        ${renderTablaClientes("Clientas con 2 compras (top 10)", dosCompras)}
+        ${renderTablaClientes("Clientas con 1 pedido (top 10)", unaCompra)}
+        ${renderTablaClientes("Clientas con 2 pedidos (top 10)", dosCompras)}
         ${renderTablaClientes("Clientas recurrentes (top 10)", recurrentes)}
 
       </div>
