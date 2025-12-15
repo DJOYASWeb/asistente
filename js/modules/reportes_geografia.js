@@ -216,6 +216,7 @@ if (!ciudad) return; // ⛔ omitir este registro en ciudades
 
       </div>
     `;
+inyectarBotonPDF(main);
 
   } catch (err) {
     console.error("❌ Error cargando geografía:", err);

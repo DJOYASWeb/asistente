@@ -456,6 +456,8 @@ const topSubcategorias = Object.values(subcategoriasMap)
 
       </div>
     `;
+    inyectarBotonPDF(main);
+
 
   } catch (err) {
     console.error("❌ Error ventas:", err);

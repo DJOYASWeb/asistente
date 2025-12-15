@@ -1072,3 +1072,4 @@ const KPIS = [
   // =================================================================
   pdf.save("reporte_marketing.pdf");
 }
+inyectarBotonPDF(document.getElementById("contenidoReportesMain"));
