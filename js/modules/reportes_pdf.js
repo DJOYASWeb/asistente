@@ -33,7 +33,7 @@ async function exportarTabActualAPDF() {
   await pdf.html(clon, {
     x: 40,
     y: 40,
-    width: 760,
+    width: 560,
     windowWidth: clon.scrollWidth,
     autoPaging: "text"
   });
