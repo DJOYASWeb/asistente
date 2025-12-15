@@ -12,11 +12,11 @@ async function exportarTabActualAPDF() {
 
   const { jsPDF } = window.jspdf;
 
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "pt",
-    format: "a4"
-  });
+const pdf = new jsPDF({
+  orientation: "landscape",
+  unit: "pt",
+  format: "a4"
+});
 
   await pdf.html(contenedor, {
     x: 40,
