@@ -19,9 +19,9 @@ const pdf = new jsPDF({
 });
 
   await pdf.html(contenedor, {
-    x: 25,
+    x: 40,
     y: 40,
-    width: 515,               // ancho útil A4
+    width: 1080,               // ancho útil A4
     windowWidth: contenedor.scrollWidth,
     autoPaging: "text",
     html2canvas: {
