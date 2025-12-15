@@ -50,3 +50,27 @@ function inyectarBotonPDF(contenedor) {
 
   contenedor.prepend(btn);
 }
+
+(function insertarCSSPDF() {
+  if (document.getElementById("css-pdf-print")) return;
+
+  const style = document.createElement("style");
+  style.id = "css-pdf-print";
+  style.innerHTML = `
+    @media print {
+      #contenidoReportesMain {
+        max-width: none;
+      }
+
+      .metricas-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .btn-ios,
+      .btn-pdf-global {
+        display: none !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+})();
