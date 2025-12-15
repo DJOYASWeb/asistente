@@ -62,3 +62,24 @@ function inyectarBotonPDF(contenedor) {
 
   contenedor.prepend(btn);
 }
+
+
+function ajustarTablasParaPDF(contenedor) {
+  const tablas = contenedor.querySelectorAll("table");
+
+  tablas.forEach(tabla => {
+    tabla.style.fontSize = "18px";
+    tabla.style.lineHeight = "1.3";
+
+    tabla.querySelectorAll("th").forEach(th => {
+      th.style.fontSize = "11px";
+      th.style.fontWeight = "600";
+      th.style.padding = "4px 6px";
+    });
+
+    tabla.querySelectorAll("td").forEach(td => {
+      td.style.fontSize = "10px";
+      td.style.padding = "4px 6px";
+    });
+  });
+}
