@@ -98,6 +98,12 @@ async function cargarDashboardRecompra() {
       c => hoy - c.ultimaCompra >= seisMesesMs
     );
 
+    const recurrentes = clientes.filter(c =>
+  c.compras >= 3 &&
+  (hoy - c.ultimaCompra) < seisMesesMs
+);
+
+
     const clientasTotal = clientes.length; // Total de clientas que compraron
 
     // ==========================
