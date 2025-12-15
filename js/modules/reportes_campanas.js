@@ -343,7 +343,8 @@ generarGraficoSemanalCategoriasCampanas(pedidos, categoriasCampanas);
   }
 }
 
-
+// ✅ INYECTAR BOTÓN PDF (AQUÍ)
+inyectarBotonPDF(document.getElementById("contenidoReportesMain"));
 
 
 
@@ -1072,4 +1073,3 @@ const KPIS = [
   // =================================================================
   pdf.save("reporte_marketing.pdf");
 }
-inyectarBotonPDF(document.getElementById("contenidoReportesMain"));
