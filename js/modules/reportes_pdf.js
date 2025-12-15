@@ -25,7 +25,7 @@ const pdf = new jsPDF({
     windowWidth: contenedor.scrollWidth,
     autoPaging: "text",
     html2canvas: {
-      scale: 1,
+      scale: .6,
       useCORS: true
     }
   });
