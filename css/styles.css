@@ -2822,3 +2822,20 @@ body.sidebar-mini .main-content {
 .pdf-export #contenidoReportesMain {
   max-width: none !important;
 }
+
+/* =========================
+   TABLAS — TAMAÑO DE TEXTO EN PDF
+   ========================= */
+.pdf-export table {
+  font-size: 13px;       /* ajusta aquí */
+}
+
+.pdf-export table th {
+  font-size: 13px;       /* encabezados un poco más grandes */
+  font-weight: 600;
+}
+
+.pdf-export table td {
+  font-size: 13px;
+  line-height: 1.3;
+}
