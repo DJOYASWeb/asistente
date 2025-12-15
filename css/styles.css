@@ -2796,3 +2796,22 @@ body.sidebar-mini .main-content {
   background: #000;
   color: #fff;
 }
+
+
+/* ===========================
+   ESTILOS SOLO PARA PDF
+   =========================== */
+@media print {
+  #contenidoReportesMain {
+    max-width: none;
+  }
+
+  .metricas-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .btn-ios,
+  .btn-pdf-global {
+    display: none !important;
+  }
+}
