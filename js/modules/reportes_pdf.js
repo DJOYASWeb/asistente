@@ -3,36 +3,48 @@
 // =====================================================
 
 async function exportarTabActualAPDF() {
-  const contenedor = document.getElementById("contenidoReportesMain");
-
-  if (!contenedor) {
+  const original = document.getElementById("contenidoReportesMain");
+  if (!original) {
     alert("No se encontró el contenido a exportar");
     return;
   }
 
+  // 1️⃣ Clonar contenido
+  const clon = original.cloneNode(true);
+  clon.classList.add("pdf-export");
+
+  // 2️⃣ Contenedor temporal invisible
+  const wrapper = document.createElement("div");
+  wrapper.style.position = "fixed";
+  wrapper.style.left = "-99999px";
+  wrapper.style.top = "0";
+  wrapper.appendChild(clon);
+  document.body.appendChild(wrapper);
+
+  // 3️⃣ Crear PDF horizontal
   const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({
+    orientation: "landscape",
+    unit: "pt",
+    format: "a4"
+  });
 
-const pdf = new jsPDF({
-  orientation: "portrait",
-  unit: "pt",
-  format: "a4"
-});
-
-  await pdf.html(contenedor, {
+  // 4️⃣ Generar PDF desde el clon
+  await pdf.html(clon, {
     x: 40,
     y: 40,
-width: 760 ,         // ancho útil A4
-    windowWidth: contenedor.scrollWidth,
-    autoPaging: "text",
-    html2canvas: {
-      scale: .6,
-      useCORS: true
-    }
+    width: 760,
+    windowWidth: clon.scrollWidth,
+    autoPaging: "text"
   });
+
+  // 5️⃣ Limpiar DOM
+  document.body.removeChild(wrapper);
 
   const seccion = localStorage.getItem("tab_activo_reportes") || "reporte";
   pdf.save(`reporte_${seccion}.pdf`);
 }
+
 
 // -----------------------------------------------------
 // BOTÓN PDF (INYECTADO DESDE LOS DASHBOARDS)
@@ -50,27 +62,3 @@ function inyectarBotonPDF(contenedor) {
 
   contenedor.prepend(btn);
 }
-
-(function insertarCSSPDF() {
-  if (document.getElementById("css-pdf-print")) return;
-
-  const style = document.createElement("style");
-  style.id = "css-pdf-print";
-  style.innerHTML = `
-    @media print {
-      #contenidoReportesMain {
-        max-width: none;
-      }
-
-      .metricas-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
-
-      .btn-ios,
-      .btn-pdf-global {
-        display: none !important;
-      }
-    }
-  `;
-  document.head.appendChild(style);
-})();
