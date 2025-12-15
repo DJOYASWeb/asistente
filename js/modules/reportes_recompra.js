@@ -22,7 +22,7 @@ async function cargarDashboardRecompra() {
     const raw = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
     // ==========================
-    // Normalizar encabezados (igual que ventas)
+    // Normalizar encabezados
     // ==========================
     const data = raw.map(r => {
       const o = {};
@@ -98,6 +98,8 @@ async function cargarDashboardRecompra() {
       c => hoy - c.ultimaCompra >= seisMesesMs
     );
 
+    const clientasTotal = clientes.length; // Total de clientas que compraron
+
     // ==========================
     // RENDER
     // ==========================
@@ -107,6 +109,11 @@ async function cargarDashboardRecompra() {
         <h2><i class="fa-solid fa-rotate-right"></i> Recompra</h2>
 
         <div class="metricas-grid">
+          <div class="card-metrica">
+            <strong style="font-size:2rem;">${clientasTotal}</strong>
+            <p>Total de clientas que compraron</p>
+          </div>
+
           <div class="card-metrica">
             <strong style="font-size:2rem;">${unaCompra.length}</strong>
             <p>Clientas con 1 compra</p>
