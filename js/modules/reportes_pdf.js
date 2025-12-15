@@ -78,7 +78,7 @@ function ajustarTablasParaPDF(contenedor) {
     });
 
     tabla.querySelectorAll("td").forEach(td => {
-      td.style.fontSize = "10px";
+      td.style.fontSize = "22px";
       td.style.padding = "4px 6px";
     });
   });
