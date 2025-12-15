@@ -19,7 +19,7 @@ const pdf = new jsPDF({
 });
 
   await pdf.html(contenedor, {
-    x: 40,
+    x: 25,
     y: 40,
     width: 515,               // ancho útil A4
     windowWidth: contenedor.scrollWidth,
