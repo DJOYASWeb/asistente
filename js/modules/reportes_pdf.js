@@ -70,7 +70,7 @@ function ajustarTablasParaPDF(contenedor) {
   const tablas = contenedor.querySelectorAll("table");
 
   tablas.forEach(tabla => {
-    tabla.style.fontSize = "18px";
+    tabla.style.fontSize = "30px";
     tabla.style.lineHeight = "2";
 
     tabla.querySelectorAll("th").forEach(th => {
