@@ -2827,7 +2827,7 @@ body.sidebar-mini .main-content {
    TABLAS — TAMAÑO DE TEXTO EN PDF
    ========================= */
 .pdf-export table {
-  font-size: 13px;       /* ajusta aquí */
+  font-size: 18px;       /* ajusta aquí */
 }
 
 .pdf-export table th {
