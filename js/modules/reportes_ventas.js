@@ -344,7 +344,7 @@ const topSubcategorias = Object.values(subcategoriasMap)
 
           <div class="card-metrica">
             <strong style="font-size:2rem;">$${revenueTotal.toLocaleString("es-CL")}</strong>
-            <p>Revenue total</p>
+            <p>Total de Ingresos</p>
           </div>
 
           <div class="card-metrica">
@@ -369,9 +369,9 @@ const topSubcategorias = Object.values(subcategoriasMap)
 
         </div>
 
-        <h4 style="margin-top:1rem;">Revenue por día del mes</h4>
+        <h4 style="margin-top:1rem;">Ingresos por día del mes</h4>
         <table class="tabla-ios">
-          <thead><tr><th>Día</th><th>Revenue</th></tr></thead>
+          <thead><tr><th>Día</th><th>Ingresos</th></tr></thead>
           <tbody>
             ${Object.entries(revenuePorDia)
               .map(([dia, rev]) => `
@@ -383,7 +383,7 @@ const topSubcategorias = Object.values(subcategoriasMap)
 
         <h4 style="margin-top:1rem;">Revenue por hora</h4>
         <table class="tabla-ios">
-          <thead><tr><th>Hora</th><th>Revenue</th></tr></thead>
+          <thead><tr><th>Hora</th><th>Ingresos</th></tr></thead>
           <tbody>
             ${Object.entries(revenuePorHora)
               .map(([h, rev]) => `
@@ -393,9 +393,9 @@ const topSubcategorias = Object.values(subcategoriasMap)
           </tbody>
         </table>
 
-        <h4 style="margin-top:1rem;">Top 10 productos por revenue</h4>
+        <h4 style="margin-top:1rem;">Top 10 productos según Ingreso</h4>
         <table class="tabla-ios">
-          <thead><tr><th>Producto</th><th>Cantidad</th><th>Revenue</th></tr></thead>
+          <thead><tr><th>Producto</th><th>Cantidad</th><th>Ingresos</th></tr></thead>
           <tbody>
             ${topProductosPorRevenue
               .map(p => `
@@ -407,7 +407,7 @@ const topSubcategorias = Object.values(subcategoriasMap)
 
         <h4 style="margin-top:1rem;">Top 10 productos por cantidad</h4>
         <table class="tabla-ios">
-          <thead><tr><th>Producto</th><th>Cantidad</th><th>Revenue</th></tr></thead>
+          <thead><tr><th>Producto</th><th>Cantidad</th><th>Ingresos</th></tr></thead>
           <tbody>
             ${topProductosPorCantidad
               .map(p => `
@@ -420,7 +420,7 @@ const topSubcategorias = Object.values(subcategoriasMap)
 <h4 style="margin-top:1rem;">Top 10 Categorías Principales</h4>
 <table class="tabla-ios">
   <thead>
-    <tr><th>Categoría</th><th>Cantidad</th><th>Revenue</th></tr>
+    <tr><th>Categoría</th><th>Cantidad</th><th>Ingresos</th></tr>
   </thead>
   <tbody>
     ${topCategoriasPrincipales
@@ -438,7 +438,7 @@ const topSubcategorias = Object.values(subcategoriasMap)
 <h4 style="margin-top:1rem;">Top 10 Subcategorías</h4>
 <table class="tabla-ios">
   <thead>
-    <tr><th>Subcategoría</th><th>Cantidad</th><th>Revenue</th></tr>
+    <tr><th>Subcategoría</th><th>Cantidad</th><th>Ingresos</th></tr>
   </thead>
   <tbody>
     ${topSubcategorias
