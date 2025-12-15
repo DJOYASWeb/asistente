@@ -130,6 +130,11 @@ async function cargarDashboardRecompra() {
             <p>Clientas con 2 compras</p>
           </div>
 
+<div class="card-metrica">
+  <strong style="font-size:2rem;">${recurrentes.length}</strong>
+  <p>Clientas recurrentes</p>
+</div>
+
           <div class="card-metrica">
             <strong style="font-size:2rem;">${fugadas.length}</strong>
             <p>Clientas fugadas (+6 meses)</p>
