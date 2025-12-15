@@ -178,3 +178,38 @@ function inyectarBotonPDF(contenedor) {
 
   contenedor.prepend(btn);
 }
+
+
+async function exportarTabActualAPDF() {
+  const contenedor = document.getElementById("contenidoReportesMain");
+
+  if (!contenedor) {
+    alert("No se encontró el contenido a exportar");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "pt",
+    format: "a4"
+  });
+
+  await pdf.html(contenedor, {
+    x: 40,
+    y: 40,
+    width: 515, // ancho útil A4
+    windowWidth: contenedor.scrollWidth,
+    autoPaging: "text",
+    html2canvas: {
+      scale: 1,
+      useCORS: true
+    }
+  });
+
+  const seccion = localStorage.getItem("tab_activo_reportes") || "reporte";
+  pdf.save(`reporte_${seccion}.pdf`);
+}
+
+
