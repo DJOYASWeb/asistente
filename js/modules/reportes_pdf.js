@@ -13,7 +13,10 @@ async function exportarTabActualAPDF() {
   const clon = original.cloneNode(true);
   clon.classList.add("pdf-export");
 
-  // 2️⃣ Contenedor temporal invisible
+  // 2️⃣ 🔥 AJUSTAR TABLAS (AQUÍ)
+  ajustarTablasParaPDF(clon);
+
+  // 3️⃣ Contenedor temporal
   const wrapper = document.createElement("div");
   wrapper.style.position = "fixed";
   wrapper.style.left = "-99999px";
@@ -21,29 +24,28 @@ async function exportarTabActualAPDF() {
   wrapper.appendChild(clon);
   document.body.appendChild(wrapper);
 
-  // 3️⃣ Crear PDF horizontal
+  // 4️⃣ PDF horizontal
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({
-    orientation: "portrait",
+    orientation: "landscape",
     unit: "pt",
     format: "a4"
   });
 
-  // 4️⃣ Generar PDF desde el clon
   await pdf.html(clon, {
     x: 40,
     y: 40,
-    width: 500,
+    width: 760,
     windowWidth: clon.scrollWidth,
     autoPaging: "text"
   });
 
-  // 5️⃣ Limpiar DOM
   document.body.removeChild(wrapper);
 
   const seccion = localStorage.getItem("tab_activo_reportes") || "reporte";
   pdf.save(`reporte_${seccion}.pdf`);
 }
+
 
 
 // -----------------------------------------------------
