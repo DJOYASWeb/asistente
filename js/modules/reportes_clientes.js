@@ -402,7 +402,7 @@ main.innerHTML = `
     </table>
   </div>
 `;
-
+inyectarBotonPDF(main);
 // === Inyectar estilos dinámicamente ===
 const estilo = document.createElement("style");
 estilo.textContent = `

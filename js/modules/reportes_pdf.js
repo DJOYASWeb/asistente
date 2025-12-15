@@ -161,3 +161,20 @@ async function exportarPDFSeccion() {
 
   pdf.save(`reporte_${seccion}.pdf`);
 }
+
+function inyectarBotonPDF(contenedor) {
+  if (!contenedor) return;
+
+  // Evitar duplicados
+  if (contenedor.querySelector(".btn-pdf-global")) return;
+
+  const btn = document.createElement("button");
+  btn.className = "btn-ios btn-pdf-global";
+  btn.innerHTML = "📄 Descargar PDF";
+  btn.onclick = exportarPDFSeccion;
+
+  // Estilo inline mínimo (opcional)
+  btn.style.marginTop = "1rem";
+
+  contenedor.prepend(btn);
+}
