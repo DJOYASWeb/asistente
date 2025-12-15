@@ -66,15 +66,22 @@ function inyectarBotonPDF(contenedor) {
 }
 
 
-function prepararTablasParaPDF(clon) {
-  clon.querySelectorAll("table").forEach(tabla => {
-    tabla.style.lineHeight = "1.1";
-    tabla.style.transform = "scale(0.9)";
-    tabla.style.transformOrigin = "top left";
-    tabla.style.width = "111%";
+function ajustarTablasParaPDF(contenedor) {
+  const tablas = contenedor.querySelectorAll("table");
 
-    tabla.querySelectorAll("th, td").forEach(c => {
-      c.style.padding = "3px 5px";
+  tablas.forEach(tabla => {
+    tabla.style.fontSize = "30px";
+    tabla.style.lineHeight = "1.5";
+
+    tabla.querySelectorAll("th").forEach(th => {
+      th.style.fontSize = "22px";
+      th.style.fontWeight = "600";
+      th.style.padding = "4px 6px";
+    });
+
+    tabla.querySelectorAll("td").forEach(td => {
+      td.style.fontSize = "22px";
+      td.style.padding = "4px 6px";
     });
   });
 }
