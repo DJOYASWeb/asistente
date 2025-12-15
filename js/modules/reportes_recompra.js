@@ -1,5 +1,5 @@
 // ==========================================================
-// 🔁 DASHBOARD DE RECOMPRA
+// 🔁 DASHBOARD RECOMPRA
 // ==========================================================
 async function cargarDashboardRecompra() {
   showLoader();
@@ -9,27 +9,27 @@ async function cargarDashboardRecompra() {
     if (!saved) {
       document.getElementById("contenidoReportesMain").innerHTML = `
         <div class="ios-card">
-          <p class="muted">⚠️ No hay enlace configurado para Ventas.</p>
+          <p class="muted">⚠️ No hay CSV de ventas configurado.</p>
         </div>`;
       return;
     }
 
     // ==========================
-    // Cargar CSV ventas
+    // Cargar CSV
     // ==========================
-    const response = await fetch(saved);
-    const text = await response.text();
+    const resp = await fetch(saved);
+    const text = await resp.text();
     const raw = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
 
     // ==========================
-    // Normalizar encabezados
+    // Normalizar encabezados (igual que ventas)
     // ==========================
-    const data = raw.map(row => {
-      const limpio = {};
-      for (let k in row) {
-        limpio[k.trim().toLowerCase().replace(/\s+/g, "_")] = row[k];
-      }
-      return limpio;
+    const data = raw.map(r => {
+      const o = {};
+      Object.keys(r).forEach(k => {
+        o[k.trim().toLowerCase().replace(/\s+/g, "_")] = r[k];
+      });
+      return o;
     });
 
     // ==========================
@@ -44,7 +44,7 @@ async function cargarDashboardRecompra() {
     }
 
     // ==========================
-    // Filtro rango global
+    // Filtrar por rango activo
     // ==========================
     const inicio = rangoPrincipal?.[0] || null;
     const fin = rangoPrincipal?.[1] || null;
@@ -86,7 +86,7 @@ async function cargarDashboardRecompra() {
     const clientes = Object.values(clientesMap);
 
     // ==========================
-    // MÉTRICAS DE RECOMPRA
+    // MÉTRICAS
     // ==========================
     const unaCompra = clientes.filter(c => c.compras === 1);
     const dosCompras = clientes.filter(c => c.compras === 2);
@@ -94,12 +94,12 @@ async function cargarDashboardRecompra() {
     const hoy = new Date();
     const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
 
-    const fugadas = clientes.filter(c =>
-      hoy - c.ultimaCompra >= seisMesesMs
+    const fugadas = clientes.filter(
+      c => hoy - c.ultimaCompra >= seisMesesMs
     );
 
     // ==========================
-    // RENDER UI
+    // RENDER
     // ==========================
     const main = document.getElementById("contenidoReportesMain");
     main.innerHTML = `
@@ -107,7 +107,6 @@ async function cargarDashboardRecompra() {
         <h2><i class="fa-solid fa-rotate-right"></i> Recompra</h2>
 
         <div class="metricas-grid">
-
           <div class="card-metrica">
             <strong style="font-size:2rem;">${unaCompra.length}</strong>
             <p>Clientas con 1 compra</p>
@@ -122,7 +121,6 @@ async function cargarDashboardRecompra() {
             <strong style="font-size:2rem;">${fugadas.length}</strong>
             <p>Clientas fugadas (+6 meses)</p>
           </div>
-
         </div>
 
         <h4 style="margin-top:1.5rem;">Clientas fugadas</h4>
@@ -139,12 +137,14 @@ async function cargarDashboardRecompra() {
             ${fugadas
               .sort((a, b) => a.ultimaCompra - b.ultimaCompra)
               .map(c => {
-                const dias = Math.floor((hoy - c.ultimaCompra) / (1000 * 60 * 60 * 24));
+                const dias = Math.floor(
+                  (hoy - c.ultimaCompra) / (1000 * 60 * 60 * 24)
+                );
                 return `
                   <tr>
                     <td>${c.cliente}</td>
                     <td>${c.compras}</td>
-                    <td>${c.ultimaCompra.toISOString().split("T")[0]}</td>
+                    <td>${c.ultimaCompra.toISOString().slice(0,10)}</td>
                     <td>${dias}</td>
                   </tr>
                 `;
@@ -155,14 +155,13 @@ async function cargarDashboardRecompra() {
       </div>
     `;
 
-    // Botón PDF (si lo estás usando)
     inyectarBotonPDF(main);
 
   } catch (err) {
     console.error("❌ Error recompra:", err);
     document.getElementById("contenidoReportesMain").innerHTML = `
       <div class="ios-card">
-        <p class="text-danger">❌ Error cargando recompra: ${err.message}</p>
+        <p class="text-danger">❌ Error cargando recompra</p>
       </div>`;
   }
 }

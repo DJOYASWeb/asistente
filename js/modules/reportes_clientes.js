@@ -544,6 +544,10 @@ document.querySelectorAll(".tab-reportes").forEach(btn => {
     else if (section === "tendencias") {
       main.innerHTML = `<div class="ios-card"><p class="muted">📈 Reporte de tendencias en desarrollo.</p></div>`;
     }
+    else if (section === "recompra") {
+  await cargarDashboardRecompra();
+}
+
 
     // ================================
     // 🎯 TAB CAMPAÑAS
