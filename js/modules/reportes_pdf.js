@@ -71,7 +71,7 @@ function ajustarTablasParaPDF(contenedor) {
 
   tablas.forEach(tabla => {
     tabla.style.fontSize = "18px";
-    tabla.style.lineHeight = "1.3";
+    tabla.style.lineHeight = "2";
 
     tabla.querySelectorAll("th").forEach(th => {
       th.style.fontSize = "22px";
