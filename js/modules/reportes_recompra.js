@@ -113,22 +113,27 @@ async function cargarDashboardRecompra() {
     // ==================================================
     // 📊 SEGMENTACIÓN CORRECTA
     // ==================================================
-    const hoy = new Date();
-    const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
+const hoy = new Date();
+const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
 
-    const unaCompra = clientes.filter(c => c.compras === 1);
-    const dosCompras = clientes.filter(c => c.compras === 2);
+// 1️⃣ Estado temporal
+const activas = clientes.filter(
+  c => hoy - c.ultimaCompra < seisMesesMs
+);
 
-    const fugadas = clientes.filter(
-      c => hoy - c.ultimaCompra >= seisMesesMs
-    );
+const fugadas = clientes.filter(
+  c => hoy - c.ultimaCompra >= seisMesesMs
+);
 
-    const recurrentes = clientes.filter(c =>
-      c.compras >= 3 &&
-      (hoy - c.ultimaCompra) < seisMesesMs
-    );
+// 2️⃣ Segmentación SOLO sobre activas
+const unaCompra = activas.filter(c => c.compras === 1);
+const dosCompras = activas.filter(c => c.compras === 2);
+const recurrentes = activas.filter(c => c.compras >= 3);
 
-    const clientasTotal = clientes.length;
+// Totales
+const clientasTotal = clientes.length;
+const clientasActivas = activas.length;
+
 
     // ==================================================
     // 🧩 HELPER TABLAS
