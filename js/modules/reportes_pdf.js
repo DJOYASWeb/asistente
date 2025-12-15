@@ -24,7 +24,7 @@ async function exportarTabActualAPDF() {
   // 3️⃣ Crear PDF horizontal
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({
-    orientation: "landscape",
+    orientation: "portrait",
     unit: "pt",
     format: "a4"
   });
