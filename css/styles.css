@@ -2826,16 +2826,14 @@ body.sidebar-mini .main-content {
 /* =========================
    TABLAS — TAMAÑO DE TEXTO EN PDF
    ========================= */
-.pdf-export table {
-  font-size: 18px;       /* ajusta aquí */
+.pdf-export .tabla-ios {
+  font-size: 18px;
 }
 
-.pdf-export table th {
-  font-size: 13px;       /* encabezados un poco más grandes */
-  font-weight: 600;
+.pdf-export .tabla-ios th {
+  font-size: 18px;
 }
 
-.pdf-export table td {
-  font-size: 13px;
-  line-height: 1.3;
+.pdf-export .tabla-ios td {
+  font-size: 18px;
 }
