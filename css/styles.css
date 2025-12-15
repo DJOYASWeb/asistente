@@ -2798,20 +2798,27 @@ body.sidebar-mini .main-content {
 }
 
 
-/* ===========================
+/* =========================
    ESTILOS SOLO PARA PDF
-   =========================== */
-@media print {
-  #contenidoReportesMain {
-    max-width: none;
-  }
+   ========================= */
+.pdf-export {
+  background: #fff;
+}
 
-  .metricas-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+/* ocultar botón */
+.pdf-export .btn-ios,
+.pdf-export .btn-pdf-global {
+  display: none !important;
+}
 
-  .btn-ios,
-  .btn-pdf-global {
-    display: none !important;
-  }
+/* KPIs en una sola línea */
+.pdf-export .metricas-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+/* evitar ancho máximo */
+.pdf-export #contenidoReportesMain {
+  max-width: none !important;
 }
