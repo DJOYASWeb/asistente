@@ -1,5 +1,5 @@
 // ==========================================================
-// 🔁 DASHBOARD RECOMPRA — CHURN POR ÚLTIMA COMPRA REAL
+// 🔁 DASHBOARD RECOMPRA — CHURN POR ÚLTIMA COMPRA
 // ==========================================================
 
 async function cargarDashboardRecompra() {
@@ -59,7 +59,6 @@ async function cargarDashboardRecompra() {
         rangoPrincipal[0].getMonth(),
         1
       );
-
       fin = new Date(
         rangoPrincipal[1].getFullYear(),
         rangoPrincipal[1].getMonth() + 1,
@@ -67,9 +66,6 @@ async function cargarDashboardRecompra() {
       );
     }
 
-    // ==================================================
-    // 📦 Filtrar ventas
-    // ==================================================
     const filtrados = data.filter(r => {
       const f = parseFecha(r.fecha_y_hora);
       if (!f) return false;
@@ -80,7 +76,7 @@ async function cargarDashboardRecompra() {
     if (filtrados.length === 0) {
       document.getElementById("contenidoReportesMain").innerHTML = `
         <div class="ios-card">
-          <p class="muted text-center">⚠️ No hay compras en el rango seleccionado.</p>
+          <p class="muted text-center">⚠️ No hay compras en el rango.</p>
         </div>`;
       return;
     }
@@ -131,7 +127,20 @@ async function cargarDashboardRecompra() {
     const clientes = Object.values(clientesMap);
 
     // ==================================================
-    // 📉 CHURN MENSUAL (ÚLTIMA COMPRA REAL)
+    // 📊 Segmentación simple
+    // ==================================================
+    const hoy = new Date();
+    const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
+
+    const activas = clientes.filter(c => hoy - c.ultimaCompra < seisMesesMs);
+    const fugadas = clientes.filter(c => hoy - c.ultimaCompra >= seisMesesMs);
+
+    const unaCompra = activas.filter(c => c.compras === 1);
+    const dosCompras = activas.filter(c => c.compras === 2);
+    const recurrentes = activas.filter(c => c.compras >= 3);
+
+    // ==================================================
+    // 📉 CHURN MENSUAL (ÚLTIMA COMPRA)
     // ==================================================
     function getMesKey(fecha) {
       return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
@@ -148,8 +157,8 @@ async function cargarDashboardRecompra() {
     }
 
     const mesesRango = inicio && fin ? generarMeses(inicio, fin) : [];
-
     const churnMensual = {};
+
     mesesRango.forEach(m => {
       churnMensual[m] = {
         c1: 0,
@@ -160,7 +169,6 @@ async function cargarDashboardRecompra() {
       };
     });
 
-    // 🔴 LÓGICA CLAVE
     clientes.forEach(c => {
       const mes = getMesKey(c.ultimaCompra);
       if (!churnMensual[mes]) return;
@@ -173,8 +181,41 @@ async function cargarDashboardRecompra() {
     });
 
     // ==================================================
-    // 🧾 Render tabla churn
+    // 🧩 Render helpers
     // ==================================================
+    function renderTablaClientes(titulo, lista, mostrarDias = false) {
+      return `
+        <h4 style="margin-top:1.5rem;">${titulo}</h4>
+        <table class="tabla-ios">
+          <thead>
+            <tr>
+              <th>ID Cliente</th>
+              <th>Pedidos</th>
+              <th>Última compra</th>
+              ${mostrarDias ? "<th>Días sin comprar</th>" : ""}
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              lista.slice(0, 10).map(c => {
+                const dias = Math.floor(
+                  (hoy - c.ultimaCompra) / (1000 * 60 * 60 * 24)
+                );
+                return `
+                  <tr>
+                    <td>${c.cliente}</td>
+                    <td>${c.compras}</td>
+                    <td>${c.ultimaCompra.toISOString().slice(0,10)}</td>
+                    ${mostrarDias ? `<td>${dias}</td>` : ""}
+                  </tr>
+                `;
+              }).join("")
+            }
+          </tbody>
+        </table>
+      `;
+    }
+
     function renderTablaChurnMensual(data) {
       const filas = Object.keys(data).sort().map(mes => `
         <tr>
@@ -188,7 +229,7 @@ async function cargarDashboardRecompra() {
       `).join("");
 
       return `
-        <h4 style="margin-top:2rem;">📉 Clientas que dejaron de comprar (mes última compra)</h4>
+        <h4 style="margin-top:2rem;">📉 Clientas que dejaron de comprar por mes</h4>
         <table class="tabla-ios">
           <thead>
             <tr>
@@ -197,7 +238,7 @@ async function cargarDashboardRecompra() {
               <th>2 compras</th>
               <th>3 compras</th>
               <th>4 compras</th>
-              <th>5+ compras</th>
+              <th>5 compras</th>
             </tr>
           </thead>
           <tbody>${filas}</tbody>
@@ -211,8 +252,37 @@ async function cargarDashboardRecompra() {
     const main = document.getElementById("contenidoReportesMain");
     main.innerHTML = `
       <div class="ios-card">
-        <h2>🔁 Recompra</h2>
+        <h2><i class="fa-solid fa-rotate-right"></i> Recompra</h2>
+
+        <div class="metricas-grid">
+          <div class="card-metrica">
+            <strong style="font-size:2rem;">${clientes.length}</strong>
+            <p>Total clientas</p>
+          </div>
+          <div class="card-metrica">
+            <strong style="font-size:2rem;">${unaCompra.length}</strong>
+            <p>1 pedido</p>
+          </div>
+          <div class="card-metrica">
+            <strong style="font-size:2rem;">${dosCompras.length}</strong>
+            <p>2 pedidos</p>
+          </div>
+          <div class="card-metrica">
+            <strong style="font-size:2rem;">${recurrentes.length}</strong>
+            <p>Recurrentes</p>
+          </div>
+          <div class="card-metrica">
+            <strong style="font-size:2rem;">${fugadas.length}</strong>
+            <p>Fugadas (+6 meses)</p>
+          </div>
+        </div>
+
         ${renderTablaChurnMensual(churnMensual)}
+
+        ${renderTablaClientes("Clientas fugadas (top 10)", fugadas, true)}
+        ${renderTablaClientes("Clientas con 1 pedido (top 10)", unaCompra)}
+        ${renderTablaClientes("Clientas con 2 pedidos (top 10)", dosCompras)}
+        ${renderTablaClientes("Clientas recurrentes (top 10)", recurrentes)}
       </div>
     `;
 
