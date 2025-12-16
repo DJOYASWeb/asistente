@@ -1,224 +1,148 @@
 // ==========================================================
-// 📌 DASHBOARD GEOGRÁFICO — Basado en data filtrada por fechas
+// 📌 DASHBOARD GEOGRÁFICO — FILTRADO POR FECHA DE VENTAS
 // ==========================================================
 async function cargarDashboardGeografia() {
   try {
-    const saved = localStorage.getItem("csv_clientes");
+    const csvClientes = localStorage.getItem("csv_clientes");
+    const csvVentas = localStorage.getItem("csv_ventas");
 
-    if (!saved) {
+    if (!csvClientes || !csvVentas) {
       document.getElementById("contenidoReportesMain").innerHTML = `
         <div class="ios-card">
-          <p class="muted">⚠️ No hay enlace configurado para Clientes.</p>
+          <p class="muted">⚠️ Faltan CSV de clientes o ventas.</p>
         </div>`;
       return;
     }
 
-    // URL directa CSV
-    const response = await fetch(saved);
-    if (!response.ok) throw new Error("No se pudo cargar el CSV geográfico.");
+    // ==================================================
+    // 📥 Cargar CLIENTES
+    // ==================================================
+    const resClientes = await fetch(csvClientes);
+    const txtClientes = await resClientes.text();
+    const clientesRaw = Papa.parse(txtClientes, { header: true, skipEmptyLines: true }).data;
 
-    const text = await response.text();
-    const data = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+    const clientes = clientesRaw.map(r => {
+      const o = {};
+      Object.keys(r).forEach(k => {
+        o[k.trim().toLowerCase().replace(/\s+/g, "_")] = r[k];
+      });
+      return o;
+    });
 
-// Normalizar claves
-const normalizado = data.map(row => {
-  const limpio = {};
-  for (let k of Object.keys(row)) {
-    limpio[k.trim().toLowerCase().replace(/\s+/g, "_")] = row[k];
-  }
-  return limpio;
-});
+    // Mapa clientes por ID
+    const clientesMap = {};
+    clientes.forEach(c => {
+      if (!c.id_cliente) return;
+      clientesMap[c.id_cliente] = c;
+    });
 
+    // ==================================================
+    // 📥 Cargar VENTAS
+    // ==================================================
+    const resVentas = await fetch(csvVentas);
+    const txtVentas = await resVentas.text();
+    const ventasRaw = Papa.parse(txtVentas, { header: true, skipEmptyLines: true }).data;
 
-console.log("🧪 Fechas detectadas ejemplo:", normalizado.slice(0,3).map(c => ({
-  fecha_registro: c.fecha_registro,
-  primera_compra: c.primera_compra,
-  ultima_compra: c.ultima_compra,
-  fecha: c.fecha,
-  created_at: c.created_at
-})));
+    const ventas = ventasRaw.map(r => {
+      const o = {};
+      Object.keys(r).forEach(k => {
+        o[k.trim().toLowerCase().replace(/\s+/g, "_")] = r[k];
+      });
+      return o;
+    });
 
+    // ==================================================
+    // 📅 Normalizar rango
+    // ==================================================
+    let inicio = null;
+    let fin = null;
 
+    if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
+      inicio = new Date(
+        rangoPrincipal[0].getFullYear(),
+        rangoPrincipal[0].getMonth(),
+        rangoPrincipal[0].getDate()
+      );
+      fin = new Date(
+        rangoPrincipal[1].getFullYear(),
+        rangoPrincipal[1].getMonth(),
+        rangoPrincipal[1].getDate()
+      );
+    }
 
-// ================================
-// NORMALIZAR CIUDAD Y PAÍS
-// ================================
-function normalizarTextoLugar(str) {
-  if (!str) return "";
-  str = str.trim().toLowerCase();
+    function parseFecha(str) {
+      if (!str) return null;
+      const [y, m, d] = str.split(" ")[0].split("-").map(Number);
+      if (!y || !m || !d) return null;
+      return new Date(y, m - 1, d);
+    }
 
-  return str
-    .split(" ")
-    .filter(p => p.length > 0)
-    .map(p => p.charAt(0).toUpperCase() + p.slice(1))
-    .join(" ");
-}
+    // ==================================================
+    // 🔍 Filtrar VENTAS por rango
+    // ==================================================
+    const ventasFiltradas = ventas.filter(v => {
+      const f = parseFecha(v.fecha_y_hora);
+      if (!f) return false;
+      if (inicio && fin) return f >= inicio && f <= fin;
+      return true;
+    });
 
-// Aplicar normalización
-normalizado.forEach(c => {
-  if (c.ciudad) c.ciudad = normalizarTextoLugar(c.ciudad);
-  if (c.pais) c.pais = normalizarTextoLugar(c.pais);
-});
-
-
-let inicio = null;
-let fin = null;
-
-if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
-  inicio = new Date(
-    rangoPrincipal[0].getFullYear(),
-    rangoPrincipal[0].getMonth(),
-    rangoPrincipal[0].getDate()
-  );
-
-  fin = new Date(
-    rangoPrincipal[1].getFullYear(),
-    rangoPrincipal[1].getMonth(),
-    rangoPrincipal[1].getDate()
-  );
-}
-
-
-function parseFecha(str) {
-  if (!str || typeof str !== "string") return null;
-  const [y, m, d] = str.split(" ")[0].split("-").map(Number);
-  if (!y || !m || !d) return null;
-  return new Date(y, m - 1, d);
-}
-
-function obtenerFechaCampo(c) {
-  // probar TODOS los campos posibles y usar el primero válido
-  const posibles = [
-    c.fecha_registro,
-    c.primera_compra,
-    c.ultima_compra,
-    c.fecha,
-    c.created_at
-  ];
-
-  for (let f of posibles) {
-    const fecha = parseFecha(f);
-    if (fecha) return f;
-  }
-
-  return null;
-}
-
-
-const filtrados = normalizado.filter(c => {
-  const f = parseFecha(obtenerFechaCampo(c));
-  if (!f) return false;
-
-  if (inicio && fin) {
-    return f >= inicio && f <= fin;
-  }
-
-  return true;
-});
-
-    // --------------------------------------
-    //       🧠 MÉTRICAS GEOGRÁFICAS
-    // --------------------------------------
-
+    // ==================================================
+    // 🌍 AGRUPAR GEOGRAFÍA
+    // ==================================================
     const ciudades = {};
     const paises = {};
 
-    filtrados.forEach(c => {
-const ciudad = (c.ciudad || "").trim();
-if (!ciudad) return; // ⛔ omitir este registro en ciudades
+    ventasFiltradas.forEach(v => {
+      const cliente = clientesMap[v.id_cliente];
+      if (!cliente) return;
 
-      const pais = c.pais?.trim() || "Sin Región";
-      const total = parseFloat(c.total_gastado || 0);
-      const pedidos = parseInt(c.cantidad_pedidos || 0);
+      const ciudad = (cliente.ciudad || "").trim();
+      const pais = (cliente.pais || "Sin Región").trim();
+      if (!ciudad) return;
+
+      const total = parseFloat(v.total_gastado || 0);
 
       if (!ciudades[ciudad]) {
-        ciudades[ciudad] = { ciudad, clientes: 0, total: 0, pedidos: 0 };
+        ciudades[ciudad] = { ciudad, clientes: new Set(), total: 0 };
       }
-
       if (!paises[pais]) {
-        paises[pais] = { pais, clientes: 0, total: 0, pedidos: 0 };
+        paises[pais] = { pais, clientes: new Set(), total: 0 };
       }
 
-      ciudades[ciudad].clientes++;
+      ciudades[ciudad].clientes.add(v.id_cliente);
       ciudades[ciudad].total += total;
-      ciudades[ciudad].pedidos += pedidos;
 
-      paises[pais].clientes++;
+      paises[pais].clientes.add(v.id_cliente);
       paises[pais].total += total;
-      paises[pais].pedidos += pedidos;
     });
 
-    // TOP
-    const topCiudades = Object.values(ciudades).sort((a,b) => b.clientes - a.clientes).slice(0,10);
-    const topPaises = Object.values(paises).sort((a,b) => b.clientes - a.clientes).slice(0,10);
+    // Convertir Set → número
+    const topCiudades = Object.values(ciudades)
+      .map(c => ({ ...c, clientes: c.clientes.size }))
+      .sort((a, b) => b.clientes - a.clientes)
+      .slice(0, 10);
 
-    // --- METRICAS PRINCIPALES ---
-    const totalCiudades = Object.keys(ciudades).length;
-    const totalPaises = Object.keys(paises).length;
+    const topPaises = Object.values(paises)
+      .map(p => ({ ...p, clientes: p.clientes.size }))
+      .sort((a, b) => b.clientes - a.clientes)
+      .slice(0, 10);
 
-    const ciudadTop = topCiudades[0]?.ciudad || "-";
-    const paisTop = topPaises[0]?.pais || "-";
-
-    const tickets = Object.values(ciudades)
-      .filter(c => c.total > 0 && c.clientes > 0)
-      .map(c => c.total / c.clientes);
-
-    const ticketPromedioCiudad = tickets.length 
-      ? tickets.reduce((a,b) => a+b,0) / tickets.length
-      : 0;
-
-    const pedidosPorCiudad = Object.values(ciudades)
-      .map(c => c.pedidos);
-
-    const promedioPedidosCiudad = pedidosPorCiudad.length
-      ? (pedidosPorCiudad.reduce((a,b)=>a+b,0) / pedidosPorCiudad.length).toFixed(1)
-      : 0;
-
-    // -----------------------------------------------------------
-    //   RENDER UI (similar formato a Clientes)
-    // -----------------------------------------------------------
+    // ==================================================
+    // 🖥️ RENDER
+    // ==================================================
     const main = document.getElementById("contenidoReportesMain");
     main.innerHTML = `
       <div class="ios-card">
         <h2><i class="fa-solid fa-globe-americas"></i> Reporte Geográfico</h2>
 
-        <div class="metricas-grid">
-
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${totalCiudades}</strong>
-            <p>Ciudades activas</p>
-          </div>
-
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${totalPaises}</strong>
-            <p>Regiones activas</p>
-          </div>
-
-          <div class="card-metrica">
-            <strong style="font-size:1.8rem;">${ciudadTop}</strong>
-            <p>Ciudad con más clientes</p>
-          </div>
-
-          <div class="card-metrica">
-            <strong style="font-size:1.8rem;">${paisTop}</strong>
-            <p>Región con más clientes</p>
-          </div>
-
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">$${ticketPromedioCiudad.toFixed(0)}</strong>
-            <p>Ticket promedio por ciudad</p>
-          </div>
-
-        </div>
-
-        <h4 style="margin-top:1rem;">Top 10 Ciudades</h4>
+        <h4>Top 10 Ciudades</h4>
         <table class="tabla-ios">
           <thead>
             <tr>
               <th>Ciudad</th>
               <th>Clientes</th>
               <th>Total gastado</th>
-              <th>Pedidos</th>
             </tr>
           </thead>
           <tbody>
@@ -227,7 +151,6 @@ if (!ciudad) return; // ⛔ omitir este registro en ciudades
                 <td>${c.ciudad}</td>
                 <td>${c.clientes}</td>
                 <td>$${c.total.toLocaleString("es-CL")}</td>
-                <td>${c.pedidos}</td>
               </tr>
             `).join("")}
           </tbody>
@@ -240,7 +163,6 @@ if (!ciudad) return; // ⛔ omitir este registro en ciudades
               <th>País</th>
               <th>Clientes</th>
               <th>Total gastado</th>
-              <th>Pedidos</th>
             </tr>
           </thead>
           <tbody>
@@ -249,21 +171,17 @@ if (!ciudad) return; // ⛔ omitir este registro en ciudades
                 <td>${p.pais}</td>
                 <td>${p.clientes}</td>
                 <td>$${p.total.toLocaleString("es-CL")}</td>
-                <td>${p.pedidos}</td>
               </tr>
             `).join("")}
           </tbody>
         </table>
-
       </div>
     `;
-inyectarBotonPDF(main);
-
   } catch (err) {
-    console.error("❌ Error cargando geografía:", err);
+    console.error("❌ Error geografía:", err);
     document.getElementById("contenidoReportesMain").innerHTML = `
       <div class="ios-card">
-        <p class="text-danger">❌ Error cargando geografía: ${err.message}</p>
+        <p class="text-danger">❌ Error cargando geografía</p>
       </div>`;
   }
 }
