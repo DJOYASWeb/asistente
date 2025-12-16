@@ -154,6 +154,13 @@ async function cargarDashboardRecompra() {
       return meses;
     }
 
+    function sumarMeses(fecha, meses) {
+  const d = new Date(fecha);
+  d.setMonth(d.getMonth() + meses);
+  return d;
+}
+
+
     const mesesRango = inicio && fin ? generarMeses(inicio, fin) : [];
     const churnMensual = {};
 
@@ -161,18 +168,26 @@ async function cargarDashboardRecompra() {
       churnMensual[m] = { una: 0, dos: 0, tres: 0 };
     });
 
-    fugadas.forEach(c => {
-      const mes = getMesKey(c.ultimaCompra);
-      if (!churnMensual[mes]) return;
 
-      if (c.compras === 1) churnMensual[mes].una += 1;
-      else if (c.compras === 2) churnMensual[mes].dos += 1;
-      else if (c.compras >= 3) churnMensual[mes].tres += 1;
-    });
+fugadas.forEach(c => {
+  const fechaChurn = sumarMeses(c.ultimaCompra, 6);
+
+  // ⛔ No mostrar churn futuro
+  if (fechaChurn > hoy) return;
+
+  const mes = getMesKey(fechaChurn);
+  if (!churnMensual[mes]) return;
+
+  if (c.compras === 1) churnMensual[mes].una += 1;
+  else if (c.compras === 2) churnMensual[mes].dos += 1;
+  else if (c.compras >= 3) churnMensual[mes].tres += 1;
+});
+
 
     // ==================================================
     // 🧩 Render helpers
     // ==================================================
+
     function renderTablaClientes(titulo, lista, mostrarDias = false) {
       return `
         <h4 style="margin-top:1.5rem;">${titulo}</h4>
