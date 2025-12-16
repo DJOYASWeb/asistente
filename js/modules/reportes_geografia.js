@@ -51,8 +51,23 @@ normalizado.forEach(c => {
 
 
     // --- Aplicar el mismo filtro de fecha que clientes ---
-    const inicio = rangoPrincipal?.[0] || null;
-    const fin = rangoPrincipal?.[1] || null;
+let inicio = null;
+let fin = null;
+
+if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
+  inicio = new Date(
+    rangoPrincipal[0].getFullYear(),
+    rangoPrincipal[0].getMonth(),
+    rangoPrincipal[0].getDate()
+  );
+
+  fin = new Date(
+    rangoPrincipal[1].getFullYear(),
+    rangoPrincipal[1].getMonth(),
+    rangoPrincipal[1].getDate()
+  );
+}
+
 
     function parseFecha(str) {
       if (!str || typeof str !== "string") return null;
@@ -63,10 +78,10 @@ normalizado.forEach(c => {
     }
 
     function obtenerFechaCampo(c) {
-      const campos = ["fecha_registro","primera_compra","ultima_compra"];
-      for (let campo of campos) if (c[campo]) return c[campo];
-      return null;
-    }
+  // elegir UNA lógica clara
+  return c.fecha_registro || c.primera_compra || null;
+}
+
 
     const filtrados = normalizado.filter(c => {
       const f = parseFecha( obtenerFechaCampo(c) );
