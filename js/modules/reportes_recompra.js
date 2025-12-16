@@ -1,5 +1,5 @@
 // ==========================================================
-// 🔁 DASHBOARD RECOMPRA — CON CHURN MENSUAL
+// 🔁 DASHBOARD RECOMPRA — CHURN POR NIVEL DE COMPRA (1 a 5)
 // ==========================================================
 
 async function cargarDashboardRecompra() {
@@ -56,7 +56,6 @@ async function cargarDashboardRecompra() {
         rangoPrincipal[0].getMonth(),
         rangoPrincipal[0].getDate()
       );
-
       fin = new Date(
         rangoPrincipal[1].getFullYear(),
         rangoPrincipal[1].getMonth(),
@@ -90,7 +89,6 @@ async function cargarDashboardRecompra() {
 
       if (!pedidosMap[pedidoId]) {
         pedidosMap[pedidoId] = {
-          pedido: pedidoId,
           cliente: r.id_del_cliente || r.id_cliente,
           fecha: parseFecha(r.fecha_y_hora)
         };
@@ -125,7 +123,7 @@ async function cargarDashboardRecompra() {
     const clientes = Object.values(clientesMap);
 
     // ==================================================
-    // 📊 Segmentación
+    // 📊 Segmentación base
     // ==================================================
     const hoy = new Date();
     const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
@@ -138,7 +136,7 @@ async function cargarDashboardRecompra() {
     const recurrentes = activas.filter(c => c.compras >= 3);
 
     // ==================================================
-    // 📉 CHURN MENSUAL
+    // 📉 CHURN MENSUAL (1 a 5 compras)
     // ==================================================
     function getMesKey(fecha) {
       return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
@@ -155,39 +153,35 @@ async function cargarDashboardRecompra() {
     }
 
     function sumarMeses(fecha, meses) {
-  const d = new Date(fecha);
-  d.setMonth(d.getMonth() + meses);
-  return d;
-}
-
+      const d = new Date(fecha);
+      d.setMonth(d.getMonth() + meses);
+      return d;
+    }
 
     const mesesRango = inicio && fin ? generarMeses(inicio, fin) : [];
     const churnMensual = {};
 
     mesesRango.forEach(m => {
-      churnMensual[m] = { una: 0, dos: 0, tres: 0 };
+      churnMensual[m] = { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };
     });
 
+    fugadas.forEach(c => {
+      const fechaChurn = sumarMeses(c.ultimaCompra, 6);
+      if (fechaChurn > hoy) return;
 
-fugadas.forEach(c => {
-  const fechaChurn = sumarMeses(c.ultimaCompra, 6);
+      const mes = getMesKey(fechaChurn);
+      if (!churnMensual[mes]) return;
 
-  // ⛔ No mostrar churn futuro
-  if (fechaChurn > hoy) return;
-
-  const mes = getMesKey(fechaChurn);
-  if (!churnMensual[mes]) return;
-
-  if (c.compras === 1) churnMensual[mes].una += 1;
-  else if (c.compras === 2) churnMensual[mes].dos += 1;
-  else if (c.compras >= 3) churnMensual[mes].tres += 1;
-});
-
+      if (c.compras === 1) churnMensual[mes].c1 += 1;
+      else if (c.compras === 2) churnMensual[mes].c2 += 1;
+      else if (c.compras === 3) churnMensual[mes].c3 += 1;
+      else if (c.compras === 4) churnMensual[mes].c4 += 1;
+      else if (c.compras === 5) churnMensual[mes].c5 += 1;
+    });
 
     // ==================================================
     // 🧩 Render helpers
     // ==================================================
-
     function renderTablaClientes(titulo, lista, mostrarDias = false) {
       return `
         <h4 style="margin-top:1.5rem;">${titulo}</h4>
@@ -213,24 +207,23 @@ fugadas.forEach(c => {
                     <td>${c.compras}</td>
                     <td>${c.ultimaCompra.toISOString().slice(0,10)}</td>
                     ${mostrarDias ? `<td>${dias}</td>` : ""}
-                  </tr>
-                `;
+                  </tr>`;
               }).join("")
             }
           </tbody>
-        </table>
-      `;
+        </table>`;
     }
 
     function renderTablaChurnMensual(data) {
       const filas = Object.keys(data).sort().map(mes => `
         <tr>
           <td>${mes}</td>
-          <td>${data[mes].una}</td>
-          <td>${data[mes].dos}</td>
-          <td>${data[mes].tres}</td>
-        </tr>
-      `).join("");
+          <td>${data[mes].c1}</td>
+          <td>${data[mes].c2}</td>
+          <td>${data[mes].c3}</td>
+          <td>${data[mes].c4}</td>
+          <td>${data[mes].c5}</td>
+        </tr>`).join("");
 
       return `
         <h4 style="margin-top:2rem;">📉 Clientas que dejaron de comprar por mes</h4>
@@ -240,12 +233,13 @@ fugadas.forEach(c => {
               <th>Mes</th>
               <th>1 compra</th>
               <th>2 compras</th>
-              <th>3+ compras</th>
+              <th>3 compras</th>
+              <th>4 compras</th>
+              <th>5 compras</th>
             </tr>
           </thead>
           <tbody>${filas}</tbody>
-        </table>
-      `;
+        </table>`;
     }
 
     // ==================================================
@@ -257,26 +251,11 @@ fugadas.forEach(c => {
         <h2><i class="fa-solid fa-rotate-right"></i> Recompra</h2>
 
         <div class="metricas-grid">
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${clientes.length}</strong>
-            <p>Total clientas</p>
-          </div>
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${unaCompra.length}</strong>
-            <p>1 pedido</p>
-          </div>
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${dosCompras.length}</strong>
-            <p>2 pedidos</p>
-          </div>
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${recurrentes.length}</strong>
-            <p>Recurrentes</p>
-          </div>
-          <div class="card-metrica">
-            <strong style="font-size:2rem;">${fugadas.length}</strong>
-            <p>Fugadas (+6 meses)</p>
-          </div>
+          <div class="card-metrica"><strong>${clientes.length}</strong><p>Total clientas</p></div>
+          <div class="card-metrica"><strong>${unaCompra.length}</strong><p>1 pedido</p></div>
+          <div class="card-metrica"><strong>${dosCompras.length}</strong><p>2 pedidos</p></div>
+          <div class="card-metrica"><strong>${recurrentes.length}</strong><p>Recurrentes</p></div>
+          <div class="card-metrica"><strong>${fugadas.length}</strong><p>Fugadas (+6 meses)</p></div>
         </div>
 
         ${renderTablaChurnMensual(churnMensual)}
