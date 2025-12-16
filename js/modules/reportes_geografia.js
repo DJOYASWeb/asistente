@@ -29,6 +29,17 @@ const normalizado = data.map(row => {
   return limpio;
 });
 
+
+console.log("🧪 Fechas detectadas ejemplo:", normalizado.slice(0,3).map(c => ({
+  fecha_registro: c.fecha_registro,
+  primera_compra: c.primera_compra,
+  ultima_compra: c.ultima_compra,
+  fecha: c.fecha,
+  created_at: c.created_at
+})));
+
+
+
 // ================================
 // NORMALIZAR CIUDAD Y PAÍS
 // ================================
@@ -75,10 +86,24 @@ function parseFecha(str) {
   return new Date(y, m - 1, d);
 }
 
-    function obtenerFechaCampo(c) {
-  // elegir UNA lógica clara
-  return c.fecha_registro || c.primera_compra || null;
+function obtenerFechaCampo(c) {
+  // probar TODOS los campos posibles y usar el primero válido
+  const posibles = [
+    c.fecha_registro,
+    c.primera_compra,
+    c.ultima_compra,
+    c.fecha,
+    c.created_at
+  ];
+
+  for (let f of posibles) {
+    const fecha = parseFecha(f);
+    if (fecha) return f;
+  }
+
+  return null;
 }
+
 
 const filtrados = normalizado.filter(c => {
   const f = parseFecha(obtenerFechaCampo(c));
