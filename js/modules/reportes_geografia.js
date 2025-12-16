@@ -50,7 +50,6 @@ normalizado.forEach(c => {
 });
 
 
-    // --- Aplicar el mismo filtro de fecha que clientes ---
 let inicio = null;
 let fin = null;
 
@@ -69,19 +68,17 @@ if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
 }
 
 
-    function parseFecha(str) {
-      if (!str || typeof str !== "string") return null;
-      const [fechaPart] = str.trim().split(" ");
-      const [y,m,d] = fechaPart.split("-").map(Number);
-      if (!y||!m||!d) return null;
-      return new Date(y, m-1, d);
-    }
+function parseFecha(str) {
+  if (!str || typeof str !== "string") return null;
+  const [y, m, d] = str.split(" ")[0].split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
 
     function obtenerFechaCampo(c) {
   // elegir UNA lógica clara
   return c.fecha_registro || c.primera_compra || null;
 }
-
 
 const filtrados = normalizado.filter(c => {
   const f = parseFecha(obtenerFechaCampo(c));
