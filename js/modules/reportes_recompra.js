@@ -36,19 +36,37 @@ async function cargarDashboardRecompra() {
     // ==================================================
     // 🕒 Parse fecha
     // ==================================================
-    function parseFecha(str) {
-      if (!str) return null;
-      const [f] = str.split(" ");
-      const [y, m, d] = f.split("-").map(Number);
-      if (!y || !m || !d) return null;
-      return new Date(y, m - 1, d);
-    }
+function parseFecha(str) {
+  if (!str || typeof str !== "string") return null;
+
+  const [fechaPart] = str.trim().split(" ");
+  const [y, m, d] = fechaPart.split("-").map(Number);
+  if (!y || !m || !d) return null;
+
+  return new Date(y, m - 1, d);
+}
+
 
     // ==================================================
     // 📅 Filtrar por rango
     // ==================================================
-    const inicio = rangoPrincipal?.[0] || null;
-    const fin = rangoPrincipal?.[1] || null;
+let inicio = null;
+let fin = null;
+
+if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
+  inicio = new Date(
+    rangoPrincipal[0].getFullYear(),
+    rangoPrincipal[0].getMonth(),
+    rangoPrincipal[0].getDate()
+  );
+
+  fin = new Date(
+    rangoPrincipal[1].getFullYear(),
+    rangoPrincipal[1].getMonth(),
+    rangoPrincipal[1].getDate()
+  );
+}
+
 
     const filtrados = data.filter(r => {
       const f = parseFecha(r.fecha_y_hora);
