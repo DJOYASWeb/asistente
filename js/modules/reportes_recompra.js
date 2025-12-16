@@ -1,5 +1,5 @@
 // ==========================================================
-// 🔁 DASHBOARD RECOMPRA — CHURN POR NIVEL DE COMPRA (1 a 5)
+// 🔁 DASHBOARD RECOMPRA — CHURN POR ÚLTIMA COMPRA REAL
 // ==========================================================
 
 async function cargarDashboardRecompra() {
@@ -20,7 +20,10 @@ async function cargarDashboardRecompra() {
     // ==================================================
     const resp = await fetch(saved);
     const text = await resp.text();
-    const raw = Papa.parse(text, { header: true, skipEmptyLines: true }).data;
+    const raw = Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true
+    }).data;
 
     // ==================================================
     // 🧹 Normalizar encabezados
@@ -54,15 +57,19 @@ async function cargarDashboardRecompra() {
       inicio = new Date(
         rangoPrincipal[0].getFullYear(),
         rangoPrincipal[0].getMonth(),
-        rangoPrincipal[0].getDate()
+        1
       );
+
       fin = new Date(
         rangoPrincipal[1].getFullYear(),
-        rangoPrincipal[1].getMonth(),
-        rangoPrincipal[1].getDate()
+        rangoPrincipal[1].getMonth() + 1,
+        0
       );
     }
 
+    // ==================================================
+    // 📦 Filtrar ventas
+    // ==================================================
     const filtrados = data.filter(r => {
       const f = parseFecha(r.fecha_y_hora);
       if (!f) return false;
@@ -89,6 +96,7 @@ async function cargarDashboardRecompra() {
 
       if (!pedidosMap[pedidoId]) {
         pedidosMap[pedidoId] = {
+          pedido: pedidoId,
           cliente: r.id_del_cliente || r.id_cliente,
           fecha: parseFecha(r.fecha_y_hora)
         };
@@ -123,20 +131,7 @@ async function cargarDashboardRecompra() {
     const clientes = Object.values(clientesMap);
 
     // ==================================================
-    // 📊 Segmentación base
-    // ==================================================
-    const hoy = new Date();
-    const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
-
-    const activas = clientes.filter(c => hoy - c.ultimaCompra < seisMesesMs);
-    const fugadas = clientes.filter(c => hoy - c.ultimaCompra >= seisMesesMs);
-
-    const unaCompra = activas.filter(c => c.compras === 1);
-    const dosCompras = activas.filter(c => c.compras === 2);
-    const recurrentes = activas.filter(c => c.compras >= 3);
-
-    // ==================================================
-    // 📉 CHURN MENSUAL (1 a 5 compras)
+    // 📉 CHURN MENSUAL (ÚLTIMA COMPRA REAL)
     // ==================================================
     function getMesKey(fecha) {
       return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
@@ -152,68 +147,34 @@ async function cargarDashboardRecompra() {
       return meses;
     }
 
-    function sumarMeses(fecha, meses) {
-      const d = new Date(fecha);
-      d.setMonth(d.getMonth() + meses);
-      return d;
-    }
-
     const mesesRango = inicio && fin ? generarMeses(inicio, fin) : [];
-    const churnMensual = {};
 
+    const churnMensual = {};
     mesesRango.forEach(m => {
-      churnMensual[m] = { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };
+      churnMensual[m] = {
+        c1: 0,
+        c2: 0,
+        c3: 0,
+        c4: 0,
+        c5: 0
+      };
     });
 
-    fugadas.forEach(c => {
-      const fechaChurn = sumarMeses(c.ultimaCompra, 6);
-      if (fechaChurn > hoy) return;
-
-      const mes = getMesKey(fechaChurn);
+    // 🔴 LÓGICA CLAVE
+    clientes.forEach(c => {
+      const mes = getMesKey(c.ultimaCompra);
       if (!churnMensual[mes]) return;
 
       if (c.compras === 1) churnMensual[mes].c1 += 1;
       else if (c.compras === 2) churnMensual[mes].c2 += 1;
       else if (c.compras === 3) churnMensual[mes].c3 += 1;
       else if (c.compras === 4) churnMensual[mes].c4 += 1;
-      else if (c.compras === 5) churnMensual[mes].c5 += 1;
+      else if (c.compras >= 5) churnMensual[mes].c5 += 1;
     });
 
     // ==================================================
-    // 🧩 Render helpers
+    // 🧾 Render tabla churn
     // ==================================================
-    function renderTablaClientes(titulo, lista, mostrarDias = false) {
-      return `
-        <h4 style="margin-top:1.5rem;">${titulo}</h4>
-        <table class="tabla-ios">
-          <thead>
-            <tr>
-              <th>ID Cliente</th>
-              <th>Pedidos</th>
-              <th>Última compra</th>
-              ${mostrarDias ? "<th>Días sin comprar</th>" : ""}
-            </tr>
-          </thead>
-          <tbody>
-            ${
-              lista.slice(0, 10).map(c => {
-                const dias = Math.floor(
-                  (hoy - c.ultimaCompra) / (1000 * 60 * 60 * 24)
-                );
-
-                return `
-                  <tr>
-                    <td>${c.cliente}</td>
-                    <td>${c.compras}</td>
-                    <td>${c.ultimaCompra.toISOString().slice(0,10)}</td>
-                    ${mostrarDias ? `<td>${dias}</td>` : ""}
-                  </tr>`;
-              }).join("")
-            }
-          </tbody>
-        </table>`;
-    }
-
     function renderTablaChurnMensual(data) {
       const filas = Object.keys(data).sort().map(mes => `
         <tr>
@@ -223,10 +184,11 @@ async function cargarDashboardRecompra() {
           <td>${data[mes].c3}</td>
           <td>${data[mes].c4}</td>
           <td>${data[mes].c5}</td>
-        </tr>`).join("");
+        </tr>
+      `).join("");
 
       return `
-        <h4 style="margin-top:2rem;">📉 Clientas que dejaron de comprar por mes</h4>
+        <h4 style="margin-top:2rem;">📉 Clientas que dejaron de comprar (mes última compra)</h4>
         <table class="tabla-ios">
           <thead>
             <tr>
@@ -235,11 +197,12 @@ async function cargarDashboardRecompra() {
               <th>2 compras</th>
               <th>3 compras</th>
               <th>4 compras</th>
-              <th>5 compras</th>
+              <th>5+ compras</th>
             </tr>
           </thead>
           <tbody>${filas}</tbody>
-        </table>`;
+        </table>
+      `;
     }
 
     // ==================================================
@@ -248,22 +211,8 @@ async function cargarDashboardRecompra() {
     const main = document.getElementById("contenidoReportesMain");
     main.innerHTML = `
       <div class="ios-card">
-        <h2><i class="fa-solid fa-rotate-right"></i> Recompra</h2>
-
-        <div class="metricas-grid">
-          <div class="card-metrica"><strong>${clientes.length}</strong><p>Total clientas</p></div>
-          <div class="card-metrica"><strong>${unaCompra.length}</strong><p>1 pedido</p></div>
-          <div class="card-metrica"><strong>${dosCompras.length}</strong><p>2 pedidos</p></div>
-          <div class="card-metrica"><strong>${recurrentes.length}</strong><p>Recurrentes</p></div>
-          <div class="card-metrica"><strong>${fugadas.length}</strong><p>Fugadas (+6 meses)</p></div>
-        </div>
-
+        <h2>🔁 Recompra</h2>
         ${renderTablaChurnMensual(churnMensual)}
-
-        ${renderTablaClientes("Clientas fugadas (top 10)", fugadas, true)}
-        ${renderTablaClientes("Clientas con 1 pedido (top 10)", unaCompra)}
-        ${renderTablaClientes("Clientas con 2 pedidos (top 10)", dosCompras)}
-        ${renderTablaClientes("Clientas recurrentes (top 10)", recurrentes)}
       </div>
     `;
 
