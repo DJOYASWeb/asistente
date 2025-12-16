@@ -1,5 +1,5 @@
 // ==========================================================
-// 🔁 DASHBOARD RECOMPRA — CORREGIDO (AGRUPA POR PEDIDO)
+// 🔁 DASHBOARD RECOMPRA — CON CHURN MENSUAL
 // ==========================================================
 
 async function cargarDashboardRecompra() {
@@ -36,37 +36,33 @@ async function cargarDashboardRecompra() {
     // ==================================================
     // 🕒 Parse fecha
     // ==================================================
-function parseFecha(str) {
-  if (!str || typeof str !== "string") return null;
-
-  const [fechaPart] = str.trim().split(" ");
-  const [y, m, d] = fechaPart.split("-").map(Number);
-  if (!y || !m || !d) return null;
-
-  return new Date(y, m - 1, d);
-}
-
+    function parseFecha(str) {
+      if (!str || typeof str !== "string") return null;
+      const [fechaPart] = str.trim().split(" ");
+      const [y, m, d] = fechaPart.split("-").map(Number);
+      if (!y || !m || !d) return null;
+      return new Date(y, m - 1, d);
+    }
 
     // ==================================================
-    // 📅 Filtrar por rango
+    // 📅 Rango fechas
     // ==================================================
-let inicio = null;
-let fin = null;
+    let inicio = null;
+    let fin = null;
 
-if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
-  inicio = new Date(
-    rangoPrincipal[0].getFullYear(),
-    rangoPrincipal[0].getMonth(),
-    rangoPrincipal[0].getDate()
-  );
+    if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
+      inicio = new Date(
+        rangoPrincipal[0].getFullYear(),
+        rangoPrincipal[0].getMonth(),
+        rangoPrincipal[0].getDate()
+      );
 
-  fin = new Date(
-    rangoPrincipal[1].getFullYear(),
-    rangoPrincipal[1].getMonth(),
-    rangoPrincipal[1].getDate()
-  );
-}
-
+      fin = new Date(
+        rangoPrincipal[1].getFullYear(),
+        rangoPrincipal[1].getMonth(),
+        rangoPrincipal[1].getDate()
+      );
+    }
 
     const filtrados = data.filter(r => {
       const f = parseFecha(r.fecha_y_hora);
@@ -84,7 +80,7 @@ if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
     }
 
     // ==================================================
-    // 📦 AGRUPAR POR PEDIDO (CLAVE 🔑)
+    // 📦 Agrupar por pedido
     // ==================================================
     const pedidosMap = {};
 
@@ -104,7 +100,7 @@ if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
     const pedidos = Object.values(pedidosMap);
 
     // ==================================================
-    // 👩‍🦰 AGRUPAR POR CLIENTA (USANDO PEDIDOS)
+    // 👩‍🦰 Agrupar por clienta
     // ==================================================
     const clientesMap = {};
 
@@ -129,32 +125,53 @@ if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
     const clientes = Object.values(clientesMap);
 
     // ==================================================
-    // 📊 SEGMENTACIÓN CORRECTA
+    // 📊 Segmentación
     // ==================================================
-const hoy = new Date();
-const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
+    const hoy = new Date();
+    const seisMesesMs = 1000 * 60 * 60 * 24 * 30 * 6;
 
-// 1️⃣ Estado temporal
-const activas = clientes.filter(
-  c => hoy - c.ultimaCompra < seisMesesMs
-);
+    const activas = clientes.filter(c => hoy - c.ultimaCompra < seisMesesMs);
+    const fugadas = clientes.filter(c => hoy - c.ultimaCompra >= seisMesesMs);
 
-const fugadas = clientes.filter(
-  c => hoy - c.ultimaCompra >= seisMesesMs
-);
-
-// 2️⃣ Segmentación SOLO sobre activas
-const unaCompra = activas.filter(c => c.compras === 1);
-const dosCompras = activas.filter(c => c.compras === 2);
-const recurrentes = activas.filter(c => c.compras >= 3);
-
-// Totales
-const clientasTotal = clientes.length;
-const clientasActivas = activas.length;
-
+    const unaCompra = activas.filter(c => c.compras === 1);
+    const dosCompras = activas.filter(c => c.compras === 2);
+    const recurrentes = activas.filter(c => c.compras >= 3);
 
     // ==================================================
-    // 🧩 HELPER TABLAS
+    // 📉 CHURN MENSUAL
+    // ==================================================
+    function getMesKey(fecha) {
+      return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function generarMeses(inicio, fin) {
+      const meses = [];
+      const cursor = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+      while (cursor <= fin) {
+        meses.push(getMesKey(cursor));
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+      return meses;
+    }
+
+    const mesesRango = inicio && fin ? generarMeses(inicio, fin) : [];
+    const churnMensual = {};
+
+    mesesRango.forEach(m => {
+      churnMensual[m] = { una: 0, dos: 0, tres: 0 };
+    });
+
+    fugadas.forEach(c => {
+      const mes = getMesKey(c.ultimaCompra);
+      if (!churnMensual[mes]) return;
+
+      if (c.compras === 1) churnMensual[mes].una += 1;
+      else if (c.compras === 2) churnMensual[mes].dos += 1;
+      else if (c.compras >= 3) churnMensual[mes].tres += 1;
+    });
+
+    // ==================================================
+    // 🧩 Render helpers
     // ==================================================
     function renderTablaClientes(titulo, lista, mostrarDias = false) {
       return `
@@ -190,8 +207,34 @@ const clientasActivas = activas.length;
       `;
     }
 
+    function renderTablaChurnMensual(data) {
+      const filas = Object.keys(data).sort().map(mes => `
+        <tr>
+          <td>${mes}</td>
+          <td>${data[mes].una}</td>
+          <td>${data[mes].dos}</td>
+          <td>${data[mes].tres}</td>
+        </tr>
+      `).join("");
+
+      return `
+        <h4 style="margin-top:2rem;">📉 Clientas que dejaron de comprar por mes</h4>
+        <table class="tabla-ios">
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>1 compra</th>
+              <th>2 compras</th>
+              <th>3+ compras</th>
+            </tr>
+          </thead>
+          <tbody>${filas}</tbody>
+        </table>
+      `;
+    }
+
     // ==================================================
-    // 🖥️ RENDER
+    // 🖥️ Render final
     // ==================================================
     const main = document.getElementById("contenidoReportesMain");
     main.innerHTML = `
@@ -200,36 +243,33 @@ const clientasActivas = activas.length;
 
         <div class="metricas-grid">
           <div class="card-metrica">
-            <strong style="font-size:2rem;">${clientasTotal}</strong>
-            <p>Total clientas que compraron</p>
+            <strong style="font-size:2rem;">${clientes.length}</strong>
+            <p>Total clientas</p>
           </div>
-
           <div class="card-metrica">
             <strong style="font-size:2rem;">${unaCompra.length}</strong>
             <p>1 pedido</p>
           </div>
-
           <div class="card-metrica">
             <strong style="font-size:2rem;">${dosCompras.length}</strong>
             <p>2 pedidos</p>
           </div>
-
           <div class="card-metrica">
             <strong style="font-size:2rem;">${recurrentes.length}</strong>
-            <p>Clientas recurrentes</p>
+            <p>Recurrentes</p>
           </div>
-
           <div class="card-metrica">
             <strong style="font-size:2rem;">${fugadas.length}</strong>
-            <p>Clientas fugadas (+6 meses)</p>
+            <p>Fugadas (+6 meses)</p>
           </div>
         </div>
+
+        ${renderTablaChurnMensual(churnMensual)}
 
         ${renderTablaClientes("Clientas fugadas (top 10)", fugadas, true)}
         ${renderTablaClientes("Clientas con 1 pedido (top 10)", unaCompra)}
         ${renderTablaClientes("Clientas con 2 pedidos (top 10)", dosCompras)}
         ${renderTablaClientes("Clientas recurrentes (top 10)", recurrentes)}
-
       </div>
     `;
 
