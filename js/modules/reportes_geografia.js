@@ -83,12 +83,16 @@ if (Array.isArray(rangoPrincipal) && rangoPrincipal.length === 2) {
 }
 
 
-    const filtrados = normalizado.filter(c => {
-      const f = parseFecha( obtenerFechaCampo(c) );
-      if (!f) return false;
-      if (inicio && fin) return f >= inicio && f <= fin;
-      return true;
-    });
+const filtrados = normalizado.filter(c => {
+  const f = parseFecha(obtenerFechaCampo(c));
+  if (!f) return false;
+
+  if (inicio && fin) {
+    return f >= inicio && f <= fin;
+  }
+
+  return true;
+});
 
     // --------------------------------------
     //       🧠 MÉTRICAS GEOGRÁFICAS
