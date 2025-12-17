@@ -775,15 +775,14 @@ const sinCombinacion =
 let cantidad;
 
 if (!sinCombinacion) {
-  // tiene combinaciones → siempre 0
   cantidad = 0;
-} else if (esAnilloProducto && !esMidi) {
-  // anillo sin combinaciones y NO MIDI → 0
+} else if (esAnilloProducto) {
+  // ⬅️ TODOS los anillos sin combinaciones, incluidos MIDI
   cantidad = 0;
 } else {
-  // resto de productos o MIDI → stock real
   cantidad = stockOriginal;
 }
+
 
 
     const resumen =
