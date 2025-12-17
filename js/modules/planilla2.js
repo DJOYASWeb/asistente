@@ -463,8 +463,20 @@ if (materialRaw.includes("enchape")) {
 
       const categoria = (row["Categoría principal"] || "").toString().trim();
 
+      const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
+      const esMidi =
+  (
+    row["producto_combinacion"] ||
+    row["PRODUCTO COMBINACION"] ||
+    ""
+  ).toString().trim().toLowerCase() === "midi";
 
+// ⚠️ Anillo sin combinaciones SOLO es error si NO es MIDI
+if (esAnilloConValidacion && combinacion === "" && !esMidi) {
+  errores.push(`${sku} - combinaciones vacías (${categoria})`);
+  return;
+}
 
       // 🟢 Determinar si el campo de combinación tiene realmente algo útil
       const combiValida =
@@ -756,17 +768,36 @@ function transformarDatosParaExportar(datos) {
       0
     );
 
-    // 🧠 Detectar MIDI (única excepción)
-const esMidi =
-  (
-    row["producto_combinacion"] ||
-    row["PRODUCTO COMBINACION"] ||
-    ""
-  ).toString().trim().toLowerCase() === "midi";
+// 🧠 Detectar si es anillo
+const esAnilloProducto = esAnillo(row);
 
-// ✅ REGLA FINAL DE STOCK
-const cantidad = esMidi ? stockOriginal : 0;
-a
+// 🧠 Detectar si es MIDI
+const esMidi =
+  combinacionRaw === "midi" ||
+  combinacionRaw.includes("midi");
+
+// 🧠 Detectar si NO tiene combinaciones reales
+const sinCombinacion =
+  combinacionRaw === "" ||
+  combinacionRaw === "null" ||
+  combinacionRaw === "sin valor" ||
+  combinacionRaw === "ninguno" ||
+  esMidi;
+
+// ✅ LÓGICA FINAL DE STOCK
+let cantidad;
+
+if (!sinCombinacion) {
+  // tiene combinaciones → siempre 0
+  cantidad = 0;
+} else if (esAnilloProducto && !esMidi) {
+  // anillo sin combinaciones y NO MIDI → 0
+  cantidad = 0;
+} else {
+  // resto de productos o MIDI → stock real
+  cantidad = stockOriginal;
+}
+
 
     const resumen =
       row["DESCRIPCION RESUMEN"] ||
