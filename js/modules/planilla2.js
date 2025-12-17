@@ -452,12 +452,15 @@ if (materialRaw.includes("enchape")) {
 
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
-      const esMidi =
-  (
-    row["producto_combinacion"] ||
-    row["PRODUCTO COMBINACION"] ||
-    ""
-  ).toString().trim().toLowerCase() === "midi";
+      const combinacionRaw = (
+  row["Combinaciones"] ||
+  row["PRODUCTO COMBINACION"] ||
+  row["producto_combinacion"] ||
+  ""
+).toString().trim().toLowerCase();
+
+const esMidi = combinacionRaw === "midi";
+
 
 // ⚠️ Anillo sin combinaciones SOLO es error si NO es MIDI
 if (esAnilloConValidacion && combinacion === "" && !esMidi) {
@@ -465,12 +468,13 @@ if (esAnilloConValidacion && combinacion === "" && !esMidi) {
   return;
 }
 
-      // 🟢 Determinar si el campo de combinación tiene realmente algo útil
-      const combiValida =
-        combinacion !== "" &&
-        combinacion.toLowerCase() !== "sin valor" &&
-        combinacion.toLowerCase() !== "null" &&
-        combinacion.toLowerCase() !== "ninguno";
+const combiValida =
+  combinacion !== "" &&
+  combinacion.toLowerCase() !== "sin valor" &&
+  combinacion.toLowerCase() !== "null" &&
+  combinacion.toLowerCase() !== "ninguno" &&
+  combinacion.toLowerCase() !== "midi"; // ⬅️ CLAVE
+
 
       // 🧩 Si hay combinación válida → procesar
       if (combiValida) {
