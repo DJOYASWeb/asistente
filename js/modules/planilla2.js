@@ -1428,7 +1428,7 @@ function procesarCombinacionesFinal() {
       const cantidad = d.cantidad || 0;
       if (!combinacion) return;
 
-      const referencia = baseCodigo.replace(/0+$/, combinacion.padStart(3, "0"));
+const referencia = baseCodigo.slice(0, -3) + combinacion.padStart(3, "0");
 
       resultado.push({
         "ID": idManual,
