@@ -1103,6 +1103,32 @@ function exportarXLSXPersonalizado(nombre, datos) {
 
 /** ---------- FILTROS Y VISTAS ---------- **/
 
+
+function actualizarEstadoBotonesProcesar() {
+  const btnProcesar = document.getElementById("botonProcesar");
+  const btnImagenes = document.getElementById("botonProcesarImagenes");
+
+  if (!btnProcesar || !btnImagenes) return;
+
+  // ✅ solo habilitados en estas vistas
+  const habilitado =
+    tipoSeleccionado === "nuevo" ||
+    tipoSeleccionado === "reposicion" ||
+    tipoSeleccionado === "reposición";
+
+  // 🔒 Procesar planilla
+  btnProcesar.disabled = !habilitado;
+  btnProcesar.classList.toggle("disabled", !habilitado);
+
+  // 🔒 Procesar imágenes
+  btnImagenes.disabled = !habilitado;
+  btnImagenes.classList.toggle("disabled", !habilitado);
+}
+
+
+
+
+
 function filtrarProductos(tipo) {
   tipoSeleccionado = tipo;
 
