@@ -768,15 +768,36 @@ function transformarDatosParaExportar(datos) {
       0
     );
 
-    // ✅ Si tiene combinaciones → stock 0
-    // ✅ Si NO tiene combinaciones o dice "sin valor", "null", etc. → mantener stock original
-    const sinCombinacion =
-      combinacionRaw === "" ||
-      combinacionRaw === "null" ||
-      combinacionRaw === "sin valor" ||
-      combinacionRaw === "ninguno";
+// 🧠 Detectar si es anillo
+const esAnilloProducto = esAnillo(row);
 
-    const cantidad = sinCombinacion ? stockOriginal : 0;
+// 🧠 Detectar si es MIDI
+const esMidi =
+  combinacionRaw === "midi" ||
+  combinacionRaw.includes("midi");
+
+// 🧠 Detectar si NO tiene combinaciones reales
+const sinCombinacion =
+  combinacionRaw === "" ||
+  combinacionRaw === "null" ||
+  combinacionRaw === "sin valor" ||
+  combinacionRaw === "ninguno" ||
+  esMidi;
+
+// ✅ LÓGICA FINAL DE STOCK
+let cantidad;
+
+if (!sinCombinacion) {
+  // tiene combinaciones → siempre 0
+  cantidad = 0;
+} else if (esAnilloProducto && !esMidi) {
+  // anillo sin combinaciones y NO MIDI → 0
+  cantidad = 0;
+} else {
+  // resto de productos o MIDI → stock real
+  cantidad = stockOriginal;
+}
+
 
     const resumen =
       row["DESCRIPCION RESUMEN"] ||
