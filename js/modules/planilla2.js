@@ -901,6 +901,7 @@ function mostrarTabla() {
   }
   tipoSeleccionado = "todo";
   renderTablaConOrden(datosFiltrados);
+    actualizarEstadoBotonesProcesar();
 }
 
 function mostrarTablaFiltrada(datos) {
@@ -1157,6 +1158,7 @@ function filtrarCombinaciones(tipo) {
   }
 
   mostrarTablaFiltrada(datosFiltrados);
+  actualizarEstadoBotonesProcesar();
 }
 
 function mostrarProductosNuevos() {
@@ -1185,11 +1187,12 @@ function mostrarProductosNuevos() {
   datosFiltrados = [...otros, ...anillosPadres, ...colgantesPadres];
 
   renderTablaConOrden(datosFiltrados);
+  actualizarEstadoBotonesProcesar();
 }
 
 
 function mostrarProductosConID() {
-  tipoSeleccionado = "reposicion_id";
+tipoSeleccionado = "reposicion";
 
   // Combina todos los productos cargados
   const todos = [...datosOriginales, ...datosCombinaciones, ...datosReposicion];
@@ -1202,6 +1205,7 @@ function mostrarProductosConID() {
 
   // Renderiza la tabla igual que los otros botones
   renderTablaConOrden(datosFiltrados);
+    actualizarEstadoBotonesProcesar();
 }
 
 
@@ -1315,7 +1319,7 @@ const idProducto = asNumericId(
     <div id="resultadoProcesado" class="mt-4"></div>`;
 
   contenedor.innerHTML = html;
-
+  actualizarEstadoBotonesProcesar();
 }
 
 
@@ -2238,10 +2242,21 @@ document.getElementById("botonProcesarImagenes").addEventListener("click", () =>
 
 
 function generarTablaImagenes() {
-  const contenedor = document.getElementById("tablaImagenes");
-  contenedor.innerHTML = ""; // limpiar antes
 
-  // obtener filas activas (ya tienes esta función hecha)
+  // 👇 CLAVE: marcar vista actual
+  tipoSeleccionado = "imagenes";
+
+  // Ocultar vistas principales
+  document.getElementById("tablaPreview")?.classList.add("d-none");
+  document.getElementById("botonesTipo")?.classList.add("d-none");
+  document.getElementById("botonProcesar")?.classList.add("d-none");
+  document.getElementById("botonProcesarImagenes")?.classList.add("d-none");
+  document.querySelector(".formulario")?.classList.add("d-none");
+
+  // Mostrar vista de imágenes
+  const vista = document.getElementById("vistaImagenes");
+  vista.classList.remove("d-none");
+
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
     datosFiltrados,
@@ -2250,18 +2265,24 @@ function generarTablaImagenes() {
   });
 
   if (!filas.length) {
-    contenedor.innerHTML = "<p class='text-muted'>No hay productos para procesar imágenes.</p>";
+    vista.innerHTML = "<p class='text-muted'>No hay productos para procesar imágenes.</p>";
+    actualizarEstadoBotonesProcesar(); // 👈 igual llamamos
     return;
   }
 
+  // Construcción de la tabla
   let html = `
-    <h4 class="mt-4">Gestor de imágenes</h4>
-    <table class="table table-bordered table-sm mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4>Imágenes de productos</h4>
+      <button class="btn btn-secondary" onclick="volverVistaPrincipal()">← Volver</button>
+    </div>
+
+    <table class="table table-bordered table-sm">
       <thead>
         <tr>
           <th>CODIGO PRODUCTO</th>
           <th>NOMBRE PRODUCTO</th>
-          <th>Descargar</th>
+          <th>Descargar imagen</th>
         </tr>
       </thead>
       <tbody>
@@ -2270,13 +2291,16 @@ function generarTablaImagenes() {
   filas.forEach(row => {
     const codigo = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
-    const urlOriginal = row["FOTO LINK INDIVIDUAL"] || "";
+    const url = row["FOTO LINK INDIVIDIDUAL"] || row["FOTO LINK INDIVIDUAL"] || "";
 
-    const id = driveIdFromUrl(urlOriginal);
-    const urlDescarga = id ? `https://drive.google.com/uc?export=download&id=${id}` : "";
+    const id = driveIdFromUrl(url);
+    const urlDescarga = id
+      ? `https://drive.google.com/uc?export=download&id=${id}`
+      : "";
 
-    // verde si ya fue copiado antes
-    const claseVerde = localStorage.getItem("sku_ok_" + codigo) ? "bg-success text-white" : "";
+    const claseVerde = localStorage.getItem("sku_ok_" + codigo)
+      ? "bg-success text-white"
+      : "";
 
     html += `
       <tr>
@@ -2300,7 +2324,10 @@ function generarTablaImagenes() {
     </table>
   `;
 
-  contenedor.innerHTML = html;
+  vista.innerHTML = html;
+
+  // 👇 SIEMPRE AL FINAL
+  actualizarEstadoBotonesProcesar();
 }
 
 
@@ -2319,6 +2346,7 @@ document.addEventListener("click", function(e) {
 
 
 function generarTablaImagenes() {
+  
   // Ocultar vistas principales
   document.getElementById("tablaPreview")?.classList.add("d-none");
   document.getElementById("botonesTipo")?.classList.add("d-none");
@@ -2395,6 +2423,7 @@ function generarTablaImagenes() {
   `;
 
   vista.innerHTML = html;
+  actualizarEstadoBotonesProcesar();
 }
 
 
