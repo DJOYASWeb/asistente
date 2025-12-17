@@ -2224,14 +2224,6 @@ function descargarImagenesDrive() {
   descargarSiguiente();
 }
 
-
-
-document.getElementById("botonProcesarImagenes").addEventListener("click", () => {
-  renderTablaConOrden(datosFiltrados);
-  alert("Vista actualizada con la columna de descarga.");
-});
-
-
 function generarTablaImagenes() {
 
   // 👇 CLAVE: marcar vista actual
