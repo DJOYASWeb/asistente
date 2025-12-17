@@ -21,6 +21,30 @@ function normalizarTexto(valor) {
     .toLowerCase();
 }
 
+function esAnillo(row) {
+  // Normalizar tipo correctamente
+  const tipo = (
+    row["producto_tipo"] ||
+    row["PRODUCTO TIPO"] ||
+    row["procucto_tipo"] || 
+    ""
+  ).toString().trim().toLowerCase();
+
+  // si no dice “anillo”, no sirve
+  if (!tipo.includes("anillo")) return false;
+
+  // excluir midi
+  const combi = (
+    row["producto_combinacion"] ||
+    row["PRODUCTO COMBINACION"] ||
+    row["Combinaciones"] ||
+    ""
+  ).toString().trim().toLowerCase();
+
+  if (combi === "midi") return false;
+
+  return true;
+}
 
 
 function esColganteLetra(row) {
@@ -441,11 +465,18 @@ if (materialRaw.includes("enchape")) {
 
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
-      // ⚠️ Si es un anillo y el campo combinaciones está vacío → error
-      if (esAnilloConValidacion && combinacion === "") {
-        errores.push(`${sku} - combinaciones vacías (${categoria})`);
-        return;
-      }
+      const esMidi =
+  (
+    row["producto_combinacion"] ||
+    row["PRODUCTO COMBINACION"] ||
+    ""
+  ).toString().trim().toLowerCase() === "midi";
+
+// ⚠️ Anillo sin combinaciones SOLO es error si NO es MIDI
+if (esAnilloConValidacion && combinacion === "" && !esMidi) {
+  errores.push(`${sku} - combinaciones vacías (${categoria})`);
+  return;
+}
 
       // 🟢 Determinar si el campo de combinación tiene realmente algo útil
       const combiValida =
