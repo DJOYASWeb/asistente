@@ -21,30 +21,6 @@ function normalizarTexto(valor) {
     .toLowerCase();
 }
 
-function esAnillo(row) {
-  // Normalizar tipo correctamente
-  const tipo = (
-    row["producto_tipo"] ||
-    row["PRODUCTO TIPO"] ||
-    row["procucto_tipo"] || 
-    ""
-  ).toString().trim().toLowerCase();
-
-  // si no dice “anillo”, no sirve
-  if (!tipo.includes("anillo")) return false;
-
-  // excluir midi
-  const combi = (
-    row["producto_combinacion"] ||
-    row["PRODUCTO COMBINACION"] ||
-    row["Combinaciones"] ||
-    ""
-  ).toString().trim().toLowerCase();
-
-  if (combi === "midi") return false;
-
-  return true;
-}
 
 
 function esColganteLetra(row) {
