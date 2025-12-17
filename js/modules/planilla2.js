@@ -310,7 +310,7 @@ async function procesaConConcurrencia(items, handler, concurrency = 4, onProgres
 
 
 
-let tipoSeleccionado = "nuevo";
+window.tipoSeleccionado = "todo";
 
 document.addEventListener("DOMContentLoaded", function () {
   const botonProcesar = document.getElementById("botonProcesar");
@@ -2222,18 +2222,6 @@ function descargarImagenesDrive() {
 }
 
 
-document.addEventListener("click", function(e) {
-  const celda = e.target.closest(".sku-copy");
-  if (!celda) return;
-
-  const sku = celda.dataset.sku;
-  if (!sku) return;
-
-  navigator.clipboard.writeText(sku).then(() => {
-    celda.classList.add("bg-success", "text-white");
-    localStorage.setItem("sku_ok_" + sku, true);
-  });
-});
 
 document.getElementById("botonProcesarImagenes").addEventListener("click", () => {
   renderTablaConOrden(datosFiltrados);
@@ -2331,100 +2319,6 @@ function generarTablaImagenes() {
 }
 
 
-document.addEventListener("click", function(e) {
-  const celda = e.target.closest(".sku-copy");
-  if (!celda) return;
-
-  const sku = celda.dataset.sku;
-  if (!sku) return;
-
-  navigator.clipboard.writeText(sku).then(() => {
-    celda.classList.add("bg-success", "text-white");
-    localStorage.setItem("sku_ok_" + sku, true);
-  });
-});
-
-
-function generarTablaImagenes() {
-  
-  // Ocultar vistas principales
-  document.getElementById("tablaPreview")?.classList.add("d-none");
-  document.getElementById("botonesTipo")?.classList.add("d-none");
-  document.getElementById("botonProcesar")?.classList.add("d-none");
-  document.querySelector(".formulario")?.classList.add("d-none");
-  document.getElementById("botonProcesarImagenes")?.classList.add("d-none");
-
-  // Mostrar vista de imágenes
-  const vista = document.getElementById("vistaImagenes");
-  vista.classList.remove("d-none");
-
-  const filas = obtenerFilasActivas({
-    tipoSeleccionado,
-    datosFiltrados,
-    datosOriginales,
-    datosCombinaciones
-  });
-
-  if (!filas.length) {
-    vista.innerHTML = "<p class='text-muted'>No hay productos para procesar imágenes.</p>";
-    return;
-  }
-
-  // Construcción de la tabla
-  let html = `
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4>Imágenes de productos</h4>
-      <button class="btn btn-secondary" onclick="volverVistaPrincipal()">← Volver</button>
-    </div>
-
-    <table class="table table-bordered table-sm">
-      <thead>
-        <tr>
-          <th>CODIGO PRODUCTO</th>
-          <th>NOMBRE PRODUCTO</th>
-          <th>Descargar imagen</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  filas.forEach(row => {
-    const codigo = extraerCodigo(row);
-    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
-    const url = row["FOTO LINK INDIVIDUAL"] || "";
-
-    const id = driveIdFromUrl(url);
-    const urlDescarga = id ? `https://drive.google.com/uc?export=download&id=${id}` : "";
-
-    const claseVerde = localStorage.getItem("sku_ok_" + codigo)
-      ? "bg-success text-white"
-      : "";
-
-    html += `
-      <tr>
-        <td class="sku-copy ${claseVerde}" style="cursor:pointer;" data-sku="${codigo}">
-          ${codigo}
-        </td>
-        <td>${nombre}</td>
-        <td>
-          ${
-            urlDescarga
-              ? `<a class="btn btn-primary btn-sm" href="${urlDescarga}" target="_blank">Descargar</a>`
-              : `<span class="text-muted">Sin imagen</span>`
-          }
-        </td>
-      </tr>
-    `;
-  });
-
-  html += `
-      </tbody>
-    </table>
-  `;
-
-  vista.innerHTML = html;
-  actualizarEstadoBotonesProcesar();
-}
 
 
 function volverVistaPrincipal() {
@@ -2435,8 +2329,8 @@ function volverVistaPrincipal() {
   document.querySelector(".formulario")?.classList.remove("d-none");
   document.getElementById("botonProcesarImagenes")?.classList.remove("d-none");
 
-tipoSeleccionado = "todo";
-actualizarEstadoBotonesProcesar();
+  tipoSeleccionado = "todo";
+  actualizarEstadoBotonesProcesar();
 }
 
 
