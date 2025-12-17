@@ -6,7 +6,7 @@ window.datosCombinaciones = [];
 window.datosReposicion = [];
 window.datosFiltrados = [];
 window.datosCombinacionCantidades = [];
-window.tipoSeleccionado = "todo";
+window.tipoSeleccionado = "sin_seleccion";
 
 // Orden de columnas para la vista (encabezados de Fila A + "Categoría principal" al final)
 let ordenColumnasVista = [];
@@ -310,7 +310,7 @@ async function procesaConConcurrencia(items, handler, concurrency = 4, onProgres
 
 
 
-window.tipoSeleccionado = "todo";
+window.tipoSeleccionado = "sin_seleccion";
 
 document.addEventListener("DOMContentLoaded", function () {
   const botonProcesar = document.getElementById("botonProcesar");
@@ -523,10 +523,12 @@ const combiValida =
     }
 
     // Mostrar TODO (nuevos + con combinaciones) por defecto
-    tipoSeleccionado = "todo";
-    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+tipoSeleccionado = "sin_seleccion";
+datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+renderTablaConOrden(datosFiltrados);
+actualizarEstadoBotonesProcesar(); // 🔒 bloquear botones
     document.getElementById("botonesTipo").classList.remove("d-none");
-    renderTablaConOrden(datosFiltrados);
+
   };
   reader.readAsArrayBuffer(file);
 }
@@ -899,9 +901,10 @@ function mostrarTabla() {
   if (!Array.isArray(datosFiltrados) || datosFiltrados.length === 0) {
     datosFiltrados = [...datosOriginales, ...datosCombinaciones];
   }
-  tipoSeleccionado = "todo";
-  renderTablaConOrden(datosFiltrados);
-    actualizarEstadoBotonesProcesar();
+tipoSeleccionado = "sin_seleccion";
+datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+renderTablaConOrden(datosFiltrados);
+actualizarEstadoBotonesProcesar(); // 🔒 bloquear botones
 }
 
 function mostrarTablaFiltrada(datos) {
@@ -2329,8 +2332,10 @@ function volverVistaPrincipal() {
   document.querySelector(".formulario")?.classList.remove("d-none");
   document.getElementById("botonProcesarImagenes")?.classList.remove("d-none");
 
-  tipoSeleccionado = "todo";
-  actualizarEstadoBotonesProcesar();
+tipoSeleccionado = "sin_seleccion";
+datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+renderTablaConOrden(datosFiltrados);
+actualizarEstadoBotonesProcesar(); // 🔒 bloquear botones
 }
 
 
