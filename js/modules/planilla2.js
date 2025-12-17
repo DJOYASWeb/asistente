@@ -2429,12 +2429,14 @@ function generarTablaImagenes() {
 
 function volverVistaPrincipal() {
   document.getElementById("vistaImagenes")?.classList.add("d-none");
-
   document.getElementById("tablaPreview")?.classList.remove("d-none");
   document.getElementById("botonesTipo")?.classList.remove("d-none");
   document.getElementById("botonProcesar")?.classList.remove("d-none");
   document.querySelector(".formulario")?.classList.remove("d-none");
   document.getElementById("botonProcesarImagenes")?.classList.remove("d-none");
+
+tipoSeleccionado = "todo";
+actualizarEstadoBotonesProcesar();
 }
 
 
