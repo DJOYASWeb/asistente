@@ -498,13 +498,6 @@ if (materialRaw.includes("enchape")) {
 
         if (errorDetectado) return;
 
-        // ❌ Excluir si producto_combinacion = "midi"
-        const combiTipo = (
-          row["producto_combinacion"] ||
-          row["PRODUCTO COMBINACION"] ||
-          ""
-        ).toString().trim().toLowerCase();
-        if (combiTipo === "midi") return;
 
         // ✅ Registrar como combinación válida
         row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
