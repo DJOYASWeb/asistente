@@ -2226,31 +2226,54 @@ function generarTablaImagenes() {
     return;
   }
 
-  // --- 1. ANÁLISIS DE DATOS ---
-  let repetidos = [];
-  let sinFoto = [];
-  let validos = [];
+  // --- 1. ANÁLISIS DE DATOS (Detectar errores reales) ---
+  let mapUrls = new Map(); // Para detectar URLs duplicadas: URL -> [SKU1, SKU2...]
   let skusVistos = new Set();
+  
+  let sinFoto = [];
+  let skuRepetido = [];
+  let fotoRepetida = []; // Nueva lista de errores
+  let nombreIncorrecto = []; // Nueva validación de nombre
+  let validos = [];
   let previewUrls = [];
 
   filas.forEach(row => {
     const sku = extraerCodigo(row);
-    const url = row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"] || "";
+    const url = (row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"] || "").trim();
     const tieneFoto = url && url.length > 5;
     
-    // Detección de repetidos
+    // 1. Detección de SKU Repetido
     if (skusVistos.has(sku)) {
-        repetidos.push(sku);
+        skuRepetido.push(sku);
     } else {
         skusVistos.add(sku);
     }
 
-    // Clasificación
+    // 2. Clasificación Base
     if (!tieneFoto) {
         sinFoto.push(sku);
     } else {
+        // 3. Detección de FOTO DUPLICADA (Misma URL en varios productos)
+        if (!mapUrls.has(url)) {
+            mapUrls.set(url, []);
+        }
+        mapUrls.get(url).push(sku);
+
+        // 4. Validación de NOMBRE vs CÓDIGO (Solo si no es link encriptado de Drive)
+        // Si la URL contiene el nombre del archivo (ej. .jpg), verificamos que coincida con el SKU
+        if (!url.includes("drive.google.com") && !url.includes("id=")) {
+             // Limpiamos ambos para comparar (sin extensiones, minúsculas)
+             const nombreEnUrl = url.split('/').pop().toLowerCase().split('.')[0];
+             const skuLimpio = sku.toLowerCase();
+             
+             if (!url.toLowerCase().includes(skuLimpio)) {
+                 nombreIncorrecto.push(sku);
+             }
+        }
+        
         validos.push(sku);
-        // Guardar para la galería (solo los primeros 5)
+
+        // Guardar para la galería (solo los primeros 5 válidos)
         if (previewUrls.length < 5) {
             const id = driveIdFromUrl(url);
             if (id) {
@@ -2260,19 +2283,39 @@ function generarTablaImagenes() {
     }
   });
 
-  // --- 2. HTML ALERTAS ---
+  // Segunda pasada: Identificar quiénes tienen foto repetida
+  mapUrls.forEach((listaSkus, url) => {
+      if (listaSkus.length > 1) {
+          // Si una URL tiene más de un SKU asociado, todos son error
+          fotoRepetida.push(...listaSkus);
+      }
+  });
+
+
+  // --- 2. HTML ALERTAS Y RESUMEN ---
   let alertasHtml = "";
+  let totalErrores = sinFoto.length + skuRepetido.length + fotoRepetida.length + nombreIncorrecto.length;
   
+  // Alerta: Sin Foto
   if (sinFoto.length > 0) {
       alertasHtml += `<div class="alert alert-warning py-2 mb-2"><i class="fas fa-exclamation-triangle"></i> <strong>Sin Foto (${sinFoto.length}):</strong> ${sinFoto.slice(0, 10).join(", ")}${sinFoto.length > 10 ? "..." : ""}</div>`;
   }
-  
-  if (repetidos.length > 0) {
-      alertasHtml += `<div class="alert alert-danger py-2 mb-2"><i class="fas fa-copy"></i> <strong>Repetidos (${repetidos.length}):</strong> ${repetidos.slice(0, 10).join(", ")}${repetidos.length > 10 ? "..." : ""}</div>`;
+  // Alerta: SKU Repetido
+  if (skuRepetido.length > 0) {
+      alertasHtml += `<div class="alert alert-danger py-2 mb-2"><i class="fas fa-copy"></i> <strong>SKU Duplicado (${skuRepetido.length}):</strong> ${skuRepetido.join(", ")}</div>`;
+  }
+  // Alerta: Foto Repetida (URL duplicada)
+  if (fotoRepetida.length > 0) {
+      alertasHtml += `<div class="alert alert-danger py-2 mb-2"><i class="fas fa-images"></i> <strong>Foto Duplicada (${fotoRepetida.length}):</strong> <br><small>Estos productos comparten la misma imagen:</small> ${fotoRepetida.slice(0, 15).join(", ")}${fotoRepetida.length > 15 ? "..." : ""}</div>`;
+  }
+  // Alerta: Nombre Incorrecto
+  if (nombreIncorrecto.length > 0) {
+      alertasHtml += `<div class="alert alert-info py-2 mb-2"><i class="fas fa-file-signature"></i> <strong>Nombre no coincide (${nombreIncorrecto.length}):</strong> <small>El link no contiene el SKU:</small> ${nombreIncorrecto.join(", ")}</div>`;
   }
 
-  if (sinFoto.length === 0 && repetidos.length === 0) {
-      alertasHtml = `<div class="alert alert-success py-2 mb-0"><i class="fas fa-check-circle"></i> <strong>¡Todo perfecto!</strong> Todas las líneas tienen foto y no hay duplicados.</div>`;
+  // Éxito
+  if (totalErrores === 0) {
+      alertasHtml = `<div class="alert alert-success py-2 mb-0"><i class="fas fa-check-circle"></i> <strong>¡Todo perfecto!</strong> Datos íntegros, sin duplicados ni errores.</div>`;
   }
 
   // HTML Galería
@@ -2283,7 +2326,7 @@ function generarTablaImagenes() {
   ).join("");
 
   
-  // --- 3. PLANTILLA PRINCIPAL (Layout Modificado) ---
+  // --- 3. PLANTILLA PRINCIPAL ---
   let html = `
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4>Gestor de Imágenes</h4>
@@ -2300,36 +2343,32 @@ function generarTablaImagenes() {
             
             <div class="row mb-3">
                 <div class="col-md-7 border-end">
-                    <h6 class="text-muted mb-2">Previsualización (Muestra de 5)</h6>
+                    <h6 class="text-muted mb-2">Previsualización (Muestra)</h6>
                     <div class="d-flex gap-2 align-items-center" style="min-height: 70px;">
-                        ${galeriaHtml || '<span class="text-muted small fst-italic">No hay imágenes válidas para mostrar</span>'}
+                        ${galeriaHtml || '<span class="text-muted small fst-italic">No hay imágenes visualizables</span>'}
                     </div>
                 </div>
 
                 <div class="col-md-5 ps-4">
                     <h6 class="text-muted mb-2">Resumen de Carga</h6>
                     <div class="d-flex justify-content-between mb-1 border-bottom pb-1">
-                        <span>Total Líneas:</span> 
-                        <strong>${filas.length}</strong>
+                        <span>Total Líneas:</span> <strong>${filas.length}</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-1 text-success">
-                        <span>Listas para bajar:</span> 
-                        <strong>${validos.length}</strong>
+                        <span>Listas para bajar:</span> <strong>${validos.length}</strong>
                     </div>
                     <div class="d-flex justify-content-between text-danger">
-                        <span>Con errores:</span> 
-                        <strong>${sinFoto.length + repetidos.length}</strong>
+                        <span>Con Alertas:</span> <strong>${totalErrores}</strong>
                     </div>
                 </div>
             </div>
 
             <div class="border-top pt-3">
                 <h6 class="text-muted mb-2">Estado de Datos</h6>
-                <div style="max-height: 120px; overflow-y: auto;">
+                <div style="max-height: 150px; overflow-y: auto;">
                     ${alertasHtml}
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -2360,16 +2399,38 @@ function generarTablaImagenes() {
   filas.forEach(row => {
     const sku = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
-    const url = row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"] || "";
+    const url = (row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"] || "").trim();
     const id = driveIdFromUrl(url);
     const urlDescarga = id ? `https://drive.google.com/uc?export=download&id=${id}` : "";
     
+    // Determinamos estado visual de la fila
     let estadoIcono = `<span class="badge bg-success">OK</span>`;
     let filaClass = "";
-    
+    let mensajesError = [];
+
+    // Validar duplicado de URL
+    if (mapUrls.get(url)?.length > 1) {
+        mensajesError.push("Foto Duplicada");
+        filaClass = "table-danger"; // Rojo fuerte
+    }
+
+    // Validar nombre (si aplica)
+    if (nombreIncorrecto.includes(sku)) {
+        mensajesError.push("Nombre ≠ SKU");
+        if (!filaClass) filaClass = "table-info"; // Azul suave si es solo esto
+    }
+
+    // Validar sin foto
     if (!urlDescarga) {
-        estadoIcono = `<span class="badge bg-warning text-dark">Sin Foto</span>`;
+        mensajesError.push("Sin Foto");
         filaClass = "table-warning";
+    }
+
+    if (mensajesError.length > 0) {
+        // Unir errores en el badge
+        estadoIcono = mensajesError.map(m => 
+            `<span class="badge ${m === 'Foto Duplicada' ? 'bg-danger' : 'bg-warning text-dark'} me-1">${m}</span>`
+        ).join("");
     }
 
     const claseVerde = localStorage.getItem("sku_ok_" + sku) ? "bg-success text-white" : "";
@@ -2384,7 +2445,7 @@ function generarTablaImagenes() {
         <td>
           ${
             urlDescarga
-              ? `<button class="btn btn-outline-primary btn-sm py-0" onclick="descargarUnaImagen('${urlDescarga}', '${sku}')" title="Descargar solo esta">
+              ? `<button class="btn btn-outline-primary btn-sm py-0" onclick="descargarUnaImagen('${urlDescarga}', '${sku}')" title="Descargar Individual">
                    <i class="fas fa-download"></i>
                  </button>`
               : ``
