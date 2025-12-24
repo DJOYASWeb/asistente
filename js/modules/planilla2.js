@@ -1214,117 +1214,152 @@ tipoSeleccionado = "reposicion";
 
 
 
-// ** ---------- COMBINACIONES (tabla especial) ---------- **
-function mostrarTablaCombinacionesCantidad() {
-  tipoSeleccionado = "combinacion_cantidades";
+function generarTablaCombinaciones() {
+  // Configuración de vista
+  tipoSeleccionado = "combinaciones";
+  
+  // Ocultar otras vistas
+  const ids = ["tablaPreview", "botonesTipo", "botonProcesar", "botonProcesarImagenes", "vistaImagenes"];
+  ids.forEach(id => document.getElementById(id)?.classList.add("d-none"));
+  document.querySelector(".formulario")?.classList.add("d-none");
 
-  // 🔹 Ocultar elementos principales
-  const formulario = document.querySelector(".formulario");
-  if (formulario) formulario.classList.add("d-none");
+  // Mostrar vista combinaciones
+  const vista = document.getElementById("vistaCombinaciones"); // Asegúrate de tener este ID en tu HTML o usa el contenedor que corresponda
+  if(vista) vista.classList.remove("d-none");
 
-  const botonesTipo = document.getElementById("botonesTipo");
-  if (botonesTipo) botonesTipo.classList.add("d-none");
+  // Si no tienes un contenedor específico "vistaCombinaciones", 
+  // usa el "tablaPreview" pero límpialo y muéstralo:
+  const tablaContainer = document.getElementById("tablaPreview");
+  tablaContainer.classList.remove("d-none");
+  tablaContainer.innerHTML = ""; // Limpiar tabla anterior
 
-  const procesarBtn = document.getElementById("botonProcesar");
-  if (procesarBtn) procesarBtn.classList.add("d-none");
+  const filas = obtenerFilasActivas({
+    tipoSeleccionado,
+    datosFiltrados,
+    datosOriginales,
+    datosCombinaciones
+  });
 
-  const procesarImagenesBtn = document.getElementById("botonProcesarImagenes");
-  if (procesarImagenesBtn) procesarImagenesBtn.classList.add("d-none");
-
-  const tablaDiv = document.getElementById("tablaPreview");
-
-  // 🔹 Crear contenedor principal de vista combinaciones
-  let vista = document.getElementById("vistaCombinaciones");
-  if (!vista) {
-    vista = document.createElement("div");
-    vista.id = "vistaCombinaciones";
-    vista.className = "container my-4";
-
-    vista.innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Vista de Combinaciones y Cantidades</h5>
-        <button class="btn btn-secondary btn-sm" onclick="volverDeCombinaciones()">← Volver</button>
-      </div>
-      <div id="tablaCombinacionesContenido" class="table-responsive"></div>
-    `;
-    tablaDiv.parentNode.insertBefore(vista, tablaDiv);
+  if (!filas.length) {
+    tablaContainer.innerHTML = "<p class='text-muted p-3'>No hay productos filtrados para editar combinaciones.</p>";
+    return;
   }
 
-  // 🔹 Ocultar la tabla principal y mostrar vista combinaciones
-  tablaDiv.classList.add("d-none");
-  vista.classList.remove("d-none");
-
-  // --- Generación de datos combinaciones ---
-const todos = [...datosOriginales, ...datosCombinaciones].filter(row => {
-  return esAnillo(row) || esColganteLetra(row);
-});
-  const resultado = [];
-
-  // 🔹 Intentar cargar datos guardados
-  const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
-
-  todos.forEach(row => {
-    const codigo = extraerCodigo(row);
-const idProducto = asNumericId(
-  row["prestashop_id"] ||
-  row["PRESTASHOP ID"] ||
-  row["ID"] ||
-  row["id"] ||
-  ""
-);
-    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
-    const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
-    const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
-    const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
-    const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
-
-    // ✅ si hay datos guardados, restaurar el ID manual y detalle
-    const dataPrev = guardados[codigo] || {};
-
-    resultado.push({
-      "ID": idProducto,
-      "Nombre": nombre,
-      "Referencia": codigo,
-      "Combinaciones": combinaciones,
-      "Cantidad": cantidad,
-      "Precio S/ IVA": precioSinIVA,
-      "Cantidad ingresada": dataPrev.cantidadIngresada || 0,
-      "ID manual": dataPrev.idManual || "",   // ✅ restaurar ID manual guardado
-      "Detalle": dataPrev.detalle || []        // ✅ restaurar combinaciones previas
-    });
-  });
-
-  window.datosCombinacionCantidades = resultado;
-
-  const contenedor = document.getElementById("tablaCombinacionesContenido");
-  const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA", "Cantidad ingresada"];
-
-  let html = `<table class="table table-bordered table-sm align-middle" id="tablaCombinaciones">
-    <thead><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
-
-  resultado.forEach((r, idx) => {
-    html += `
-      <tr id="fila-${r["Referencia"]}" onclick="abrirModalDetalleProducto('${r["Referencia"]}', ${idx})" style="cursor:pointer;">
-        <td>${r["ID"] ?? ""}</td>
-        <td>${r["Nombre"] ?? ""}</td>
-        <td>${r["Referencia"] ?? ""}</td>
-        <td>${r["Combinaciones"] ?? ""}</td>
-        <td>${r["Cantidad"] ?? ""}</td>
-        <td>${r["Precio S/ IVA"] ?? ""}</td>
-        <td class="cantidad-ingresada">${r["Cantidad ingresada"]}</td>
-      </tr>`;
-  });
-
-  html += `</tbody></table>
-    <div class="text-center mt-4">
-     <button class="btn btn-success px-4" onclick="procesarCombinacionesFinal()">Procesar</button>
+  let html = `
+    <div class="d-flex justify-content-between align-items-center mb-3 p-3">
+      <h4>Editor de Combinaciones y Cantidades</h4>
+      <button class="btn btn-secondary" onclick="volverVistaPrincipal()">← Volver</button>
     </div>
-    <div id="resultadoProcesado" class="mt-4"></div>`;
+    <div class="table-responsive">
+    <table class="table table-bordered table-hover table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>CÓDIGO (SKU)</th>
+          <th>NOMBRE</th>
+          <th>COMBINACIONES ACTUALES</th>
+          <th>STOCK</th>
+          <th>ACCIÓN</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
 
-  contenedor.innerHTML = html;
-  actualizarEstadoBotonesProcesar();
+  filas.forEach(row => {
+    const codigo = extraerCodigo(row);
+    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
+    
+    // Recuperamos lo que ya tengas guardado en memoria
+    const dataGuardada = datosCombinaciones[codigo] || {};
+    const combinacionTexto = dataGuardada.combinacion || ""; 
+    const cantidad = dataGuardada.cantidad || "";
+
+    // Visualmente truncamos el texto si es muy largo
+    const textoVisual = combinacionTexto.length > 50 ? combinacionTexto.substring(0, 50) + "..." : combinacionTexto;
+
+    html += `
+      <tr>
+        <td class="fw-bold">${codigo}</td>
+        <td>${nombre}</td>
+        <td class="text-muted small">${textoVisual || '<span class="text-secondary fst-italic">Sin asignar</span>'}</td>
+        <td class="text-center">${cantidad}</td>
+        <td>
+          <button class="btn btn-primary btn-sm" onclick="abrirModalCombinaciones('${codigo}')">
+            <i class="fas fa-edit"></i> Editar
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table></div>`;
+  tablaContainer.innerHTML = html;
 }
 
+
+// Variable global temporal para saber qué producto estamos editando
+let codigoEditandoActual = null;
+
+function abrirModalCombinaciones(codigo) {
+  codigoEditandoActual = codigo;
+  
+  // 1. Obtener referencias a los campos del modal
+  // Asegúrate de que tu modal en HTML tenga estos IDs
+  const inputSku = document.getElementById("inputSkuCombinacion"); // Campo del código (puede ser hidden o readonly)
+  const txtCombo = document.getElementById("txtCombinaciones");    // Textarea de combinaciones
+  const inputStock = document.getElementById("inputStockCombinacion"); // Input de cantidad
+  
+  // 2. Cargar datos existentes (Persistencia)
+  const data = datosCombinaciones[codigo] || {};
+  
+  // Rellenamos los campos
+  if (inputSku) inputSku.value = codigo; // Para que sepas qué estás editando
+  if (txtCombo) txtCombo.value = data.combinacion || ""; // Recupera lo escrito o lo deja vacío
+  if (inputStock) inputStock.value = data.cantidad || ""; 
+
+  // 3. Mostrar el Modal (Bootstrap)
+  const modalEl = document.getElementById("modalCombinaciones");
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+
+
+function guardarCombinaciones() {
+  // 1. Validar que tenemos un código seleccionado
+  if (!codigoEditandoActual) {
+      alert("Error: No se ha identificado el producto.");
+      return;
+  }
+
+  // 2. Obtener valores del modal
+  const txtCombo = document.getElementById("txtCombinaciones").value;
+  const inputStock = document.getElementById("inputStockCombinacion").value;
+
+  // 3. Guardar en el objeto global datosCombinaciones
+  // Esto actualiza la "memoria" del programa
+  datosCombinaciones[codigoEditandoActual] = {
+      combinacion: txtCombo,
+      cantidad: inputStock,
+      // Puedes agregar más campos si lo necesitas
+      editado: true 
+  };
+
+  // 4. Cerrar el Modal
+  const modalEl = document.getElementById("modalCombinaciones");
+  const modalInstance = bootstrap.Modal.getInstance(modalEl); // Obtener instancia abierta
+  if (modalInstance) {
+      modalInstance.hide();
+  } else {
+      // Fallback por si acaso
+      const closeBtn = modalEl.querySelector('.btn-close');
+      if(closeBtn) closeBtn.click();
+  }
+
+  // 5. ✅ EL FIX CLAVE: Refrescar la tabla inmediatamente
+  generarTablaCombinaciones();
+  
+  // Notificación opcional
+  mostrarNotificacion(`Combinación guardada para ${codigoEditandoActual}`, "exito");
+}
 
 
 function abrirModalDetalleProducto(codigo, index) {
