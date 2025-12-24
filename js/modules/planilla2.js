@@ -2004,7 +2004,6 @@ function exportarCombinacionesProcesadas() {
 }
 
 
-
 async function descargarImagenesZIP() {
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
@@ -2022,30 +2021,30 @@ async function descargarImagenesZIP() {
   let completadas = 0;
   const total = filas.length;
 
-  // Referencias a la barra de progreso (asegúrate de tener estos ID en tu HTML si quieres ver la barra)
   const barra = document.getElementById("barraProgreso");
   const estado = document.getElementById("estadoProgreso");
-  const btn = document.getElementById("btnComprimir"); // O el ID que tenga tu botón de descarga zip
+  const btn = document.getElementById("btnComprimir"); 
 
   if (btn) btn.disabled = true;
   if (estado) estado.textContent = "Iniciando descarga masiva...";
 
   for (const row of filas) {
     const codigo = extraerCodigo(row);
-    // Busca la columna de la foto (ajusta el nombre si en tu excel es diferente)
     const urlOriginal = row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"];
 
     if (codigo && urlOriginal) {
       try {
         const urlDescarga = driveToDownloadUrl(urlOriginal);
-        // Proxy necesario para meterlo al ZIP
-        const proxyUrl = `https://cors.isomorphic-git.org/${urlDescarga}`;
+        
+        // ✅ CAMBIO: Nuevo proxy aquí también
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(urlDescarga)}`;
 
         const resp = await fetch(proxyUrl);
         if (resp.ok) {
           const blob = await resp.blob();
-          // ✅ AQUÍ SE RENOMBRA EL ARCHIVO DENTRO DEL ZIP
           zip.file(`${codigo}.jpg`, blob);
+        } else {
+            console.warn(`El proxy rechazó la imagen ${codigo}`);
         }
       } catch (e) {
         console.warn(`No se pudo descargar ${codigo}`, e);
@@ -2053,7 +2052,6 @@ async function descargarImagenesZIP() {
     }
 
     completadas++;
-    // Actualizar barra visual
     if (barra) {
       const pct = Math.round((completadas / total) * 100);
       barra.style.width = `${pct}%`;
@@ -2064,7 +2062,6 @@ async function descargarImagenesZIP() {
   if (estado) estado.textContent = "Generando archivo ZIP...";
   
   const zipBlob = await zip.generateAsync({ type: "blob" });
-  // Nombre del ZIP con fecha
   saveAs(zipBlob, `Imagenes_Renombradas_${fechaDDMMYY()}.zip`);
 
   if (btn) btn.disabled = false;
@@ -2278,33 +2275,34 @@ function generarTablaImagenes() {
 
 async function descargarUnaImagen(url, nombreArchivo) {
   try {
-    // Notificar visualmente que inició
     mostrarNotificacion(`Descargando ${nombreArchivo}...`, "info");
 
-    // Usamos el proxy para evitar bloqueo CORS y poder renombrar
-    const proxyUrl = `https://cors.isomorphic-git.org/${url}`;
+    // ✅ CAMBIO: Usamos un proxy diferente y codificamos la URL para evitar errores
+    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
     
     const response = await fetch(proxyUrl);
-    if (!response.ok) throw new Error("Error al obtener la imagen");
+    if (!response.ok) throw new Error("Error de red o bloqueo del proxy");
     
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
 
-    // Crear enlace fantasma para forzar la descarga con nombre nuevo
+    // Crear enlace para forzar la descarga con nombre nuevo
     const link = document.createElement("a");
     link.href = blobUrl;
-    link.download = `${nombreArchivo}.jpg`; // <--- AQUÍ OCURRE EL RENOMBRADO
+    link.download = `${nombreArchivo}.jpg`; 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    // Limpieza
     URL.revokeObjectURL(blobUrl);
     mostrarNotificacion(`✅ ${nombreArchivo} descargada`, "exito");
 
   } catch (error) {
-    console.error(error);
-    // Fallback: si falla el renombrado, abrir en pestaña nueva (mejor que nada)
+    console.error("Fallo el renombrado automático:", error);
+    mostrarNotificacion(`⚠️ Proxy falló. Abriendo imagen original...`, "alerta");
+    
+    // 🛡️ PLAN B: Si falla el proxy, abrimos la imagen en una pestaña nueva.
+    // (No se renombrará automáticamente, pero no pierdes la imagen)
     window.open(url, '_blank');
   }
 }
