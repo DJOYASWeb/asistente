@@ -271,5 +271,7 @@ function updateThumbnail(file) {
     dropZone.style.borderStyle = 'solid';
 }
 
-
+document.getElementById('resetBtn').addEventListener('click', () => {
+    location.reload();
+});
     //v 2.1
