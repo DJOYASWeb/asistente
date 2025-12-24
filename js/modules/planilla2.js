@@ -2017,17 +2017,24 @@ async function descargarImagenesZIP() {
     return;
   }
 
-  const zip = new JSZip();
-  let completadas = 0;
-  const total = filas.length;
-
+  // Elementos de interfaz
+  const btn = document.getElementById("btnZipMasivo");
+  const containerProgreso = document.getElementById("progresoZipContainer");
   const barra = document.getElementById("barraProgreso");
   const estado = document.getElementById("estadoProgreso");
-  const btn = document.getElementById("btnComprimir"); 
+  const contador = document.getElementById("contadorProgreso");
 
+  // Preparar UI
   if (btn) btn.disabled = true;
-  if (estado) estado.textContent = "Iniciando descarga masiva...";
+  if (containerProgreso) containerProgreso.classList.remove("d-none");
+  if (estado) estado.textContent = "Conectando con Drive...";
+  
+  const zip = new JSZip();
+  let completadas = 0;
+  let exitosas = 0;
+  const total = filas.length;
 
+  // Procesar cada fila
   for (const row of filas) {
     const codigo = extraerCodigo(row);
     const urlOriginal = row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"];
@@ -2035,37 +2042,50 @@ async function descargarImagenesZIP() {
     if (codigo && urlOriginal) {
       try {
         const urlDescarga = driveToDownloadUrl(urlOriginal);
-        
-        // ✅ CAMBIO: Nuevo proxy aquí también
+        // Usamos el proxy para poder meter el archivo al ZIP sin bloqueo
         const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(urlDescarga)}`;
 
         const resp = await fetch(proxyUrl);
         if (resp.ok) {
           const blob = await resp.blob();
+          // ✅ AQUÍ OCURRE LA MAGIA: Guardamos con el nombre del SKU
           zip.file(`${codigo}.jpg`, blob);
-        } else {
-            console.warn(`El proxy rechazó la imagen ${codigo}`);
+          exitosas++;
         }
       } catch (e) {
-        console.warn(`No se pudo descargar ${codigo}`, e);
+        console.warn(`Error con ${codigo}`, e);
       }
     }
 
     completadas++;
+    
+    // Actualizar barra visual
     if (barra) {
       const pct = Math.round((completadas / total) * 100);
       barra.style.width = `${pct}%`;
       barra.textContent = `${pct}%`;
     }
+    if (contador) contador.textContent = `${completadas}/${total}`;
   }
 
-  if (estado) estado.textContent = "Generando archivo ZIP...";
+  // Generar y descargar el ZIP final
+  if (estado) estado.textContent = "Empaquetando ZIP...";
   
   const zipBlob = await zip.generateAsync({ type: "blob" });
-  saveAs(zipBlob, `Imagenes_Renombradas_${fechaDDMMYY()}.zip`);
+  saveAs(zipBlob, `Fotos_Renombradas_${fechaDDMMYY()}.zip`);
 
-  if (btn) btn.disabled = false;
-  if (estado) estado.textContent = "✅ Proceso terminado.";
+  // Finalizar UI
+  if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fas fa-check"></i> Descarga Lista`;
+  }
+  if (estado) estado.textContent = `✅ ¡Listo! ${exitosas} imágenes descargadas.`;
+  
+  // Ocultar barra después de 5 segundos
+  setTimeout(() => {
+      if (containerProgreso) containerProgreso.classList.add("d-none");
+      if (btn) btn.innerHTML = `<i class="fas fa-file-archive"></i> Descargar Todo (.zip)`;
+  }, 5000);
 }
 
 
@@ -2182,7 +2202,6 @@ document.getElementById("botonProcesarImagenes").addEventListener("click", () =>
 
 
 function generarTablaImagenes() {
-
   // 👇 CLAVE: marcar vista actual
   tipoSeleccionado = "imagenes";
 
@@ -2206,23 +2225,38 @@ function generarTablaImagenes() {
 
   if (!filas.length) {
     vista.innerHTML = "<p class='text-muted'>No hay productos para procesar imágenes.</p>";
-    actualizarEstadoBotonesProcesar(); // 👈 igual llamamos
+    actualizarEstadoBotonesProcesar();
     return;
   }
 
-  // Construcción de la tabla
+  // --- CONSTRUCCIÓN DEL HTML ---
   let html = `
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4>Imágenes de productos</h4>
-      <button class="btn btn-secondary" onclick="volverVistaPrincipal()">← Volver</button>
+      <h4>Imágenes de productos (${filas.length})</h4>
+      <div>
+        <button id="btnZipMasivo" class="btn btn-success me-2" onclick="descargarImagenesZIP()">
+            <i class="fas fa-file-archive"></i> Descargar Todo (.zip)
+        </button>
+        <button class="btn btn-secondary" onclick="volverVistaPrincipal()">← Volver</button>
+      </div>
     </div>
 
-    <table class="table table-bordered table-sm">
-      <thead>
+    <div id="progresoZipContainer" class="mb-3 d-none p-3 bg-light border rounded">
+        <div class="d-flex justify-content-between mb-1">
+            <span id="estadoProgreso" class="text-muted small">Iniciando...</span>
+            <span id="contadorProgreso" class="text-muted small">0/${filas.length}</span>
+        </div>
+        <div class="progress" style="height: 20px;">
+            <div id="barraProgreso" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%">0%</div>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-sm table-hover">
+      <thead class="table-light">
         <tr>
-          <th>CODIGO PRODUCTO</th>
-          <th>NOMBRE PRODUCTO</th>
-          <th>Descargar imagen</th>
+          <th>CODIGO</th>
+          <th>NOMBRE</th>
+          <th>ACCIÓN</th>
         </tr>
       </thead>
       <tbody>
@@ -2231,16 +2265,16 @@ function generarTablaImagenes() {
   filas.forEach(row => {
     const codigo = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
-    const url = row["FOTO LINK INDIVIDIDUAL"] || row["FOTO LINK INDIVIDUAL"] || "";
+    // Asegúrate que esta sea la columna correcta de tu Excel
+    const url = row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"] || "";
 
     const id = driveIdFromUrl(url);
     const urlDescarga = id
       ? `https://drive.google.com/uc?export=download&id=${id}`
       : "";
 
-    const claseVerde = localStorage.getItem("sku_ok_" + codigo)
-      ? "bg-success text-white"
-      : "";
+    // Marca verde si ya lo descargaste alguna vez (opcional)
+    const claseVerde = localStorage.getItem("sku_ok_" + codigo) ? "bg-success text-white" : "";
 
     html += `
       <tr>
@@ -2251,24 +2285,19 @@ function generarTablaImagenes() {
         <td>
           ${
             urlDescarga
-              ? `<button class="btn btn-primary btn-sm" onclick="descargarUnaImagen('${urlDescarga}', '${codigo}')">
-                   <i class="fas fa-download"></i> Descargar
+              ? `<button class="btn btn-outline-primary btn-sm" onclick="descargarUnaImagen('${urlDescarga}', '${codigo}')">
+                   <i class="fas fa-download"></i> Individual
                  </button>`
-              : `<span class="text-muted">Sin imagen</span>`
+              : `<span class="text-muted small">Sin link</span>`
           }
         </td>
       </tr>
     `;
   });
 
-  html += `
-      </tbody>
-    </table>
-  `;
-
+  html += `</tbody></table>`;
+  
   vista.innerHTML = html;
-
-  // 👇 SIEMPRE AL FINAL
   actualizarEstadoBotonesProcesar();
 }
 
