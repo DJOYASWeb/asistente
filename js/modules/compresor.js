@@ -52,12 +52,18 @@ const addProgressItem = (name) => {
       });
     }
 
-    document.getElementById('processBtn').onclick = async () => {
+document.getElementById('processBtn').onclick = async () => {
       const fileInput = document.getElementById('zipInput');
+      
+      // 1. Validación (se mantiene igual)
       if (!fileInput.files.length) {
         alert('Sube un archivo ZIP con imágenes');
         return;
       }
+
+      // ✅ NUEVO: Ocultar la zona de carga y el botón al iniciar
+      document.getElementById('dropZone').style.display = 'none';
+      document.getElementById('processBtn').style.display = 'none';
 
         topBar.style.display = 'flex';
   globalProgressBar.style.width = '0%';
