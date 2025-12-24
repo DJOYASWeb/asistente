@@ -273,5 +273,10 @@ function updateThumbnail(file) {
     dropZone.style.borderStyle = 'solid';
 }
 
+// Funcionalidad del botón Reset (arriba a la derecha)
+document.getElementById('resetBtn').addEventListener('click', () => {
+    location.reload();
+});
+
 
     //v 2.1
