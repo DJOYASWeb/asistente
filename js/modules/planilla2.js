@@ -2003,120 +2003,72 @@ function exportarCombinacionesProcesadas() {
   exportarXLSXPersonalizado("combinacion_cantidades", window.resultadoCombinacionesProcesado);
 }
 
-async function fetchBlob(url) {
-  const res = await fetch(url, { mode: "no-cors" });
-  return await res.blob();
-}
-
-async function obtenerPesoDesdeImg(url) {
-  const blob = await fetchBlob(url);
-  return blob.size / 1024;
-}
-
-async function comprimirBlob(blobOriginal, maxKB = 120) {
-  const img = await new Promise(resolve => {
-    const i = new Image();
-    i.onload = () => resolve(i);
-    i.src = URL.createObjectURL(blobOriginal);
-  });
-
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  canvas.width = img.width;
-  canvas.height = img.height;
-  ctx.drawImage(img, 0, 0);
-
-  let quality = 0.92;
-  let blob;
-
-  while (quality > 0.05) {
-    blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", quality));
-    if (blob.size / 1024 <= maxKB) return blob;
-    quality -= 0.05;
-  }
-
-  return blob;
-}
-
-async function procesarImagen(url) {
-  const blob = await fetchBlob(url);
-  const kb = blob.size / 1024;
-
-  if (kb <= 120) return blob;
-  return await comprimirBlob(blob, 120);
-}
-
-async function comprimirImagenes() {
-  const barra = document.getElementById("barraProgreso");
-  const estado = document.getElementById("estadoProgreso");
-  const btnComprimir = document.getElementById("btnComprimir");
-
-  if (!window.imagenesProcesadas?.length) {
-    alert("No hay imágenes procesadas.");
-    return;
-  }
-
-  btnComprimir.disabled = true;
-  barra.classList.remove("bg-success");
-  barra.classList.add("progress-bar-animated");
-  estado.textContent = "Comprimiendo imágenes...";
-
-  const zip = new JSZip();
-  const total = window.imagenesProcesadas.length;
-  let completadas = 0;
-
-  for (const { codigo, url } of window.imagenesProcesadas) {
-    try {
-      const blobFinal = await procesarImagen(url);
-      zip.file(`${codigo}.jpg`, blobFinal);
-    } catch (e) {
-mostrarNotificacion(`Error procesando imagen ${codigo}`, "alerta");
-
-    }
-
-    completadas++;
-    const pct = Math.round((completadas / total) * 100);
-    barra.style.width = pct + "%";
-    barra.textContent = pct + "%";
-  }
-
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-  saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
-
-  barra.classList.remove("progress-bar-animated");
-  barra.classList.add("bg-success");
-  barra.style.width = "100%";
-  barra.textContent = "100%";
-  estado.textContent = "✅ Archivo ZIP generado correctamente.";
-
-  btnComprimir.disabled = false;
-}
-
 
 
 async function descargarImagenesZIP() {
-  if (!window.imagenesProcesadas?.length) {
+  const filas = obtenerFilasActivas({
+    tipoSeleccionado,
+    datosFiltrados,
+    datosOriginales,
+    datosCombinaciones
+  });
+
+  if (!filas || !filas.length) {
     alert("No hay imágenes para descargar.");
     return;
   }
 
   const zip = new JSZip();
-  const total = window.imagenesProcesadas.length;
   let completadas = 0;
+  const total = filas.length;
 
-  for (const { codigo, url } of window.imagenesProcesadas) {
-    try {
-      const resp = await fetch(url);
-      const blob = await resp.blob();
-      zip.file(`${codigo}.jpg`, blob);
-    } catch (e) {
-      console.warn("Error descargando", codigo, e);
+  // Referencias a la barra de progreso (asegúrate de tener estos ID en tu HTML si quieres ver la barra)
+  const barra = document.getElementById("barraProgreso");
+  const estado = document.getElementById("estadoProgreso");
+  const btn = document.getElementById("btnComprimir"); // O el ID que tenga tu botón de descarga zip
+
+  if (btn) btn.disabled = true;
+  if (estado) estado.textContent = "Iniciando descarga masiva...";
+
+  for (const row of filas) {
+    const codigo = extraerCodigo(row);
+    // Busca la columna de la foto (ajusta el nombre si en tu excel es diferente)
+    const urlOriginal = row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"];
+
+    if (codigo && urlOriginal) {
+      try {
+        const urlDescarga = driveToDownloadUrl(urlOriginal);
+        // Proxy necesario para meterlo al ZIP
+        const proxyUrl = `https://cors.isomorphic-git.org/${urlDescarga}`;
+
+        const resp = await fetch(proxyUrl);
+        if (resp.ok) {
+          const blob = await resp.blob();
+          // ✅ AQUÍ SE RENOMBRA EL ARCHIVO DENTRO DEL ZIP
+          zip.file(`${codigo}.jpg`, blob);
+        }
+      } catch (e) {
+        console.warn(`No se pudo descargar ${codigo}`, e);
+      }
     }
+
     completadas++;
+    // Actualizar barra visual
+    if (barra) {
+      const pct = Math.round((completadas / total) * 100);
+      barra.style.width = `${pct}%`;
+      barra.textContent = `${pct}%`;
+    }
   }
 
+  if (estado) estado.textContent = "Generando archivo ZIP...";
+  
   const zipBlob = await zip.generateAsync({ type: "blob" });
-  saveAs(zipBlob, `imagenes_${new Date().toISOString().slice(0,10)}.zip`);
+  // Nombre del ZIP con fecha
+  saveAs(zipBlob, `Imagenes_Renombradas_${fechaDDMMYY()}.zip`);
+
+  if (btn) btn.disabled = false;
+  if (estado) estado.textContent = "✅ Proceso terminado.";
 }
 
 
@@ -2302,7 +2254,9 @@ function generarTablaImagenes() {
         <td>
           ${
             urlDescarga
-              ? `<a class="btn btn-primary btn-sm" href="${urlDescarga}" target="_blank">Descargar</a>`
+              ? `<button class="btn btn-primary btn-sm" onclick="descargarUnaImagen('${urlDescarga}', '${codigo}')">
+                   <i class="fas fa-download"></i> Descargar
+                 </button>`
               : `<span class="text-muted">Sin imagen</span>`
           }
         </td>
@@ -2322,6 +2276,38 @@ function generarTablaImagenes() {
 }
 
 
+async function descargarUnaImagen(url, nombreArchivo) {
+  try {
+    // Notificar visualmente que inició
+    mostrarNotificacion(`Descargando ${nombreArchivo}...`, "info");
+
+    // Usamos el proxy para evitar bloqueo CORS y poder renombrar
+    const proxyUrl = `https://cors.isomorphic-git.org/${url}`;
+    
+    const response = await fetch(proxyUrl);
+    if (!response.ok) throw new Error("Error al obtener la imagen");
+    
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    // Crear enlace fantasma para forzar la descarga con nombre nuevo
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = `${nombreArchivo}.jpg`; // <--- AQUÍ OCURRE EL RENOMBRADO
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Limpieza
+    URL.revokeObjectURL(blobUrl);
+    mostrarNotificacion(`✅ ${nombreArchivo} descargada`, "exito");
+
+  } catch (error) {
+    console.error(error);
+    // Fallback: si falla el renombrado, abrir en pestaña nueva (mejor que nada)
+    window.open(url, '_blank');
+  }
+}
 
 
 function volverVistaPrincipal() {
