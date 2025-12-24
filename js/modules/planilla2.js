@@ -1214,32 +1214,22 @@ tipoSeleccionado = "reposicion";
 
 
 
-// ** ---------- COMBINACIONES (tabla especial) ---------- **
 function mostrarTablaCombinacionesCantidad() {
   tipoSeleccionado = "combinacion_cantidades";
 
-  // 🔹 Ocultar elementos principales
-  const formulario = document.querySelector(".formulario");
-  if (formulario) formulario.classList.add("d-none");
+  // Ocultar elementos principales
+  const ids = ["formulario", "botonesTipo", "botonProcesar", "botonProcesarImagenes", "tablaPreview"];
+  ids.forEach(id => {
+      const el = document.querySelector(id.startsWith(".") ? id : "#"+id);
+      if(el) el.classList.add("d-none");
+  });
 
-  const botonesTipo = document.getElementById("botonesTipo");
-  if (botonesTipo) botonesTipo.classList.add("d-none");
-
-  const procesarBtn = document.getElementById("botonProcesar");
-  if (procesarBtn) procesarBtn.classList.add("d-none");
-
-  const procesarImagenesBtn = document.getElementById("botonProcesarImagenes");
-  if (procesarImagenesBtn) procesarImagenesBtn.classList.add("d-none");
-
-  const tablaDiv = document.getElementById("tablaPreview");
-
-  // 🔹 Crear contenedor principal de vista combinaciones
+  // Crear o mostrar contenedor vista combinaciones
   let vista = document.getElementById("vistaCombinaciones");
   if (!vista) {
     vista = document.createElement("div");
     vista.id = "vistaCombinaciones";
     vista.className = "container my-4";
-
     vista.innerHTML = `
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Vista de Combinaciones y Cantidades</h5>
@@ -1247,38 +1237,29 @@ function mostrarTablaCombinacionesCantidad() {
       </div>
       <div id="tablaCombinacionesContenido" class="table-responsive"></div>
     `;
-    tablaDiv.parentNode.insertBefore(vista, tablaDiv);
+    const tablaDiv = document.getElementById("tablaPreview");
+    if(tablaDiv) tablaDiv.parentNode.insertBefore(vista, tablaDiv);
   }
-
-  // 🔹 Ocultar la tabla principal y mostrar vista combinaciones
-  tablaDiv.classList.add("d-none");
   vista.classList.remove("d-none");
 
-  // --- Generación de datos combinaciones ---
-const todos = [...datosOriginales, ...datosCombinaciones].filter(row => {
-  return esAnillo(row) || esColganteLetra(row);
-});
+  // Filtrar productos (Anillos o Colgantes Letra)
+  const todos = [...datosOriginales, ...datosCombinaciones].filter(row => {
+    return esAnillo(row) || esColganteLetra(row);
+  });
+  
   const resultado = [];
-
-  // 🔹 Intentar cargar datos guardados
   const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
 
   todos.forEach(row => {
     const codigo = extraerCodigo(row);
-const idProducto = asNumericId(
-  row["prestashop_id"] ||
-  row["PRESTASHOP ID"] ||
-  row["ID"] ||
-  row["id"] ||
-  ""
-);
+    const idProducto = asNumericId(row["prestashop_id"] || row["PRESTASHOP ID"] || row["ID"] || row["id"]);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
-    const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || row["producto_combinacion"] || "";
+    const combinaciones = row["Combinaciones"] || row["PRODUCTO COMBINACION"] || "";
     const cantidad = row["cantidad"] || row["CANTIDAD"] || 0;
     const precioConIVA = parsePrecioConIVA(row["precio_prestashop"] || row["PRECIO PRESTASHOP"]);
     const precioSinIVA = precioConIVA === null ? 0 : +(precioConIVA / 1.19).toFixed(2);
 
-    // ✅ si hay datos guardados, restaurar el ID manual y detalle
+    // Recuperar datos guardados
     const dataPrev = guardados[codigo] || {};
 
     resultado.push({
@@ -1289,8 +1270,8 @@ const idProducto = asNumericId(
       "Cantidad": cantidad,
       "Precio S/ IVA": precioSinIVA,
       "Cantidad ingresada": dataPrev.cantidadIngresada || 0,
-      "ID manual": dataPrev.idManual || "",   // ✅ restaurar ID manual guardado
-      "Detalle": dataPrev.detalle || []        // ✅ restaurar combinaciones previas
+      "ID manual": dataPrev.idManual || "",   
+      "Detalle": dataPrev.detalle || []        
     });
   });
 
@@ -1299,32 +1280,33 @@ const idProducto = asNumericId(
   const contenedor = document.getElementById("tablaCombinacionesContenido");
   const encabezados = ["ID", "Nombre", "Referencia", "Combinaciones", "Cantidad", "Precio S/ IVA", "Cantidad ingresada"];
 
-  let html = `<table class="table table-bordered table-sm align-middle" id="tablaCombinaciones">
-    <thead><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
+  let html = `<table class="table table-bordered table-sm align-middle table-hover" id="tablaCombinaciones">
+    <thead class="table-light"><tr>${encabezados.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>`;
 
   resultado.forEach((r, idx) => {
+    // ✅ CLAVE: Mostramos el ID Manual si existe, si no el original.
+    const idMostrar = r["ID manual"] || r["ID"] || "";
+    
     html += `
       <tr id="fila-${r["Referencia"]}" onclick="abrirModalDetalleProducto('${r["Referencia"]}', ${idx})" style="cursor:pointer;">
-        <td>${r["ID"] ?? ""}</td>
+        <td class="celda-id fw-bold text-primary">${idMostrar}</td>
         <td>${r["Nombre"] ?? ""}</td>
         <td>${r["Referencia"] ?? ""}</td>
         <td>${r["Combinaciones"] ?? ""}</td>
         <td>${r["Cantidad"] ?? ""}</td>
         <td>${r["Precio S/ IVA"] ?? ""}</td>
-        <td class="cantidad-ingresada">${r["Cantidad ingresada"]}</td>
+        <td class="cantidad-ingresada fw-bold text-center">${r["Cantidad ingresada"]}</td>
       </tr>`;
   });
 
   html += `</tbody></table>
     <div class="text-center mt-4">
      <button class="btn btn-success px-4" onclick="procesarCombinacionesFinal()">Procesar</button>
-    </div>
-    <div id="resultadoProcesado" class="mt-4"></div>`;
+    </div>`;
 
   contenedor.innerHTML = html;
   actualizarEstadoBotonesProcesar();
 }
-
 
 
 function abrirModalDetalleProducto(codigo, index) {
@@ -1343,7 +1325,7 @@ function abrirModalDetalleProducto(codigo, index) {
           </div>
           <div class="modal-body" id="modalDetalleBody"></div>
           <div class="modal-footer">
-            <button class="btn btn-outline-success btn-sm" onclick="guardarCantidadIngresada(${index})">Guardar</button>
+            <button class="btn btn-primary" onclick="guardarCantidadIngresada(${index})">Guardar Cambios</button>
           </div>
         </div>
       </div>
@@ -1351,25 +1333,25 @@ function abrirModalDetalleProducto(codigo, index) {
     document.body.appendChild(modal);
   }
 
+  // Obtenemos los datos ACTUALES de memoria (que ya incluyen lo recuperado de localStorage)
   const producto = window.datosCombinacionCantidades[index];
-  const detalle = producto.Detalle && producto.Detalle.length
+  
+  // Si ya tiene detalle guardado, úsalo. Si no, crea 3 filas vacías.
+  const detalle = (producto.Detalle && producto.Detalle.length > 0)
     ? producto.Detalle
     : Array.from({ length: 3 }).map(() => ({ numeracion: "", cantidad: 0 }));
+
+  const idValue = producto["ID manual"] || producto["ID"] || "";
 
   const body = modal.querySelector("#modalDetalleBody");
   body.innerHTML = `
     <div class="mb-3 d-flex align-items-center justify-content-between">
       <h6 class="text-primary mb-0">SKU: ${codigo}</h6>
       <div class="ms-3 flex-grow-1">
-   <input type="text" id="idManualInput" class="form-control form-control-sm"
-  placeholder="Ingresar ID del producto"
-  value="${
-    producto["ID manual"] ||
-    producto["ID"] ||
-    rowOriginalId(codigo) ||
-    ""
-  }">
-
+        <label class="small text-muted">ID Prestashop:</label>
+        <input type="text" id="idManualInput" class="form-control form-control-sm fw-bold"
+          placeholder="Ingresar ID"
+          value="${idValue}">
       </div>
     </div>
     <table class="table table-bordered table-sm align-middle">
@@ -1377,27 +1359,28 @@ function abrirModalDetalleProducto(codigo, index) {
         <tr><th>Numeración</th><th>Cantidad</th></tr>
       </thead>
       <tbody id="tablaNumeraciones">
-        ${detalle
-          .map(d => `
+        ${detalle.map(d => `
             <tr>
               <td><input type="text" class="form-control form-control-sm numeracion-input" value="${d.numeracion || ""}" placeholder="Ej: #10-12"></td>
               <td><input type="number" class="form-control form-control-sm cantidad-input" min="0" value="${d.cantidad || 0}"></td>
             </tr>
-          `)
-          .join("")}
+          `).join("")}
       </tbody>
     </table>
-    <div class="text-center">
-      <button class="btn btn-link text-decoration-none" onclick="agregarFilaNumeracion()">+ Agregar fila</button>
+    <div class="text-center mt-2">
+      <button class="btn btn-sm btn-link text-decoration-none" onclick="agregarFilaNumeracion()">+ Agregar fila</button>
     </div>
   `;
 
-  modal.dataset.codigo = codigo;
-  modal.dataset.index = index;
+  // Actualizamos el onclick del botón guardar por si cambió el índice (seguridad)
+  const btnGuardar = modal.querySelector(".modal-footer button");
+  btnGuardar.setAttribute("onclick", `guardarCantidadIngresada(${index})`);
 
+  modal.dataset.codigo = codigo;
   const modalInst = new bootstrap.Modal(modal);
   modalInst.show();
 }
+
 
 function guardarCantidadIngresada(index) {
   const modal = document.getElementById("modalDetalleProducto");
@@ -1407,22 +1390,21 @@ function guardarCantidadIngresada(index) {
   const inputsNumeracion = modal.querySelectorAll(".numeracion-input");
   const inputsCantidad = modal.querySelectorAll(".cantidad-input");
   const idManualInput = modal.querySelector("#idManualInput");
+  
   const idManual = idManualInput ? idManualInput.value.trim() : "";
 
   const detalle = [];
   let suma = 0;
 
-inputsNumeracion.forEach((nInput, i) => {
-  const numeracion = nInput.value.trim();
-  const cantidad = parseFloat(inputsCantidad[i].value) || 0;
-  suma += cantidad;
+  inputsNumeracion.forEach((nInput, i) => {
+    const numeracion = nInput.value.trim();
+    const cantidad = parseFloat(inputsCantidad[i].value) || 0;
+    // Guardamos la fila aunque esté vacía, para que al volver a abrir se mantenga la estructura
+    detalle.push({ numeracion, cantidad });
+    suma += cantidad;
+  });
 
-  // 🔹 Ahora SIEMPRE guardaremos la fila, tenga o no datos
-  detalle.push({ numeracion, cantidad });
-});
-
-
-  // 🔹 Actualizar dataset global
+  // 1. Actualizar memoria (dataset global)
   if (window.datosCombinacionCantidades && window.datosCombinacionCantidades[index]) {
     const producto = window.datosCombinacionCantidades[index];
     producto["Cantidad ingresada"] = suma;
@@ -1430,7 +1412,7 @@ inputsNumeracion.forEach((nInput, i) => {
     producto["Detalle"] = detalle;
   }
 
-  // 🔹 Actualizar o crear registro en localStorage
+  // 2. Persistir en localStorage (para que no se borre al recargar página)
   const guardados = JSON.parse(localStorage.getItem("datosCombinacionCantidades") || "{}");
   guardados[codigo] = {
     cantidadIngresada: suma,
@@ -1439,16 +1421,32 @@ inputsNumeracion.forEach((nInput, i) => {
   };
   localStorage.setItem("datosCombinacionCantidades", JSON.stringify(guardados));
 
-  // 🔹 Refrescar en tabla visible
+  // 3. ✅ ACTUALIZAR VISUALMENTE LA TABLA (Sin recargar todo)
   const fila = document.getElementById(`fila-${codigo}`);
   if (fila) {
-    const celda = fila.querySelector(".cantidad-ingresada");
-    if (celda) celda.textContent = suma;
+    // Actualizar celda cantidad
+    const celdaCant = fila.querySelector(".cantidad-ingresada");
+    if (celdaCant) {
+        celdaCant.textContent = suma;
+        // Efecto visual verde
+        celdaCant.classList.add("text-success");
+    }
+
+    // Actualizar celda ID (si ingresaste uno manual)
+    const celdaId = fila.querySelector(".celda-id");
+    if (celdaId) {
+        // Muestra el manual, o si lo borraste, vuelve al original
+        const idOriginal = window.datosCombinacionCantidades[index]["ID"] || "";
+        celdaId.textContent = idManual || idOriginal;
+        if(idManual) celdaId.classList.add("text-success");
+    }
   }
 
-  // 🔹 Cerrar modal
+  // 4. Cerrar modal
   const instancia = bootstrap.Modal.getInstance(modal);
   if (instancia) instancia.hide();
+  
+  mostrarNotificacion("Guardado correctamente", "exito");
 }
 
 
