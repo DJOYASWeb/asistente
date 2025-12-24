@@ -54,52 +54,90 @@ const addProgressItem = (name) => {
 
 document.getElementById('processBtn').onclick = async () => {
       const fileInput = document.getElementById('zipInput');
-      
-      // 1. Validación (se mantiene igual)
+
+      // 1. Validación básica
       if (!fileInput.files.length) {
-        alert('Sube un archivo ZIP con imágenes');
+        alert('Por favor, sube al menos una imagen o un archivo ZIP.');
         return;
       }
 
-      // ✅ NUEVO: Ocultar la zona de carga y el botón al iniciar
+      // Ocultar la zona de carga (Tu mejora anterior)
       document.getElementById('dropZone').style.display = 'none';
       document.getElementById('processBtn').style.display = 'none';
 
-        topBar.style.display = 'flex';
-  globalProgressBar.style.width = '0%';
-  globalProgressText.textContent = 'Iniciando compresión...';
-  downloadAllBtn.disabled = true;
-  downloadAllBtn.style.opacity = '0.6';
-  downloadAllBtn.style.cursor = 'not-allowed';
-
+      // Inicializar UI
+      topBar.style.display = 'flex';
+      globalProgressBar.style.width = '0%';
+      globalProgressText.textContent = 'Analizando archivos...';
+      downloadAllBtn.disabled = true;
+      downloadAllBtn.style.opacity = '0.6';
+      downloadAllBtn.style.cursor = 'not-allowed';
       logContainer.innerHTML = '';
-      const zipFile = fileInput.files[0];
-      const zipData = await zipFile.arrayBuffer();
-      const jszip = await JSZip.loadAsync(zipData);
+
       const newZip = new JSZip();
+      
+      // --- FASE 1: Recolección de Imágenes ---
+      // Creamos una lista unificada de "tareas" sin importar de dónde vienen
+      let tasks = [];
 
-      const entries = Object.entries(jszip.files);
+      for (const file of fileInput.files) {
+          // Opción A: Es un ZIP
+          if (/\.zip$/i.test(file.name)) {
+              try {
+                  const zipData = await file.arrayBuffer();
+                  const loadedZip = await JSZip.loadAsync(zipData);
+                  loadedZip.forEach((relativePath, entry) => {
+                      // Solo agregamos si es imagen y no es carpeta
+                      if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(entry.name)) {
+                          tasks.push({ type: 'zipEntry', data: entry, name: entry.name });
+                      }
+                  });
+              } catch (e) {
+                  console.error("Error leyendo ZIP:", e);
+                  alert(`No se pudo leer el archivo ZIP: ${file.name}`);
+              }
+          } 
+          // Opción B: Es una imagen suelta
+          else if (/\.(jpg|jpeg|png)$/i.test(file.name)) {
+              tasks.push({ type: 'file', data: file, name: file.name });
+          }
+      }
+
+      if (tasks.length === 0) {
+          alert("No se encontraron imágenes válidas (JPG/PNG) para procesar.");
+          location.reload(); 
+          return;
+      }
+
+      // --- FASE 2: Procesamiento ---
       let done = 0;
+      globalProgressText.textContent = `Procesando ${tasks.length} imágenes...`;
 
-      for (const [name, entry] of entries) {
-        const item = addProgressItem(name);
-        const fill = item.querySelector('.fill');
+      for (const task of tasks) {
+        const item = addProgressItem(task.name);
+        // const fill = item.querySelector('.fill'); // (Opcional si usas barra individual)
         const status = item.querySelector('.status');
-if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(name)) {
-          try {
-            const arr = await entry.async('arraybuffer');
-            const blob = new Blob([arr]);
-            
-            // Definimos compressed aquí para usarlo fuera del if/else
-            let compressed; 
-            const originalSize = blob.size;
-
-            // ✅ VALIDACIÓN: Si pesa 150KB (153600 bytes) o menos, no hacemos nada
-            if (originalSize <= 150 * 1024) {
-                compressed = blob; // Usamos el archivo original sin cambios
-                status.textContent = 'Mantenido (Original)';
+        
+        try {
+            // 2.1 Obtener el BLOB (sea de zip o de archivo suelto)
+            let blob;
+            if (task.type === 'zipEntry') {
+                const arr = await task.data.async('arraybuffer');
+                blob = new Blob([arr]);
             } else {
-                // Si pesa más, iniciamos el proceso de compresión
+                blob = task.data; // El objeto File ya es un Blob
+            }
+
+            const originalSize = blob.size;
+            let compressed;
+
+            // 2.2 Lógica de los 150KB (Tu mejora anterior)
+            if (originalSize <= 150 * 1024) {
+                compressed = blob; 
+                status.textContent = 'Mantenido (Original)';
+                // Si quieres que el usuario sepa que no hubo cambio visualmente:
+                item.querySelector('.reduction').textContent = '0% menos';
+            } else {
                 status.textContent = 'Comprimiendo...';
                 let quality = 0.8;
                 do {
@@ -109,20 +147,24 @@ if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(name)) {
                 } while (true);
             }
 
+            // 2.3 Resultados y Guardado
             const finalSize = compressed.size;
             const reduction = 100 - ((finalSize / originalSize) * 100);
-            newZip.file(name, compressed);
+            
+            // Guardamos todo en el nuevo ZIP final
+            newZip.file(task.name, compressed);
 
-            // actualizar vista
+            // Actualizar vista (Thumbnails y Textos)
             const imgEl = item.querySelector('img');
             imgEl.src = URL.createObjectURL(compressed);
 
-            // Ajustamos un poco el texto para que tenga sentido si no hubo reducción
             item.querySelector('.meta').textContent =
               `${(originalSize / 1024).toFixed(1)} KB → ${(finalSize / 1024).toFixed(1)} KB`;
 
-            item.querySelector('.reduction').textContent =
-              `${reduction.toFixed(1)}% menos`;
+            // Solo actualizamos el texto de reducción si no lo hicimos en el bloque "Mantenido"
+            if (originalSize > 150 * 1024) {
+                item.querySelector('.reduction').textContent = `${reduction.toFixed(1)}% menos`;
+            }
 
             item.querySelector('.final-size').textContent =
               `Final: ${(finalSize / 1024).toFixed(1)} KB`;
@@ -134,54 +176,48 @@ if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(name)) {
             const link = item.querySelector('.download-link');
             link.style.display = 'inline';
             link.href = URL.createObjectURL(compressed);
-            link.download = name;
+            link.download = task.name;
 
-          } catch (err) {
-            console.error(`Error en ${name}:`, err);
-            fill.style.background = '#dc3545';
-            // fill.style.width = '100%'; // 'fill' no está definido en tu snippet original, asegúrate de tenerlo o quitar esta línea si da error
+        } catch (err) {
+            console.error(`Error en ${task.name}:`, err);
             status.textContent = '⚠️ Error';
-          }
-        } else if (!entry.dir) {
-          const arr = await entry.async('arraybuffer');
-          newZip.file(name, new Blob([arr]));
-          fill.style.width = '100%';
-          status.textContent = 'Sin cambio';
+            status.classList.add('error');
         }
 
-
+        // 2.4 Actualizar Barra Global
         done++;
+        const progressPercent = Math.round((done / tasks.length) * 100);
+        globalProgressBar.style.width = progressPercent + '%';
+        globalProgressText.textContent = `Procesando... ${progressPercent}% (${done}/${tasks.length})`;
 
-        const progressPercent = Math.round((done / entries.length) * 100);
-globalProgressBar.style.width = progressPercent + '%';
-globalProgressText.textContent = `Procesando... ${progressPercent}% (${done}/${entries.length})`;
-
-// 🔹 fuerza al navegador a repintar antes de seguir
-await new Promise(r => setTimeout(r, 50));
-
+        // Pequeña pausa para que la UI respire
+        await new Promise(r => setTimeout(r, 20));
       }
 
-const resultBlob = await newZip.generateAsync({ type: 'blob' });
-const url = URL.createObjectURL(resultBlob);
+      // --- FASE 3: Finalización ---
+      const resultBlob = await newZip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(resultBlob);
 
-// ✅ (PUNTO 4) — actualiza barra y habilita el botón “Descargar todo”
-globalProgressBar.style.width = '100%';
-globalProgressText.textContent = `✅ Proceso completado (${entries.length} imágenes)`;
+      globalProgressBar.style.width = '100%';
+      globalProgressText.textContent = `✅ ¡Listo! ${tasks.length} imágenes procesadas.`;
 
-// habilitar botón
-downloadAllBtn.disabled = false;
-downloadAllBtn.style.opacity = '1';
-downloadAllBtn.style.cursor = 'pointer';
-downloadAllBtn.onclick = () => {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'imagenes_comprimidas.zip';
-  a.click();
-};
-
+      downloadAllBtn.disabled = false;
+      downloadAllBtn.style.opacity = '1';
+      downloadAllBtn.style.cursor = 'pointer';
+      
+      // Botón descarga final
+      downloadAllBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = url;
+        // Nombre dinámico según lo que subiste
+        const timestamp = new Date().getTime();
+        a.download = `imagenes_optimizadas_${timestamp}.zip`;
+        a.click();
+      };
 
       const summary = document.createElement('p');
-      summary.textContent = `🎉 Listo: ${done} archivos procesados.`;
+      summary.className = 'text-center mt-3 text-success fw-bold';
+      summary.textContent = `🎉 Proceso terminado.`;
       logContainer.appendChild(summary);
     };
 
