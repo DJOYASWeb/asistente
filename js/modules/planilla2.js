@@ -2226,7 +2226,7 @@ function generarTablaImagenes() {
     return;
   }
 
-  // --- 1. ANÁLISIS DE DATOS (El Cerebro del Reporte) ---
+  // --- 1. ANÁLISIS DE DATOS ---
   let repetidos = [];
   let sinFoto = [];
   let validos = [];
@@ -2252,17 +2252,15 @@ function generarTablaImagenes() {
         validos.push(sku);
         // Guardar para la galería (solo los primeros 5)
         if (previewUrls.length < 5) {
-            // Convertimos a link visualizable
             const id = driveIdFromUrl(url);
             if (id) {
-                // Usamos una url directa de google para previsualizar (thumbnail)
                 previewUrls.push(`https://lh3.googleusercontent.com/d/${id}=s220`); 
             }
         }
     }
   });
 
-  // --- 2. CONSTRUCCIÓN DEL HTML DEL REPORTE ---
+  // --- 2. HTML ALERTAS ---
   let alertasHtml = "";
   
   if (sinFoto.length > 0) {
@@ -2274,18 +2272,18 @@ function generarTablaImagenes() {
   }
 
   if (sinFoto.length === 0 && repetidos.length === 0) {
-      alertasHtml = `<div class="alert alert-success py-2 mb-2"><i class="fas fa-check-circle"></i> <strong>¡Todo perfecto!</strong> Todas las líneas tienen foto y no hay duplicados.</div>`;
+      alertasHtml = `<div class="alert alert-success py-2 mb-0"><i class="fas fa-check-circle"></i> <strong>¡Todo perfecto!</strong> Todas las líneas tienen foto y no hay duplicados.</div>`;
   }
 
-  // HTML de la Galería
+  // HTML Galería
   let galeriaHtml = previewUrls.map(url => 
-    `<div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd;">
-        <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/60?text=Err'">
+    `<div style="width: 70px; height: 70px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; background: #fff;">
+        <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/70?text=Error'">
      </div>`
   ).join("");
 
   
-  // --- 3. PLANTILLA PRINCIPAL ---
+  // --- 3. PLANTILLA PRINCIPAL (Layout Modificado) ---
   let html = `
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4>Gestor de Imágenes</h4>
@@ -2299,28 +2297,39 @@ function generarTablaImagenes() {
 
     <div class="card mb-4 shadow-sm border-0 bg-light">
         <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-3 border-end">
-                    <h6 class="text-muted mb-3">Resumen de Carga</h6>
-                    <div class="d-flex justify-content-between mb-1"><span>Total Líneas:</span> <strong>${filas.length}</strong></div>
-                    <div class="d-flex justify-content-between mb-1 text-success"><span>Listas para bajar:</span> <strong>${validos.length}</strong></div>
-                    <div class="d-flex justify-content-between text-danger"><span>Con errores:</span> <strong>${sinFoto.length + repetidos.length}</strong></div>
-                </div>
-
-                <div class="col-md-5 border-end">
-                    <h6 class="text-muted mb-2">Estado de Datos</h6>
-                    <div style="max-height: 80px; overflow-y: auto;">
-                        ${alertasHtml}
+            
+            <div class="row mb-3">
+                <div class="col-md-7 border-end">
+                    <h6 class="text-muted mb-2">Previsualización (Muestra de 5)</h6>
+                    <div class="d-flex gap-2 align-items-center" style="min-height: 70px;">
+                        ${galeriaHtml || '<span class="text-muted small fst-italic">No hay imágenes válidas para mostrar</span>'}
                     </div>
                 </div>
 
-                <div class="col-md-4">
-                    <h6 class="text-muted mb-2">Previsualización (Muestra)</h6>
-                    <div class="d-flex gap-2">
-                        ${galeriaHtml || '<span class="text-muted small">No hay imágenes válidas para mostrar</span>'}
+                <div class="col-md-5 ps-4">
+                    <h6 class="text-muted mb-2">Resumen de Carga</h6>
+                    <div class="d-flex justify-content-between mb-1 border-bottom pb-1">
+                        <span>Total Líneas:</span> 
+                        <strong>${filas.length}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1 text-success">
+                        <span>Listas para bajar:</span> 
+                        <strong>${validos.length}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between text-danger">
+                        <span>Con errores:</span> 
+                        <strong>${sinFoto.length + repetidos.length}</strong>
                     </div>
                 </div>
             </div>
+
+            <div class="border-top pt-3">
+                <h6 class="text-muted mb-2">Estado de Datos</h6>
+                <div style="max-height: 120px; overflow-y: auto;">
+                    ${alertasHtml}
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -2355,7 +2364,6 @@ function generarTablaImagenes() {
     const id = driveIdFromUrl(url);
     const urlDescarga = id ? `https://drive.google.com/uc?export=download&id=${id}` : "";
     
-    // Validaciones por fila
     let estadoIcono = `<span class="badge bg-success">OK</span>`;
     let filaClass = "";
     
@@ -2363,8 +2371,6 @@ function generarTablaImagenes() {
         estadoIcono = `<span class="badge bg-warning text-dark">Sin Foto</span>`;
         filaClass = "table-warning";
     }
-    // (Opcional) lógica para marcar repetidos visualmente en la tabla si quieres
-    // if (esRepetido...) { ... }
 
     const claseVerde = localStorage.getItem("sku_ok_" + sku) ? "bg-success text-white" : "";
 
@@ -2392,7 +2398,6 @@ function generarTablaImagenes() {
   vista.innerHTML = html;
   actualizarEstadoBotonesProcesar();
 }
-
 
 async function descargarUnaImagen(url, nombreArchivo) {
   try {
