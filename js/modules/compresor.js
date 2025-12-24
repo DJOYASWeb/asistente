@@ -207,13 +207,22 @@ document.getElementById('processBtn').onclick = async () => {
       downloadAllBtn.style.opacity = '1';
       downloadAllBtn.style.cursor = 'pointer';
       
-      // Botón descarga final
+// Botón descarga final
       downloadAllBtn.onclick = () => {
         const a = document.createElement('a');
         a.href = url;
-        // Nombre dinámico según lo que subiste
-        const timestamp = new Date().getTime();
-        a.download = `imagenes_optimizadas_${timestamp}.zip`;
+        
+        // ✅ Creador de fecha formato: DD-MM-YYYY
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Enero es 0
+        const year = now.getFullYear();
+        
+        const fechaFormateada = `${day}-${month}-${year}`;
+
+        // Asignamos el nombre con el formato pedido: imgs_24-12-2025.zip
+        a.download = `imgs_${fechaFormateada}.zip`;
+        
         a.click();
       };
 
