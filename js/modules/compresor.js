@@ -61,6 +61,8 @@ document.getElementById('processBtn').onclick = async () => {
         return;
       }
 
+      document.getElementById('resetBtn').style.display = 'block';
+
       // Ocultar la zona de carga (Tu mejora anterior)
       document.getElementById('dropZone').style.display = 'none';
       document.getElementById('processBtn').style.display = 'none';
@@ -271,7 +273,5 @@ function updateThumbnail(file) {
     dropZone.style.borderStyle = 'solid';
 }
 
-document.getElementById('resetBtn').addEventListener('click', () => {
-    location.reload();
-});
+
     //v 2.1

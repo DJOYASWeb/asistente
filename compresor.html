@@ -235,10 +235,13 @@
     <!-- TAB CONSTRUCTOR -->
     <div id="constructor" class="tab-section">
 <div class="container ios-card mb-5">
-  <h1>Compresor de Imágenes </h1>
-    <button id="resetBtn" title="Comprimir otras fotos" style="background: transparent; border: 1px solid #6c757d; color: #6c757d; border-radius: 5px; padding: 8px 12px; cursor: pointer; font-size: 14px; transition: all 0.2s; white-space: nowrap; "onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
-      <i class="fas fa-redo"></i> Nueva
-    </button>
+<div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="m-0">Compresor de Imágenes</h1>
+      
+      <button id="resetBtn" class="btn btn-outline-secondary btn-sm" style="display: none;">
+          <i class="fas fa-redo me-1"></i> Nueva Compresión
+      </button>
+  </div>
   <div id="dropZone" class="drop-zone">
       <div class="drop-zone-content">
           <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="upload-icon">
