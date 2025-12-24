@@ -180,4 +180,54 @@ downloadAllBtn.onclick = () => {
     };
 
 
+    // === LÓGICA DRAG & DROP ===
+
+const dropZone = document.getElementById('dropZone');
+const zipInput = document.getElementById('zipInput');
+const fileNameDisplay = document.getElementById('fileName');
+
+// 1. Al hacer clic en el rectángulo, activamos el input oculto
+dropZone.addEventListener('click', () => {
+    zipInput.click();
+});
+
+// 2. Al seleccionar un archivo manualmente (clic)
+zipInput.addEventListener('change', () => {
+    if (zipInput.files.length) {
+        updateThumbnail(zipInput.files[0]);
+    }
+});
+
+// 3. Eventos de arrastre (Drag & Drop)
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault(); // Necesario para permitir el drop
+    dropZone.classList.add('dragover'); // Añade efectos visuales
+});
+
+['dragleave', 'dragend'].forEach(type => {
+    dropZone.addEventListener(type, () => {
+        dropZone.classList.remove('dragover'); // Quita efectos
+    });
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+
+    if (e.dataTransfer.files.length) {
+        // Asignamos los archivos soltados al input real
+        zipInput.files = e.dataTransfer.files;
+        updateThumbnail(e.dataTransfer.files[0]);
+    }
+});
+
+// Función auxiliar para mostrar el nombre del archivo cargado
+function updateThumbnail(file) {
+    fileNameDisplay.textContent = `📂 Archivo cargado: ${file.name}`;
+    // Opcional: Cambiar el borde a verde o sólido para indicar éxito
+    dropZone.style.borderColor = '#28a745'; 
+    dropZone.style.borderStyle = 'solid';
+}
+
+
     //v 2.1

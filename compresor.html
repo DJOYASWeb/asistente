@@ -65,6 +65,60 @@
 .download-link:hover {
   text-decoration: underline;
 }
+
+/* Estilos para la zona de arrastrar y soltar */
+.drop-zone {
+    width: 100%;
+    max-width: 600px; /* O el ancho que prefieras */
+    height: 200px;
+    border: 3px dashed #ccc; /* Borde punteado clásico */
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease;
+    margin: 20px auto; /* Centrado */
+    position: relative;
+}
+
+.drop-zone:hover {
+    border-color: #666;
+    background-color: #f0f0f0;
+}
+
+/* Clase que se activa cuando arrastras un archivo encima */
+.drop-zone.dragover {
+    border-color: #007bff; /* Color azul de énfasis */
+    background-color: #e9f5ff;
+    transform: scale(1.02);
+}
+
+.drop-zone-content {
+    color: #555;
+    pointer-events: none; /* Para que los clics pasen al contenedor padre */
+}
+
+.upload-icon {
+    margin-bottom: 10px;
+    color: #888;
+}
+
+.drop-text {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.file-name-display {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #007bff;
+    font-size: 0.9rem;
+    min-height: 20px;
+}
+
   </style>
 
 
@@ -184,8 +238,18 @@
       <div class="container ios-card mb-5">
   <h1>Compresor de Imágenes ZIP (Canvas)</h1>
 
-  <input type="file" id="zipInput" accept=".zip">
-  <button id="processBtn">Procesar ZIP</button>
+<div id="dropZone" class="drop-zone">
+    <div class="drop-zone-content">
+        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="upload-icon">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <p class="drop-text">Arrastra tu archivo <b>ZIP</b> aquí<br>o haz clic para buscar</p>
+        <p id="fileName" class="file-name-display"></p>
+    </div>
+    <input type="file" id="zipInput" accept=".zip" style="display: none;">
+</div>
 
 
   <div id="topBar" style="
