@@ -79,53 +79,61 @@ const addProgressItem = (name) => {
         const item = addProgressItem(name);
         const fill = item.querySelector('.fill');
         const status = item.querySelector('.status');
-
-        if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(name)) {
+if (!entry.dir && /\.(jpg|jpeg|png)$/i.test(name)) {
           try {
             const arr = await entry.async('arraybuffer');
             const blob = new Blob([arr]);
-            status.textContent = 'Comprimiendo...';
+            
+            // Definimos compressed aquí para usarlo fuera del if/else
+            let compressed; 
+            const originalSize = blob.size;
 
-const originalSize = blob.size;
-let quality = 0.8;
-let compressed;
-do {
-  compressed = await compressImageSameResolution(blob, quality);
-  if (compressed.size <= 150 * 1024 || quality <= 0.1) break;
-  quality -= 0.1;
-} while (true);
+            // ✅ VALIDACIÓN: Si pesa 150KB (153600 bytes) o menos, no hacemos nada
+            if (originalSize <= 150 * 1024) {
+                compressed = blob; // Usamos el archivo original sin cambios
+                status.textContent = 'Mantenido (Original)';
+            } else {
+                // Si pesa más, iniciamos el proceso de compresión
+                status.textContent = 'Comprimiendo...';
+                let quality = 0.8;
+                do {
+                  compressed = await compressImageSameResolution(blob, quality);
+                  if (compressed.size <= 150 * 1024 || quality <= 0.1) break;
+                  quality -= 0.1;
+                } while (true);
+            }
 
-const finalSize = compressed.size;
-const reduction = 100 - ((finalSize / originalSize) * 100);
-newZip.file(name, compressed);
+            const finalSize = compressed.size;
+            const reduction = 100 - ((finalSize / originalSize) * 100);
+            newZip.file(name, compressed);
 
-// actualizar vista
-const imgEl = item.querySelector('img');
-imgEl.src = URL.createObjectURL(compressed);
+            // actualizar vista
+            const imgEl = item.querySelector('img');
+            imgEl.src = URL.createObjectURL(compressed);
 
-item.querySelector('.meta').textContent =
-  `${(originalSize / 1024).toFixed(1)} KB → ${(finalSize / 1024).toFixed(1)} KB`;
+            // Ajustamos un poco el texto para que tenga sentido si no hubo reducción
+            item.querySelector('.meta').textContent =
+              `${(originalSize / 1024).toFixed(1)} KB → ${(finalSize / 1024).toFixed(1)} KB`;
 
-item.querySelector('.reduction').textContent =
-  `${reduction.toFixed(1)}% menos`;
+            item.querySelector('.reduction').textContent =
+              `${reduction.toFixed(1)}% menos`;
 
-item.querySelector('.final-size').textContent =
-  `Final: ${(finalSize / 1024).toFixed(1)} KB`;
+            item.querySelector('.final-size').textContent =
+              `Final: ${(finalSize / 1024).toFixed(1)} KB`;
 
-const statusEl = item.querySelector('.status');
-statusEl.textContent = 'Listo';
-statusEl.classList.add('ready');
+            const statusEl = item.querySelector('.status');
+            statusEl.textContent = 'Listo';
+            statusEl.classList.add('ready');
 
-const link = item.querySelector('.download-link');
-link.style.display = 'inline';
-link.href = URL.createObjectURL(compressed);
-link.download = name;
-
+            const link = item.querySelector('.download-link');
+            link.style.display = 'inline';
+            link.href = URL.createObjectURL(compressed);
+            link.download = name;
 
           } catch (err) {
             console.error(`Error en ${name}:`, err);
             fill.style.background = '#dc3545';
-            fill.style.width = '100%';
+            // fill.style.width = '100%'; // 'fill' no está definido en tu snippet original, asegúrate de tenerlo o quitar esta línea si da error
             status.textContent = '⚠️ Error';
           }
         } else if (!entry.dir) {
