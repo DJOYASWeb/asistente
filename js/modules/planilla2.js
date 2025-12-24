@@ -1348,7 +1348,6 @@ function abrirModalDetalleProducto(codigo, index) {
     <div class="mb-3 d-flex align-items-center justify-content-between">
       <h6 class="text-primary mb-0">SKU: ${codigo}</h6>
       <div class="ms-3 flex-grow-1">
-        <label class="small text-muted">ID Prestashop:</label>
         <input type="text" id="idManualInput" class="form-control form-control-sm fw-bold"
           placeholder="Ingresar ID"
           value="${idValue}">
