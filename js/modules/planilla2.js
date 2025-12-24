@@ -2201,17 +2201,36 @@ document.getElementById("botonProcesarImagenes").addEventListener("click", () =>
 });
 
 
-function generarTablaImagenes() {
-  // Configuración de vista
+
+async function generarTablaImagenes() {
+  // 1. Configuración de vista y limpieza
   tipoSeleccionado = "imagenes";
-  document.getElementById("tablaPreview")?.classList.add("d-none");
-  document.getElementById("botonesTipo")?.classList.add("d-none");
-  document.getElementById("botonProcesar")?.classList.add("d-none");
-  document.getElementById("botonProcesarImagenes")?.classList.add("d-none");
-  document.querySelector(".formulario")?.classList.add("d-none");
+  const tablaPreview = document.getElementById("tablaPreview");
+  if (tablaPreview) tablaPreview.classList.add("d-none");
+  
+  const botonesTipo = document.getElementById("botonesTipo");
+  if (botonesTipo) botonesTipo.classList.add("d-none");
+  
+  const btnProcesar = document.getElementById("botonProcesar");
+  if (btnProcesar) btnProcesar.classList.add("d-none");
+  
+  const btnImg = document.getElementById("botonProcesarImagenes");
+  if (btnImg) btnImg.classList.add("d-none");
+  
+  const form = document.querySelector(".formulario");
+  if (form) form.classList.add("d-none");
 
   const vista = document.getElementById("vistaImagenes");
   vista.classList.remove("d-none");
+
+  // Mostrar indicador de carga
+  vista.innerHTML = `
+      <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <h5 class="mt-3">Analizando enlaces y validando nombres...</h5>
+          <p class="text-muted small">Esto puede tomar unos segundos.</p>
+      </div>
+  `;
 
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
@@ -2226,96 +2245,100 @@ function generarTablaImagenes() {
     return;
   }
 
-  // --- 1. ANÁLISIS DE DATOS (Detectar errores reales) ---
-  let mapUrls = new Map(); // Para detectar URLs duplicadas: URL -> [SKU1, SKU2...]
+  // --- 2. ANÁLISIS DE DATOS ---
+  let mapUrls = new Map();
   let skusVistos = new Set();
   
   let sinFoto = [];
   let skuRepetido = [];
-  let fotoRepetida = []; // Nueva lista de errores
-  let nombreIncorrecto = []; // Nueva validación de nombre
+  let fotoRepetida = []; 
+  let nombreIncorrecto = [];
   let validos = [];
   let previewUrls = [];
 
-  filas.forEach(row => {
+  // Procesamos en paralelo
+  const promesas = filas.map(async (row) => {
     const sku = extraerCodigo(row);
     const url = (row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"] || "").trim();
     const tieneFoto = url && url.length > 5;
-    
-    // 1. Detección de SKU Repetido
+    const driveId = driveIdFromUrl(url);
+
+    // SKU Repetido
     if (skusVistos.has(sku)) {
         skuRepetido.push(sku);
     } else {
         skusVistos.add(sku);
     }
 
-    // 2. Clasificación Base
     if (!tieneFoto) {
         sinFoto.push(sku);
+        return; 
+    }
+
+    // Foto Duplicada
+    if (!mapUrls.has(url)) {
+        mapUrls.set(url, []);
+    }
+    mapUrls.get(url).push(sku);
+
+    // Validación de Nombre
+    let nombreArchivoReal = "";
+    if (driveId) {
+        nombreArchivoReal = await obtenerNombreDesdeDrive(driveId);
     } else {
-        // 3. Detección de FOTO DUPLICADA (Misma URL en varios productos)
-        if (!mapUrls.has(url)) {
-            mapUrls.set(url, []);
-        }
-        mapUrls.get(url).push(sku);
+        nombreArchivoReal = url.split('/').pop();
+    }
 
-        // 4. Validación de NOMBRE vs CÓDIGO (Solo si no es link encriptado de Drive)
-        // Si la URL contiene el nombre del archivo (ej. .jpg), verificamos que coincida con el SKU
-        if (!url.includes("drive.google.com") && !url.includes("id=")) {
-             // Limpiamos ambos para comparar (sin extensiones, minúsculas)
-             const nombreEnUrl = url.split('/').pop().toLowerCase().split('.')[0];
-             const skuLimpio = sku.toLowerCase();
-             
-             if (!url.toLowerCase().includes(skuLimpio)) {
-                 nombreIncorrecto.push(sku);
-             }
-        }
-        
-        validos.push(sku);
+    if (nombreArchivoReal) {
+        const nombreLimpio = nombreArchivoReal.toLowerCase().split('.')[0]; 
+        const skuLimpio = sku.toLowerCase(); 
 
-        // Guardar para la galería (solo los primeros 5 válidos)
-        if (previewUrls.length < 5) {
-            const id = driveIdFromUrl(url);
-            if (id) {
-                previewUrls.push(`https://lh3.googleusercontent.com/d/${id}=s220`); 
-            }
+        if (!nombreLimpio.includes(skuLimpio)) {
+             nombreIncorrecto.push({ sku: sku, real: nombreArchivoReal });
         }
+    }
+
+    validos.push(sku);
+
+    // Galería (limitada a 5)
+    if (previewUrls.length < 5 && driveId) {
+        // Thumbnail URL seguro
+        previewUrls.push(`https://lh3.googleusercontent.com/d/${driveId}=s220`);
     }
   });
 
-  // Segunda pasada: Identificar quiénes tienen foto repetida
+  // Esperar a que termine todo
+  await Promise.all(promesas);
+
+  // Calcular fotos repetidas final
   mapUrls.forEach((listaSkus, url) => {
       if (listaSkus.length > 1) {
-          // Si una URL tiene más de un SKU asociado, todos son error
           fotoRepetida.push(...listaSkus);
       }
   });
 
-
-  // --- 2. HTML ALERTAS Y RESUMEN ---
+  // --- 3. CONSTRUCCIÓN DE ALERTAS HTML ---
   let alertasHtml = "";
   let totalErrores = sinFoto.length + skuRepetido.length + fotoRepetida.length + nombreIncorrecto.length;
-  
-  // Alerta: Sin Foto
+
   if (sinFoto.length > 0) {
-      alertasHtml += `<div class="alert alert-warning py-2 mb-2"><i class="fas fa-exclamation-triangle"></i> <strong>Sin Foto (${sinFoto.length}):</strong> ${sinFoto.slice(0, 10).join(", ")}${sinFoto.length > 10 ? "..." : ""}</div>`;
+      const lista = sinFoto.slice(0, 10).join(", ");
+      alertasHtml += `<div class="alert alert-warning py-2 mb-2"><i class="fas fa-exclamation-triangle"></i> <strong>Sin Foto (${sinFoto.length}):</strong> ${lista}...</div>`;
   }
-  // Alerta: SKU Repetido
   if (skuRepetido.length > 0) {
       alertasHtml += `<div class="alert alert-danger py-2 mb-2"><i class="fas fa-copy"></i> <strong>SKU Duplicado (${skuRepetido.length}):</strong> ${skuRepetido.join(", ")}</div>`;
   }
-  // Alerta: Foto Repetida (URL duplicada)
   if (fotoRepetida.length > 0) {
-      alertasHtml += `<div class="alert alert-danger py-2 mb-2"><i class="fas fa-images"></i> <strong>Foto Duplicada (${fotoRepetida.length}):</strong> <br><small>Estos productos comparten la misma imagen:</small> ${fotoRepetida.slice(0, 15).join(", ")}${fotoRepetida.length > 15 ? "..." : ""}</div>`;
+      const lista = fotoRepetida.slice(0, 10).join(", ");
+      alertasHtml += `<div class="alert alert-danger py-2 mb-2"><i class="fas fa-images"></i> <strong>Foto Duplicada (${fotoRepetida.length}):</strong> ${lista}...</div>`;
   }
-  // Alerta: Nombre Incorrecto
   if (nombreIncorrecto.length > 0) {
-      alertasHtml += `<div class="alert alert-info py-2 mb-2"><i class="fas fa-file-signature"></i> <strong>Nombre no coincide (${nombreIncorrecto.length}):</strong> <small>El link no contiene el SKU:</small> ${nombreIncorrecto.join(", ")}</div>`;
+      const detalles = nombreIncorrecto.slice(0, 5).map(i => `${i.sku} (es: ${i.real})`).join(", ");
+      alertasHtml += `<div class="alert alert-info py-2 mb-2"><i class="fas fa-file-signature"></i> <strong>Nombre Incorrecto (${nombreIncorrecto.length}):</strong> ${detalles}...</div>`;
   }
 
-  // Éxito
   if (totalErrores === 0) {
-      alertasHtml = `<div class="alert alert-success py-2 mb-0"><i class="fas fa-check-circle"></i> <strong>¡Todo perfecto!</strong> Datos íntegros, sin duplicados ni errores.</div>`;
+      alertasHtml = `<div class="alert alert-success py-2 mb-0"><i class="fas fa-check-circle"></i> <strong>¡Todo perfecto!</strong></div>`;
   }
 
   // HTML Galería
@@ -2325,8 +2348,7 @@ function generarTablaImagenes() {
      </div>`
   ).join("");
 
-  
-  // --- 3. PLANTILLA PRINCIPAL ---
+  // --- 4. RENDERIZADO FINAL ---
   let html = `
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h4>Gestor de Imágenes</h4>
@@ -2340,125 +2362,125 @@ function generarTablaImagenes() {
 
     <div class="card mb-4 shadow-sm border-0 bg-light">
         <div class="card-body">
-            
             <div class="row mb-3">
                 <div class="col-md-7 border-end">
-                    <h6 class="text-muted mb-2">Previsualización (Muestra)</h6>
+                    <h6 class="text-muted mb-2">Previsualización</h6>
                     <div class="d-flex gap-2 align-items-center" style="min-height: 70px;">
-                        ${galeriaHtml || '<span class="text-muted small fst-italic">No hay imágenes visualizables</span>'}
+                        ${galeriaHtml || '<span class="text-muted small">Sin vista previa</span>'}
                     </div>
                 </div>
-
                 <div class="col-md-5 ps-4">
-                    <h6 class="text-muted mb-2">Resumen de Carga</h6>
-                    <div class="d-flex justify-content-between mb-1 border-bottom pb-1">
-                        <span>Total Líneas:</span> <strong>${filas.length}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1 text-success">
-                        <span>Listas para bajar:</span> <strong>${validos.length}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between text-danger">
-                        <span>Con Alertas:</span> <strong>${totalErrores}</strong>
-                    </div>
+                    <h6 class="text-muted mb-2">Resumen</h6>
+                    <div class="d-flex justify-content-between mb-1 border-bottom pb-1"><span>Total:</span> <strong>${filas.length}</strong></div>
+                    <div class="d-flex justify-content-between text-danger"><span>Alertas:</span> <strong>${totalErrores}</strong></div>
                 </div>
             </div>
-
             <div class="border-top pt-3">
                 <h6 class="text-muted mb-2">Estado de Datos</h6>
-                <div style="max-height: 150px; overflow-y: auto;">
-                    ${alertasHtml}
-                </div>
+                <div style="max-height: 150px; overflow-y: auto;">${alertasHtml}</div>
             </div>
         </div>
     </div>
 
     <div id="progresoZipContainer" class="mb-3 d-none p-3 bg-white border rounded shadow-sm">
         <div class="d-flex justify-content-between mb-1">
-            <span id="estadoProgreso" class="text-primary fw-bold small">Iniciando...</span>
+            <span id="estadoProgreso" class="text-primary fw-bold small">Procesando...</span>
             <span id="contadorProgreso" class="text-muted small">0/${filas.length}</span>
         </div>
         <div class="progress" style="height: 20px;">
-            <div id="barraProgreso" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%">0%</div>
+            <div id="barraProgreso" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0%">0%</div>
         </div>
     </div>
 
     <div class="table-responsive">
     <table class="table table-bordered table-sm table-hover bg-white">
       <thead class="table-light">
-        <tr>
-          <th>CODIGO</th>
-          <th>NOMBRE</th>
-          <th>ESTADO</th>
-          <th>ACCIÓN</th>
-        </tr>
+        <tr><th>CODIGO</th><th>NOMBRE</th><th>ESTADO</th><th>ACCIÓN</th></tr>
       </thead>
       <tbody>
   `;
 
-  // --- 4. GENERACIÓN DE FILAS ---
+  // Filas de la tabla
   filas.forEach(row => {
     const sku = extraerCodigo(row);
-    const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
+    const nombre = row["NOMBRE PRODUCTO"] || "";
     const url = (row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"] || "").trim();
     const id = driveIdFromUrl(url);
     const urlDescarga = id ? `https://drive.google.com/uc?export=download&id=${id}` : "";
     
-    // Determinamos estado visual de la fila
-    let estadoIcono = `<span class="badge bg-success">OK</span>`;
     let filaClass = "";
-    let mensajesError = [];
+    let badges = [];
 
-    // Validar duplicado de URL
+    // Verificamos errores ya calculados
+    if (nombreIncorrecto.some(e => e.sku === sku)) {
+        badges.push(`<span class="badge bg-info text-dark" title="Nombre real no coincide">Nombre ≠ SKU</span>`);
+        filaClass = "table-info";
+    }
     if (mapUrls.get(url)?.length > 1) {
-        mensajesError.push("Foto Duplicada");
-        filaClass = "table-danger"; // Rojo fuerte
+        badges.push(`<span class="badge bg-danger">Foto Duplicada</span>`);
+        filaClass = "table-danger";
     }
-
-    // Validar nombre (si aplica)
-    if (nombreIncorrecto.includes(sku)) {
-        mensajesError.push("Nombre ≠ SKU");
-        if (!filaClass) filaClass = "table-info"; // Azul suave si es solo esto
-    }
-
-    // Validar sin foto
     if (!urlDescarga) {
-        mensajesError.push("Sin Foto");
+        badges.push(`<span class="badge bg-warning text-dark">Sin Foto</span>`);
         filaClass = "table-warning";
     }
 
-    if (mensajesError.length > 0) {
-        // Unir errores en el badge
-        estadoIcono = mensajesError.map(m => 
-            `<span class="badge ${m === 'Foto Duplicada' ? 'bg-danger' : 'bg-warning text-dark'} me-1">${m}</span>`
-        ).join("");
-    }
+    if (badges.length === 0) badges.push(`<span class="badge bg-success">OK</span>`);
 
     const claseVerde = localStorage.getItem("sku_ok_" + sku) ? "bg-success text-white" : "";
 
     html += `
       <tr class="${filaClass}">
-        <td class="sku-copy ${claseVerde}" style="cursor:pointer;" data-sku="${sku}">
-          <strong>${sku}</strong>
-        </td>
+        <td class="sku-copy ${claseVerde}" style="cursor:pointer;" data-sku="${sku}"><strong>${sku}</strong></td>
         <td class="text-truncate" style="max-width: 250px;">${nombre}</td>
-        <td>${estadoIcono}</td>
+        <td>${badges.join(" ")}</td>
         <td>
-          ${
-            urlDescarga
-              ? `<button class="btn btn-outline-primary btn-sm py-0" onclick="descargarUnaImagen('${urlDescarga}', '${sku}')" title="Descargar Individual">
-                   <i class="fas fa-download"></i>
-                 </button>`
-              : ``
-          }
+          ${urlDescarga ? `<button class="btn btn-outline-primary btn-sm py-0" onclick="descargarUnaImagen('${urlDescarga}', '${sku}')"><i class="fas fa-download"></i></button>` : ``}
         </td>
-      </tr>
-    `;
+      </tr>`;
   });
 
   html += `</tbody></table></div>`;
   vista.innerHTML = html;
+  
   actualizarEstadoBotonesProcesar();
 }
+
+
+
+
+// Función para obtener el nombre real desde la API de Drive
+async function obtenerNombreDesdeDrive(fileId) {
+  if (!window.DRIVE_API_KEY || window.DRIVE_API_KEY === "TU_API_KEY") {
+    // Si no hay API KEY, devolvemos null y no pasa nada
+    return null;
+  }
+  
+  try {
+    const url = `https://www.googleapis.com/drive/v3/files/${fileId}?fields=name&key=${window.DRIVE_API_KEY}`;
+    const response = await fetch(url);
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.name; // Ej: "ANILLO01.jpg"
+    }
+    return null;
+  } catch (error) {
+    console.error("Fallo consulta Drive:", error);
+    return null;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 async function descargarUnaImagen(url, nombreArchivo) {
   try {
