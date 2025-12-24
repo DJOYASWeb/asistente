@@ -1214,7 +1214,7 @@ tipoSeleccionado = "reposicion";
 
 
 
-function generarTablaCombinaciones() {
+function mostrarTablaCombinacionesCantidad() {
   // Configuración de vista
   tipoSeleccionado = "combinaciones";
   
@@ -1223,15 +1223,10 @@ function generarTablaCombinaciones() {
   ids.forEach(id => document.getElementById(id)?.classList.add("d-none"));
   document.querySelector(".formulario")?.classList.add("d-none");
 
-  // Mostrar vista combinaciones
-  const vista = document.getElementById("vistaCombinaciones"); // Asegúrate de tener este ID en tu HTML o usa el contenedor que corresponda
-  if(vista) vista.classList.remove("d-none");
-
-  // Si no tienes un contenedor específico "vistaCombinaciones", 
-  // usa el "tablaPreview" pero límpialo y muéstralo:
+  // Mostrar vista combinaciones (ajusta el ID si usas uno diferente al genérico tablaPreview)
   const tablaContainer = document.getElementById("tablaPreview");
   tablaContainer.classList.remove("d-none");
-  tablaContainer.innerHTML = ""; // Limpiar tabla anterior
+  tablaContainer.innerHTML = ""; // Limpiar contenido anterior
 
   const filas = obtenerFilasActivas({
     tipoSeleccionado,
@@ -1268,12 +1263,11 @@ function generarTablaCombinaciones() {
     const codigo = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "";
     
-    // Recuperamos lo que ya tengas guardado en memoria
+    // Recuperamos datos de memoria para mostrar el estado actual
     const dataGuardada = datosCombinaciones[codigo] || {};
     const combinacionTexto = dataGuardada.combinacion || ""; 
     const cantidad = dataGuardada.cantidad || "";
 
-    // Visualmente truncamos el texto si es muy largo
     const textoVisual = combinacionTexto.length > 50 ? combinacionTexto.substring(0, 50) + "..." : combinacionTexto;
 
     html += `
@@ -1295,28 +1289,25 @@ function generarTablaCombinaciones() {
   tablaContainer.innerHTML = html;
 }
 
-
-// Variable global temporal para saber qué producto estamos editando
+// Variable global temporal
 let codigoEditandoActual = null;
 
 function abrirModalCombinaciones(codigo) {
   codigoEditandoActual = codigo;
   
-  // 1. Obtener referencias a los campos del modal
-  // Asegúrate de que tu modal en HTML tenga estos IDs
-  const inputSku = document.getElementById("inputSkuCombinacion"); // Campo del código (puede ser hidden o readonly)
-  const txtCombo = document.getElementById("txtCombinaciones");    // Textarea de combinaciones
-  const inputStock = document.getElementById("inputStockCombinacion"); // Input de cantidad
+  // Referencias a los inputs del modal
+  const inputSku = document.getElementById("inputSkuCombinacion"); 
+  const txtCombo = document.getElementById("txtCombinaciones");    
+  const inputStock = document.getElementById("inputStockCombinacion"); 
   
-  // 2. Cargar datos existentes (Persistencia)
+  // CARGAR DATOS EXISTENTES (El arreglo clave)
   const data = datosCombinaciones[codigo] || {};
   
-  // Rellenamos los campos
-  if (inputSku) inputSku.value = codigo; // Para que sepas qué estás editando
-  if (txtCombo) txtCombo.value = data.combinacion || ""; // Recupera lo escrito o lo deja vacío
+  if (inputSku) inputSku.value = codigo; 
+  if (txtCombo) txtCombo.value = data.combinacion || ""; // Si ya había algo, lo pone
   if (inputStock) inputStock.value = data.cantidad || ""; 
 
-  // 3. Mostrar el Modal (Bootstrap)
+  // Mostrar Modal
   const modalEl = document.getElementById("modalCombinaciones");
   const modal = new bootstrap.Modal(modalEl);
   modal.show();
@@ -1324,42 +1315,40 @@ function abrirModalCombinaciones(codigo) {
 
 
 function guardarCombinaciones() {
-  // 1. Validar que tenemos un código seleccionado
   if (!codigoEditandoActual) {
       alert("Error: No se ha identificado el producto.");
       return;
   }
 
-  // 2. Obtener valores del modal
   const txtCombo = document.getElementById("txtCombinaciones").value;
   const inputStock = document.getElementById("inputStockCombinacion").value;
 
-  // 3. Guardar en el objeto global datosCombinaciones
-  // Esto actualiza la "memoria" del programa
+  // Guardar en memoria
   datosCombinaciones[codigoEditandoActual] = {
       combinacion: txtCombo,
       cantidad: inputStock,
-      // Puedes agregar más campos si lo necesitas
       editado: true 
   };
 
-  // 4. Cerrar el Modal
+  // Cerrar Modal
   const modalEl = document.getElementById("modalCombinaciones");
-  const modalInstance = bootstrap.Modal.getInstance(modalEl); // Obtener instancia abierta
+  const modalInstance = bootstrap.Modal.getInstance(modalEl);
   if (modalInstance) {
       modalInstance.hide();
   } else {
-      // Fallback por si acaso
       const closeBtn = modalEl.querySelector('.btn-close');
       if(closeBtn) closeBtn.click();
   }
 
-  // 5. ✅ EL FIX CLAVE: Refrescar la tabla inmediatamente
-  generarTablaCombinaciones();
+  // ✅ REFRESCO AUTOMÁTICO (Usando tu nombre de función)
+  mostrarTablaCombinacionesCantidad();
   
-  // Notificación opcional
-  mostrarNotificacion(`Combinación guardada para ${codigoEditandoActual}`, "exito");
+  mostrarNotificacion(`Guardado: ${codigoEditandoActual}`, "exito");
 }
+
+
+
+
 
 
 function abrirModalDetalleProducto(codigo, index) {
