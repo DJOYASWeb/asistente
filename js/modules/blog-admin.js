@@ -761,6 +761,12 @@ function filtrarTabla() {
 window.filtrarTabla = filtrarTabla;
 
 
-
+function convertirNuevoHtml() {
+  const texto = document.getElementById('nuevoBlog').value;
+  // Usamos la misma lógica de conversión que ya tienes definida arriba
+  const html = convertirTextoABlogHtml(texto);
+  document.getElementById('nuevoBlogHtml').value = html;
+}
+window.convertirNuevoHtml = convertirNuevoHtml;
 
 // v1
