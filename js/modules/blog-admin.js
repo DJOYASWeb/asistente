@@ -188,6 +188,8 @@ function limpiarFormulario() {
     .forEach(id => document.getElementById(id).value = '');
 }
 
+// js/modules/blog-admin.js
+
 async function agregarNuevoDato() {
   const id = document.getElementById('nuevoId').value.trim();
   const nombre = document.getElementById('nuevoNombre').value.trim();
@@ -197,15 +199,29 @@ async function agregarNuevoDato() {
   const meta = document.getElementById('nuevoMeta').value.trim();
   const fecha = document.getElementById('nuevaFecha').value.trim();
   const categoria = document.getElementById('nuevaCategoria').value.trim();
-  const fechaRaw = document.getElementById('nuevaFecha')?.value; // puede venir "2025-06-02" (input date) o manual
-const norm = normalizeFecha(fechaRaw);
+  
+  // Normalizar fecha si es necesario
+  const fechaRaw = document.getElementById('nuevaFecha')?.value; 
+  const norm = normalizeFecha(fechaRaw);
 
   if (!id || !nombre || !estado || !blog || !meta || !fecha || !categoria) {
-mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
+    mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
     return;
   }
 
-  const nuevoDato = { id, nombre, estado, blog, blogHtml, meta, fecha, categoria, creadoEn: firebase.firestore.FieldValue.serverTimestamp() };
+  // Objeto a guardar (usamos la fecha normalizada si quieres, o la del input)
+  const nuevoDato = { 
+    id, 
+    nombre, 
+    estado, 
+    blog, 
+    blogHtml, 
+    meta, 
+    fecha: norm.fecha,       // Guardamos formato DD/MM/YYYY
+    fechaIso: norm.fechaIso, // Guardamos formato YYYY-MM-DD para ordenar
+    categoria, 
+    creadoEn: firebase.firestore.FieldValue.serverTimestamp() 
+  };
 
   try {
     await firebase.firestore().collection('blogs').doc(id).set(nuevoDato);
@@ -214,11 +230,14 @@ mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
     cerrarModalAgregarDato();
     limpiarFormulario();
     mostrarNotificacion("✅ Blog agregado correctamente", "exito");
-  } catch {
-  mostrarNotificacion("❌ Error al guardar en Firestore.", "error");
+  } catch (error) {
+    console.error(error);
+    mostrarNotificacion("❌ Error al guardar en Firestore.", "error");
   }
-  await db.collection("blogs").doc(/* tu id o auto */).set(doc, { merge: true });
 }
+
+// ✅ ESTA LÍNEA ES LA QUE TE FALTA PARA QUE EL BOTÓN FUNCIONE:
+window.agregarNuevoDato = agregarNuevoDato;
 
 
 function editarFila(index) {
