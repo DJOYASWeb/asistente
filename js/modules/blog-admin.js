@@ -806,7 +806,6 @@ function toggleSelectAll(source) {
 window.toggleSelectAll = toggleSelectAll;
 
 
-// 3. Exportar con columnas personalizadas
 function exportarSeleccionados() {
   const checkboxes = document.querySelectorAll('.blog-check:checked');
   
@@ -815,7 +814,7 @@ function exportarSeleccionados() {
     return;
   }
 
-  // Encabezados exactos que pediste
+  // Encabezados
   let csvContent = "ID,Meta titulo,Meta Descripción,Categoria,Autor,Fecha\n";
 
   checkboxes.forEach(cb => {
@@ -823,41 +822,52 @@ function exportarSeleccionados() {
     const dato = datosTabla[index];
     
     if (dato) {
-      // Función para limpiar comillas y evitar romper el CSV
       const escape = (txt) => {
-        const str = String(txt || "").replace(/"/g, '""'); // Escapar comillas dobles
-        return `"${str}"`; // Envolver siempre en comillas
+        const str = String(txt || "").replace(/"/g, '""'); 
+        return `"${str}"`; 
       };
 
-      // Mapeo de datos según tu solicitud:
+      // --- LÓGICA DE TRANSFORMACIÓN DE FECHA ---
+      let fechaFormateada = dato.fecha || "";
+      
+      // Si la fecha viene como "08/01/2026" (DD/MM/AAAA)
+      if (fechaFormateada.includes('/')) {
+        const partes = fechaFormateada.split('/'); // [08, 01, 2026]
+        if (partes.length === 3) {
+            // Reordenamos: AAAA-MM-DD y agregamos la hora fija
+            fechaFormateada = `${partes[2]}-${partes[1]}-${partes[0]} 10:00:00`;
+        }
+      } 
+      // Si por casualidad ya viene lista, solo le agregamos la hora si le falta
+      else if (fechaFormateada.length === 10 && fechaFormateada.includes('-')) {
+          fechaFormateada = `${fechaFormateada} 10:00:00`;
+      }
+
       const fila = [
-        escape(dato.id || dato.docId),      // ID de Blog -> Columna ID
-        escape(dato.nombre),                // Nombre de Blog -> Columna Meta titulo
-        escape(dato.meta),                  // Meta Descripción -> Columna Meta Descripción
-        escape(dato.categoria),             // Categoría -> Columna Categoria
-        escape("Sofía de DJOYAS"),          // Valor fijo -> Columna Autor
-        escape(dato.fecha)                  // Fecha de Blog -> Columna Fecha
+        escape(dato.id || dato.docId),      
+        escape(dato.nombre),                
+        escape(dato.meta),                  
+        escape(dato.categoria),             
+        escape("Sofía de DJOYAS"),          
+        escape(fechaFormateada) // ✅ Fecha transformada (2026-01-08 10:00:00)
       ];
 
       csvContent += fila.join(",") + "\n";
     }
   });
 
-  // Generar descarga
   const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   
   const link = document.createElement("a");
   link.href = url;
-  // Nombre del archivo con fecha
-  link.download = `blogs_export_seo_${new Date().toISOString().slice(0,10)}.csv`;
+  link.download = `blogs_seo_${new Date().toISOString().slice(0,10)}.csv`;
   link.style.display = "none";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   
-  mostrarNotificacion(`✅ Exportados ${checkboxes.length} blogs para SEO.`, "exito");
+  mostrarNotificacion(`✅ Exportados ${checkboxes.length} blogs con fecha formateada.`, "exito");
 }
 window.exportarSeleccionados = exportarSeleccionados;
-
 // v1
