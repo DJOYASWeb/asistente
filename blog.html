@@ -344,11 +344,18 @@
     <h2>📋 Gestión de Datos</h2>
     <div class="buttons row alinear">
 <div class="col-lg-8 col-12 filtro"><input class="form-control" type="text" id="filtroTexto" placeholder="🔍 Buscar..." oninput="filtrarTabla()"></div>
-<div class="col-lg-2 col-12"><button class="btn btn-primary" onclick="abrirModalAgregarDato()">➕ Agregar Blog</button></div>
+<div class="col-lg-2 col-12">
+    <button class="btn btn-primary w-100" onclick="abrirModalAgregarDato()">➕ Agregar Blog</button>
+</div>
+
+<div class="col-lg-2 col-6">
+    <button class="btn btn-outline-success w-100" onclick="exportarSeleccionados()">📤 Exportar</button>
+</div>
+
 <div class="col-lg-1 col-6">
       <button class="btn btn-secondary w-100" id="btnCargarCsv">📥</button>
       <input type="file" id="csvInput" accept=".csv" class="d-none">
-    </div>
+</div>
 <div class="col-lg-1 col-6"><button class="btn btn-outline-primary" onclick="cargarDatosDesdeFirestore()">🔄</button>
 </div>
 </div>
