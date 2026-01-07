@@ -848,4 +848,106 @@ function exportarSeleccionados() {
 }
 window.exportarSeleccionados = exportarSeleccionados;
 
+// js/modules/blog-admin.js
+
+// 1. Renderizar tabla con Checkboxes
+function renderizarTabla() {
+  const tbody = document.querySelector('#tablaDatos tbody');
+  tbody.innerHTML = '';
+
+  datosTabla.forEach((dato, index) => {
+    // ID robusto
+    const id = (dato.id && String(dato.id).trim()) || (dato.docId && String(dato.docId).trim()) || "";
+
+    const fila = document.createElement('tr');
+    if (id) fila.dataset.docId = id;
+
+    // Contenido recortado para vista previa
+    const blogPreview = (dato.blog || '').toString();
+    const blogShort = blogPreview.length > 160 ? blogPreview.slice(0, 160) + '…' : blogPreview;
+
+    fila.innerHTML = `
+      <td class="text-center">
+        <input type="checkbox" class="form-check-input blog-check" data-index="${index}">
+      </td>
+      <td class="celda-id">${id}</td>
+      <td class="celda-nombre">${dato.nombre || ''}</td>
+      <td class="celda-estado">${dato.estado || ''}</td>
+      <td class="celda-blog">${blogShort}</td>
+      <td class="celda-meta">${dato.meta || ''}</td>
+      <td class="celda-fecha">${dato.fecha || ''}</td>
+      <td class="celda-categoria">${dato.categoria || ''}</td>
+      <td>
+        <button class="btn p-0 mx-1" onclick="editarFila(${index})">✏️</button>
+        <button class="btn btn-sm p-0" data-id="${id}" onclick="confirmarEliminarFila(this)">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(fila);
+  });
+}
+window.renderizarTabla = renderizarTabla; // Aseguramos que sea global
+
+
+// 2. Seleccionar Todo
+function toggleSelectAll(source) {
+  const checkboxes = document.querySelectorAll('.blog-check');
+  checkboxes.forEach(cb => cb.checked = source.checked);
+}
+window.toggleSelectAll = toggleSelectAll;
+
+
+// 3. Exportar con columnas personalizadas
+function exportarSeleccionados() {
+  const checkboxes = document.querySelectorAll('.blog-check:checked');
+  
+  if (checkboxes.length === 0) {
+    mostrarNotificacion("⚠️ No has seleccionado ningún blog.", "alerta");
+    return;
+  }
+
+  // Encabezados exactos que pediste
+  let csvContent = "ID,Meta titulo,Meta Descripción,Categoria,Autor,Fecha\n";
+
+  checkboxes.forEach(cb => {
+    const index = cb.dataset.index;
+    const dato = datosTabla[index];
+    
+    if (dato) {
+      // Función para limpiar comillas y evitar romper el CSV
+      const escape = (txt) => {
+        const str = String(txt || "").replace(/"/g, '""'); // Escapar comillas dobles
+        return `"${str}"`; // Envolver siempre en comillas
+      };
+
+      // Mapeo de datos según tu solicitud:
+      const fila = [
+        escape(dato.id || dato.docId),      // ID de Blog -> Columna ID
+        escape(dato.nombre),                // Nombre de Blog -> Columna Meta titulo
+        escape(dato.meta),                  // Meta Descripción -> Columna Meta Descripción
+        escape(dato.categoria),             // Categoría -> Columna Categoria
+        escape("Sofía de DJOYAS"),          // Valor fijo -> Columna Autor
+        escape(dato.fecha)                  // Fecha de Blog -> Columna Fecha
+      ];
+
+      csvContent += fila.join(",") + "\n";
+    }
+  });
+
+  // Generar descarga
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement("a");
+  link.href = url;
+  // Nombre del archivo con fecha
+  link.download = `blogs_export_seo_${new Date().toISOString().slice(0,10)}.csv`;
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  mostrarNotificacion(`✅ Exportados ${checkboxes.length} blogs para SEO.`, "exito");
+}
+window.exportarSeleccionados = exportarSeleccionados;
+
 // v1
