@@ -182,39 +182,48 @@ function generarHTML() {
 
       <!-- Navegación entre artículos -->
       <section class="navegacion-articulos row mt-5">
-        <div class="col-lg-6 col-md-6 col-12">
-          <div class="bloque">
-            <a href="${blogAnterior?.url || '#'}">
-              <p class="etiqueta-blog"><i class="fa fa-angle-left mx-2"></i>Blog anterior</p>
+  <div class="col-lg-6 col-md-6 col-12">
+    <div class="bloque">
+      <a href="${blogAnterior?.url || '#'}">
+        <p class="etiqueta-blog"><i class="fa fa-angle-left mx-2"></i>Blog anterior</p>
+      </a>
+      <hr>
+      <div class="row card-recomendados">
+        <div class="col-auto">
+          <h3 class="recomendados pt-2">
+            <a href="${blogAnterior?.url || '#'}">${blogAnterior?.titulo || '—'}</a>
+          </h3>
+          <div class="etiquetas">
+            <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blogAnterior?.categoria || categoria)}">
+              ${blogAnterior?.categoria || categoria}
             </a>
-            <hr>
-            <div class="row card-recomendados">
-              <div class="col-auto">
-                <h3 class="recomendados pt-2"><a href="${blogAnterior?.url || '#'}">${blogAnterior?.titulo || '—'}</a></h3>
-                <div class="etiquetas">
-                  <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${slugAnterior}">${blogAnterior?.categoria || categoria}</a>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
-        <div class="col-lg-6 col-md-6 col-12">
-          <div class="bloque2">
-            <a href="${blogSiguiente?.url || '#'}">
-              <p class="etiqueta-blog">Blog siguiente <i class="fa fa-angle-right mx-2"></i></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6 col-md-6 col-12">
+    <div class="bloque2">
+      <a href="${blogSiguiente?.url || '#'}">
+        <p class="etiqueta-blog">Blog siguiente <i class="fa fa-angle-right mx-2"></i></p>
+      </a>
+      <hr>
+      <div class="row card-recomendados">
+        <div class="col-auto">
+          <h3 class="recomendados pt-2">
+            <a href="${blogSiguiente?.url || '#'}">${blogSiguiente?.titulo || '—'}</a>
+          </h3>
+          <div class="etiquetas">
+            <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blogSiguiente?.categoria || categoria)}">
+              ${blogSiguiente?.categoria || categoria}
             </a>
-            <hr>
-            <div class="row card-recomendados">
-              <div class="col-auto">
-                <h3 class="recomendados pt-2"><a href="${blogSiguiente?.url || '#'}">${blogSiguiente?.titulo || '—'}</a></h3>
-                <div class="etiquetas">
-                  <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${slugSiguiente}">${blogSiguiente?.categoria || categoria}</a>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
+  </div>
+</section>
 
     </div>
     <div class="col-12 col-md-12 col-lg-4 bloque-lateral">
