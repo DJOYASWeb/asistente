@@ -85,13 +85,14 @@ window.onload = () => {
 };
 
 function limpiarParaUrl(texto) {
+  if (!texto) return '';
   return texto
-    .toString()               // Aseguramos que sea texto
-    .toLowerCase()            // 1. Todo a minúsculas
-    .normalize("NFD")         // 2. Separa la letra del tilde (n + ~)
-    .replace(/[\u0300-\u036f]/g, "") // 3. Borra los tildes
-    .replace(/\s+/g, "-")     // 4. Cambia espacios por guiones (si tienes categorías de 2 palabras)
-    .trim();                  // 5. Borra espacios al inicio o final
+    .toString()
+    .trim()                   // 1. ¡AQUÍ! Quitamos espacios al inicio y final primero
+    .toLowerCase()            // 2. Minúsculas
+    .normalize("NFD")         // 3. Normalizar tildes
+    .replace(/[\u0300-\u036f]/g, "") // 4. Borrar tildes
+    .replace(/\s+/g, "-");    // 5. Ahora sí, espacios internos a guiones
 }
 
 /* =====================
