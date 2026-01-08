@@ -84,6 +84,16 @@ window.onload = () => {
   cargarNavegacionSelects();
 };
 
+function limpiarParaUrl(texto) {
+  return texto
+    .toString()               // Aseguramos que sea texto
+    .toLowerCase()            // 1. Todo a minúsculas
+    .normalize("NFD")         // 2. Separa la letra del tilde (n + ~)
+    .replace(/[\u0300-\u036f]/g, "") // 3. Borra los tildes
+    .replace(/\s+/g, "-")     // 4. Cambia espacios por guiones (si tienes categorías de 2 palabras)
+    .trim();                  // 5. Borra espacios al inicio o final
+}
+
 /* =====================
    GENERAR HTML
 ===================== */
@@ -127,7 +137,7 @@ function generarHTML() {
           </div>
           <div class="col-7">
             <a href="${blog.url}"><h3 class="recomendados pt-2">${blog.titulo}</h3></a>
-            <div class="etiquetas"><a class="etiqueta-tag" href="${blog.url.split('/').slice(0, 6).join('/')}">${blog.categoria}</a></div>
+            <div class="etiquetas"><a class="etiqueta-tag" href="/blog/${limpiarParaUrl(blog.categoria)}"></div>
           </div>
         </div>
   `).join('\n');
