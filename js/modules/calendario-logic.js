@@ -82,35 +82,44 @@ function renderizarCalendario() {
     }
 }
 
-// --- COMPARADOR SOLO PARA "fecha" ---
-// Detecta automáticamente si es DD/MM/YYYY o YYYY-MM-DD
 function compararFechas(fechaDato, fechaCalendario) {
+    // Si no hay fecha, descartar
     if (!fechaDato) return false;
 
     try {
-        // 1. Limpieza: Quitar hora y espacios. Cambiar barras por guiones.
-        // Ej: "08/01/2026" -> "08-01-2026"
-        // Ej: "2025-09-29" -> "2025-09-29"
-        let fecha = fechaDato.toString().split(' ')[0].trim().replace(/\//g, '-');
+        // 1. LIMPIEZA:
+        // - .split(' ')[0] -> Quita la hora (" 10:00:00")
+        // - .trim() -> Quita espacios
+        // - .replace(/\//g, '-') -> Convierte TODAS las barras / en guiones -
+        // Resultado esperado: "2025-09-29" o "08-01-2026"
+        let fechaLimpia = fechaDato.toString().split(' ')[0].trim().replace(/\//g, '-');
         
-        const partes = fecha.split('-');
+        const partes = fechaLimpia.split('-'); // Separa por guiones
+        
+        // Si no tiene 3 partes (dia, mes, año), no sirve
         if (partes.length !== 3) return false;
 
         let fechaNormalizada = "";
 
-        // 2. ¿El año está al principio o al final?
+        // 2. DETECCIÓN DE FORMATO:
+        // ¿La primera parte tiene 4 dígitos? (Ej: "2025"-09-29)
         if (partes[0].length === 4) {
-            // Caso: YYYY-MM-DD (2025-09-29) -> Ya está lista
-            fechaNormalizada = fecha;
-        } else {
-            // Caso: DD-MM-YYYY (08-01-2026) -> Lo invertimos
+            // Es YYYY-MM-DD -> Ya está lista para comparar
+            fechaNormalizada = fechaLimpia;
+        } 
+        // Si no, asumimos que es DD-MM-YYYY (Ej: "08"-01-2026)
+        else {
+            // Lo volteamos a YYYY-MM-DD
+            // partes[2] = Año, partes[1] = Mes, partes[0] = Día
             fechaNormalizada = `${partes[2]}-${partes[1]}-${partes[0]}`;
         }
 
-        // 3. Comparar con el calendario (que siempre es YYYY-MM-DD)
+        // 3. COMPARACIÓN:
+        // fechaCalendario siempre viene como YYYY-MM-DD desde el bucle
         return fechaNormalizada === fechaCalendario;
 
     } catch (e) {
+        console.error("Error fecha:", e);
         return false;
     }
 }
