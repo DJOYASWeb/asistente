@@ -185,7 +185,7 @@ function renderizarTabla() {
 }
 window.renderizarTabla = renderizarTabla;
 
-// Dentro de blog-admin.js, donde obtienes los datos:
+// En blog-admin.js, dentro de tu onSnapshot:
 
 db.collection("blogs").orderBy("creadoEn", "desc").onSnapshot((querySnapshot) => {
     datosTabla = [];
@@ -193,9 +193,11 @@ db.collection("blogs").orderBy("creadoEn", "desc").onSnapshot((querySnapshot) =>
         datosTabla.push({ id: doc.id, ...doc.data() });
     });
 
-    renderizarTabla(); // Tu tabla normal
+    // ✅ AGREGA ESTA LÍNEA PARA QUE EL CALENDARIO VEA LOS DATOS:
+    window.datosTabla = datosTabla; 
+
+    renderizarTabla(); 
     
-    // ✅ AGREGA ESTO AQUÍ:
     if (window.renderizarCalendario) {
         console.log("Actualizando calendario con datos nuevos...");
         window.renderizarCalendario();
