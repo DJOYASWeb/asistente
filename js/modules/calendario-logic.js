@@ -83,43 +83,41 @@ function renderizarCalendario() {
 }
 
 function compararFechas(fechaDato, fechaCalendario) {
-    // Si no hay fecha, descartar
     if (!fechaDato) return false;
 
     try {
-        // 1. LIMPIEZA:
-        // - .split(' ')[0] -> Quita la hora (" 10:00:00")
-        // - .trim() -> Quita espacios
-        // - .replace(/\//g, '-') -> Convierte TODAS las barras / en guiones -
-        // Resultado esperado: "2025-09-29" o "08-01-2026"
+        // 1. LIMPIEZA: Quitamos hora y espacios, convertimos barras a guiones
         let fechaLimpia = fechaDato.toString().split(' ')[0].trim().replace(/\//g, '-');
-        
-        const partes = fechaLimpia.split('-'); // Separa por guiones
-        
-        // Si no tiene 3 partes (dia, mes, año), no sirve
+        let partes = fechaLimpia.split('-');
+
         if (partes.length !== 3) return false;
 
-        let fechaNormalizada = "";
+        let diaBlog, mesBlog, anioBlog;
 
-        // 2. DETECCIÓN DE FORMATO:
-        // ¿La primera parte tiene 4 dígitos? (Ej: "2025"-09-29)
-        if (partes[0].length === 4) {
-            // Es YYYY-MM-DD -> Ya está lista para comparar
-            fechaNormalizada = fechaLimpia;
-        } 
-        // Si no, asumimos que es DD-MM-YYYY (Ej: "08"-01-2026)
-        else {
-            // Lo volteamos a YYYY-MM-DD
-            // partes[2] = Año, partes[1] = Mes, partes[0] = Día
-            fechaNormalizada = `${partes[2]}-${partes[1]}-${partes[0]}`;
+        // 2. DETECCIÓN DE FORMATO (Matemática)
+        // Si el primer número es mayor a 31 (imposible que sea día) O tiene 4 dígitos -> Es AÑO
+        if (partes[0].length === 4 || parseInt(partes[0]) > 31) {
+            // Formato: YYYY-MM-DD (Ej: 2025-08-04)
+            anioBlog = parseInt(partes[0], 10);
+            mesBlog = parseInt(partes[1], 10);
+            diaBlog = parseInt(partes[2], 10);
+        } else {
+            // Formato: DD-MM-YYYY (Ej: 13-01-2026)
+            diaBlog = parseInt(partes[0], 10);
+            mesBlog = parseInt(partes[1], 10);
+            anioBlog = parseInt(partes[2], 10);
         }
 
-        // 3. COMPARACIÓN:
-        // fechaCalendario siempre viene como YYYY-MM-DD desde el bucle
-        return fechaNormalizada === fechaCalendario;
+        // 3. DATOS DEL CALENDARIO (Vienen siempre YYYY-MM-DD)
+        let partesCal = fechaCalendario.split('-');
+        let anioCal = parseInt(partesCal[0], 10);
+        let mesCal = parseInt(partesCal[1], 10);
+        let diaCal = parseInt(partesCal[2], 10);
+
+        // 4. COMPARACIÓN NUMÉRICA (Aquí 01 es igual a 1, no falla nunca)
+        return (diaBlog === diaCal && mesBlog === mesCal && anioBlog === anioCal);
 
     } catch (e) {
-        console.error("Error fecha:", e);
         return false;
     }
 }
