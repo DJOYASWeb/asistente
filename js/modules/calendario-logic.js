@@ -88,40 +88,51 @@ function renderizarCalendario() {
     }
 }
 
-// --- FUNCIÓN DE COMPARACIÓN MATEMÁTICA ---
 function esFechaCorrecta(fechaRaw, diaTarget, mesTarget, anioTarget) {
     if (!fechaRaw) return false;
 
     try {
-        // 1. Limpieza Agresiva
-        // Convierte a string, quita horas, quita espacios extremos
-        let str = fechaRaw.toString().split(' ')[0].trim();
+        // 1. LIMPIEZA AGRESIVA (NIVEL QUIRÚRGICO)
+        // Convertimos a texto
+        let str = fechaRaw.toString();
         
-        // Reemplaza barras por guiones para unificar
+        // EXPRESIÓN REGULAR: "Reemplaza todo lo que NO sea número (0-9), guion (-) o barra (/) por NADA"
+        // Esto elimina espacios invisibles, letras, símbolos raros, horas, etc.
+        str = str.replace(/[^0-9\-\/]/g, "");
+
+        // Ahora normalizamos las barras a guiones
         str = str.replace(/\//g, '-');
 
-        // Separa los números
-        const partes = str.split('-');
+        // Si después de limpiar quedó algo raro (ej: --), lo arreglamos
+        // Esto separa por guiones
+        const partes = str.split('-').filter(p => p.length > 0); 
         
         if (partes.length !== 3) return false;
 
         let d, m, a;
 
-        // 2. Detectar formato: ¿El primero es Año (4 dígitos)?
+        // 2. DETECCIÓN (Igual que antes, pero con datos puros)
         if (partes[0].length === 4) {
-            // Formato YYYY-MM-DD
+            // YYYY-MM-DD
             a = parseInt(partes[0], 10);
             m = parseInt(partes[1], 10);
             d = parseInt(partes[2], 10);
         } else {
-            // Formato DD-MM-YYYY
+            // DD-MM-YYYY
             d = parseInt(partes[0], 10);
             m = parseInt(partes[1], 10);
             a = parseInt(partes[2], 10);
         }
 
-        // 3. Comparación Numérica (Int vs Int)
-        return (d === diaTarget && m === mesTarget && a === anioTarget);
+        // 3. COMPARACIÓN
+        const coincide = (d === diaTarget && m === mesTarget && a === anioTarget);
+        
+        // DEBUG EXTREMO: Si es el día 13 de Enero, imprímeme qué fecha "leyó" el código
+        if (diaTarget === 13 && mesTarget === 1 && anioTarget === 2026) {
+             console.log(`🔍 Revisando blog con fecha sucia: "${fechaRaw}" -> Limpia: "${str}" -> ¿Coincide?: ${coincide}`);
+        }
+
+        return coincide;
 
     } catch (e) {
         return false;
