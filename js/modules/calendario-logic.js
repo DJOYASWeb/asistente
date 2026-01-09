@@ -1,37 +1,78 @@
 let fechaCalendario = new Date();
 
+// --- LISTA DE FERIADOS CHILENOS (Fijos y Móviles 2025-2026) ---
+function obtenerNombreFeriado(dia, mes, anio) {
+    // Mes en JS es 0-11 (Enero es 0)
+    const key = `${dia}-${mes}`; // Formato "Día-Mes"
+
+    // 1. Feriados FIJOS (misma fecha todos los años)
+    const fijos = {
+        "1-0": "Año Nuevo",
+        "1-4": "Día del Trabajo",
+        "21-4": "Glorias Navales",
+        "20-5": "Pueblos Indígenas", // Aprox (cambia, pero solemos dejar fijo o ajustar)
+        "29-5": "San Pedro y San Pablo",
+        "16-6": "Virgen del Carmen",
+        "15-7": "Asunción de la Virgen",
+        "18-8": "Independencia Nacional",
+        "19-8": "Glorias del Ejército",
+        "12-9": "Encuentro de Dos Mundos",
+        "31-9": "Día de las Iglesias Evangélicas",
+        "1-10": "Día de todos los Santos",
+        "8-11": "Inmaculada Concepción",
+        "25-11": "Navidad"
+    };
+
+    if (fijos[key]) return fijos[key];
+
+    // 2. Feriados MÓVILES Específicos (Semana Santa, etc.) para 2025 y 2026
+    // Formato: "dia-mes-año": "Nombre"
+    const moviles = {
+        // 2025
+        "18-3-2025": "Viernes Santo",
+        "19-3-2025": "Sábado Santo",
+        // 2026 (Semana Santa cae en Abril)
+        "3-3-2026": "Viernes Santo", // 3 de Abril (mes 3 en JS)
+        "4-3-2026": "Sábado Santo"
+    };
+
+    const keyFull = `${dia}-${mes}-${anio}`;
+    return moviles[keyFull] || null;
+}
+
 function renderizarCalendario() {
     const grid = document.getElementById('calendarGrid');
     const titulo = document.getElementById('tituloMes');
 
     if (!grid || !titulo) return;
 
-    // --- 1. FUSIÓN DE DATOS (AQUÍ ESTÁ LA CLAVE) ---
-    // Obtenemos blogs (de blog-admin.js) y contenidos (de inspira.js)
+    // --- 1. FUSIÓN DE DATOS (Blogs + Inspira) ---
     const listaBlogs = window.datosTabla || [];
     const listaInspira = window.datosInspira || [];
-
-    // Los unimos en una sola lista maestra
     const todosLosEventos = [...listaBlogs, ...listaInspira];
 
-    // DEBUG: Para que veas en consola que ya están juntos
-    console.log(`📊 Calendario fusionado: ${listaBlogs.length} Blogs + ${listaInspira.length} Inspira. Total: ${todosLosEventos.length}`);
+    console.log(`📊 Calendario: ${listaBlogs.length} Blogs + ${listaInspira.length} Inspira.`);
 
     grid.innerHTML = "";
 
-    // Datos del calendario (Mes y Año actual)
     const anioCal = fechaCalendario.getFullYear();
-    const mesCal = fechaCalendario.getMonth(); // 0 = Enero
+    const mesCal = fechaCalendario.getMonth(); 
     
-    // Títulos
     const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     titulo.innerText = `${nombresMeses[mesCal]} ${anioCal}`;
 
-    // Días del mes
-    const primerDiaSemana = new Date(anioCal, mesCal, 1).getDay();
+    // --- LÓGICA SEMANA COMIENZA EN LUNES ---
+    // getDay(): 0=Dom, 1=Lun, 2=Mar...
+    let primerDiaSemana = new Date(anioCal, mesCal, 1).getDay();
+    
+    // Convertir a formato: 0=Lun, 1=Mar ... 6=Dom
+    // Si es Domingo (0) -> se vuelve 6
+    // Si es Lunes (1) -> se vuelve 0
+    primerDiaSemana = (primerDiaSemana === 0) ? 6 : primerDiaSemana - 1;
+
     const diasEnMes = new Date(anioCal, mesCal + 1, 0).getDate();
 
-    // Relleno vacío
+    // Relleno vacío inicial
     for (let i = 0; i < primerDiaSemana; i++) {
         const div = document.createElement('div');
         div.className = 'calendar-day empty';
@@ -45,39 +86,43 @@ function renderizarCalendario() {
         const celda = document.createElement('div');
         let clases = 'calendar-day';
         
+        // Verificar si es HOY
         if (dia === hoy.getDate() && mesCal === hoy.getMonth() && anioCal === hoy.getFullYear()) {
             clases += ' day-today';
         }
         celda.className = clases;
 
-        // --- FILTRADO (MATEMÁTICO PURO) ---
-        // Usamos la lista fusionada "todosLosEventos"
+        // --- VERIFICAR FERIADO ---
+        const nombreFeriado = obtenerNombreFeriado(dia, mesCal, anioCal);
+        const esFeriadoClass = nombreFeriado ? 'feriado-num' : '';
+
+        // Filtrar eventos del día
         const eventosDelDia = todosLosEventos.filter(item => {
-            // Usamos item.fecha (funciona para blogs e inspira por igual)
             return esFechaCorrecta(item.fecha, dia, mesCal + 1, anioCal);
         });
 
-        // HTML Celda
-        let htmlContenido = `<span class="day-number">${dia}</span>`;
+        // Construir HTML de la celda
+        let htmlContenido = `<span class="day-number ${esFeriadoClass}">${dia}</span>`;
         
-        eventosDelDia.forEach(ev => {
-            // --- LÓGICA DE COLORES ---
-            let color = 'bg-primary'; // Azul base
-            let tituloStr = ev.nombre || ev.titulo || 'Sin título'; // Blogs usan 'nombre', Inspira usa 'titulo'
+        // Si hay feriado, mostrar nombre pequeño
+        if (nombreFeriado) {
+            htmlContenido += `<span class="feriado-nombre">${nombreFeriado}</span>`;
+        }
 
-            // 1. Si es de INSPIRA (Celeste)
+        // Pintar eventos
+        eventosDelDia.forEach(ev => {
+            let color = 'bg-primary'; 
+            let tituloStr = ev.nombre || ev.titulo || 'Sin título';
+
             if (ev.tipo === 'inspira') {
                 color = 'bg-info text-dark'; 
-            } 
-            // 2. Si es BLOG (Verde/Amarillo/Gris)
-            else {
+            } else {
                 const estado = (ev.estado || '').toLowerCase();
                 if (estado.includes('publicad')) color = 'bg-success';
                 else if (estado.includes('borrador') || estado.includes('pendiente')) color = 'bg-warning text-dark';
                 else if (estado.includes('archivado')) color = 'bg-secondary';
             }
 
-            // Cortar títulos largos
             const tituloCorto = tituloStr.length > 18 ? tituloStr.substring(0, 18) + '..' : tituloStr;
             const origen = ev.tipo === 'inspira' ? 'Djoyas Inspira' : 'Blog';
 
@@ -95,15 +140,13 @@ function renderizarCalendario() {
     }
 }
 
-// --- TU FUNCIÓN MATEMÁTICA INFALIBLE (NO LA CAMBIAMOS) ---
+// Función auxiliar de fecha (No tocar)
 function esFechaCorrecta(fechaRaw, diaTarget, mesTarget, anioTarget) {
     if (!fechaRaw) return false;
-
     try {
         let soloFecha = fechaRaw.toString().split(/[ T]/)[0]; 
         let fechaLimpia = soloFecha.replace(/\//g, '-');
         fechaLimpia = fechaLimpia.replace(/[^0-9\-]/g, "");
-
         const partes = fechaLimpia.split('-');
         if (partes.length !== 3) return false;
 
@@ -117,16 +160,10 @@ function esFechaCorrecta(fechaRaw, diaTarget, mesTarget, anioTarget) {
             m = parseInt(partes[1], 10);
             a = parseInt(partes[2], 10);
         }
-
         return (d === diaTarget && m === mesTarget && a === anioTarget);
-
-    } catch (e) {
-        // console.error("Error fecha:", e);
-        return false;
-    }
+    } catch (e) { return false; }
 }
 
-// Navegación
 function cambiarMes(delta) {
     fechaCalendario.setMonth(fechaCalendario.getMonth() + delta);
     renderizarCalendario();
