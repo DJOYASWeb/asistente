@@ -60,39 +60,39 @@ async function cargarContenidos() {
   const select = document.getElementById('contenidoSelect');
   select.innerHTML = '<option value="">Selecciona un contenido</option>';
   try {
-const snapshot = await db.collection("inspira").get();
-const docs = [];
-snapshot.forEach(doc => {
-  const data = doc.data();
-  docs.push({ idNum: Number(data.id || doc.id), docId: doc.id, data });
-});
-docs.sort((a, b) => b.idNum - a.idNum);
+    const snapshot = await db.collection("inspira").get();
+    const docs = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      docs.push({ idNum: Number(data.id || doc.id), docId: doc.id, data });
+    });
+    
+    // Aquí ordenas
+    docs.sort((a, b) => b.idNum - a.idNum);
 
-// ✅ INTEGRACIÓN CON CALENDARIO
-    // Convertimos la estructura de inspira { docId, data: {} } a la estructura plana del calendario
+    // 👇 AQUÍ PEGASTE EL CÓDIGO NUEVO 👇
     window.datosInspira = docs.map(item => ({
-        id: item.docId,       // ID del documento
-        ...item.data,         // Aquí van: titulo, fecha, autor, etc.
-        tipo: 'inspira'       // Etiqueta para que el calendario lo pinte de otro color
+        id: item.docId,
+        ...item.data,
+        tipo: 'inspira'
     }));
 
-    // Avisamos al calendario para que se actualice
     if (window.renderizarCalendario) {
         console.log("🎨 Inspira: Enviando " + window.datosInspira.length + " items al calendario.");
         window.renderizarCalendario();
     }
-    // -----------------------------
+    // 👆 FIN DEL CÓDIGO NUEVO 👆
 
-docs.forEach(({ docId, data }) => {
-  const option = document.createElement("option");
-  option.value = docId;
-option.textContent = `${Number(data.id || doc.id)} - ${data.titulo}`;
-  select.appendChild(option);
-});
+    docs.forEach(({ docId, data }) => {
+      const option = document.createElement("option");
+      option.value = docId;
+      option.textContent = `${Number(data.id || doc.id)} - ${data.titulo}`;
+      select.appendChild(option);
+    });
 
   } catch (error) {
-mostrarNotificacion("Error al cargar contenidos", "error");
-select.innerHTML = '<option>Error al cargar</option>';
+    mostrarNotificacion("Error al cargar contenidos", "error");
+    select.innerHTML = '<option>Error al cargar</option>';
   }
 }
 
