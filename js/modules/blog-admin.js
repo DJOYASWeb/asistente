@@ -177,7 +177,22 @@ function renderizarTabla() {
 }
 window.renderizarTabla = renderizarTabla; // Aseguramos que sea global
 
+// Dentro de blog-admin.js, donde obtienes los datos:
 
+db.collection("blogs").orderBy("creadoEn", "desc").onSnapshot((querySnapshot) => {
+    datosTabla = [];
+    querySnapshot.forEach((doc) => {
+        datosTabla.push({ id: doc.id, ...doc.data() });
+    });
+
+    renderizarTabla(); // Tu tabla normal
+    
+    // ✅ AGREGA ESTO AQUÍ:
+    if (window.renderizarCalendario) {
+        console.log("Actualizando calendario con datos nuevos...");
+        window.renderizarCalendario();
+    }
+});
 
 
 function abrirModalAgregarDato() {
