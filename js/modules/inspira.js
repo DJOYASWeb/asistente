@@ -55,44 +55,56 @@ function refrescarRecursos() {
   mostrarNotificacion("Recursos actualizados correctamente", "exito");
 }
 
-
 async function cargarContenidos() {
+  // Intentamos buscar el select (puede que no exista en el calendario)
   const select = document.getElementById('contenidoSelect');
-  select.innerHTML = '<option value="">Selecciona un contenido</option>';
+  
+  // Si existe, lo limpiamos. Si no, no pasa nada.
+  if (select) {
+      select.innerHTML = '<option value="">Selecciona un contenido</option>';
+  }
+
   try {
     const snapshot = await db.collection("inspira").get();
     const docs = [];
+    
     snapshot.forEach(doc => {
       const data = doc.data();
       docs.push({ idNum: Number(data.id || doc.id), docId: doc.id, data });
     });
     
-    // Aquí ordenas
+    // Ordenamos
     docs.sort((a, b) => b.idNum - a.idNum);
 
-// --- INICIO CÓDIGO NUEVO PARA CALENDARIO ---
+    // ✅ ESTO SIEMPRE SE EJECUTA (Para que el calendario reciba los datos)
     window.datosInspira = docs.map(item => ({
         id: item.docId,
         ...item.data,
-        tipo: 'inspira' // Etiqueta clave para el color Cyan
+        tipo: 'inspira'
     }));
 
     if (window.renderizarCalendario) {
         console.log("🎨 Inspira: Enviando " + window.datosInspira.length + " items al calendario.");
         window.renderizarCalendario();
     }
-    // --- FIN CÓDIGO NUEVO ---
 
-    docs.forEach(({ docId, data }) => {
-      const option = document.createElement("option");
-      option.value = docId;
-      option.textContent = `${Number(data.id || doc.id)} - ${data.titulo}`;
-      select.appendChild(option);
-    });
+    // Llenamos el select SOLO SI EXISTE
+    if (select) {
+        docs.forEach(({ docId, data }) => {
+          const option = document.createElement("option");
+          option.value = docId;
+          option.textContent = `${Number(data.id || doc.id)} - ${data.titulo}`;
+          select.appendChild(option);
+        });
+    }
 
   } catch (error) {
+    console.error(error);
     mostrarNotificacion("Error al cargar contenidos", "error");
-    select.innerHTML = '<option>Error al cargar</option>';
+    
+    if (select) {
+        select.innerHTML = '<option>Error al cargar</option>';
+    }
   }
 }
 
