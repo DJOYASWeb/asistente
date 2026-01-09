@@ -83,49 +83,48 @@ function renderizarCalendario() {
     }
 }
 
-// --- FUNCIÓN MEJORADA PARA COMPARAR FECHAS ---
 function compararFechas(fechaBlog, fechaCalendario) {
     if (!fechaBlog) return false;
 
     try {
-        // 1. Limpiar hora si viene (ej: "2026-01-08 10:00:00" -> "2026-01-08")
+        // 1. Limpieza básica: quitar horas y espacios
         let fechaLimpia = fechaBlog.toString().split(' ')[0].trim();
         
         let diaBlog, mesBlog, anioBlog;
+        let partes = [];
+        let separador = '';
 
-        // 2. Detectar formato y extraer números
-        if (fechaLimpia.includes('/')) {
-             // Formato: DD/MM/YYYY
-             const partes = fechaLimpia.split('/');
-             diaBlog = parseInt(partes[0], 10);
-             mesBlog = parseInt(partes[1], 10);
-             anioBlog = parseInt(partes[2], 10);
-        } else if (fechaLimpia.includes('-')) {
-             // Formato: YYYY-MM-DD
-             const partes = fechaLimpia.split('-');
-             anioBlog = parseInt(partes[0], 10);
-             mesBlog = parseInt(partes[1], 10);
-             diaBlog = parseInt(partes[2], 10);
-        } else {
-            return false; // Formato desconocido
+        // 2. Identificar separador
+        if (fechaLimpia.includes('/')) separador = '/';
+        else if (fechaLimpia.includes('-')) separador = '-';
+        else return false; // No sabemos qué es
+
+        partes = fechaLimpia.split(separador);
+
+        // 3. DETECCIÓN INTELIGENTE: ¿El año está al principio o al final?
+        // Si la primera parte tiene 4 dígitos (ej: 2026-01-09), es YYYY-MM-DD
+        if (partes[0].length === 4) {
+            anioBlog = parseInt(partes[0], 10);
+            mesBlog = parseInt(partes[1], 10);
+            diaBlog = parseInt(partes[2], 10);
+        } 
+        // Si no, asumimos que es DD-MM-YYYY o DD/MM/YYYY (ej: 09-01-2026)
+        else {
+            diaBlog = parseInt(partes[0], 10);
+            mesBlog = parseInt(partes[1], 10);
+            anioBlog = parseInt(partes[2], 10);
         }
 
-        // 3. Desglosar fecha del calendario (viene siempre como YYYY-MM-DD)
+        // 4. Datos del Calendario (Siempre viene como YYYY-MM-DD)
         const partesCal = fechaCalendario.split('-');
         const anioCal = parseInt(partesCal[0], 10);
         const mesCal = parseInt(partesCal[1], 10);
         const diaCal = parseInt(partesCal[2], 10);
 
-        // 4. Comparación numérica estricta (¡Aquí arreglamos el problema de 01 vs 1!)
-        const coincide = (diaBlog === diaCal && mesBlog === mesCal && anioBlog === anioCal);
-        
-        // DEBUG: Si encuentras un blog futuro, avísame en consola (opcional)
-        // if (coincide && diaBlog > new Date().getDate()) console.log("¡Encontré blog futuro!", fechaBlog);
-
-        return coincide;
+        // 5. Comparación final
+        return (diaBlog === diaCal && mesBlog === mesCal && anioBlog === anioCal);
 
     } catch (e) {
-        console.error("Error comparando fechas:", e);
         return false;
     }
 }
