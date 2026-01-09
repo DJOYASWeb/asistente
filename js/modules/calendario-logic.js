@@ -1,36 +1,36 @@
-let fechaActual = new Date();
+// Variable global para la fecha actual del calendario
+let fechaCalendario = new Date();
 
 function renderizarCalendario() {
     const grid = document.getElementById('calendarGrid');
     const titulo = document.getElementById('tituloMes');
     
-    // Si no hay datos aún, esperamos un poco o mostramos vacío
-    const blogs = window.datosTabla || [];
+    // 1. Obtener datos: Intentamos leer la variable global datosTabla
+    // Si no existe, usamos un array vacío para no romper el código
+    const blogs = window.datosTabla || []; 
 
-    // Limpiar grid
+    console.log("📅 Intentando renderizar calendario con:", blogs.length, "blogs.");
+
     grid.innerHTML = "";
 
-    // Datos del mes
-    const year = fechaActual.getFullYear();
-    const month = fechaActual.getMonth();
+    const year = fechaCalendario.getFullYear();
+    const month = fechaCalendario.getMonth();
     
-    // Nombres de meses en español
     const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     titulo.innerText = `${nombresMeses[month]} ${year}`;
 
-    // Primer día del mes (0 = Domingo, 1 = Lunes...)
-    const primerDia = new Date(year, month, 1).getDay();
-    // Cantidad de días en el mes
+    // Cálculos de días
+    const primerDiaSemana = new Date(year, month, 1).getDay(); // 0 = Domingo
     const diasEnMes = new Date(year, month + 1, 0).getDate();
 
-    // Días vacíos previos (padding)
-    for (let i = 0; i < primerDia; i++) {
+    // Rellenar espacios vacíos antes del día 1
+    for (let i = 0; i < primerDiaSemana; i++) {
         const div = document.createElement('div');
         div.className = 'calendar-day empty';
         grid.appendChild(div);
     }
 
-    // Días reales
+    // Dibujar los días
     const hoy = new Date();
     
     for (let dia = 1; dia <= diasEnMes; dia++) {
@@ -41,40 +41,38 @@ function renderizarCalendario() {
         if (dia === hoy.getDate() && month === hoy.getMonth() && year === hoy.getFullYear()) {
             clases += ' day-today';
         }
-        
         celda.className = clases;
         
-        // HTML del número
-        let htmlContenido = `<span class="day-number">${dia}</span>`;
+        // Creamos la fecha "objetivo" de este cuadro del calendario (YYYY-MM-DD)
+        // OJO: Mes + 1 porque en JS los meses van de 0 a 11
+        const mesStr = String(month + 1).padStart(2, '0');
+        const diaStr = String(dia).padStart(2, '0');
+        const fechaCuadro = `${year}-${mesStr}-${diaStr}`; // Ej: 2026-01-08
 
-        // --- BUSCAR BLOGS PARA ESTE DÍA ---
-        // Formato esperado de fecha blog: "YYYY-MM-DD" o "DD/MM/YYYY"
-        // Construimos string fecha actual loop:
-        const fechaLoop = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-        const fechaLoopInversa = `${String(dia).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}/${year}`;
-
+        // --- FILTRADO INTELIGENTE ---
         const eventosDelDia = blogs.filter(blog => {
             if (!blog.fecha) return false;
-            // Comparamos si la fecha del blog coincide con el día del loop
-            // Verifica si tu fecha viene con hora (split ' ') o limpia
-            const fechaBlogSoloDia = blog.fecha.split(' ')[0]; // Tomar solo la parte de la fecha
-            return fechaBlogSoloDia === fechaLoop || fechaBlogSoloDia === fechaLoopInversa;
+            return compararFechas(blog.fecha, fechaCuadro);
         });
 
-        // Pintar eventos
+        // HTML interno
+        let htmlContenido = `<span class="day-number">${dia}</span>`;
+        
         eventosDelDia.forEach(ev => {
-            let color = 'bg-primary'; // Por defecto
+            let color = 'bg-primary'; 
             const estado = (ev.estado || '').toLowerCase();
 
             if (estado.includes('publicad')) color = 'bg-success';
             else if (estado.includes('borrador') || estado.includes('pendiente')) color = 'bg-warning text-dark';
             else if (estado.includes('archivado')) color = 'bg-secondary';
 
-            // Título corto
-            const tituloCorto = ev.nombre.length > 20 ? ev.nombre.substring(0, 20) + '...' : ev.nombre;
+            // Cortar título largo
+            const tituloCorto = ev.nombre.length > 18 ? ev.nombre.substring(0, 18) + '..' : ev.nombre;
 
             htmlContenido += `
-                <div class="event-tag ${color}" title="${ev.nombre}" onclick="alert('Blog: ${ev.nombre}\\nEstado: ${ev.estado}')">
+                <div class="event-tag ${color} mb-1" 
+                     title="${ev.nombre} (${ev.estado})" 
+                     onclick="alert('📝 ${ev.nombre}\\n📅 ${ev.fecha}')">
                     ${tituloCorto}
                 </div>
             `;
@@ -85,18 +83,40 @@ function renderizarCalendario() {
     }
 }
 
-// Funciones de navegación
+// --- FUNCIÓN MÁGICA PARA COMPARAR FECHAS ---
+// Convierte cualquier cosa (08/01/2026, 2026-01-08 10:00, etc) a YYYY-MM-DD
+function compararFechas(fechaBlog, fechaCalendario) {
+    try {
+        let fechaNormalizada = "";
+        
+        // Paso 1: Quitar la hora si existe (separar por espacio ' ')
+        let soloFecha = fechaBlog.toString().split(' ')[0].trim();
+
+        // Paso 2: Detectar si es DD/MM/YYYY
+        if (soloFecha.includes('/')) {
+            const partes = soloFecha.split('/'); // [08, 01, 2026]
+            if (partes.length === 3) {
+                // Lo voltea a 2026-01-08
+                fechaNormalizada = `${partes[2]}-${partes[1]}-${partes[0]}`;
+            }
+        } 
+        // Paso 3: Detectar si es YYYY-MM-DD
+        else if (soloFecha.includes('-')) {
+            fechaNormalizada = soloFecha;
+        }
+
+        return fechaNormalizada === fechaCalendario;
+    } catch (e) {
+        return false;
+    }
+}
+
+// Navegación
 function cambiarMes(delta) {
-    fechaActual.setMonth(fechaActual.getMonth() + delta);
+    fechaCalendario.setMonth(fechaCalendario.getMonth() + delta);
     renderizarCalendario();
 }
 
-// Exponer al global y ejecutar inicial
+// Exponer globalmente
 window.cambiarMes = cambiarMes;
 window.renderizarCalendario = renderizarCalendario;
-
-// Ejecutar cuando cargue (o llámalo al final de tu carga de datos de Firebase)
-document.addEventListener('DOMContentLoaded', () => {
-    // Pequeño timeout para asegurar que datosTabla exista si viene de firebase
-    setTimeout(renderizarCalendario, 1000);
-});
