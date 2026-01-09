@@ -2899,3 +2899,15 @@ grid-auto-rows: minmax(100px, auto);
     color: white;
 }
 
+/* Color para el número del día cuando es feriado */
+.feriado-num {
+    color: #dc3545; /* Rojo */
+    font-weight: bold;
+}
+.feriado-nombre {
+    font-size: 0.75rem;
+    color: #dc3545;
+    display: block;
+    margin-bottom: 2px;
+    line-height: 1;
+}
