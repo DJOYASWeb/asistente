@@ -1,61 +1,67 @@
-// Variable global para controlar la fecha que se está viendo
 let fechaCalendario = new Date();
 
 function renderizarCalendario() {
     const grid = document.getElementById('calendarGrid');
     const titulo = document.getElementById('tituloMes');
 
-    // 🛡️ PROTECCIÓN: Si no estamos en la pestaña calendario, salimos.
     if (!grid || !titulo) return;
 
-    // 1. Obtener datos
+    // Obtener datos
     const blogs = window.datosTabla || [];
+    
+    // DEBUG: Ver cuántos blogs hay
+    console.log(`📊 Renderizando calendario. Total blogs cargados: ${blogs.length}`);
 
     grid.innerHTML = "";
 
-    // Datos del mes actual del calendario
-    const year = fechaCalendario.getFullYear();
-    const month = fechaCalendario.getMonth(); 
+    // Datos del calendario (Mes y Año actual)
+    const anioCal = fechaCalendario.getFullYear();
+    const mesCal = fechaCalendario.getMonth(); // 0 = Enero
     
     // Títulos
     const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    titulo.innerText = `${nombresMeses[month]} ${year}`;
+    titulo.innerText = `${nombresMeses[mesCal]} ${anioCal}`;
 
-    // Cálculos matemáticos del mes
-    const primerDiaSemana = new Date(year, month, 1).getDay(); // 0 = Domingo
-    const diasEnMes = new Date(year, month + 1, 0).getDate();
+    // Días del mes
+    const primerDiaSemana = new Date(anioCal, mesCal, 1).getDay();
+    const diasEnMes = new Date(anioCal, mesCal + 1, 0).getDate();
 
-    // Rellenar días vacíos antes del 1
+    // Relleno vacío
     for (let i = 0; i < primerDiaSemana; i++) {
         const div = document.createElement('div');
         div.className = 'calendar-day empty';
         grid.appendChild(div);
     }
 
-    // Dibujar los días reales
+    // Días reales
     const hoy = new Date();
-    
+
     for (let dia = 1; dia <= diasEnMes; dia++) {
         const celda = document.createElement('div');
         let clases = 'calendar-day';
         
-        if (dia === hoy.getDate() && month === hoy.getMonth() && year === hoy.getFullYear()) {
+        if (dia === hoy.getDate() && mesCal === hoy.getMonth() && anioCal === hoy.getFullYear()) {
             clases += ' day-today';
         }
         celda.className = clases;
-        
-        // Fecha objetivo: YYYY-MM-DD
-        const mesStr = String(month + 1).padStart(2, '0');
-        const diaStr = String(dia).padStart(2, '0');
-        const fechaCuadro = `${year}-${mesStr}-${diaStr}`;
 
-        // --- FILTRADO (SOLO MIRA blog.fecha) ---
+        // --- FILTRADO (MATEMÁTICO PURO) ---
+        // Le pasamos el día, mes (1-12) y año numéricos.
         const eventosDelDia = blogs.filter(blog => {
-            // Aquí ignoramos fechaIso y usamos solo fecha
-            return compararFechas(blog.fecha, fechaCuadro);
+            // SOLO usamos blog.fecha como pediste
+            return esFechaCorrecta(blog.fecha, dia, mesCal + 1, anioCal);
         });
 
-        // HTML interno de la celda
+        // DEBUG ESPECÍFICO PARA EL DÍA 13 DE ENERO (Para ver si lo encuentra)
+        if (dia === 13 && mesCal === 0 && anioCal === 2026) {
+             if (eventosDelDia.length === 0) {
+                 console.warn("⚠️ Día 13 Enero: No se encontraron eventos. Revisa si la fecha del blog es exactamente '13/01/2026' o si tiene espacios.");
+             } else {
+                 console.log("✅ Día 13 Enero: ¡Evento encontrado!", eventosDelDia[0].nombre);
+             }
+        }
+
+        // HTML Celda
         let htmlContenido = `<span class="day-number">${dia}</span>`;
         
         eventosDelDia.forEach(ev => {
@@ -66,7 +72,7 @@ function renderizarCalendario() {
             else if (estado.includes('borrador') || estado.includes('pendiente')) color = 'bg-warning text-dark';
             else if (estado.includes('archivado')) color = 'bg-secondary';
 
-            const tituloCorto = ev.nombre && ev.nombre.length > 18 ? ev.nombre.substring(0, 18) + '..' : (ev.nombre || 'Sin título');
+            const tituloCorto = ev.nombre ? (ev.nombre.length > 18 ? ev.nombre.substring(0, 18) + '..' : ev.nombre) : 'Sin título';
 
             htmlContenido += `
                 <div class="event-tag ${color} mb-1" 
@@ -82,40 +88,40 @@ function renderizarCalendario() {
     }
 }
 
-function compararFechas(fechaDato, fechaCalendario) {
-    if (!fechaDato) return false;
+// --- FUNCIÓN DE COMPARACIÓN MATEMÁTICA ---
+function esFechaCorrecta(fechaRaw, diaTarget, mesTarget, anioTarget) {
+    if (!fechaRaw) return false;
 
     try {
-        // 1. LIMPIEZA: Quitamos hora y espacios, convertimos barras a guiones
-        let fechaLimpia = fechaDato.toString().split(' ')[0].trim().replace(/\//g, '-');
-        let partes = fechaLimpia.split('-');
+        // 1. Limpieza Agresiva
+        // Convierte a string, quita horas, quita espacios extremos
+        let str = fechaRaw.toString().split(' ')[0].trim();
+        
+        // Reemplaza barras por guiones para unificar
+        str = str.replace(/\//g, '-');
 
+        // Separa los números
+        const partes = str.split('-');
+        
         if (partes.length !== 3) return false;
 
-        let diaBlog, mesBlog, anioBlog;
+        let d, m, a;
 
-        // 2. DETECCIÓN DE FORMATO (Matemática)
-        // Si el primer número es mayor a 31 (imposible que sea día) O tiene 4 dígitos -> Es AÑO
-        if (partes[0].length === 4 || parseInt(partes[0]) > 31) {
-            // Formato: YYYY-MM-DD (Ej: 2025-08-04)
-            anioBlog = parseInt(partes[0], 10);
-            mesBlog = parseInt(partes[1], 10);
-            diaBlog = parseInt(partes[2], 10);
+        // 2. Detectar formato: ¿El primero es Año (4 dígitos)?
+        if (partes[0].length === 4) {
+            // Formato YYYY-MM-DD
+            a = parseInt(partes[0], 10);
+            m = parseInt(partes[1], 10);
+            d = parseInt(partes[2], 10);
         } else {
-            // Formato: DD-MM-YYYY (Ej: 13-01-2026)
-            diaBlog = parseInt(partes[0], 10);
-            mesBlog = parseInt(partes[1], 10);
-            anioBlog = parseInt(partes[2], 10);
+            // Formato DD-MM-YYYY
+            d = parseInt(partes[0], 10);
+            m = parseInt(partes[1], 10);
+            a = parseInt(partes[2], 10);
         }
 
-        // 3. DATOS DEL CALENDARIO (Vienen siempre YYYY-MM-DD)
-        let partesCal = fechaCalendario.split('-');
-        let anioCal = parseInt(partesCal[0], 10);
-        let mesCal = parseInt(partesCal[1], 10);
-        let diaCal = parseInt(partesCal[2], 10);
-
-        // 4. COMPARACIÓN NUMÉRICA (Aquí 01 es igual a 1, no falla nunca)
-        return (diaBlog === diaCal && mesBlog === mesCal && anioBlog === anioCal);
+        // 3. Comparación Numérica (Int vs Int)
+        return (d === diaTarget && m === mesTarget && a === anioTarget);
 
     } catch (e) {
         return false;
@@ -128,6 +134,5 @@ function cambiarMes(delta) {
     renderizarCalendario();
 }
 
-// Exponer funciones
 window.cambiarMes = cambiarMes;
 window.renderizarCalendario = renderizarCalendario;
