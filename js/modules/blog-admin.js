@@ -187,19 +187,37 @@ window.renderizarTabla = renderizarTabla;
 
 // En blog-admin.js, dentro de tu onSnapshot:
 
-db.collection("blogs").orderBy("creadoEn", "desc").onSnapshot((querySnapshot) => {
+// Usamos onSnapshot SIN orderBy para que traiga TODOS los documentos,
+// tengan o no tengan el campo "creadoEn".
+db.collection("blogs").onSnapshot((querySnapshot) => {
     datosTabla = [];
+    
     querySnapshot.forEach((doc) => {
+        // Guardamos ID y toda la data
         datosTabla.push({ id: doc.id, ...doc.data() });
     });
 
-    // ✅ AGREGA ESTA LÍNEA PARA QUE EL CALENDARIO VEA LOS DATOS:
+    // Ordenamiento manual por FECHA (la del blog) para que se vean ordenados en la tabla
+    // Esto reemplaza al orderBy de la base de datos
+    datosTabla.sort((a, b) => {
+        // Si alguno no tiene fecha, lo mandamos al final
+        if (!a.fecha) return 1;
+        if (!b.fecha) return -1;
+        
+        // Comparamos fechas como texto (YYYY-MM-DD funciona bien así)
+        // O invertimos b y a para que sea descendente (más nuevo arriba)
+        return new Date(b.fecha) - new Date(a.fecha);
+    });
+
+    // 1. Exportamos los datos para que el Calendario los vea
     window.datosTabla = datosTabla; 
 
-    renderizarTabla(); 
+    // 2. Dibujamos la tabla
+    renderizarTabla();
     
+    // 3. Actualizamos el calendario (si la función existe)
     if (window.renderizarCalendario) {
-        console.log("Actualizando calendario con datos nuevos...");
+        console.log("📅 Datos recibidos: " + datosTabla.length + " blogs. Actualizando calendario...");
         window.renderizarCalendario();
     }
 });
