@@ -139,10 +139,18 @@ function toNumId(v){
   return Number.isFinite(n) ? n : -Infinity;
 }
 
-
-// 1. Renderizar tabla con Checkboxes
 function renderizarTabla() {
-  const tbody = document.querySelector('#tablaDatos tbody');
+  const tabla = document.querySelector('#tablaDatos');
+  
+  // 🛡️ PROTECCIÓN: Si no existe la tabla, salimos sin hacer nada (y sin errores)
+  if (!tabla) {
+    console.warn("⚠️ renderizarTabla: No se encontró #tablaDatos en esta vista.");
+    return;
+  }
+
+  const tbody = tabla.querySelector('tbody');
+  if (!tbody) return; // Doble seguridad
+
   tbody.innerHTML = '';
 
   datosTabla.forEach((dato, index) => {
@@ -152,7 +160,7 @@ function renderizarTabla() {
     const fila = document.createElement('tr');
     if (id) fila.dataset.docId = id;
 
-    // Contenido recortado para vista previa
+    // Contenido recortado
     const blogPreview = (dato.blog || '').toString();
     const blogShort = blogPreview.length > 160 ? blogPreview.slice(0, 160) + '…' : blogPreview;
 
@@ -175,7 +183,7 @@ function renderizarTabla() {
     tbody.appendChild(fila);
   });
 }
-window.renderizarTabla = renderizarTabla; // Aseguramos que sea global
+window.renderizarTabla = renderizarTabla;
 
 // Dentro de blog-admin.js, donde obtienes los datos:
 
