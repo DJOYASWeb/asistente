@@ -2843,8 +2843,7 @@ body.sidebar-mini .main-content {
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    /* Auto-rows permite que crezca si hay muchos eventos */
-    auto-rows: minmax(100px, auto); 
+grid-auto-rows: minmax(100px, auto);
 }
 
 .calendar-day {
