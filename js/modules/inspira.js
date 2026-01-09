@@ -70,18 +70,18 @@ async function cargarContenidos() {
     // Aquí ordenas
     docs.sort((a, b) => b.idNum - a.idNum);
 
-    // 👇 AQUÍ PEGASTE EL CÓDIGO NUEVO 👇
+// --- INICIO CÓDIGO NUEVO PARA CALENDARIO ---
     window.datosInspira = docs.map(item => ({
         id: item.docId,
         ...item.data,
-        tipo: 'inspira'
+        tipo: 'inspira' // Etiqueta clave para el color Cyan
     }));
 
     if (window.renderizarCalendario) {
         console.log("🎨 Inspira: Enviando " + window.datosInspira.length + " items al calendario.");
         window.renderizarCalendario();
     }
-    // 👆 FIN DEL CÓDIGO NUEVO 👆
+    // --- FIN CÓDIGO NUEVO ---
 
     docs.forEach(({ docId, data }) => {
       const option = document.createElement("option");
