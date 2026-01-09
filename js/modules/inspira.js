@@ -629,18 +629,6 @@ document.getElementById("modalBase").addEventListener("click", (e) => {
 });
 
 
-function cerrarModalBase() {
-  document.getElementById("modalBase").style.display = "none";
-  document.getElementById("modalBaseBody").innerHTML = "";
-}
-
-// Cerrar modal al hacer clic fuera
-document.getElementById("modalBase").addEventListener("click", (e) => {
-  if (e.target.id === "modalBase") {
-    cerrarModalBase();
-  }
-});
-
 
 function copiarAlPortapapeles() {
   const ta = document.getElementById('modalContenido');
