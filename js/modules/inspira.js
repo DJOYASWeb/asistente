@@ -68,6 +68,21 @@ snapshot.forEach(doc => {
 });
 docs.sort((a, b) => b.idNum - a.idNum);
 
+// ✅ INTEGRACIÓN CON CALENDARIO
+    // Convertimos la estructura de inspira { docId, data: {} } a la estructura plana del calendario
+    window.datosInspira = docs.map(item => ({
+        id: item.docId,       // ID del documento
+        ...item.data,         // Aquí van: titulo, fecha, autor, etc.
+        tipo: 'inspira'       // Etiqueta para que el calendario lo pinte de otro color
+    }));
+
+    // Avisamos al calendario para que se actualice
+    if (window.renderizarCalendario) {
+        console.log("🎨 Inspira: Enviando " + window.datosInspira.length + " items al calendario.");
+        window.renderizarCalendario();
+    }
+    // -----------------------------
+
 docs.forEach(({ docId, data }) => {
   const option = document.createElement("option");
   option.value = docId;
