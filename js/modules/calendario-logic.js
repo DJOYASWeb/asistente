@@ -92,49 +92,43 @@ function esFechaCorrecta(fechaRaw, diaTarget, mesTarget, anioTarget) {
     if (!fechaRaw) return false;
 
     try {
-        // 1. LIMPIEZA AGRESIVA (NIVEL QUIRÚRGICO)
-        // Convertimos a texto
-        let str = fechaRaw.toString();
-        
-        // EXPRESIÓN REGULAR: "Reemplaza todo lo que NO sea número (0-9), guion (-) o barra (/) por NADA"
-        // Esto elimina espacios invisibles, letras, símbolos raros, horas, etc.
-        str = str.replace(/[^0-9\-\/]/g, "");
+        // PASO 1 (CRUCIAL): Separar la fecha de cualquier hora o basura que venga después
+        // Usamos .split con una expresión regular que corta en Espacio (" ") o letra "T" (común en ISO)
+        // Nos quedamos solo con la primera parte [0]
+        let soloFecha = fechaRaw.toString().split(/[ T]/)[0]; 
 
-        // Ahora normalizamos las barras a guiones
-        str = str.replace(/\//g, '-');
-
-        // Si después de limpiar quedó algo raro (ej: --), lo arreglamos
-        // Esto separa por guiones
-        const partes = str.split('-').filter(p => p.length > 0); 
+        // PASO 2: Ahora sí, limpieza de caracteres raros sobre ESA parte corta
+        // Reemplaza barras por guiones para unificar
+        let fechaLimpia = soloFecha.replace(/\//g, '-');
         
+        // Quita cualquier cosa que no sea número o guion
+        fechaLimpia = fechaLimpia.replace(/[^0-9\-]/g, "");
+
+        const partes = fechaLimpia.split('-');
+
+        // Si no tenemos 3 partes (Día, Mes, Año), abortamos
         if (partes.length !== 3) return false;
 
         let d, m, a;
 
-        // 2. DETECCIÓN (Igual que antes, pero con datos puros)
+        // PASO 3: Detección inteligente (¿Año al principio o al final?)
         if (partes[0].length === 4) {
-            // YYYY-MM-DD
+            // Formato YYYY-MM-DD (2026-01-13)
             a = parseInt(partes[0], 10);
             m = parseInt(partes[1], 10);
             d = parseInt(partes[2], 10);
         } else {
-            // DD-MM-YYYY
+            // Formato DD-MM-YYYY (13-01-2026)
             d = parseInt(partes[0], 10);
             m = parseInt(partes[1], 10);
             a = parseInt(partes[2], 10);
         }
 
-        // 3. COMPARACIÓN
-        const coincide = (d === diaTarget && m === mesTarget && a === anioTarget);
-        
-        // DEBUG EXTREMO: Si es el día 13 de Enero, imprímeme qué fecha "leyó" el código
-        if (diaTarget === 13 && mesTarget === 1 && anioTarget === 2026) {
-             console.log(`🔍 Revisando blog con fecha sucia: "${fechaRaw}" -> Limpia: "${str}" -> ¿Coincide?: ${coincide}`);
-        }
-
-        return coincide;
+        // PASO 4: Comparación Final
+        return (d === diaTarget && m === mesTarget && a === anioTarget);
 
     } catch (e) {
+        console.error("Error procesando fecha:", fechaRaw, e);
         return false;
     }
 }
