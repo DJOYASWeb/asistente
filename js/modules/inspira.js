@@ -498,26 +498,6 @@ db.collection("inspira").get().then((querySnapshot) => {
 });
 }
 
-
-// Editar recurso
-function editarRecurso(id) {
-mostrarNotificacion(`Editar recurso con ID: ${id}`, "alerta");
-  // Aquí puedes abrir un modal y precargar los datos para editar
-}
-
-// Eliminar recurso
-function eliminarRecurso(id) {
-if (!confirm("¿Estás segura/o de eliminar esta entrada?")) return;
-db.collection("inspira").doc(id).delete()
-  .then(() => {
-    mostrarNotificacion("Entrada eliminada correctamente", "exito");
-    cargarRecursos();
-  })
-  .catch((error) => {
-    mostrarNotificacion("Error al eliminar la entrada", "error");
-  });
-}
-
 // Si quieres, llama a esta función al mostrar el tab:
 window.showTab = function(tab) {
   const tabs = document.querySelectorAll(".tab-section");
