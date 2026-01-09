@@ -2822,3 +2822,81 @@ body.sidebar-mini .main-content {
 .pdf-export #contenidoReportesMain {
   max-width: none !important;
 }
+
+/* Estilos del Calendario */
+.calendar-container {
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: center;
+    font-weight: bold;
+    color: #6c757d;
+    padding: 10px 0;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    /* Auto-rows permite que crezca si hay muchos eventos */
+    auto-rows: minmax(100px, auto); 
+}
+
+.calendar-day {
+    border-right: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 8px;
+    background-color: #fff;
+    position: relative;
+    transition: background 0.2s;
+}
+
+.calendar-day:hover {
+    background-color: #fafafa;
+}
+
+.calendar-day.empty {
+    background-color: #fcfcfc;
+}
+
+.day-number {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.day-today {
+    background-color: #e8f4ff !important;
+}
+
+.day-today .day-number {
+    color: #0d6efd;
+    font-size: 1.1em;
+}
+
+/* Etiquetas de eventos dentro del día */
+.event-tag {
+    display: block;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin-bottom: 2px;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    color: white;
+}
+
+.event-tag:hover {
+    opacity: 0.8;
+    color: white;
+}
+
