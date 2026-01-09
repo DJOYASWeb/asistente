@@ -79,22 +79,26 @@ function renderizarCalendario() {
         grid.appendChild(div);
     }
 
-    // Días reales
+// Días reales
     const hoy = new Date();
 
     for (let dia = 1; dia <= diasEnMes; dia++) {
         const celda = document.createElement('div');
         let clases = 'calendar-day';
         
-        // Verificar si es HOY
+        // --- 1. VERIFICAR FERIADO ---
+        const nombreFeriado = obtenerNombreFeriado(dia, mesCal, anioCal);
+        
+        // Si es feriado, añadimos la clase que pinta todo el fondo rosa
+        if (nombreFeriado) {
+            clases += ' feriado-dia';
+        }
+
+        // --- 2. Verificar si es HOY ---
         if (dia === hoy.getDate() && mesCal === hoy.getMonth() && anioCal === hoy.getFullYear()) {
             clases += ' day-today';
         }
         celda.className = clases;
-
-        // --- VERIFICAR FERIADO ---
-        const nombreFeriado = obtenerNombreFeriado(dia, mesCal, anioCal);
-        const esFeriadoClass = nombreFeriado ? 'feriado-num' : '';
 
         // Filtrar eventos del día
         const eventosDelDia = todosLosEventos.filter(item => {
@@ -102,18 +106,21 @@ function renderizarCalendario() {
         });
 
         // Construir HTML de la celda
-        let htmlContenido = `<span class="day-number ${esFeriadoClass}">${dia}</span>`;
+        // Si es feriado, usamos la clase 'feriado-num' para el número rojo
+        const numClass = nombreFeriado ? 'feriado-num' : '';
+        let htmlContenido = `<span class="day-number ${numClass}">${dia}</span>`;
         
-        // Si hay feriado, mostrar nombre pequeño
+        // Si hay feriado, mostrar nombre pequeño debajo del número
         if (nombreFeriado) {
             htmlContenido += `<span class="feriado-nombre">${nombreFeriado}</span>`;
         }
 
-        // Pintar eventos
+        // Pintar eventos (Blogs e Inspira)
         eventosDelDia.forEach(ev => {
             let color = 'bg-primary'; 
             let tituloStr = ev.nombre || ev.titulo || 'Sin título';
 
+            // Colores según tipo
             if (ev.tipo === 'inspira') {
                 color = 'bg-info text-dark'; 
             } else {
