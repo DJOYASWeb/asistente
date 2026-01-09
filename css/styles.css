@@ -2911,3 +2911,12 @@ grid-auto-rows: minmax(100px, auto);
     margin-bottom: 2px;
     line-height: 1;
 }
+
+/* Fondo completo rosa para días feriados */
+.feriado-dia {
+    background-color: #fad7e1 !important; /* Usamos !important para que sobrescriba el fondo blanco */
+}
+/* Mantenemos el número y el nombre en rojo */
+.feriado-num, .feriado-nombre {
+    color: #dc3545; 
+}
