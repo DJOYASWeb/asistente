@@ -449,18 +449,7 @@ function mostrarModalHTML(contenidoHTML) {
   if (ta) ta.value = contenidoHTML;
 }
 
-// Copiar el texto del textarea
-function copiarAlPortapapeles() {
-  const ta = document.getElementById('modalContenido');
-  if (!ta) return;
-  ta.select();
-  document.execCommand('copy'); // compatible
-  if (typeof mostrarPopupSuccess === "function") {
-    mostrarPopupSuccess("✅ Código copiado");
-  } else {
-    alert("✅ Código copiado");
-  }
-}
+
 
 
 
