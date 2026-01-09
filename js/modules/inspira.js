@@ -610,12 +610,16 @@ function cerrarModalBase() {
   document.getElementById("modalBaseBody").innerHTML = "";
 }
 
-// Permite cerrar al hacer clic fuera
-document.getElementById("modalBase").addEventListener("click", (e) => {
-  if (e.target.id === "modalBase") {
-    cerrarModalBase();
-  }
-});
+// Esperamos a que todo cargue o verificamos si existe antes de usarlo
+const modalBase = document.getElementById("modalBase");
+
+if (modalBase) {
+  modalBase.addEventListener("click", (e) => {
+    if (e.target.id === "modalBase") {
+      cerrarModalBase();
+    }
+  });
+}
 
 
 
