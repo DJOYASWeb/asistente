@@ -130,7 +130,7 @@ function generarHTML() {
     .map(i => Number.isInteger(i) ? blogs[i] : null)
     .filter(Boolean);
 
-  const destacadosHTML = destacadosSel.map(blog => `
+const destacadosHTML = destacadosSel.map(blog => `
         <hr>
         <div class="row card-recomendados">
           <div class="col-5 portada-recomendados">
@@ -138,7 +138,11 @@ function generarHTML() {
           </div>
           <div class="col-7">
             <a href="${blog.url}"><h3 class="recomendados pt-2">${blog.titulo}</h3></a>
-            <div class="etiquetas"><a class="etiqueta-tag" href="/blog/${limpiarParaUrl(blog.categoria)}"></div>
+            <div class="etiquetas">
+                <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blog.categoria)}">
+                    ${blog.categoria}
+                </a>
+            </div>
           </div>
         </div>
   `).join('\n');
@@ -708,4 +712,4 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
 
 
 
-// updd v7
+// updd v8
