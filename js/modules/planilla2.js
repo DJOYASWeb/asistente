@@ -761,35 +761,44 @@ function transformarDatosParaExportar(datos) {
       0
     );
 
-// 🧠 Detectar si es anillo
-const esAnilloProducto = esAnillo(row);
+    // 🧠 Detectar si es anillo
+    const esAnilloProducto = esAnillo(row);
 
-// 🧠 Detectar si es MIDI
-const esMidi =
-  combinacionRaw === "midi" ||
-  combinacionRaw.includes("midi");
+    // 🧠 Detectar si es MIDI
+    const esMidi =
+      combinacionRaw === "midi" ||
+      combinacionRaw.includes("midi");
 
-// 🧠 Detectar si NO tiene combinaciones reales
-const sinCombinacion =
-  combinacionRaw === "" ||
-  combinacionRaw === "null" ||
-  combinacionRaw === "sin valor" ||
-  combinacionRaw === "ninguno" ||
-  esMidi;
+    // 🧠 Detectar si NO tiene combinaciones reales
+    const sinCombinacion =
+      combinacionRaw === "" ||
+      combinacionRaw === "null" ||
+      combinacionRaw === "sin valor" ||
+      combinacionRaw === "ninguno" ||
+      esMidi;
 
-// ✅ LÓGICA FINAL DE STOCK
-let cantidad;
+    // ✅ LÓGICA FINAL DE STOCK
+    let cantidad;
 
-if (!sinCombinacion) {
-  cantidad = 0;
-} else if (esAnilloProducto) {
-  // ⬅️ TODOS los anillos sin combinaciones, incluidos MIDI
-  cantidad = 0;
-} else {
-  cantidad = stockOriginal;
-}
+    // 🛡️ EXCEPCIÓN: Si el código empieza con PANMF (Anillos MIDI), conservamos el stock
+    const esMidiPanmf = codigo.toUpperCase().startsWith("PANMF");
 
-
+    if (!sinCombinacion) {
+      // Tiene combinaciones explícitas (tallas, etc) -> stock 0 en el padre
+      cantidad = 0;
+    } else if (esAnilloProducto) {
+      // Es anillo sin talla (o MIDI genérico)
+      if (esMidiPanmf) {
+         // EXCEPCIÓN: Es un PANMF, dejar stock original (ej: 35)
+         cantidad = stockOriginal;
+      } else {
+         // Regla general: Anillos sin combinación van a 0
+         cantidad = 0;
+      }
+    } else {
+      // Resto de productos (collares, aros, etc.) -> stock original
+      cantidad = stockOriginal;
+    }
 
     const resumen =
       row["DESCRIPCION RESUMEN"] ||
@@ -826,7 +835,7 @@ if (!sinCombinacion) {
       "Regla de Impuesto": 2,
       "Código Referencia SKU": codigo,
       "Marca": "DJOYAS",
-      "Cantidad": cantidad, // ✅ correcto según tenga o no combinaciones
+      "Cantidad": cantidad, // ✅ Corregido con la excepción PANMF
       "Resumen": resumen,
       "Descripción": descripcion,
       "Image URLs (x,y,z...)": foto,
@@ -834,7 +843,6 @@ if (!sinCombinacion) {
     };
   });
 }
-
 
 
 
@@ -2651,4 +2659,4 @@ function generarTablaImagenes() {
 
 
 
-//V2
+//V2.1
