@@ -19,9 +19,10 @@ const flushBuffer = () => {
       buffer.forEach(line => {
         const limpio = line.replace(/^\s*-?\s*/, '- ');
         
-        // 1. Aplicamos la lógica de dos puntos
+        // 1. Primero aplica la lógica de los dos puntos
         let textoProcesado = aplicarNegritaUltimaFraseConDosPuntos(limpio);
-        // 2. Y AHORA la de los asteriscos **negrita**
+        
+        // 2. LUEGO busca los ** y los convierte en <b> (ESTO ES LO QUE FALTABA)
         textoProcesado = textoProcesado.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
 
         contenido += `<li>${textoProcesado}</li>\n`;
@@ -29,9 +30,10 @@ const flushBuffer = () => {
       contenido += '</ul>\n';
     } else {
       buffer.forEach(line => {
-        // 1. Aplicamos la lógica de dos puntos
+        // 1. Primero aplica la lógica de los dos puntos
         let textoProcesado = aplicarNegritaUltimaFraseConDosPuntos(line);
-        // 2. Y AHORA la de los asteriscos **negrita**
+        
+        // 2. LUEGO busca los ** y los convierte en <b> (ESTO ES LO QUE FALTABA)
         textoProcesado = textoProcesado.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
 
         contenido += `<p class="texto-blog">${textoProcesado}</p>\n`;
@@ -103,4 +105,4 @@ function copiarResultado() {
     .catch(err => alert("❌ Error al copiar: " + err));
 }
 window.copiarResultado = copiarResultado;
-//v1.1
+//v1.3
