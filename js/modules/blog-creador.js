@@ -938,7 +938,6 @@ window.cerrarPreferencias = function() {
 /* =====================
    PREFERENCIAS Y POOL (Tabla + Modal)
 ===================== */
-const STORAGE_KEY_DESTACADOS = "djoyas_blogs_destacados_favs";
 let seleccionTemporal = new Set(); // Para manejar el estado dentro del modal sin guardar
 
 // --- Verificar si un blog está completo (Datos mínimos) ---
