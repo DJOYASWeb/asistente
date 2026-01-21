@@ -935,202 +935,234 @@ window.cerrarPreferencias = function() {
   });
 })();
 
-/* =====================
-   PREFERENCIAS Y POOL (Tabla + Modal)
-===================== */
-let seleccionTemporal = new Set(); // Para manejar el estado dentro del modal sin guardar
+/* =========================================================
+   NUEVO GESTOR DE POOL Y PREFERENCIAS (V2 - CON MODAL)
+   ========================================================= */
+(function() {
+    const STORAGE_KEY_DESTACADOS = "djoyas_blogs_destacados_favs";
+    let seleccionTemporal = new Set();
 
-// --- Verificar si un blog está completo (Datos mínimos) ---
-function verificarIntegridadBlog(data) {
-    if (!data) return false;
-    // Campos requeridos
-    const tieneTitulo = data.nombre && data.nombre.trim().length > 0;
-    const tieneAutor = data.autor && data.autor.trim().length > 0;
-    const tieneImg = data.imagen && data.imagen.trim().length > 0; // O URL base
-    const tieneCuerpo = data.blogHtml && data.blogHtml.trim().length > 0;
-    
-    // Puedes agregar más condiciones aquí
-    return tieneTitulo && tieneAutor && tieneCuerpo;
-}
-
-// --- Renderizar la Tabla Principal (Solo los elegidos) ---
-window.renderizarTablaPreferencias = function() {
-    const tbody = document.getElementById("tablaPreferenciasBody");
-    const msgVacio = document.getElementById("mensajeVacio");
-    const contadorTxt = document.getElementById("contadorPoolTexto");
-    
-    if (!tbody) return;
-    tbody.innerHTML = "";
-
-    // 1. Cargar IDs guardados
-    const guardados = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
-
-    if (guardados.length === 0) {
-        msgVacio.classList.remove("d-none");
-        contadorTxt.textContent = "0 blogs en el pool";
-        return;
+    // 1. Verificar si el blog está completo
+    function verificarIntegridadBlog(data) {
+        if (!data) return false;
+        const tieneTitulo = data.nombre && data.nombre.trim().length > 0;
+        const tieneAutor = data.autor && data.autor.trim().length > 0;
+        const tieneCuerpo = data.blogHtml && data.blogHtml.trim().length > 0;
+        return tieneTitulo && tieneAutor && tieneCuerpo;
     }
-    msgVacio.classList.add("d-none");
-    contadorTxt.textContent = `${guardados.length} blogs en el pool`;
 
-    // 2. Buscar datos y dibujar filas
-    guardados.forEach(id => {
-        const data = window.blogsData[id];
-        const tr = document.createElement("tr");
+    // 2. Renderizar Tabla Principal
+    window.renderizarTablaPreferencias = function() {
+        const tbody = document.getElementById("tablaPreferenciasBody");
+        const msgVacio = document.getElementById("mensajeVacio");
+        const contadorTxt = document.getElementById("contadorPoolTexto");
         
-        if (!data) {
-            // Si tenemos un ID guardado pero no data (raro), mostramos error
-            tr.innerHTML = `<td>${id}</td><td colspan="2" class="text-danger">Datos no encontrados</td>`;
-        } else {
-            const estaCompleto = verificarIntegridadBlog(data);
-            const badgeClase = estaCompleto ? "status-completo" : "status-incompleto";
-            const badgeTexto = estaCompleto ? "✅ Completo" : "⚠️ Incompleto";
+        if (!tbody) return;
+        tbody.innerHTML = "";
 
-            tr.innerHTML = `
-                <td><strong>${id}</strong></td>
-                <td>${data.nombre || 'Sin título'}</td>
-                <td><span class="badge-status ${badgeClase}">${badgeTexto}</span></td>
-            `;
+        const guardados = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
+
+        if (guardados.length === 0) {
+            if(msgVacio) msgVacio.classList.remove("d-none");
+            if(contadorTxt) contadorTxt.textContent = "0 blogs en el pool";
+            return;
         }
-        tbody.appendChild(tr);
-    });
-};
+        if(msgVacio) msgVacio.classList.add("d-none");
+        if(contadorTxt) contadorTxt.textContent = `${guardados.length} blogs en el pool`;
 
-// --- MODAL: Abrir y Cargar Lista Completa ---
-window.abrirModalPool = function() {
-    const modal = document.getElementById("modalSeleccionPool");
-    const listaBody = document.getElementById("listaModalBody");
-    const inputBuscador = document.getElementById("buscadorModal");
-    
-    if(!modal) return;
-    
-    // Cargar selección actual en memoria temporal
-    const guardados = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
-    seleccionTemporal = new Set(guardados);
-
-    // Limpiar buscador
-    if(inputBuscador) inputBuscador.value = "";
-
-    modal.style.display = "flex"; // Mostrar Overlay
-    
-    // Renderizar lista inicial
-    window.renderizarListaModal();
-    
-    // Foco al buscador
-    if(inputBuscador) setTimeout(() => inputBuscador.focus(), 100);
-};
-
-window.cerrarModalPool = function() {
-    const modal = document.getElementById("modalSeleccionPool");
-    if(modal) modal.style.display = "none";
-};
-
-// --- MODAL: Renderizar Lista con Filtro ---
-window.renderizarListaModal = function(filtro = "") {
-    const container = document.getElementById("listaModalBody");
-    const contadorInfo = document.getElementById("contadorModalSeleccion");
-    if (!container) return;
-
-    container.innerHTML = "";
-    const filtroNorm = filtro.toLowerCase().trim();
-
-    // Obtener todos los blogs y ordenar
-    const todos = Object.values(window.blogsData || {});
-    todos.sort((a, b) => toNumId(b.id) - toNumId(a.id));
-
-    let mostrados = 0;
-
-    todos.forEach(blog => {
-        // Lógica de filtrado
-        const textoBusqueda = `${blog.id} ${blog.nombre || ''}`.toLowerCase();
-        if (filtro !== "" && !textoBusqueda.includes(filtroNorm)) return;
-
-        mostrados++;
-        const isChecked = seleccionTemporal.has(String(blog.id));
-
-        const div = document.createElement("div");
-        div.className = "item-modal";
-        div.innerHTML = `
-            <input type="checkbox" id="chk_${blog.id}" ${isChecked ? "checked" : ""}>
-            <label for="chk_${blog.id}" class="mb-0 w-100 cursor-pointer">
-                <strong>#${blog.id}</strong> - ${blog.nombre || 'Sin Título'}
-            </label>
-        `;
-
-        // Evento click en el checkbox
-        const chk = div.querySelector("input");
-        chk.addEventListener("change", (e) => {
-            if (e.target.checked) seleccionTemporal.add(String(blog.id));
-            else seleccionTemporal.delete(String(blog.id));
+        guardados.forEach(id => {
+            const data = window.blogsData[id];
+            const tr = document.createElement("tr");
             
-            // Actualizar contador del modal
-            if(contadorInfo) contadorInfo.textContent = `${seleccionTemporal.size} seleccionados`;
+            if (!data) {
+                tr.innerHTML = `<td>${id}</td><td colspan="2" class="text-danger">Datos no cargados aún</td>`;
+            } else {
+                const estaCompleto = verificarIntegridadBlog(data);
+                const badgeClase = estaCompleto ? "status-completo" : "status-incompleto";
+                const badgeTexto = estaCompleto ? "✅ Completo" : "⚠️ Incompleto";
+                tr.innerHTML = `
+                    <td><strong>${id}</strong></td>
+                    <td>${data.nombre || 'Sin título'}</td>
+                    <td><span class="badge-status ${badgeClase}">${badgeTexto}</span></td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
+    };
+
+    // 3. Abrir Modal y Cargar Lista
+    window.abrirModalPool = function() {
+        const modal = document.getElementById("modalSeleccionPool");
+        const inputBuscador = document.getElementById("buscadorModal");
+        if(!modal) return;
+        
+        const guardados = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
+        seleccionTemporal = new Set(guardados);
+
+        if(inputBuscador) inputBuscador.value = "";
+        modal.style.display = "flex"; 
+        renderizarListaModal();
+        if(inputBuscador) setTimeout(() => inputBuscador.focus(), 100);
+    };
+
+    window.cerrarModalPool = function() {
+        const modal = document.getElementById("modalSeleccionPool");
+        if(modal) modal.style.display = "none";
+    };
+
+    function renderizarListaModal(filtro = "") {
+        const container = document.getElementById("listaModalBody");
+        const contadorInfo = document.getElementById("contadorModalSeleccion");
+        if (!container) return;
+
+        container.innerHTML = "";
+        const filtroNorm = filtro.toLowerCase().trim();
+        const todos = Object.values(window.blogsData || {});
+        
+        // Ordenar ID descendente
+        todos.sort((a, b) => {
+            const idA = parseInt(a.id) || 0;
+            const idB = parseInt(b.id) || 0;
+            return idB - idA;
         });
 
-        container.appendChild(div);
+        let mostrados = 0;
+        todos.forEach(blog => {
+            const textoBusqueda = `${blog.id} ${blog.nombre || ''}`.toLowerCase();
+            if (filtro !== "" && !textoBusqueda.includes(filtroNorm)) return;
+
+            mostrados++;
+            const isChecked = seleccionTemporal.has(String(blog.id));
+
+            const div = document.createElement("div");
+            div.className = "item-modal";
+            div.style.padding = "8px";
+            div.style.borderBottom = "1px solid #eee";
+            div.innerHTML = `
+                <input type="checkbox" id="chk_${blog.id}" ${isChecked ? "checked" : ""} style="margin-right:10px;">
+                <label for="chk_${blog.id}" style="margin:0; cursor:pointer; width:90%;">
+                    <strong>#${blog.id}</strong> - ${blog.nombre || 'Sin Título'}
+                </label>
+            `;
+            
+            div.querySelector("input").addEventListener("change", (e) => {
+                if (e.target.checked) seleccionTemporal.add(String(blog.id));
+                else seleccionTemporal.delete(String(blog.id));
+                if(contadorInfo) contadorInfo.textContent = `${seleccionTemporal.size} seleccionados`;
+            });
+            container.appendChild(div);
+        });
+
+        if (mostrados === 0) container.innerHTML = `<p class="text-muted text-center mt-3">No hay coincidencias.</p>`;
+        if(contadorInfo) contadorInfo.textContent = `${seleccionTemporal.size} seleccionados`;
+    }
+
+    // Listener Buscador
+    document.addEventListener("DOMContentLoaded", () => {
+        const inputBuscador = document.getElementById("buscadorModal");
+        if (inputBuscador) {
+            inputBuscador.addEventListener("input", (e) => renderizarListaModal(e.target.value));
+        }
     });
 
-    if (mostrados === 0) {
-        container.innerHTML = `<p class="text-muted text-center mt-3">No se encontraron blogs que coincidan con "${filtro}".</p>`;
+    // 4. Guardar Cambios del Modal
+    window.guardarCambiosModal = function() {
+        const arrayFinal = Array.from(seleccionTemporal);
+        localStorage.setItem(STORAGE_KEY_DESTACADOS, JSON.stringify(arrayFinal));
+        if(typeof mostrarNotificacion === "function") mostrarNotificacion(`✅ Pool actualizado: ${arrayFinal.length} blogs.`);
+        else alert("Pool actualizado");
+        
+        window.cerrarModalPool();
+        window.renderizarTablaPreferencias();
+    };
+
+    // 5. Navegación Vistas
+    window.mostrarPreferencias = function() {
+        const wizard = document.getElementById('blogWizard');
+        const prefs = document.getElementById('seccionPreferencias');
+        if (wizard && prefs) {
+            wizard.classList.add('d-none');
+            prefs.classList.remove('d-none');
+            window.renderizarTablaPreferencias();
+        }
+    };
+
+    window.cerrarPreferencias = function() {
+        const wizard = document.getElementById('blogWizard');
+        const prefs = document.getElementById('seccionPreferencias');
+        if (wizard && prefs) {
+            prefs.classList.add('d-none');
+            wizard.classList.remove('d-none');
+        }
+    };
+
+    // 6. AUTO ASIGNAR MEJORADO (Reemplaza la función global)
+    window.autoAsignarIntent = function(retriesLeft=3) {
+        const sAnt = document.getElementById("selectAnterior");
+        const sSig = document.getElementById("selectSiguiente");
+        const s1   = document.getElementById("select1");
+        const s2   = document.getElementById("select2");
+        const s3   = document.getElementById("select3");
+
+        // Chequeo de seguridad
+        if (!s1 || !s2 || !s3) return; 
+
+        // 1. Cargar Pool
+        const poolFavoritos = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
+        
+        // 2. Mezclar Pool (Shuffle)
+        const poolMezclado = [...poolFavoritos];
+        for (let i = poolMezclado.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [poolMezclado[i], poolMezclado[j]] = [poolMezclado[j], poolMezclado[i]];
+        }
+
+        const used = new Set();
+        [sAnt,sSig,s1,s2,s3].forEach(sel => { if(sel) sel.value = ""; });
+
+        function pick(selectEl, preferredId = null) {
+            if (!selectEl) return;
+            // Intento 1: Usar ID del pool
+            if (preferredId) {
+               const optFav = Array.from(selectEl.options).find(o => o.value == preferredId);
+               if (optFav) {
+                   const k = (optFav.textContent||"").trim();
+                   if (!used.has(k)) { selectEl.value = preferredId; used.add(k); return; }
+               }
+            }
+            // Intento 2: Aleatorio normal
+            const opts = Array.from(selectEl.options).filter(o => o.value !== "");
+            // Mezclar opciones disponibles
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+            for (const op of opts) {
+                const k = (op.textContent||"").trim();
+                if (!used.has(k)) { selectEl.value = op.value; used.add(k); return; }
+            }
+        }
+
+        pick(s1, poolMezclado[0]);
+        pick(s2, poolMezclado[1]);
+        pick(s3, poolMezclado[2]);
+        pick(sAnt, null); // Anterior y siguiente siempre al azar
+        pick(sSig, null);
+
+        const msg = poolMezclado.length > 0 ? `✅ 3 destacados de tu pool de ${poolMezclado.length}.` : "✅ Asignados al azar.";
+        if(typeof mostrarNotificacion === "function") mostrarNotificacion(msg, "exito");
+    };
+
+    // Re-bindear el botón de auto asignar si es necesario
+    const btnAuto = document.getElementById("btnAutoAsignar");
+    if(btnAuto) {
+        // Clonamos el botón para eliminar listeners anteriores y evitar duplicados
+        const newBtn = btnAuto.cloneNode(true);
+        btnAuto.parentNode.replaceChild(newBtn, btnAuto);
+        newBtn.addEventListener("click", () => window.autoAsignarIntent());
     }
-    
-    // Actualizar contador inicial
-    if(contadorInfo) contadorInfo.textContent = `${seleccionTemporal.size} seleccionados`;
-};
 
-// --- MODAL: Listener del Buscador ---
-document.addEventListener("DOMContentLoaded", () => {
-    const inputBuscador = document.getElementById("buscadorModal");
-    if (inputBuscador) {
-        inputBuscador.addEventListener("input", (e) => {
-            window.renderizarListaModal(e.target.value);
-        });
-    }
-});
-
-// --- MODAL: Guardar ---
-window.guardarCambiosModal = function() {
-    const arrayFinal = Array.from(seleccionTemporal);
-    localStorage.setItem(STORAGE_KEY_DESTACADOS, JSON.stringify(arrayFinal));
-    
-    mostrarNotificacion(`✅ Pool actualizado: ${arrayFinal.length} blogs.`);
-    window.cerrarModalPool();
-    window.renderizarTablaPreferencias(); // Refrescar la tabla de atrás
-};
-
-/* =====================
-   NAVEGACIÓN VISTAS
-===================== */
-window.mostrarPreferencias = function() {
-  const wizard = document.getElementById('blogWizard');
-  const prefs = document.getElementById('seccionPreferencias');
-  if (wizard && prefs) {
-    wizard.classList.add('d-none');
-    prefs.classList.remove('d-none');
-    
-    // Cargar tabla al entrar
-    window.renderizarTablaPreferencias();
-  }
-};
-
-window.cerrarPreferencias = function() {
-  const wizard = document.getElementById('blogWizard');
-  const prefs = document.getElementById('seccionPreferencias');
-  if (wizard && prefs) {
-    prefs.classList.add('d-none');
-    wizard.classList.remove('d-none');
-  }
-};
-
-
-
-
-
-
-
-
-
-
+})();
 
 
 
