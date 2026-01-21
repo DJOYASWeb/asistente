@@ -673,7 +673,7 @@ if (material) {
 
 
 
-// --- Categorías a exportar (con los nuevos nombres confirmados) ---
+// --- Categorías a exportar (MODIFICADA CON REEMPLAZOS) ---
 function construirCategorias(row) {
   const getVal = (...keys) => {
     for (const k of keys) {
@@ -690,13 +690,26 @@ function construirCategorias(row) {
   const tipo = getVal("producto_tipo", "PRODUCTO TIPO", "procucto_tipo", "PRODUCTO_TIPO");
   const subtipo = getVal("producto_subtipo", "PRODUCTO SUBTIPO", "procucto_subtipo", "PRODUCTO_SUBTIPO");
 
-  // 🔹 Orden jerárquico
-  const categorias = [categoriaPrincipal, tipo, subtipo]
+  // 🔹 Orden jerárquico inicial
+  let listaRaw = [categoriaPrincipal, tipo, subtipo]
     .filter(v => v && v.toLowerCase() !== "sin valor");
+
+  // 🛠️ ZONA DE REEMPLAZOS (Aquí aplicamos los cambios de nombre)
+  // Esto revisa cada categoría y si coincide, la cambia por el nombre nuevo
+  const categorias = listaRaw.map(cat => {
+      // Normalizamos a minúsculas para comparar seguro (piercing, Piercing, PIERCING)
+      const textoNormalizado = cat.toLowerCase().trim();
+
+      if (textoNormalizado === "piercing") return "Piercings de Plata 925";
+      if (textoNormalizado === "argollas") return "Argollas de Plata 925";
+      
+      return cat; // Si no es ninguno de los anteriores, deja el original
+  });
 
   // 🔹 Eliminar duplicados (ignorando mayúsculas/minúsculas)
   const unicas = [];
   const vistos = new Set();
+  
   for (const c of categorias) {
     const norm = c.toLowerCase();
     if (!vistos.has(norm)) {
@@ -704,25 +717,34 @@ function construirCategorias(row) {
       unicas.push(c);
     }
   }
-// 🧹 Si tiene ENCHAPADO como categoría principal, quitar "Enchapado en Oro" y "Enchapado en Plata"
-if (categoriaPrincipal.toUpperCase() === "ENCHAPADO") {
-  for (let i = unicas.length - 1; i >= 0; i--) {
-    const cat = unicas[i].toLowerCase();
-    if (cat.includes("enchapado en oro") || cat.includes("enchapado en plata")) {
-      unicas.splice(i, 1);
+
+  // 🧹 Lógica ENCHAPADO: quitar "Enchapado en Oro" y "Enchapado en Plata" si la principal es ENCHAPADO
+  if (categoriaPrincipal.toUpperCase() === "ENCHAPADO") {
+    for (let i = unicas.length - 1; i >= 0; i--) {
+      const cat = unicas[i].toLowerCase();
+      if (cat.includes("enchapado en oro") || cat.includes("enchapado en plata")) {
+        unicas.splice(i, 1);
+      }
     }
   }
-}
-// ➕ Agregar Categoría Adicional (si existe)
-const categoriaAdicional = (row["Categoría Adicional"] || "").toString().trim();
-if (categoriaAdicional) {
-  unicas.push(categoriaAdicional);
-}
 
-  // 🔹 Devuelve separadas por coma (puedes usar "/" si prefieres jerarquía)
+  // ➕ Agregar Categoría Adicional (si existe)
+  const categoriaAdicional = (row["Categoría Adicional"] || "").toString().trim();
+  if (categoriaAdicional) {
+    // Aplicamos el reemplazo también a la categoría adicional por si acaso
+    let catAddFinal = categoriaAdicional;
+    if (categoriaAdicional.toLowerCase() === "piercing") catAddFinal = "Piercings de Plata 925";
+    if (categoriaAdicional.toLowerCase() === "argollas") catAddFinal = "Argollas de Plata 925";
+
+    // Verificamos que no esté repetida antes de agregarla
+    if (!vistos.has(catAddFinal.toLowerCase())) {
+        unicas.push(catAddFinal);
+    }
+  }
+
+  // 🔹 Devuelve separadas por coma
   return unicas.join(", ");
 }
-
 
 
 
