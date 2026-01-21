@@ -112,7 +112,8 @@ function generarHTML() {
   const categoria = document.getElementById("categoria")?.value?.trim();
   const imagen = document.getElementById("imagen")?.value?.trim();
   const altImagen = document.getElementById("altImagen")?.value?.trim();
-  const cuerpo = document.getElementById("cuerpo")?.value?.trim();
+  const cuerpoRaw = document.getElementById("cuerpo")?.value?.trim();
+  const cuerpo = cuerpoRaw ? cuerpoRaw.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') : "";
 
   if (!titulo || !fecha || !autor || !categoria || !imagen || !cuerpo) {
     alert("Por favor completa todos los campos obligatorios antes de generar el HTML.");
@@ -719,4 +720,4 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
 
 
 
-// updd v1.1
+// updd v1.2
