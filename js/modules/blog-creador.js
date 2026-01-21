@@ -719,5 +719,28 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
 })();
 
 
+/* =====================
+   NAVEGACIÓN DE PREFERENCIAS
+===================== */
+window.mostrarPreferencias = function() {
+  const wizard = document.getElementById('blogWizard');
+  const prefs = document.getElementById('seccionPreferencias');
+  
+  if (wizard && prefs) {
+    wizard.classList.add('d-none');
+    prefs.classList.remove('d-none');
+  }
+};
 
-// updd v1.3
+window.cerrarPreferencias = function() {
+  const wizard = document.getElementById('blogWizard');
+  const prefs = document.getElementById('seccionPreferencias');
+  
+  if (wizard && prefs) {
+    prefs.classList.add('d-none');
+    wizard.classList.remove('d-none');
+  }
+};
+
+
+// updd v1
