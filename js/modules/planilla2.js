@@ -700,8 +700,8 @@ function construirCategorias(row) {
       // Normalizamos a minúsculas para comparar seguro (piercing, Piercing, PIERCING)
       const textoNormalizado = cat.toLowerCase().trim();
 
-      if (textoNormalizado === "piercing") return "Piercings de Plata 925";
-      if (textoNormalizado === "argollas") return "Argollas de Plata 925";
+      if (textoNormalizado === "Piercing") return "Piercings de Plata 925";
+      if (textoNormalizado === "Argollas") return "Argollas de Plata 925";
       
       return cat; // Si no es ninguno de los anteriores, deja el original
   });
