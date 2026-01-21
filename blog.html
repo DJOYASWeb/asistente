@@ -130,7 +130,10 @@
 
 <!-- TAB CREAR -->
 <div id="crear" class="tab-section d-none">
-<div class="d-flex justify-content-between align-items-center mb-4">
+  
+  <div class="container" id="blogWizard">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
       <h1 class="mb-0">Generador de Blog DJOYAS</h1>
       <button class="btn btn-secondary btn-sm" onclick="window.mostrarPreferencias()">
         <i class="fa fa-cog"></i> Administrar Preferencias
@@ -293,6 +296,27 @@
         <div class="col-auto"><button class="btn btn-outline-secondary" id="prev4" type="button">Atrás</button></div>
       </div>
     </div>
+    
+  </div> <div class="container d-none" id="seccionPreferencias">
+    <div class="d-flex align-items-center mb-4">
+      <button class="btn btn-outline-secondary me-3" onclick="window.cerrarPreferencias()">
+        <i class="fa fa-arrow-left"></i> Volver atrás
+      </button>
+      <h2 class="mb-0">⚙️ Preferencias del Generador</h2>
+    </div>
+
+    <div class="ios-card">
+      <h4>Configuraciones Guardadas</h4>
+      <p class="text-muted">Aquí podrás administrar tus valores por defecto próximamente.</p>
+      
+      <div class="text-center py-5">
+         <i class="fa fa-cogs fa-3x text-muted mb-3"></i>
+         <p>Panel de preferencias listo para configurar.</p>
+         <button class="btn btn-danger btn-sm" onclick="alert('Funcionalidad en desarrollo')">Borrar caché (Demo)</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 
