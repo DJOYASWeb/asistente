@@ -741,5 +741,215 @@ window.cerrarPreferencias = function() {
   }
 };
 
+/* =====================
+   PREFERENCIAS: LÓGICA DE UI Y GUARDADO
+===================== */
+const STORAGE_KEY_DESTACADOS = "djoyas_blogs_destacados_favs";
+
+window.renderizarPreferencias = function() {
+  const container = document.getElementById("containerListaPreferencias");
+  const contador = document.getElementById("contadorPreferencias");
+  if (!container) return;
+
+  // 1. Obtener favoritos guardados
+  const guardados = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
+  
+  // 2. Obtener todos los blogs de la variable global
+  const todosLosBlogs = Object.values(window.blogsData || {});
+  
+  // Ordenar por ID descendente
+  todosLosBlogs.sort((a, b) => toNumId(b.id) - toNumId(a.id));
+
+  if (todosLosBlogs.length === 0) {
+    container.innerHTML = '<p class="text-center text-muted">No hay blogs cargados en memoria.</p>';
+    return;
+  }
+
+  container.innerHTML = "";
+
+  todosLosBlogs.forEach(blog => {
+    const isChecked = guardados.includes(String(blog.id));
+    const div = document.createElement("div");
+    div.className = "item-preferencia";
+    div.innerHTML = `
+      <input type="checkbox" class="check-pref" value="${blog.id}" id="pref_${blog.id}" ${isChecked ? 'checked' : ''}>
+      <label class="mb-0 cursor-pointer w-100" for="pref_${blog.id}">
+        <strong>#${blog.id}</strong> - ${blog.nombre || blog.titulo || 'Sin título'}
+      </label>
+    `;
+    container.appendChild(div);
+  });
+
+  actualizarContadorPref();
+
+  const checkboxes = container.querySelectorAll(".check-pref");
+  checkboxes.forEach(chk => {
+    chk.addEventListener("change", actualizarContadorPref);
+  });
+};
+
+function actualizarContadorPref() {
+  const container = document.getElementById("containerListaPreferencias");
+  const contador = document.getElementById("contadorPreferencias");
+  if (!container || !contador) return;
+  
+  const checked = container.querySelectorAll(".check-pref:checked").length;
+  // CAMBIO AQUÍ: Texto informativo sobre el Pool
+  contador.textContent = `${checked} blogs en tu Pool de rotación`;
+  contador.className = "text-primary font-weight-bold";
+}
+
+window.guardarPreferencias = function() {
+  const container = document.getElementById("containerListaPreferencias");
+  if (!container) return;
+
+  const checkboxes = container.querySelectorAll(".check-pref:checked");
+  const idsParaGuardar = Array.from(checkboxes).map(cb => cb.value);
+
+  localStorage.setItem(STORAGE_KEY_DESTACADOS, JSON.stringify(idsParaGuardar));
+  
+  mostrarNotificacion(`✅ Pool actualizado con ${idsParaGuardar.length} blogs.`);
+  window.cerrarPreferencias();
+};
+
+/* =====================
+   NAVEGACIÓN DE PREFERENCIAS
+===================== */
+window.mostrarPreferencias = function() {
+  const wizard = document.getElementById('blogWizard');
+  const prefs = document.getElementById('seccionPreferencias');
+  if (wizard && prefs) {
+    wizard.classList.add('d-none');
+    prefs.classList.remove('d-none');
+    window.renderizarPreferencias();
+  }
+};
+
+window.cerrarPreferencias = function() {
+  const wizard = document.getElementById('blogWizard');
+  const prefs = document.getElementById('seccionPreferencias');
+  if (wizard && prefs) {
+    prefs.classList.add('d-none');
+    wizard.classList.remove('d-none');
+  }
+};
+
+/* =====================
+   AUTO ASIGNAR (Lógica Pool Aleatorio)
+===================== */
+(function AutoAsignarRelacionados(){
+  const byId = (id)=> document.getElementById(id);
+  const norm = (s)=> (s||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+
+  // Función para mezclar un array (Fisher-Yates)
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function pickUniqueForSelect(selectEl, usedKeys, preferredId = null) {
+    if (!selectEl) return false;
+    
+    // 1. INTENTO CON PREFERIDO (Si existe en el pool mezclado)
+    if (preferredId) {
+       const optionFav = Array.from(selectEl.options).find(o => o.value == preferredId);
+       if (optionFav) {
+          const key = norm(optionFav.textContent);
+          if (!usedKeys.has(key)) {
+             selectEl.value = preferredId;
+             usedKeys.add(key);
+             return true; 
+          }
+       }
+    }
+
+    // 2. RELLENO ALEATORIO (Si no hay preferido o ya se usó)
+    const options = Array.from(selectEl.options).filter(o => o.value !== "");
+    if (options.length === 0) return false;
+
+    // Mezclamos opciones disponibles
+    const shuffledOptions = shuffleArray([...options]);
+
+    for (const opt of shuffledOptions){
+      const key = norm(opt.textContent);
+      if (!key) continue;
+      if (!usedKeys.has(key)){
+        selectEl.value = opt.value;
+        usedKeys.add(key);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  window.autoAsignarIntent = function(retriesLeft=3){
+    const sAnt = byId("selectAnterior");
+    const sSig = byId("selectSiguiente");
+    const s1   = byId("select1");
+    const s2   = byId("select2");
+    const s3   = byId("select3");
+
+    const allHaveOptions = [sAnt,sSig,s1,s2,s3].every(sel => sel && sel.options && sel.options.length > 1);
+    if (!allHaveOptions){
+      if (retriesLeft > 0) setTimeout(()=> window.autoAsignarIntent(retriesLeft-1), 300);
+      else mostrarNotificacion("Aún no cargan los datos de blogs", "alerta");
+      return;
+    }
+
+    // --- AQUÍ ESTÁ EL CAMBIO CLAVE ---
+    
+    // 1. Cargar el Pool de Favoritos
+    const poolFavoritos = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
+    
+    // 2. MEZCLAR EL POOL (Barajar la bolsa)
+    // Así, si tienes 20, obtendremos un orden distinto cada vez: [15, 2, 80, 4...]
+    const poolMezclado = shuffleArray([...poolFavoritos]); 
+
+    const used = new Set();
+    [sAnt,sSig,s1,s2,s3].forEach(sel => { if(sel) sel.value = ""; });
+
+    // 3. Asignar usando el orden aleatorio del pool
+    // Si el pool está vacío, poolMezclado[0] es undefined y la función elige uno general al azar.
+    pickUniqueForSelect(s1, used, poolMezclado[0]); 
+    pickUniqueForSelect(s2, used, poolMezclado[1]); 
+    pickUniqueForSelect(s3, used, poolMezclado[2]);
+
+    // 4. Anterior y Siguiente siguen siendo totalmente aleatorios (o podrías usar poolMezclado[3] y [4] si quisieras)
+    pickUniqueForSelect(sAnt, used, null);
+    pickUniqueForSelect(sSig, used, null);
+
+    const cantidadPool = poolMezclado.length;
+    let mensaje = "✅ Asignados al azar.";
+    if (cantidadPool > 0) mensaje = `✅ 3 destacados elegidos al azar de tu pool de ${cantidadPool}.`;
+
+    mostrarNotificacion(mensaje, "exito");
+  };
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const btn = byId("btnAutoAsignar");
+    if (!btn) return;
+    btn.addEventListener("click", ()=> window.autoAsignarIntent());
+  });
+})();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // updd v1
