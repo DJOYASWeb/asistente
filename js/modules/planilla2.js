@@ -673,44 +673,59 @@ if (material) {
 
 
 
-// --- Categorías a exportar (MODIFICADA CON REEMPLAZOS) ---
+// --- Categorías a exportar (VERSIÓN BLINDADA) ---
 function construirCategorias(row) {
+  
+  // 1. Helper para obtener valores buscando en varias columnas posibles
   const getVal = (...keys) => {
     for (const k of keys) {
+      // Verificamos que la propiedad exista
       if (row[k] !== undefined && row[k] !== null) {
         const v = row[k].toString().trim();
-        if (v && v.toLowerCase() !== "sin valor") return v;
+        // Ignoramos "sin valor" o "null"
+        if (v && v.toLowerCase() !== "sin valor" && v.toLowerCase() !== "null") return v;
       }
     }
     return "";
   };
 
-  // 🔹 Buscar en todas las variantes posibles
-  const categoriaPrincipal = getVal("Categoría principal", "categoria_principal", "CATEGORIA PRINCIPAL");
+  // 2. Obtener datos crudos (Agregué más variantes de nombres de columna por si acaso)
+  const categoriaPrincipal = getVal("Categoría principal", "categoria_principal", "CATEGORIA PRINCIPAL", "Categoría", "CATEGORIA");
   const tipo = getVal("producto_tipo", "PRODUCTO TIPO", "procucto_tipo", "PRODUCTO_TIPO");
   const subtipo = getVal("producto_subtipo", "PRODUCTO SUBTIPO", "procucto_subtipo", "PRODUCTO_SUBTIPO");
+  const catAdicional = (row["Categoría Adicional"] || row["CATEGORIA ADICIONAL"] || "").toString().trim();
 
-  // 🔹 Orden jerárquico inicial
-  let listaRaw = [categoriaPrincipal, tipo, subtipo]
-    .filter(v => v && v.toLowerCase() !== "sin valor");
+  // 3. Juntar todo en una lista temporal
+  let listaRaw = [categoriaPrincipal, tipo, subtipo, catAdicional].filter(Boolean);
 
-  // 🛠️ ZONA DE REEMPLAZOS (Aquí aplicamos los cambios de nombre)
-  // Esto revisa cada categoría y si coincide, la cambia por el nombre nuevo
-  const categorias = listaRaw.map(cat => {
-      // Normalizamos a minúsculas para comparar seguro (piercing, Piercing, PIERCING)
-      const textoNormalizado = cat.toLowerCase().trim();
+  // 🔥 4. EL REEMPLAZO DE FUERZA BRUTA 🔥
+  const categoriasCorregidas = listaRaw.map(cat => {
+      const limpio = cat.toLowerCase().trim();
 
-      if (textoNormalizado === "Piercing") return "Piercings de Plata 925";
-      if (textoNormalizado === "Argollas") return "Argollas de Plata 925";
+      // REGLA 1: PIERCING (Singular, Plural, Mayúscula o Minúscula)
+      if (limpio === "piercing" || limpio === "piercings") {
+          return "Piercings de Plata 925";
+      }
+
+      // REGLA 2: ARGOLLAS (Singular o Plural)
+      if (limpio === "argollas" || limpio === "argolla") {
+          return "Argollas de Plata 925";
+      }
       
-      return cat; // Si no es ninguno de los anteriores, deja el original
+      // REGLA 3: AROS (Opcional, por si acaso)
+      if (limpio === "aros" || limpio === "aro") {
+           return "Aros de Plata 925";
+      }
+
+      // Si no coincide con nada, devolvemos la original
+      return cat;
   });
 
-  // 🔹 Eliminar duplicados (ignorando mayúsculas/minúsculas)
+  // 5. Eliminar duplicados
   const unicas = [];
   const vistos = new Set();
   
-  for (const c of categorias) {
+  for (const c of categoriasCorregidas) {
     const norm = c.toLowerCase();
     if (!vistos.has(norm)) {
       vistos.add(norm);
@@ -718,8 +733,9 @@ function construirCategorias(row) {
     }
   }
 
-  // 🧹 Lógica ENCHAPADO: quitar "Enchapado en Oro" y "Enchapado en Plata" si la principal es ENCHAPADO
-  if (categoriaPrincipal.toUpperCase() === "ENCHAPADO") {
+  // 6. Filtro especial ENCHAPADO
+  // Si la principal (ya corregida o no) es Enchapado, limpiamos hijos
+  if (categoriaPrincipal.toUpperCase().includes("ENCHAPADO")) {
     for (let i = unicas.length - 1; i >= 0; i--) {
       const cat = unicas[i].toLowerCase();
       if (cat.includes("enchapado en oro") || cat.includes("enchapado en plata")) {
@@ -728,24 +744,8 @@ function construirCategorias(row) {
     }
   }
 
-  // ➕ Agregar Categoría Adicional (si existe)
-  const categoriaAdicional = (row["Categoría Adicional"] || "").toString().trim();
-  if (categoriaAdicional) {
-    // Aplicamos el reemplazo también a la categoría adicional por si acaso
-    let catAddFinal = categoriaAdicional;
-    if (categoriaAdicional.toLowerCase() === "piercing") catAddFinal = "Piercings de Plata 925";
-    if (categoriaAdicional.toLowerCase() === "argollas") catAddFinal = "Argollas de Plata 925";
-
-    // Verificamos que no esté repetida antes de agregarla
-    if (!vistos.has(catAddFinal.toLowerCase())) {
-        unicas.push(catAddFinal);
-    }
-  }
-
-  // 🔹 Devuelve separadas por coma
   return unicas.join(", ");
 }
-
 
 
 // --- Precio ---
