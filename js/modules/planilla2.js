@@ -673,23 +673,22 @@ if (material) {
 
 
 
-// --- Categorías a exportar (VERSIÓN BLINDADA) ---
+// --- Categorías a exportar (VERSIÓN DEFINITIVA) ---
 function construirCategorias(row) {
   
   // 1. Helper para obtener valores buscando en varias columnas posibles
   const getVal = (...keys) => {
     for (const k of keys) {
-      // Verificamos que la propiedad exista
       if (row[k] !== undefined && row[k] !== null) {
         const v = row[k].toString().trim();
-        // Ignoramos "sin valor" o "null"
         if (v && v.toLowerCase() !== "sin valor" && v.toLowerCase() !== "null") return v;
       }
     }
     return "";
   };
 
-  // 2. Obtener datos crudos (Agregué más variantes de nombres de columna por si acaso)
+  // 2. Obtener datos crudos
+  // Prioridad: Categoría principal > Tipo > Subtipo > Adicional
   const categoriaPrincipal = getVal("Categoría principal", "categoria_principal", "CATEGORIA PRINCIPAL", "Categoría", "CATEGORIA");
   const tipo = getVal("producto_tipo", "PRODUCTO TIPO", "procucto_tipo", "PRODUCTO_TIPO");
   const subtipo = getVal("producto_subtipo", "PRODUCTO SUBTIPO", "procucto_subtipo", "PRODUCTO_SUBTIPO");
@@ -698,35 +697,35 @@ function construirCategorias(row) {
   // 3. Juntar todo en una lista temporal
   let listaRaw = [categoriaPrincipal, tipo, subtipo, catAdicional].filter(Boolean);
 
-  // 🔥 4. EL REEMPLAZO DE FUERZA BRUTA 🔥
+  // Debug: Ver qué llega antes de corregir
+  // console.log("Categorías Crudas:", listaRaw); 
+
+  // 🔥 4. REEMPLAZO "FUERZA BRUTA" 🔥
   const categoriasCorregidas = listaRaw.map(cat => {
       const limpio = cat.toLowerCase().trim();
 
-      // REGLA 1: PIERCING (Singular, Plural, Mayúscula o Minúscula)
-      if (limpio === "piercing" || limpio === "piercings") {
+      // REGLA 1: PIERCING
+      // Detecta: "piercing", "piercings", "piercing "
+      if (limpio.includes("piercing")) {
           return "Piercings de Plata 925";
       }
 
-      // REGLA 2: ARGOLLAS (Singular o Plural)
-      if (limpio === "argollas" || limpio === "argolla") {
+      // REGLA 2: ARGOLLAS
+      // Detecta: "argolla", "argollas"
+      if (limpio.includes("argolla")) {
           return "Argollas de Plata 925";
       }
       
-      // REGLA 3: AROS (Opcional, por si acaso)
-      if (limpio === "aros" || limpio === "aro") {
-           return "Aros de Plata 925";
-      }
 
-      // Si no coincide con nada, devolvemos la original
       return cat;
   });
 
-  // 5. Eliminar duplicados
+  // 5. Eliminar duplicados (ignorando mayúsculas/minúsculas)
   const unicas = [];
   const vistos = new Set();
   
   for (const c of categoriasCorregidas) {
-    const norm = c.toLowerCase();
+    const norm = c.toLowerCase().trim();
     if (!vistos.has(norm)) {
       vistos.add(norm);
       unicas.push(c);
@@ -734,10 +733,10 @@ function construirCategorias(row) {
   }
 
   // 6. Filtro especial ENCHAPADO
-  // Si la principal (ya corregida o no) es Enchapado, limpiamos hijos
-  if (categoriaPrincipal.toUpperCase().includes("ENCHAPADO")) {
+  if (categoriaPrincipal && categoriaPrincipal.toUpperCase().includes("ENCHAPADO")) {
     for (let i = unicas.length - 1; i >= 0; i--) {
       const cat = unicas[i].toLowerCase();
+      // Borramos redundancias si la principal ya dice que es enchapado
       if (cat.includes("enchapado en oro") || cat.includes("enchapado en plata")) {
         unicas.splice(i, 1);
       }
