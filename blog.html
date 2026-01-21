@@ -297,29 +297,71 @@
       </div>
     </div>
     
-  </div> <div class="container d-none" id="seccionPreferencias">
-    <div class="d-flex align-items-center mb-4">
-      <button class="btn btn-outline-secondary me-3" onclick="window.cerrarPreferencias()">
-        <i class="fa fa-arrow-left"></i> Volver atrás
-      </button>
-      <h2 class="mb-0">⚙️ Preferencias del Generador</h2>
-    </div>
-
-<div class="ios-card">
-      <h4 class="mb-3">⭐ Configurar Destacados por Defecto</h4>
-      <p class="text-muted text-sm">Selecciona hasta 3 blogs. Estos se cargarán automáticamente en los campos "Destacado 1, 2 y 3" al usar el botón <b>Auto asignar</b>.</p>
-      
-      <div id="containerListaPreferencias" class="lista-preferencias mb-3">
-        <p class="text-center py-3"><i class="fa fa-spinner fa-spin"></i> Cargando blogs...</p>
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center">
-        <span id="contadorPreferencias" class="text-primary font-weight-bold">0 seleccionados</span>
-        <button class="btn btn-primary" onclick="window.guardarPreferencias()">
-          <i class="fa fa-save"></i> Guardar Preferencias
+<div class="container d-none" id="seccionPreferencias">
+    
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center">
+        <button class="btn btn-outline-secondary me-3" onclick="window.cerrarPreferencias()">
+            <i class="fa fa-arrow-left"></i> Volver
         </button>
+        <h2 class="mb-0 ml-2">⚙️ Configuración del Pool</h2>
+      </div>
+      <button class="btn btn-primary" onclick="window.abrirModalPool()">
+        <i class="fa fa-plus-circle"></i> Agregar / Quitar Blogs
+      </button>
+    </div>
+
+    <div class="ios-card mb-4">
+      <h4 class="mb-2">Tu Pool de Rotación</h4>
+      <p class="text-muted text-sm">Estos son los blogs seleccionados. Al usar "Auto Asignar", el sistema elegirá 3 al azar de esta lista.</p>
+      
+      <div class="table-responsive mt-3">
+        <table class="table table-hover">
+            <thead class="thead-light">
+                <tr>
+                    <th scope="col" style="width: 10%;">ID</th>
+                    <th scope="col" style="width: 60%;">Nombre del Blog</th>
+                    <th scope="col" style="width: 30%;">Estado Datos</th>
+                </tr>
+            </thead>
+            <tbody id="tablaPreferenciasBody">
+                </tbody>
+        </table>
+      </div>
+      
+      <div id="mensajeVacio" class="text-center py-4 d-none">
+          <p class="text-muted">No tienes blogs en tu pool. Haz clic en "Agregar / Quitar Blogs" para comenzar.</p>
+      </div>
+
+      <div class="mt-3 text-right">
+        <span id="contadorPoolTexto" class="font-weight-bold text-primary">0 blogs en el pool</span>
       </div>
     </div>
+
+  </div>
+
+  <div id="modalSeleccionPool" class="modal-overlay">
+      <div class="modal-contenido">
+          <div class="modal-header">
+              <h4 class="m-0">Gestionar Selección</h4>
+              <button type="button" class="close" onclick="window.cerrarModalPool()">&times;</button>
+          </div>
+          
+          <div class="p-3 bg-light border-bottom">
+              <input type="text" id="buscadorModal" class="form-control" placeholder="🔍 Buscar por ID o Nombre...">
+          </div>
+
+          <div class="modal-body" id="listaModalBody">
+              <p class="text-center"><i class="fa fa-spinner fa-spin"></i> Cargando lista...</p>
+          </div>
+
+          <div class="modal-footer justify-content-between align-items-center">
+              <span class="text-muted text-sm" id="contadorModalSeleccion">0 seleccionados</span>
+              <button class="btn btn-success" onclick="window.guardarCambiosModal()">
+                  <i class="fa fa-save"></i> Guardar Cambios
+              </button>
+          </div>
+      </div>
   </div>
 
 </div>

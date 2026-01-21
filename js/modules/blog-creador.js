@@ -935,6 +935,194 @@ window.cerrarPreferencias = function() {
   });
 })();
 
+/* =====================
+   PREFERENCIAS Y POOL (Tabla + Modal)
+===================== */
+const STORAGE_KEY_DESTACADOS = "djoyas_blogs_destacados_favs";
+let seleccionTemporal = new Set(); // Para manejar el estado dentro del modal sin guardar
+
+// --- Verificar si un blog está completo (Datos mínimos) ---
+function verificarIntegridadBlog(data) {
+    if (!data) return false;
+    // Campos requeridos
+    const tieneTitulo = data.nombre && data.nombre.trim().length > 0;
+    const tieneAutor = data.autor && data.autor.trim().length > 0;
+    const tieneImg = data.imagen && data.imagen.trim().length > 0; // O URL base
+    const tieneCuerpo = data.blogHtml && data.blogHtml.trim().length > 0;
+    
+    // Puedes agregar más condiciones aquí
+    return tieneTitulo && tieneAutor && tieneCuerpo;
+}
+
+// --- Renderizar la Tabla Principal (Solo los elegidos) ---
+window.renderizarTablaPreferencias = function() {
+    const tbody = document.getElementById("tablaPreferenciasBody");
+    const msgVacio = document.getElementById("mensajeVacio");
+    const contadorTxt = document.getElementById("contadorPoolTexto");
+    
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    // 1. Cargar IDs guardados
+    const guardados = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
+
+    if (guardados.length === 0) {
+        msgVacio.classList.remove("d-none");
+        contadorTxt.textContent = "0 blogs en el pool";
+        return;
+    }
+    msgVacio.classList.add("d-none");
+    contadorTxt.textContent = `${guardados.length} blogs en el pool`;
+
+    // 2. Buscar datos y dibujar filas
+    guardados.forEach(id => {
+        const data = window.blogsData[id];
+        const tr = document.createElement("tr");
+        
+        if (!data) {
+            // Si tenemos un ID guardado pero no data (raro), mostramos error
+            tr.innerHTML = `<td>${id}</td><td colspan="2" class="text-danger">Datos no encontrados</td>`;
+        } else {
+            const estaCompleto = verificarIntegridadBlog(data);
+            const badgeClase = estaCompleto ? "status-completo" : "status-incompleto";
+            const badgeTexto = estaCompleto ? "✅ Completo" : "⚠️ Incompleto";
+
+            tr.innerHTML = `
+                <td><strong>${id}</strong></td>
+                <td>${data.nombre || 'Sin título'}</td>
+                <td><span class="badge-status ${badgeClase}">${badgeTexto}</span></td>
+            `;
+        }
+        tbody.appendChild(tr);
+    });
+};
+
+// --- MODAL: Abrir y Cargar Lista Completa ---
+window.abrirModalPool = function() {
+    const modal = document.getElementById("modalSeleccionPool");
+    const listaBody = document.getElementById("listaModalBody");
+    const inputBuscador = document.getElementById("buscadorModal");
+    
+    if(!modal) return;
+    
+    // Cargar selección actual en memoria temporal
+    const guardados = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
+    seleccionTemporal = new Set(guardados);
+
+    // Limpiar buscador
+    if(inputBuscador) inputBuscador.value = "";
+
+    modal.style.display = "flex"; // Mostrar Overlay
+    
+    // Renderizar lista inicial
+    window.renderizarListaModal();
+    
+    // Foco al buscador
+    if(inputBuscador) setTimeout(() => inputBuscador.focus(), 100);
+};
+
+window.cerrarModalPool = function() {
+    const modal = document.getElementById("modalSeleccionPool");
+    if(modal) modal.style.display = "none";
+};
+
+// --- MODAL: Renderizar Lista con Filtro ---
+window.renderizarListaModal = function(filtro = "") {
+    const container = document.getElementById("listaModalBody");
+    const contadorInfo = document.getElementById("contadorModalSeleccion");
+    if (!container) return;
+
+    container.innerHTML = "";
+    const filtroNorm = filtro.toLowerCase().trim();
+
+    // Obtener todos los blogs y ordenar
+    const todos = Object.values(window.blogsData || {});
+    todos.sort((a, b) => toNumId(b.id) - toNumId(a.id));
+
+    let mostrados = 0;
+
+    todos.forEach(blog => {
+        // Lógica de filtrado
+        const textoBusqueda = `${blog.id} ${blog.nombre || ''}`.toLowerCase();
+        if (filtro !== "" && !textoBusqueda.includes(filtroNorm)) return;
+
+        mostrados++;
+        const isChecked = seleccionTemporal.has(String(blog.id));
+
+        const div = document.createElement("div");
+        div.className = "item-modal";
+        div.innerHTML = `
+            <input type="checkbox" id="chk_${blog.id}" ${isChecked ? "checked" : ""}>
+            <label for="chk_${blog.id}" class="mb-0 w-100 cursor-pointer">
+                <strong>#${blog.id}</strong> - ${blog.nombre || 'Sin Título'}
+            </label>
+        `;
+
+        // Evento click en el checkbox
+        const chk = div.querySelector("input");
+        chk.addEventListener("change", (e) => {
+            if (e.target.checked) seleccionTemporal.add(String(blog.id));
+            else seleccionTemporal.delete(String(blog.id));
+            
+            // Actualizar contador del modal
+            if(contadorInfo) contadorInfo.textContent = `${seleccionTemporal.size} seleccionados`;
+        });
+
+        container.appendChild(div);
+    });
+
+    if (mostrados === 0) {
+        container.innerHTML = `<p class="text-muted text-center mt-3">No se encontraron blogs que coincidan con "${filtro}".</p>`;
+    }
+    
+    // Actualizar contador inicial
+    if(contadorInfo) contadorInfo.textContent = `${seleccionTemporal.size} seleccionados`;
+};
+
+// --- MODAL: Listener del Buscador ---
+document.addEventListener("DOMContentLoaded", () => {
+    const inputBuscador = document.getElementById("buscadorModal");
+    if (inputBuscador) {
+        inputBuscador.addEventListener("input", (e) => {
+            window.renderizarListaModal(e.target.value);
+        });
+    }
+});
+
+// --- MODAL: Guardar ---
+window.guardarCambiosModal = function() {
+    const arrayFinal = Array.from(seleccionTemporal);
+    localStorage.setItem(STORAGE_KEY_DESTACADOS, JSON.stringify(arrayFinal));
+    
+    mostrarNotificacion(`✅ Pool actualizado: ${arrayFinal.length} blogs.`);
+    window.cerrarModalPool();
+    window.renderizarTablaPreferencias(); // Refrescar la tabla de atrás
+};
+
+/* =====================
+   NAVEGACIÓN VISTAS
+===================== */
+window.mostrarPreferencias = function() {
+  const wizard = document.getElementById('blogWizard');
+  const prefs = document.getElementById('seccionPreferencias');
+  if (wizard && prefs) {
+    wizard.classList.add('d-none');
+    prefs.classList.remove('d-none');
+    
+    // Cargar tabla al entrar
+    window.renderizarTablaPreferencias();
+  }
+};
+
+window.cerrarPreferencias = function() {
+  const wizard = document.getElementById('blogWizard');
+  const prefs = document.getElementById('seccionPreferencias');
+  if (wizard && prefs) {
+    prefs.classList.add('d-none');
+    wizard.classList.remove('d-none');
+  }
+};
+
 
 
 
