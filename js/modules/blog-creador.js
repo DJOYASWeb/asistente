@@ -12,6 +12,13 @@ function toNumId(v){
   return Number.isFinite(n) ? n : -Infinity;
 }
 
+// --- FUNCIÓN PARA CONVERTIR **TEXTO** EN <b>TEXTO</b> ---
+function formatearNegritas(texto) {
+    if (!texto) return "";
+    // Busca pares de ** y los reemplaza por etiquetas <b>
+    return texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+}
+
 function cargarNavegacionSelects() {
   fetch('./data/navegacion.json')
     .then(res => res.json())
@@ -712,4 +719,4 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
 
 
 
-// updd v8
+// updd v1.1
