@@ -20,12 +20,23 @@ function convertirTextoABlogHtml(input) {
       contenido += '<ul class="texto-blog">\n';
       buffer.forEach(line => {
         const limpio = line.replace(/^\s*-?\s*/, '- ');
-        contenido += `<li>${aplicarNegritaUltimaFraseConDosPuntos(limpio)}</li>\n`;
+        
+        // 1. Aplicar negrita a frases con dos puntos
+        let textoProcesado = aplicarNegritaUltimaFraseConDosPuntos(limpio);
+        // 2. Aplicar negrita a **texto** (ESTO ES LO QUE FALTABA)
+        textoProcesado = textoProcesado.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+        contenido += `<li>${textoProcesado}</li>\n`;
       });
       contenido += '</ul>\n';
     } else {
       buffer.forEach(line => {
-        contenido += `<p class="texto-blog">${aplicarNegritaUltimaFraseConDosPuntos(line)}</p>\n`;
+        // 1. Aplicar negrita a frases con dos puntos
+        let textoProcesado = aplicarNegritaUltimaFraseConDosPuntos(line);
+        // 2. Aplicar negrita a **texto** (ESTO ES LO QUE FALTABA)
+        textoProcesado = textoProcesado.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+        contenido += `<p class="texto-blog">${textoProcesado}</p>\n`;
       });
     }
     buffer = [];
@@ -913,4 +924,4 @@ function exportarSeleccionados() {
   mostrarNotificacion(`✅ Exportados ${checkboxes.length} blogs con fecha formateada.`, "exito");
 }
 window.exportarSeleccionados = exportarSeleccionados;
-// v1
+// v4
