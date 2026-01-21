@@ -103,4 +103,4 @@ function copiarResultado() {
     .catch(err => alert("❌ Error al copiar: " + err));
 }
 window.copiarResultado = copiarResultado;
-//v3
+//v1.1
