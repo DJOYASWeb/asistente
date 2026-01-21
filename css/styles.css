@@ -2920,3 +2920,24 @@ grid-auto-rows: minmax(100px, auto);
 .feriado-num, .feriado-nombre {
     color: #dc3545; 
 }
+
+/* Lista de preferencias con scroll */
+.lista-preferencias {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f9f9f9;
+}
+.item-preferencia {
+    display: flex;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+.item-preferencia input {
+    margin-right: 10px;
+    width: 18px;
+    height: 18px;
+}
