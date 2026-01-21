@@ -2,6 +2,7 @@
 
 let navegacionBlogs = [];
 let blogs = [];
+window.blogsData = {};
 
 /* =====================
    CARGA DE SELECTS
@@ -315,7 +316,7 @@ function cargarBlogsExistentes() {
 
       docs.forEach((doc) => {
         const data = doc.data() || {};
-        blogsData[doc.id] = data;
+        window.blogsData[doc.id] = data;
 
         const opt = document.createElement("option");
         opt.value = doc.id;
@@ -329,7 +330,7 @@ function cargarBlogsExistentes() {
 }
 
 function autocompletarFormulario(blogId) {
-  const data = blogsData[blogId];
+const data = window.blogsData[blogId];
   if (!data) {
  if (blogId !== "") mostrarNotificacion(`Blog con ID ${blogId} no encontrado`, "alerta");
     return;
