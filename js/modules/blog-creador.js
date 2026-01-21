@@ -298,8 +298,6 @@ window.copiarHTML = copiarHTML;
    FIREBASE (cargas)
 ===================== */
 
-const blogsData = {};
-
 function cargarBlogsExistentes() {
   const db = firebase.firestore();
   const select = document.getElementById("selectBlogExistente");
