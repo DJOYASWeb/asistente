@@ -12,18 +12,29 @@ function convertirHTML() {
   let buffer = [];
   let enLista = false;
 
-  const flushBuffer = () => {
+const flushBuffer = () => {
     if (buffer.length === 0) return;
     if (enLista) {
       contenido += '<ul class="texto-blog">\n';
       buffer.forEach(line => {
         const limpio = line.replace(/^\s*-?\s*/, '- ');
-        contenido += `<li>${aplicarNegritaUltimaFraseConDosPuntos(limpio)}</li>\n`;
+        
+        // 1. Aplicamos la lógica de dos puntos
+        let textoProcesado = aplicarNegritaUltimaFraseConDosPuntos(limpio);
+        // 2. Y AHORA la de los asteriscos **negrita**
+        textoProcesado = textoProcesado.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+        contenido += `<li>${textoProcesado}</li>\n`;
       });
       contenido += '</ul>\n';
     } else {
       buffer.forEach(line => {
-        contenido += `<p class="texto-blog">${aplicarNegritaUltimaFraseConDosPuntos(line)}</p>\n`;
+        // 1. Aplicamos la lógica de dos puntos
+        let textoProcesado = aplicarNegritaUltimaFraseConDosPuntos(line);
+        // 2. Y AHORA la de los asteriscos **negrita**
+        textoProcesado = textoProcesado.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+        contenido += `<p class="texto-blog">${textoProcesado}</p>\n`;
       });
     }
     buffer = [];
