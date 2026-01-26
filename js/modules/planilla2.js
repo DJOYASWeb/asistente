@@ -449,6 +449,10 @@ function buscarColumnaID(row, palabrasClave) {
 // 3. FUNCIÓN PRINCIPAL DE LECTURA (Reemplazar la existente)
 // =========================================================================
 
+// =========================================================================
+// FUNCIÓN PRINCIPAL DE LECTURA (Corregida para sobrescribir datos antiguos)
+// =========================================================================
+
 function leerExcelDesdeFilaA(file) {
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -457,7 +461,6 @@ function leerExcelDesdeFilaA(file) {
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
     
-    // Leer con header:1 para obtener matriz cruda y evitar perdida de datos
     const opciones = { header: 1, defval: "" }; 
     const todasLasFilas = XLSX.utils.sheet_to_json(worksheet, opciones);
 
@@ -466,13 +469,9 @@ function leerExcelDesdeFilaA(file) {
       return;
     }
 
-    // Encabezados = primera fila
     const headers = (todasLasFilas[0] || []).map(h => (h ?? "").toString().trim());
-
-    // Filas de datos
     const filas = todasLasFilas.slice(1);
 
-    // Mapear filas a objetos
     const datos = filas.map(fila => {
       const obj = {};
       headers.forEach((col, i) => {
@@ -483,25 +482,34 @@ function leerExcelDesdeFilaA(file) {
         obj[col || `Columna${i}`] = valor;
       });
       
-      // Stock Original (Buscamos "cantidad" o "CANTIDAD" de forma segura)
       const stockKey = buscarColumnaID(obj, ["cantidad"]) || "Cantidad";
       obj["_stock_original"] = Number(obj[stockKey] || 0);
 
       return obj;
     });
 
-    // --- NUEVA LÓGICA DE ASIGNACIÓN POR ID ---
+    // --- LÓGICA DE ASIGNACIÓN Y SOBRESCRITURA ---
     datos.forEach(row => {
 
-      // A) CATEGORÍA PRINCIPAL (Buscar columna con "id" y "material")
+      // 1. MATERIAL / CATEGORÍA PRINCIPAL
+      // Buscamos la columna ID (ej: "ID PRODUCTO MATERIAL")
       const keyIdMaterial = buscarColumnaID(row, ["id", "material"]); 
       const idMaterial = keyIdMaterial ? (row[keyIdMaterial] || "").toString().trim() : "";
       
       if (idMaterial && MAPA_MATERIALES[idMaterial]) {
-        // ✅ ÉXITO: Encontramos ID y seteamos el nombre
-        row["Categoría principal"] = MAPA_MATERIALES[idMaterial];
+        // ✅ ENCONTRADO: Asignamos el nombre nuevo
+        const nombreMaterial = MAPA_MATERIALES[idMaterial];
+        
+        row["Categoría principal"] = nombreMaterial;
+        
+        // 🔥 CLAVE DEL ÉXITO: Sobrescribimos las columnas antiguas para que
+        // funciones como 'construirCaracteristicas' lean el dato nuevo, no el viejo.
+        row["PRODUCTO MATERIAL"] = nombreMaterial;
+        row["producto_material"] = nombreMaterial;
+        row["material"] = nombreMaterial;
+
       } else {
-        // ⚠️ FALLBACK: Si no hay ID, usamos lógica antigua por texto
+        // ⚠️ FALLBACK: Usar texto antiguo si no hay ID válido
         const keyMaterialTexto = buscarColumnaID(row, ["producto", "material"]) || "PRODUCTO MATERIAL";
         const materialRaw = (row[keyMaterialTexto] || "").toString().trim().toLowerCase();
 
@@ -509,7 +517,6 @@ function leerExcelDesdeFilaA(file) {
         else if (materialRaw.includes("accesorios")) row["Categoría principal"] = "ACCESORIOS";
         else if (materialRaw.includes("plata")) row["Categoría principal"] = "Joyas de plata por mayor";
         else {
-            // Intento final por TIPO
             const keyTipo = buscarColumnaID(row, ["producto", "tipo"]) || "PRODUCTO TIPO";
             const tipoRaw = (row[keyTipo] || "").toString().toLowerCase();
             if (tipoRaw.includes("insumos de plata")) row["Categoría principal"] = "Joyas de plata por mayor";
@@ -518,29 +525,33 @@ function leerExcelDesdeFilaA(file) {
         }
       }
 
-      // B) TIPO (Buscar columna con "id" y "tipo", evitando "subtipo")
+      // 2. TIPO (ID PRODUCTO TIPO)
       const keysRow = Object.keys(row);
+      // Buscamos columna que tenga "id" y "tipo" pero NO "sub" (para evitar subtipo)
       const keyIdTipo = keysRow.find(k => {
           const s = k.toLowerCase();
           return s.includes("id") && s.includes("tipo") && !s.includes("sub");
       });
-
       const idTipo = keyIdTipo ? (row[keyIdTipo] || "").toString().trim() : "";
 
       if (idTipo && MAPA_SUBTIPOS[idTipo]) {
-        const nuevoNombre = MAPA_SUBTIPOS[idTipo];
-        row["producto_tipo"] = nuevoNombre;
-        row["PRODUCTO TIPO"] = nuevoNombre;
+        const nuevoTipo = MAPA_SUBTIPOS[idTipo];
+        // 🔥 Sobrescribimos todas las variantes para asegurar consistencia
+        row["producto_tipo"] = nuevoTipo;
+        row["PRODUCTO TIPO"] = nuevoTipo;
+        row["tipo"] = nuevoTipo;
       }
 
-      // C) SUBTIPO (Buscar columna con "id" y "subtipo")
+      // 3. SUBTIPO (ID PRODUCTO SUBTIPO)
       const keyIdSubtipo = buscarColumnaID(row, ["id", "subtipo"]);
       const idSubtipo = keyIdSubtipo ? (row[keyIdSubtipo] || "").toString().trim() : "";
 
       if (idSubtipo && MAPA_SUBTIPOS[idSubtipo]) {
-        const nuevoNombre = MAPA_SUBTIPOS[idSubtipo];
-        row["producto_subtipo"] = nuevoNombre;
-        row["PRODUCTO SUBTIPO"] = nuevoNombre;
+        const nuevoSubtipo = MAPA_SUBTIPOS[idSubtipo];
+        // 🔥 Sobrescribimos
+        row["producto_subtipo"] = nuevoSubtipo;
+        row["PRODUCTO SUBTIPO"] = nuevoSubtipo;
+        row["subtipo"] = nuevoSubtipo;
       }
 
     });
@@ -549,13 +560,11 @@ function leerExcelDesdeFilaA(file) {
     ordenColumnasVista = [...headers];
     if (!ordenColumnasVista.includes("Categoría principal")) ordenColumnasVista.push("Categoría principal");
 
-    // Limpiar arrays globales
     datosCombinaciones = [];
     datosReposicion = [];
     datosOriginales = [];
     const errores = [];
 
-    // Clasificar filas
     datos.forEach(row => {
       const keySalida = buscarColumnaID(row, ["salida"]) || "Salida";
       const salida = (row[keySalida] || "").toString().trim();
@@ -568,7 +577,6 @@ function leerExcelDesdeFilaA(file) {
 
       const categoria = (row["Categoría principal"] || "").toString().trim();
 
-      // Validación de anillos
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
       const combinacionRaw = combinacion.toLowerCase();
       const esMidi = combinacionRaw === "midi";
@@ -582,7 +590,6 @@ function leerExcelDesdeFilaA(file) {
                           !["sin valor", "null", "ninguno", "midi"].includes(combinacionRaw);
 
       if (combiValida) {
-        // Validar formato
         const lista = combinacion.split(",");
         let errorDetectado = false;
         lista.forEach(c => {
@@ -604,7 +611,6 @@ function leerExcelDesdeFilaA(file) {
       }
     });
 
-    // Mostrar Alertas
     const divAlertas = document.getElementById("alertas");
     if (divAlertas) {
         divAlertas.innerHTML = errores.length 
@@ -612,7 +618,6 @@ function leerExcelDesdeFilaA(file) {
           : "";
     }
 
-    // Renderizar
     tipoSeleccionado = "sin_seleccion";
     datosFiltrados = [...datosOriginales, ...datosCombinaciones];
     renderTablaConOrden(datosFiltrados);
@@ -624,7 +629,6 @@ function leerExcelDesdeFilaA(file) {
   };
   reader.readAsArrayBuffer(file);
 }
-
 
 
 
