@@ -1,3 +1,6 @@
+
+let datosCargaPreliminar = []; 
+
 const generados = new Set();
 const maxCodigos = 10000;
 
@@ -495,4 +498,166 @@ document.addEventListener('change', (e) => {
 });
 
 
-// upd v1.4
+
+function inicializarEventosCarga() {
+    // A. Detectar cuando seleccionan un archivo (Preview automática)
+    document.getElementById('archivoMasivo')?.addEventListener('change', function(e) {
+        const archivo = e.target.files[0];
+        if (!archivo) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.SheetNames[0];
+            
+            // Convertir Excel a JSON
+            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+            
+            if (jsonData.length === 0) {
+                alert("El archivo está vacío.");
+                return;
+            }
+
+            datosCargaPreliminar = jsonData; // Guardamos en la variable global
+            renderizarPreview(jsonData);     // Llamamos a la función de dibujo
+        };
+        reader.readAsArrayBuffer(archivo);
+    });
+
+    // B. Detectar clic en el botón "Confirmar"
+    document.getElementById('btnConfirmarCarga')?.addEventListener('click', ejecutarCargaDefinitiva);
+}
+
+function renderizarPreview(datos) {
+    const thead = document.querySelector('#tablaPreviewCarga thead');
+    const tbody = document.querySelector('#tablaPreviewCarga tbody');
+    const estado = document.getElementById('estadoCarga');
+    const btnConfirmar = document.getElementById('btnConfirmarCarga');
+    const msgVacio = document.getElementById('mensajeVacioPreview');
+
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+    
+    if (datos.length > 0) {
+        // Ocultar mensaje de "vacío"
+        if(msgVacio) msgVacio.style.display = "none";
+        
+        // 1. Generar Encabezados Dinámicos
+        const columnas = Object.keys(datos[0]);
+        let headerHTML = "<tr>";
+        columnas.forEach(col => headerHTML += `<th>${col}</th>`);
+        headerHTML += "</tr>";
+        thead.innerHTML = headerHTML;
+
+        // 2. Generar Filas (Mostramos solo las primeras 50 para rapidez)
+        const limite = Math.min(datos.length, 50);
+        datos.slice(0, limite).forEach(fila => {
+            let rowHTML = "<tr>";
+            columnas.forEach(col => {
+                rowHTML += `<td>${fila[col] !== undefined ? fila[col] : ''}</td>`;
+            });
+            rowHTML += "</tr>";
+            
+            // Convertir string a nodo DOM y agregar
+            const template = document.createElement('template');
+            template.innerHTML = rowHTML.trim();
+            tbody.appendChild(template.content.firstChild);
+        });
+
+        // 3. Actualizar estado visual
+        if(estado) {
+            estado.textContent = `✅ ${datos.length} filas detectadas`;
+            estado.className = "badge bg-success";
+        }
+        if(btnConfirmar) btnConfirmar.disabled = false;
+    }
+}
+
+async function ejecutarCargaDefinitiva() {
+    const btn = document.getElementById('btnConfirmarCarga');
+    
+    // IMPORTANTE: Asegúrate de tener la función 'generarPoolDeCodigosDisponibles' en tu código base
+    const pool = generarPoolDeCodigosDisponibles(); 
+    
+    // Validación de seguridad
+    if (pool.length < datosCargaPreliminar.length) {
+        alert(`Error: Tienes ${datosCargaPreliminar.length} clientes pero solo ${pool.length} códigos disponibles.`);
+        return;
+    }
+
+    if (!confirm(`¿Estás seguro de cargar ${datosCargaPreliminar.length} clientes?`)) return;
+
+    // UI de carga
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Procesando...';
+
+    let procesados = 0;
+
+    // Recorrer datos y guardar
+    for (let i = 0; i < datosCargaPreliminar.length; i++) {
+        const cliente = datosCargaPreliminar[i];
+        
+        // Mapeo flexible (Detecta "ID PrestaShop", "id", "ID", etc.)
+        const idPS = String(cliente['ID PrestaShop'] || cliente['id prestashop'] || cliente['ID'] || '').trim();
+        const nombre = String(cliente['Nombre'] || cliente['nombre'] || cliente['Cliente'] || '').trim();
+        const correo = String(cliente['Correo'] || cliente['correo'] || cliente['Email'] || '').trim();
+
+        if (!idPS || !nombre) continue; // Saltar filas vacías
+
+        // Asignar código aleatorio del pool
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        const codigo = pool[randomIndex];
+        pool.splice(randomIndex, 1); // Quitar del pool para no repetir
+
+        try {
+            await window.db.collection("codigos-generados").doc(codigo).set({
+                idPrestaShop: idPS, 
+                nombre: nombre, 
+                correo: correo,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            generados.add(codigo);
+            procesados++;
+        } catch (e) {
+            console.error("Error guardando fila:", i, e);
+        }
+    }
+
+    alert(`Proceso finalizado. ${procesados} clientes cargados correctamente.`);
+    
+    // Limpieza final
+    cerrarModalCargaMasiva();
+    cargarCodigosExistentes(); // Recargar la tabla principal
+    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Importar';
+}
+
+window.cerrarModalCargaMasiva = function() {
+    document.getElementById('modalCargaMasiva').style.display = 'none';
+    
+    // Limpieza de datos
+    document.getElementById('archivoMasivo').value = '';
+    document.getElementById('tablaPreviewCarga').querySelector('tbody').innerHTML = '';
+    document.getElementById('mensajeVacioPreview').style.display = 'block';
+    document.getElementById('btnConfirmarCarga').disabled = true;
+    document.getElementById('estadoCarga').textContent = "Esperando archivo...";
+    document.getElementById('estadoCarga').className = "badge bg-secondary";
+    
+    datosCargaPreliminar = []; // Vaciar memoria
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// upd v1

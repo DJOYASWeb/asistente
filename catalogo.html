@@ -160,15 +160,45 @@
 
 
 
-<!-- Modal Carga Masiva -->
 <div id="modalCargaMasiva" class="alinear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
-  <div style="background:white; max-width:400px; width:90%; padding:2rem; border-radius:16px; position:relative;">
-    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalCargaMasiva()"></button>
-    <h3 class="mb-4">📁 Carga masiva de clientas</h3>
-
-    <input type="file" id="archivoMasivo" class="form-control mb-3" accept=".csv,.xlsx" />
+  <div style="background:white; max-width:900px; width:95%; max-height: 90vh; display:flex; flex-direction:column; padding:2rem; border-radius:16px; position:relative;">
     
-    <button id="procesarCargaMasiva" class="btn btn-primary w-100">Procesar</button>
+    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalCargaMasiva()"></button>
+    <h3 class="mb-3">📁 Carga Masiva con Vista Previa</h3>
+
+    <div class="row align-items-center mb-3 bg-light p-3 rounded">
+        <div class="col-md-7">
+            <label class="form-label mb-1">Selecciona archivo Excel/CSV:</label>
+            <input type="file" id="archivoMasivo" class="form-control" accept=".csv,.xlsx, .xls" />
+        </div>
+        <div class="col-md-5 text-end">
+             <span id="estadoCarga" class="badge bg-secondary">Esperando archivo...</span>
+        </div>
+    </div>
+
+    <div style="flex:1; overflow:auto; border:1px solid #dee2e6; margin-bottom:1rem; border-radius:8px; background: #f8f9fa;">
+        <table class="table table-striped table-hover table-sm mb-0" id="tablaPreviewCarga">
+            <thead class="table-dark" style="position: sticky; top: 0; z-index: 1;">
+                </thead>
+            <tbody>
+                </tbody>
+        </table>
+        <div id="mensajeVacioPreview" class="text-center p-5 text-muted">
+            <i class="fa-solid fa-file-excel fa-3x mb-3"></i>
+            <p>Sube un archivo para ver los datos aquí.</p>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">* Se mostrarán las primeras 50 filas como ejemplo.</small>
+        <div>
+            <button class="btn btn-outline-secondary me-2" onclick="cerrarModalCargaMasiva()">Cancelar</button>
+            <button id="btnConfirmarCarga" class="btn btn-success" disabled>
+                <i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Importar
+            </button>
+        </div>
+    </div>
+
   </div>
 </div>
 
