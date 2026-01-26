@@ -8,6 +8,113 @@ window.datosFiltrados = [];
 window.datosCombinacionCantidades = [];
 window.tipoSeleccionado = "sin_seleccion";
 
+
+// --- DATOS DE MAPEO (Desde Final cat.xlsx) ---
+
+// Bloque 1: IDs para "ID PRODUCTO MATERIAL" (Categoría Principal)
+const MAPA_MATERIALES = {
+  "13": "Accesorios",
+  "11": "Joyas de plata por mayor",
+  "5": "Joyas Enchapadas",
+
+};
+
+// Bloque 2: IDs para "ID PRODUCTO TIPO" y "ID PRODUCTO SUBTIPO"
+const MAPA_SUBTIPOS = {
+  "19": "Anillos de Plata",
+  "33": "Anillos Enchapados en Oro y Plata",
+  "20": "Aros de Plata",
+  "32": "Aros Enchapados en Oro y Plata",
+  "43": "Bolsas",
+  "24": "Cadenas de Plata",
+  "35": "Cadenas Enchapadas en Oro y Plata",
+  "44": "Cajas",
+  "23": "Colgantes de Plata",
+  "36": "Colgantes Enchapados en Oro y Plata",
+  "26": "Collares de Plata",
+  "38": "Collares Enchapados en Oro y Plata",
+  "22": "Conjuntos de Plata",
+  "39": "Conjuntos Enchapados en Oro y Plata",
+  "29": "Hombre",
+  "37": "Joyas Infantiles Enchapadas en Oro y Plata",
+  "25": "Infantil Plata",
+  "31": "Insumos de Plata",
+  "41": "Insumos para Joyas Enchapados en Oro y Plata",
+  "45": "Joyeros",
+  "30": "Pack de Joyas",
+  "21": "Pulseras de Plata",
+  "34": "Pulseras Enchapadas en Oro y Plata",
+  "28": "Swarovski Elements",
+  "27": "Tobilleras de Plata",
+  "40": "Tobilleras Enchapadas en Oro y Plata",
+  "46": "Limpiadores",
+  "4": "Anillo Circón",
+  "5": "Anillo con Micro Circón",
+  "6": "Anillo Lapidado",
+  "7": "Anillo Marquesita",
+  "9": "Anillo MIDI Falange",
+  "12": "Anillo Piedra Natural",
+  "8": "Anillo Plata con Oro",
+  "10": "Anillos de Compromiso",
+  "11": "Anillos de Hombres",
+  "3": "Anillos de Plata Lisa",
+  "21": "Argollas de Plata 925",
+  "22": "Argollas con Colgantes",
+  "23": "Aro Circón Pegados",
+  "20": "Aro de Plata Pegados",
+  "14": "Aros Circón Largo",
+  "16": "Aros de Perla",
+  "13": "Aros de Plata Largos",
+  "17": "Aros Lapidado",
+  "18": "Aros Mapuches",
+  "15": "Aros Marquesita",
+  "24": "Aros Piedra Natural",
+  "19": "Aros Swarovski Elements",
+  "25": "Aros Trepadores y Cuff",
+  "48": "Cadena Cartier",
+  "49": "Cadena Cinta",
+  "50": "Cadena Esferas",
+  "51": "Cadena Eslabón",
+  "59": "Cadena Forzatina",
+  "47": "Cadena Groumet",
+  "52": "Cadena Gucci",
+  "53": "Cadena Rolo",
+  "54": "Cadena Singapur",
+  "55": "Cadena Topo",
+  "56": "Cadena Tourbillon",
+  "57": "Cadena Valentino",
+  "58": "Cadena Veneciana",
+  "33": "Colgante Circón",
+  "35": "Colgante Cruz",
+  "40": "Colgante de Perla",
+  "39": "Colgante estilo Charms",
+  "32": "Colgante Piedra Natural",
+  "38": "Colgante Plata Lisa",
+  "37": "Colgantes de Placa",
+  "34": "Colgantes Lapidado",
+  "36": "Colgantes Niño Niña",
+  "43": "Collares con Circón",
+  "41": "Collares de Piedra",
+  "26": "Piercings de Plata 925",
+  "31": "Pulsera con Circón",
+  "30": "Pulsera con Piedra",
+  "27": "Pulsera de Hombre",
+  "28": "Pulsera de Plata",
+  "29": "Pulsera con Piedra"
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Orden de columnas para la vista (encabezados de Fila A + "Categoría principal" al final)
 let ordenColumnasVista = [];
 
@@ -327,10 +434,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-/**
- * Lee el Excel usando la primera fila (Fila A) como encabezados,
- * mantiene su orden exacto y agrega "Categoría principal" al final.
- */
+
 function leerExcelDesdeFilaA(file) {
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -379,44 +483,60 @@ function leerExcelDesdeFilaA(file) {
       return obj;
     });
 
-    // --- Generar "Categoría principal" ---
+    // --- NUEVA LÓGICA: Asignación por IDs de Categoría ---
     datos.forEach(row => {
-      // Buscar material (con typo y sin typo)
-      const materialRaw = (
-        row["producto_material"] ||
-        row["PRODUCTO MATERIAL"] ||
-        row["procucto_material"] ||
-        ""
-      ).toString().trim().toLowerCase();
-
-      let categoria = "";
-
-if (materialRaw.includes("enchape")) {
-  categoria = "ENCHAPADO";
-}
- else if (materialRaw.includes("accesorios")) {
-        categoria = "ACCESORIOS";
-      } else if (materialRaw.includes("plata")) {
-        categoria = "Joyas de plata por mayor";
-      }
-
-      // Si no hay categoría por material, revisamos el tipo
-      if (!categoria) {
-        const tipoRaw = (
-          row["producto_tipo"] ||
-          row["PRODUCTO TIPO"] ||
-          row["procucto_tipo"] ||
+      
+      // 1. Procesar ID PRODUCTO MATERIAL -> "Categoría principal"
+      // Usamos el MAPA_MATERIALES (Bloque 1 del CSV)
+      const idMaterial = (row["ID PRODUCTO MATERIAL"] || row["id_producto_material"] || "").toString().trim();
+      
+      if (MAPA_MATERIALES[idMaterial]) {
+        row["Categoría principal"] = MAPA_MATERIALES[idMaterial];
+      } else {
+        // Fallback: Si no hay ID, intentar mantener lógica antigua o dejar vacío
+        const materialRaw = (
+          row["PRODUCTO MATERIAL"] ||
+          row["producto_material"] ||
           ""
         ).toString().trim().toLowerCase();
 
-        if (tipoRaw.includes("insumos de plata")) {
-          categoria = "Joyas de plata por mayor";
-        } else if (tipoRaw.includes("insumos enchapados")) {
-          categoria = "ENCHAPADO";
+        if (materialRaw.includes("enchape")) {
+          row["Categoría principal"] = "ENCHAPADO";
+        } else if (materialRaw.includes("accesorios")) {
+          row["Categoría principal"] = "ACCESORIOS";
+        } else if (materialRaw.includes("plata")) {
+          row["Categoría principal"] = "Joyas de plata por mayor";
+        } else {
+          // Revisión por tipo si aún no hay categoría
+          const tipoRaw = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
+          if (tipoRaw.includes("insumos de plata")) {
+            row["Categoría principal"] = "Joyas de plata por mayor";
+          } else if (tipoRaw.includes("insumos enchapados")) {
+            row["Categoría principal"] = "ENCHAPADO";
+          } else {
+            row["Categoría principal"] = "";
+          }
         }
       }
 
-      row["Categoría principal"] = categoria;
+      // 2. Procesar ID PRODUCTO TIPO -> sobrescribir "producto_tipo"
+      // Usamos el MAPA_SUBTIPOS (Bloque 2 del CSV)
+      const idTipo = (row["ID PRODUCTO TIPO"] || row["id_producto_tipo"] || "").toString().trim();
+      if (MAPA_SUBTIPOS[idTipo]) {
+        const valorNuevo = MAPA_SUBTIPOS[idTipo];
+        row["producto_tipo"] = valorNuevo;
+        row["PRODUCTO TIPO"] = valorNuevo; // Actualizamos ambas keys por si acaso
+      }
+
+      // 3. Procesar ID PRODUCTO SUBTIPO -> sobrescribir "producto_subtipo"
+      // Usamos el MAPA_SUBTIPOS (Bloque 2 del CSV)
+      const idSubtipo = (row["ID PRODUCTO SUBTIPO"] || row["id_producto_subtipo"] || "").toString().trim();
+      if (MAPA_SUBTIPOS[idSubtipo]) {
+        const valorNuevo = MAPA_SUBTIPOS[idSubtipo];
+        row["producto_subtipo"] = valorNuevo;
+        row["PRODUCTO SUBTIPO"] = valorNuevo;
+      }
+
     });
 
     // Construimos el orden de columnas a mostrar en la vista:
@@ -453,28 +573,26 @@ if (materialRaw.includes("enchape")) {
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
 
       const combinacionRaw = (
-  row["Combinaciones"] ||
-  row["PRODUCTO COMBINACION"] ||
-  row["producto_combinacion"] ||
-  ""
-).toString().trim().toLowerCase();
+        row["Combinaciones"] ||
+        row["PRODUCTO COMBINACION"] ||
+        row["producto_combinacion"] ||
+        ""
+      ).toString().trim().toLowerCase();
 
-const esMidi = combinacionRaw === "midi";
+      const esMidi = combinacionRaw === "midi";
 
+      // ⚠️ Anillo sin combinaciones SOLO es error si NO es MIDI
+      if (esAnilloConValidacion && combinacion === "" && !esMidi) {
+        errores.push(`${sku} - combinaciones vacías (${categoria})`);
+        return;
+      }
 
-// ⚠️ Anillo sin combinaciones SOLO es error si NO es MIDI
-if (esAnilloConValidacion && combinacion === "" && !esMidi) {
-  errores.push(`${sku} - combinaciones vacías (${categoria})`);
-  return;
-}
-
-const combiValida =
-  combinacion !== "" &&
-  combinacion.toLowerCase() !== "sin valor" &&
-  combinacion.toLowerCase() !== "null" &&
-  combinacion.toLowerCase() !== "ninguno" &&
-  combinacion.toLowerCase() !== "midi"; // ⬅️ CLAVE
-
+      const combiValida =
+        combinacion !== "" &&
+        combinacion.toLowerCase() !== "sin valor" &&
+        combinacion.toLowerCase() !== "null" &&
+        combinacion.toLowerCase() !== "ninguno" &&
+        combinacion.toLowerCase() !== "midi"; // ⬅️ CLAVE
 
       // 🧩 Si hay combinación válida → procesar
       if (combiValida) {
@@ -495,7 +613,6 @@ const combiValida =
         });
 
         if (errorDetectado) return;
-
 
         // ✅ Registrar como combinación válida
         row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
@@ -523,10 +640,10 @@ const combiValida =
     }
 
     // Mostrar TODO (nuevos + con combinaciones) por defecto
-tipoSeleccionado = "sin_seleccion";
-datosFiltrados = [...datosOriginales, ...datosCombinaciones];
-renderTablaConOrden(datosFiltrados);
-actualizarEstadoBotonesProcesar(); // 🔒 bloquear botones
+    tipoSeleccionado = "sin_seleccion";
+    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+    renderTablaConOrden(datosFiltrados);
+    actualizarEstadoBotonesProcesar(); // 🔒 bloquear botones
     document.getElementById("botonesTipo").classList.remove("d-none");
 
   };
