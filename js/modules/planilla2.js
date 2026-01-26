@@ -396,7 +396,7 @@ const MAPA_SUBTIPOS = {
   "17": "Aros Lapidado",
   "18": "Aros Mapuches",
   "15": "Aros Marquesita",
-  "24": "Aros Piedra Natural",
+  "74": "Aros Piedra Natural",
   "19": "Aros Swarovski Elements",
   "25": "Aros Trepadores y Cuff",
   "48": "Cadena Cartier",
