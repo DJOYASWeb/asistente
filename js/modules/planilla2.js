@@ -440,6 +440,20 @@ const MAPA_SUBTIPOS = {
   "29": "Pulsera con Piedra"
 };
 
+
+// ==========================================
+// FUNCIÓN AUXILIAR (Faltaba esta parte)
+// ==========================================
+function buscarColumnaID(row, palabrasClave) {
+  const keys = Object.keys(row);
+  return keys.find(k => {
+    // Convertimos a minúsculas y quitamos guiones bajos para comparar
+    const kNorm = k.toString().toLowerCase().replace(/_/g, " ").trim();
+    // Verificamos que contenga todas las palabras clave requeridas
+    return palabrasClave.every(palabra => kNorm.includes(palabra));
+  });
+}
+
 // =========================================================================
 // FUNCIÓN PRINCIPAL DE LECTURA (Actualizada para 3 mapas)
 // =========================================================================
