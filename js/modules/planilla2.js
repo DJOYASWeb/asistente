@@ -344,7 +344,7 @@ document.addEventListener("DOMContentLoaded", function () {
 const MAPA_MATERIALES = {
   "13": "Accesorios",
   "11": "Joyas de plata por mayor",
-  "5": "Joyas Enchapadas",
+  "12": "Joyas Enchapadas",
   "19": "Anillos de Plata",
   "33": "Anillos Enchapados en Oro y Plata",
   "20": "Aros de Plata",
