@@ -341,14 +341,19 @@ document.addEventListener("DOMContentLoaded", function () {
 // 1. CONSTANTES DE MAPEO (IDs -> Nombres Reales)
 // =========================================================================
 
+// =========================================================================
+// 1. CONSTANTES DE MAPEO (3 Bloques Independientes)
+// =========================================================================
+
+// A) MATERIALES (Solo los 3 que indicaste: 13, 11, 12)
 const MAPA_MATERIALES = {
-"13": "Accesorios",
+  "13": "Accesorios",
   "11": "Joyas de plata por mayor",
-  "12": "Joyas Enchapadas",
-  
+  "12": "Joyas Enchapadas" // Reemplaza al 5 según tu indicación
 };
 
-const MAPA_SUBTIPOS = {
+// B) TIPOS (Columna ID PRODUCTO TIPO)
+const MAPA_TIPOS = {
   "19": "Anillos de Plata",
   "33": "Anillos Enchapados en Oro y Plata",
   "20": "Aros de Plata",
@@ -375,8 +380,12 @@ const MAPA_SUBTIPOS = {
   "28": "Swarovski Elements",
   "27": "Tobilleras de Plata",
   "40": "Tobilleras Enchapadas en Oro y Plata",
-  "46": "Limpiadores",
-"4": "Anillo Circón",
+  "46": "Limpiadores"
+};
+
+// C) SUBTIPOS (Columna ID PRODUCTO SUBTIPO)
+const MAPA_SUBTIPOS = {
+  "4": "Anillo Circón",
   "5": "Anillo con Micro Circón",
   "6": "Anillo Lapidado",
   "7": "Anillo Marquesita",
@@ -396,7 +405,7 @@ const MAPA_SUBTIPOS = {
   "17": "Aros Lapidado",
   "18": "Aros Mapuches",
   "15": "Aros Marquesita",
-  "74": "Aros Piedra Natural",
+  "24": "Aros Piedra Natural",
   "19": "Aros Swarovski Elements",
   "25": "Aros Trepadores y Cuff",
   "48": "Cadena Cartier",
@@ -432,19 +441,171 @@ const MAPA_SUBTIPOS = {
 };
 
 // =========================================================================
-// 2. NUEVA FUNCIÓN INTELIGENTE (Agregada para encontrar IDs dificiles)
+// FUNCIÓN PRINCIPAL DE LECTURA (Actualizada para 3 mapas)
 // =========================================================================
-// Busca una columna que tenga TODAS las palabras clave, ignorando _ o espacios.
-// Ejemplo: encuentra "ID_PRODUCTO_MATERIAL" buscando ["id", "material"]
-function buscarColumnaID(row, palabrasClave) {
-  const keys = Object.keys(row);
-  return keys.find(k => {
-    // Convertimos "ID_PRODUCTO_MATERIAL" -> "id producto material"
-    const kNorm = k.toString().toLowerCase().replace(/_/g, " ").trim();
-    // Verificamos que contenga todas las palabras requeridas
-    return palabrasClave.every(palabra => kNorm.includes(palabra));
-  });
+
+function leerExcelDesdeFilaA(file) {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    // Leer todo como texto para no perder ceros iniciales
+    const opciones = { header: 1, defval: "" }; 
+    const todasLasFilas = XLSX.utils.sheet_to_json(worksheet, opciones);
+
+    if (todasLasFilas.length < 2) {
+      mostrarAlerta("El archivo no tiene suficientes filas.", "danger");
+      return;
+    }
+
+    const headers = (todasLasFilas[0] || []).map(h => (h ?? "").toString().trim());
+    const filas = todasLasFilas.slice(1);
+
+    const datos = filas.map(fila => {
+      const obj = {};
+      headers.forEach((col, i) => {
+        let valor = fila[i];
+        if (typeof valor === "string" && valor.trim().toUpperCase() === "NULL") {
+          valor = "";
+        }
+        obj[col || `Columna${i}`] = valor;
+      });
+      
+      const stockKey = buscarColumnaID(obj, ["cantidad"]) || "Cantidad";
+      obj["_stock_original"] = Number(obj[stockKey] || 0);
+
+      return obj;
+    });
+
+    // --- NUEVA LÓGICA: 3 MAPAS + SOBRESCRITURA ---
+    datos.forEach(row => {
+
+      // 1. MATERIAL (Usa MAPA_MATERIALES)
+      const keyIdMaterial = buscarColumnaID(row, ["id", "material"]); 
+      const idMaterial = keyIdMaterial ? (row[keyIdMaterial] || "").toString().trim() : "";
+      
+      if (idMaterial && MAPA_MATERIALES[idMaterial]) {
+        const nombreMat = MAPA_MATERIALES[idMaterial];
+        row["Categoría principal"] = nombreMat;
+        // Sobrescribir columnas antiguas para consistencia
+        row["PRODUCTO MATERIAL"] = nombreMat;
+        row["producto_material"] = nombreMat;
+      } else {
+        // Fallback antiguo
+        const keyMaterialTexto = buscarColumnaID(row, ["producto", "material"]) || "PRODUCTO MATERIAL";
+        const materialRaw = (row[keyMaterialTexto] || "").toString().trim().toLowerCase();
+        if (materialRaw.includes("enchape")) row["Categoría principal"] = "ENCHAPADO";
+        else if (materialRaw.includes("accesorios")) row["Categoría principal"] = "ACCESORIOS";
+        else if (materialRaw.includes("plata")) row["Categoría principal"] = "Joyas de plata por mayor";
+        else row["Categoría principal"] = ""; 
+      }
+
+      // 2. TIPO (Usa MAPA_TIPOS)
+      // Buscar columna "ID...TIPO" que NO sea "SUBTIPO"
+      const keysRow = Object.keys(row);
+      const keyIdTipo = keysRow.find(k => {
+          const s = k.toLowerCase();
+          return s.includes("id") && s.includes("tipo") && !s.includes("sub");
+      });
+      const idTipo = keyIdTipo ? (row[keyIdTipo] || "").toString().trim() : "";
+
+      if (idTipo && MAPA_TIPOS[idTipo]) {
+        const nombreTipo = MAPA_TIPOS[idTipo];
+        row["producto_tipo"] = nombreTipo;
+        row["PRODUCTO TIPO"] = nombreTipo;
+        row["tipo"] = nombreTipo;
+      }
+
+      // 3. SUBTIPO (Usa MAPA_SUBTIPOS)
+      const keyIdSubtipo = buscarColumnaID(row, ["id", "subtipo"]);
+      const idSubtipo = keyIdSubtipo ? (row[keyIdSubtipo] || "").toString().trim() : "";
+
+      if (idSubtipo && MAPA_SUBTIPOS[idSubtipo]) {
+        const nombreSub = MAPA_SUBTIPOS[idSubtipo];
+        row["producto_subtipo"] = nombreSub;
+        row["PRODUCTO SUBTIPO"] = nombreSub;
+        row["subtipo"] = nombreSub;
+      }
+    });
+
+    // Construir orden visual
+    ordenColumnasVista = [...headers];
+    if (!ordenColumnasVista.includes("Categoría principal")) ordenColumnasVista.push("Categoría principal");
+
+    // Limpiar arrays globales y procesar clasificación
+    datosCombinaciones = [];
+    datosReposicion = [];
+    datosOriginales = [];
+    const errores = [];
+
+    datos.forEach(row => {
+      const keySalida = buscarColumnaID(row, ["salida"]) || "Salida";
+      const salida = (row[keySalida] || "").toString().trim();
+      
+      const keyCombi = buscarColumnaID(row, ["combinacion"]) || "Combinaciones";
+      const combinacion = (row[keyCombi] || "").toString().trim();
+
+      const keySku = buscarColumnaID(row, ["codigo"]) || "codigo_producto";
+      const sku = (row[keySku] || "SKU no definido").toString().trim();
+
+      const categoria = (row["Categoría principal"] || "").toString().trim();
+
+      const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
+      const combinacionRaw = combinacion.toLowerCase();
+      const esMidi = combinacionRaw === "midi";
+
+      if (esAnilloConValidacion && combinacion === "" && !esMidi) {
+        errores.push(`${sku} - combinaciones vacías (${categoria})`);
+        return;
+      }
+
+      const combiValida = combinacion !== "" && 
+                          !["sin valor", "null", "ninguno", "midi"].includes(combinacionRaw);
+
+      if (combiValida) {
+        const lista = combinacion.split(",");
+        let errorDetectado = false;
+        lista.forEach(c => {
+          const val = c.trim();
+          if (!/^#?\d+(-\d+)?$/i.test(val) && !/^numeraci[oó]n\s*\d+$/i.test(val)) {
+            errores.push(`${sku} - Combinación inválida: ${val}`);
+            errorDetectado = true;
+          }
+        });
+        if (errorDetectado) return;
+
+        row["CANTIDAD"] = row["_stock_original"]; 
+        datosCombinaciones.push(row);
+
+      } else if (salida === "Reposición") {
+        datosReposicion.push(row);
+      } else {
+        datosOriginales.push(row);
+      }
+    });
+
+    const divAlertas = document.getElementById("alertas");
+    if (divAlertas) {
+        divAlertas.innerHTML = errores.length 
+          ? errores.map(e => `<div class="alert alert-warning">${e}</div>`).join("") 
+          : "";
+    }
+
+    tipoSeleccionado = "sin_seleccion";
+    datosFiltrados = [...datosOriginales, ...datosCombinaciones];
+    renderTablaConOrden(datosFiltrados);
+    actualizarEstadoBotonesProcesar();
+    
+    const btnTipos = document.getElementById("botonesTipo");
+    if(btnTipos) btnTipos.classList.remove("d-none");
+
+  };
+  reader.readAsArrayBuffer(file);
 }
+
 
 // =========================================================================
 // 3. FUNCIÓN PRINCIPAL DE LECTURA (Reemplazar la existente)
