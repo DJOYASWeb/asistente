@@ -337,6 +337,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+
 // =========================================================================
 // 1. FUNCIÓN AUXILIAR (Indispensable para buscar columnas)
 // =========================================================================
@@ -364,7 +365,7 @@ const MAPA_MATERIALES = {
   "12": "Joyas Enchapadas"
 };
 
-// GRUPO 2: Tipos (ID PRODUCTO TIPO -> Busca aquí el 21 como Pulseras)
+// GRUPO 2: Tipos (ID PRODUCTO TIPO)
 const MAPA_TIPOS = {
   "19": "Anillos de Plata",
   "33": "Anillos Enchapados en Oro y Plata",
@@ -395,7 +396,7 @@ const MAPA_TIPOS = {
   "46": "Limpiadores"
 };
 
-// GRUPO 3: Subtipos (ID PRODUCTO SUBTIPO -> Busca aquí el 21 como Argollas)
+// GRUPO 3: Subtipos (ID PRODUCTO SUBTIPO)
 const MAPA_SUBTIPOS = {
   "4": "Anillo Circón",
   "5": "Anillo con Micro Circón",
@@ -448,11 +449,12 @@ const MAPA_SUBTIPOS = {
   "30": "Pulsera con Piedra",
   "27": "Pulsera de Hombre",
   "28": "Pulsera de Plata",
-  "29": "Pulsera con Piedra"
+  "29": "Pulsera con Piedra",
+  "74": "Aros Piedra Natural"
 };
 
 // =========================================================================
-// 3. FUNCIÓN PRINCIPAL DE LECTURA (Lógica Estricta)
+// 3. FUNCIÓN PRINCIPAL DE LECTURA (Lógica Estricta + Filtro Subtipo)
 // =========================================================================
 
 function leerExcelDesdeFilaA(file) {
@@ -500,7 +502,7 @@ function leerExcelDesdeFilaA(file) {
       if (idMaterial && MAPA_MATERIALES[idMaterial]) {
         const nombreMat = MAPA_MATERIALES[idMaterial];
         row["Categoría principal"] = nombreMat;
-        row["PRODUCTO MATERIAL"] = nombreMat; // Sobrescribir
+        row["PRODUCTO MATERIAL"] = nombreMat; 
         row["producto_material"] = nombreMat;
       } else {
         // Fallback
@@ -513,14 +515,13 @@ function leerExcelDesdeFilaA(file) {
       }
 
       // B) TIPOS (Busca columna con "id" y "tipo", EXCLUYENDO "sub")
-      // Esto asegura que NO lea la columna de subtipos por error
       const keyIdTipo = buscarColumnaID(row, ["id", "tipo"], ["sub", "subtipo"]);
       const idTipo = keyIdTipo ? (row[keyIdTipo] || "").toString().trim() : "";
 
       if (idTipo && MAPA_TIPOS[idTipo]) {
         const nombreTipo = MAPA_TIPOS[idTipo];
         row["producto_tipo"] = nombreTipo;
-        row["PRODUCTO TIPO"] = nombreTipo; // Sobrescribir
+        row["PRODUCTO TIPO"] = nombreTipo; 
         row["tipo"] = nombreTipo;
       }
 
@@ -529,9 +530,15 @@ function leerExcelDesdeFilaA(file) {
       const idSubtipo = keyIdSubtipo ? (row[keyIdSubtipo] || "").toString().trim() : "";
 
       if (idSubtipo && MAPA_SUBTIPOS[idSubtipo]) {
-        const nombreSub = MAPA_SUBTIPOS[idSubtipo];
+        let nombreSub = MAPA_SUBTIPOS[idSubtipo];
+
+        // 🛑 NUEVA VALIDACIÓN: Si es Enchapado en Oro/Plata -> VACÍO
+        if (nombreSub === "Enchapado en Oro" || nombreSub === "Enchapado en Plata") {
+            nombreSub = "";
+        }
+
         row["producto_subtipo"] = nombreSub;
-        row["PRODUCTO SUBTIPO"] = nombreSub; // Sobrescribir
+        row["PRODUCTO SUBTIPO"] = nombreSub; 
         row["subtipo"] = nombreSub;
       }
     });
@@ -540,7 +547,7 @@ function leerExcelDesdeFilaA(file) {
     ordenColumnasVista = [...headers];
     if (!ordenColumnasVista.includes("Categoría principal")) ordenColumnasVista.push("Categoría principal");
 
-    // Clasificación y Limpieza
+    // Clasificación
     datosCombinaciones = [];
     datosReposicion = [];
     datosOriginales = [];
