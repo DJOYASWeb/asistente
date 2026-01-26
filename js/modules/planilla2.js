@@ -345,6 +345,10 @@ const MAPA_MATERIALES = {
 "13": "Accesorios",
   "11": "Joyas de plata por mayor",
   "12": "Joyas Enchapadas",
+  
+};
+
+const MAPA_SUBTIPOS = {
   "19": "Anillos de Plata",
   "33": "Anillos Enchapados en Oro y Plata",
   "20": "Aros de Plata",
@@ -371,10 +375,7 @@ const MAPA_MATERIALES = {
   "28": "Swarovski Elements",
   "27": "Tobilleras de Plata",
   "40": "Tobilleras Enchapadas en Oro y Plata",
-  "46": "Limpiadores"
-};
-
-const MAPA_SUBTIPOS = {
+  "46": "Limpiadores",
 "4": "Anillo Circón",
   "5": "Anillo con Micro Circón",
   "6": "Anillo Lapidado",
