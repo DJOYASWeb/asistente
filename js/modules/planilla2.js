@@ -9,104 +9,6 @@ window.datosCombinacionCantidades = [];
 window.tipoSeleccionado = "sin_seleccion";
 
 
-// --- DATOS DE MAPEO (Desde Final cat.xlsx) ---
-
-// Bloque 1: IDs para "ID PRODUCTO MATERIAL" (Categoría Principal)
-const MAPA_MATERIALES = {
-  "13": "Accesorios",
-  "11": "Joyas de plata por mayor",
-  "5": "Joyas Enchapadas",
-
-};
-
-// Bloque 2: IDs para "ID PRODUCTO TIPO" y "ID PRODUCTO SUBTIPO"
-const MAPA_SUBTIPOS = {
-  "19": "Anillos de Plata",
-  "33": "Anillos Enchapados en Oro y Plata",
-  "20": "Aros de Plata",
-  "32": "Aros Enchapados en Oro y Plata",
-  "43": "Bolsas",
-  "24": "Cadenas de Plata",
-  "35": "Cadenas Enchapadas en Oro y Plata",
-  "44": "Cajas",
-  "23": "Colgantes de Plata",
-  "36": "Colgantes Enchapados en Oro y Plata",
-  "26": "Collares de Plata",
-  "38": "Collares Enchapados en Oro y Plata",
-  "22": "Conjuntos de Plata",
-  "39": "Conjuntos Enchapados en Oro y Plata",
-  "29": "Hombre",
-  "37": "Joyas Infantiles Enchapadas en Oro y Plata",
-  "25": "Infantil Plata",
-  "31": "Insumos de Plata",
-  "41": "Insumos para Joyas Enchapados en Oro y Plata",
-  "45": "Joyeros",
-  "30": "Pack de Joyas",
-  "21": "Pulseras de Plata",
-  "34": "Pulseras Enchapadas en Oro y Plata",
-  "28": "Swarovski Elements",
-  "27": "Tobilleras de Plata",
-  "40": "Tobilleras Enchapadas en Oro y Plata",
-  "46": "Limpiadores",
-  "4": "Anillo Circón",
-  "5": "Anillo con Micro Circón",
-  "6": "Anillo Lapidado",
-  "7": "Anillo Marquesita",
-  "9": "Anillo MIDI Falange",
-  "12": "Anillo Piedra Natural",
-  "8": "Anillo Plata con Oro",
-  "10": "Anillos de Compromiso",
-  "11": "Anillos de Hombres",
-  "3": "Anillos de Plata Lisa",
-  "21": "Argollas de Plata 925",
-  "22": "Argollas con Colgantes",
-  "23": "Aro Circón Pegados",
-  "20": "Aro de Plata Pegados",
-  "14": "Aros Circón Largo",
-  "16": "Aros de Perla",
-  "13": "Aros de Plata Largos",
-  "17": "Aros Lapidado",
-  "18": "Aros Mapuches",
-  "15": "Aros Marquesita",
-  "24": "Aros Piedra Natural",
-  "19": "Aros Swarovski Elements",
-  "25": "Aros Trepadores y Cuff",
-  "48": "Cadena Cartier",
-  "49": "Cadena Cinta",
-  "50": "Cadena Esferas",
-  "51": "Cadena Eslabón",
-  "59": "Cadena Forzatina",
-  "47": "Cadena Groumet",
-  "52": "Cadena Gucci",
-  "53": "Cadena Rolo",
-  "54": "Cadena Singapur",
-  "55": "Cadena Topo",
-  "56": "Cadena Tourbillon",
-  "57": "Cadena Valentino",
-  "58": "Cadena Veneciana",
-  "33": "Colgante Circón",
-  "35": "Colgante Cruz",
-  "40": "Colgante de Perla",
-  "39": "Colgante estilo Charms",
-  "32": "Colgante Piedra Natural",
-  "38": "Colgante Plata Lisa",
-  "37": "Colgantes de Placa",
-  "34": "Colgantes Lapidado",
-  "36": "Colgantes Niño Niña",
-  "43": "Collares con Circón",
-  "41": "Collares de Piedra",
-  "26": "Piercings de Plata 925",
-  "31": "Pulsera con Circón",
-  "30": "Pulsera con Piedra",
-  "27": "Pulsera de Hombre",
-  "28": "Pulsera de Plata",
-  "29": "Pulsera con Piedra"
-};
-
-
-
-
-
 
 
 
@@ -435,6 +337,118 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+// =========================================================================
+// 1. CONSTANTES DE MAPEO (IDs -> Nombres Reales)
+// =========================================================================
+
+const MAPA_MATERIALES = {
+  "13": "Accesorios",
+  "11": "Joyas de plata por mayor",
+  "5": "Joyas Enchapadas",
+  "19": "Anillos de Plata",
+  "33": "Anillos Enchapados en Oro y Plata",
+  "20": "Aros de Plata",
+  "32": "Aros Enchapados en Oro y Plata",
+  "43": "Bolsas",
+  "24": "Cadenas de Plata",
+  "35": "Cadenas Enchapadas en Oro y Plata",
+  "44": "Cajas",
+  "23": "Colgantes de Plata",
+  "36": "Colgantes Enchapados en Oro y Plata",
+  "26": "Collares de Plata",
+  "38": "Collares Enchapados en Oro y Plata",
+  "22": "Conjuntos de Plata",
+  "39": "Conjuntos Enchapados en Oro y Plata",
+  "29": "Hombre",
+  "37": "Joyas Infantiles Enchapadas en Oro y Plata",
+  "25": "Infantil Plata",
+  "31": "Insumos de Plata",
+  "41": "Insumos para Joyas Enchapados en Oro y Plata",
+  "45": "Joyeros",
+  "30": "Pack de Joyas",
+  "21": "Pulseras de Plata",
+  "34": "Pulseras Enchapadas en Oro y Plata",
+  "28": "Swarovski Elements",
+  "27": "Tobilleras de Plata",
+  "40": "Tobilleras Enchapadas en Oro y Plata",
+  "46": "Limpiadores"
+};
+
+const MAPA_SUBTIPOS = {
+  "4": "Anillo Circón",
+  "5": "Anillo con Micro Circón",
+  "6": "Anillo Lapidado",
+  "7": "Anillo Marquesita",
+  "9": "Anillo MIDI Falange",
+  "12": "Anillo Piedra Natural",
+  "8": "Anillo Plata con Oro",
+  "10": "Anillos de Compromiso",
+  "11": "Anillos de Hombres",
+  "3": "Anillos de Plata Lisa",
+  "21": "Argollas de Plata 925",
+  "22": "Argollas con Colgantes",
+  "23": "Aro Circón Pegados",
+  "20": "Aro de Plata Pegados",
+  "14": "Aros Circón Largo",
+  "16": "Aros de Perla",
+  "13": "Aros de Plata Largos",
+  "17": "Aros Lapidado",
+  "18": "Aros Mapuches",
+  "15": "Aros Marquesita",
+  "24": "Aros Piedra Natural",
+  "19": "Aros Swarovski Elements",
+  "25": "Aros Trepadores y Cuff",
+  "48": "Cadena Cartier",
+  "49": "Cadena Cinta",
+  "50": "Cadena Esferas",
+  "51": "Cadena Eslabón",
+  "59": "Cadena Forzatina",
+  "47": "Cadena Groumet",
+  "52": "Cadena Gucci",
+  "53": "Cadena Rolo",
+  "54": "Cadena Singapur",
+  "55": "Cadena Topo",
+  "56": "Cadena Tourbillon",
+  "57": "Cadena Valentino",
+  "58": "Cadena Veneciana",
+  "33": "Colgante Circón",
+  "35": "Colgante Cruz",
+  "40": "Colgante de Perla",
+  "39": "Colgante estilo Charms",
+  "32": "Colgante Piedra Natural",
+  "38": "Colgante Plata Lisa",
+  "37": "Colgantes de Placa",
+  "34": "Colgantes Lapidado",
+  "36": "Colgantes Niño Niña",
+  "43": "Collares con Circón",
+  "41": "Collares de Piedra",
+  "26": "Piercings de Plata 925",
+  "31": "Pulsera con Circón",
+  "30": "Pulsera con Piedra",
+  "27": "Pulsera de Hombre",
+  "28": "Pulsera de Plata",
+  "29": "Pulsera con Piedra"
+};
+
+// =========================================================================
+// 2. NUEVA FUNCIÓN INTELIGENTE (Agregada para encontrar IDs dificiles)
+// =========================================================================
+// Busca una columna que tenga TODAS las palabras clave, ignorando _ o espacios.
+// Ejemplo: encuentra "ID_PRODUCTO_MATERIAL" buscando ["id", "material"]
+function buscarColumnaID(row, palabrasClave) {
+  const keys = Object.keys(row);
+  return keys.find(k => {
+    // Convertimos "ID_PRODUCTO_MATERIAL" -> "id producto material"
+    const kNorm = k.toString().toLowerCase().replace(/_/g, " ").trim();
+    // Verificamos que contenga todas las palabras requeridas
+    return palabrasClave.every(palabra => kNorm.includes(palabra));
+  });
+}
+
+// =========================================================================
+// 3. FUNCIÓN PRINCIPAL DE LECTURA (Reemplazar la existente)
+// =========================================================================
+
 function leerExcelDesdeFilaA(file) {
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -442,7 +456,9 @@ function leerExcelDesdeFilaA(file) {
     const workbook = XLSX.read(data, { type: "array" });
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
-    const opciones = { header: 1 };
+    
+    // Leer con header:1 para obtener matriz cruda y evitar perdida de datos
+    const opciones = { header: 1, defval: "" }; 
     const todasLasFilas = XLSX.utils.sheet_to_json(worksheet, opciones);
 
     if (todasLasFilas.length < 2) {
@@ -450,201 +466,160 @@ function leerExcelDesdeFilaA(file) {
       return;
     }
 
-    // Encabezados = primera fila (Fila A)
-    const headers = (todasLasFilas[0] || []).map(h =>
-      (h ?? "").toString().trim()
-    );
+    // Encabezados = primera fila
+    const headers = (todasLasFilas[0] || []).map(h => (h ?? "").toString().trim());
 
-    // Filas de datos desde la 2ª fila en adelante
+    // Filas de datos
     const filas = todasLasFilas.slice(1);
 
-    // Construir objetos respetando los encabezados tal cual vienen
+    // Mapear filas a objetos
     const datos = filas.map(fila => {
       const obj = {};
       headers.forEach((col, i) => {
-        let valor = fila[i] ?? "";
-
-        // 🚫 Si trae "NULL" (cualquier combinación de mayúsculas/minúsculas) → vacío
+        let valor = fila[i];
         if (typeof valor === "string" && valor.trim().toUpperCase() === "NULL") {
           valor = "";
         }
-
         obj[col || `Columna${i}`] = valor;
       });
-
-      // ✅ GUARDAR STOCK ORIGINAL DESDE YA (campo protegido)
-      if (obj["Cantidad"] !== undefined || obj["CANTIDAD"] !== undefined) {
-        const stockOriginal = obj["Cantidad"] || obj["CANTIDAD"] || 0;
-        obj["_stock_original"] = Number(stockOriginal);
-      } else {
-        obj["_stock_original"] = 0;
-      }
+      
+      // Stock Original (Buscamos "cantidad" o "CANTIDAD" de forma segura)
+      const stockKey = buscarColumnaID(obj, ["cantidad"]) || "Cantidad";
+      obj["_stock_original"] = Number(obj[stockKey] || 0);
 
       return obj;
     });
 
-    // --- NUEVA LÓGICA: Asignación por IDs de Categoría ---
+    // --- NUEVA LÓGICA DE ASIGNACIÓN POR ID ---
     datos.forEach(row => {
+
+      // A) CATEGORÍA PRINCIPAL (Buscar columna con "id" y "material")
+      const keyIdMaterial = buscarColumnaID(row, ["id", "material"]); 
+      const idMaterial = keyIdMaterial ? (row[keyIdMaterial] || "").toString().trim() : "";
       
-      // 1. Procesar ID PRODUCTO MATERIAL -> "Categoría principal"
-      // Usamos el MAPA_MATERIALES (Bloque 1 del CSV)
-      const idMaterial = (row["ID PRODUCTO MATERIAL"] || row["id_producto_material"] || "").toString().trim();
-      
-      if (MAPA_MATERIALES[idMaterial]) {
+      if (idMaterial && MAPA_MATERIALES[idMaterial]) {
+        // ✅ ÉXITO: Encontramos ID y seteamos el nombre
         row["Categoría principal"] = MAPA_MATERIALES[idMaterial];
       } else {
-        // Fallback: Si no hay ID, intentar mantener lógica antigua o dejar vacío
-        const materialRaw = (
-          row["PRODUCTO MATERIAL"] ||
-          row["producto_material"] ||
-          ""
-        ).toString().trim().toLowerCase();
+        // ⚠️ FALLBACK: Si no hay ID, usamos lógica antigua por texto
+        const keyMaterialTexto = buscarColumnaID(row, ["producto", "material"]) || "PRODUCTO MATERIAL";
+        const materialRaw = (row[keyMaterialTexto] || "").toString().trim().toLowerCase();
 
-        if (materialRaw.includes("enchape")) {
-          row["Categoría principal"] = "ENCHAPADO";
-        } else if (materialRaw.includes("accesorios")) {
-          row["Categoría principal"] = "ACCESORIOS";
-        } else if (materialRaw.includes("plata")) {
-          row["Categoría principal"] = "Joyas de plata por mayor";
-        } else {
-          // Revisión por tipo si aún no hay categoría
-          const tipoRaw = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
-          if (tipoRaw.includes("insumos de plata")) {
-            row["Categoría principal"] = "Joyas de plata por mayor";
-          } else if (tipoRaw.includes("insumos enchapados")) {
-            row["Categoría principal"] = "ENCHAPADO";
-          } else {
-            row["Categoría principal"] = "";
-          }
+        if (materialRaw.includes("enchape")) row["Categoría principal"] = "ENCHAPADO";
+        else if (materialRaw.includes("accesorios")) row["Categoría principal"] = "ACCESORIOS";
+        else if (materialRaw.includes("plata")) row["Categoría principal"] = "Joyas de plata por mayor";
+        else {
+            // Intento final por TIPO
+            const keyTipo = buscarColumnaID(row, ["producto", "tipo"]) || "PRODUCTO TIPO";
+            const tipoRaw = (row[keyTipo] || "").toString().toLowerCase();
+            if (tipoRaw.includes("insumos de plata")) row["Categoría principal"] = "Joyas de plata por mayor";
+            else if (tipoRaw.includes("insumos enchapados")) row["Categoría principal"] = "ENCHAPADO";
+            else row["Categoría principal"] = ""; 
         }
       }
 
-      // 2. Procesar ID PRODUCTO TIPO -> sobrescribir "producto_tipo"
-      // Usamos el MAPA_SUBTIPOS (Bloque 2 del CSV)
-      const idTipo = (row["ID PRODUCTO TIPO"] || row["id_producto_tipo"] || "").toString().trim();
-      if (MAPA_SUBTIPOS[idTipo]) {
-        const valorNuevo = MAPA_SUBTIPOS[idTipo];
-        row["producto_tipo"] = valorNuevo;
-        row["PRODUCTO TIPO"] = valorNuevo; // Actualizamos ambas keys por si acaso
+      // B) TIPO (Buscar columna con "id" y "tipo", evitando "subtipo")
+      const keysRow = Object.keys(row);
+      const keyIdTipo = keysRow.find(k => {
+          const s = k.toLowerCase();
+          return s.includes("id") && s.includes("tipo") && !s.includes("sub");
+      });
+
+      const idTipo = keyIdTipo ? (row[keyIdTipo] || "").toString().trim() : "";
+
+      if (idTipo && MAPA_SUBTIPOS[idTipo]) {
+        const nuevoNombre = MAPA_SUBTIPOS[idTipo];
+        row["producto_tipo"] = nuevoNombre;
+        row["PRODUCTO TIPO"] = nuevoNombre;
       }
 
-      // 3. Procesar ID PRODUCTO SUBTIPO -> sobrescribir "producto_subtipo"
-      // Usamos el MAPA_SUBTIPOS (Bloque 2 del CSV)
-      const idSubtipo = (row["ID PRODUCTO SUBTIPO"] || row["id_producto_subtipo"] || "").toString().trim();
-      if (MAPA_SUBTIPOS[idSubtipo]) {
-        const valorNuevo = MAPA_SUBTIPOS[idSubtipo];
-        row["producto_subtipo"] = valorNuevo;
-        row["PRODUCTO SUBTIPO"] = valorNuevo;
+      // C) SUBTIPO (Buscar columna con "id" y "subtipo")
+      const keyIdSubtipo = buscarColumnaID(row, ["id", "subtipo"]);
+      const idSubtipo = keyIdSubtipo ? (row[keyIdSubtipo] || "").toString().trim() : "";
+
+      if (idSubtipo && MAPA_SUBTIPOS[idSubtipo]) {
+        const nuevoNombre = MAPA_SUBTIPOS[idSubtipo];
+        row["producto_subtipo"] = nuevoNombre;
+        row["PRODUCTO SUBTIPO"] = nuevoNombre;
       }
 
     });
 
-    // Construimos el orden de columnas a mostrar en la vista:
+    // Construir orden visual
     ordenColumnasVista = [...headers];
-    if (!ordenColumnasVista.includes("Categoría principal")) {
-      ordenColumnasVista.push("Categoría principal");
-    }
+    if (!ordenColumnasVista.includes("Categoría principal")) ordenColumnasVista.push("Categoría principal");
 
-    // Limpieza inicial de arrays
+    // Limpiar arrays globales
     datosCombinaciones = [];
     datosReposicion = [];
     datosOriginales = [];
-
     const errores = [];
 
+    // Clasificar filas
     datos.forEach(row => {
-      const salida = (row["Salida"] || "").toString().trim();
-      const combinacion = (
-        row["Combinaciones"] ||
-        row["PRODUCTO COMBINACION"] ||
-        row["producto_combinacion"] ||
-        ""
-      ).toString().trim();
+      const keySalida = buscarColumnaID(row, ["salida"]) || "Salida";
+      const salida = (row[keySalida] || "").toString().trim();
+      
+      const keyCombi = buscarColumnaID(row, ["combinacion"]) || "Combinaciones";
+      const combinacion = (row[keyCombi] || "").toString().trim();
 
-      const sku = (
-        row["codigo_producto"] ||
-        row["CODIGO PRODUCTO"] ||
-        row["Código"] ||
-        "SKU no definido"
-      ).toString().trim();
+      const keySku = buscarColumnaID(row, ["codigo"]) || "codigo_producto";
+      const sku = (row[keySku] || "SKU no definido").toString().trim();
 
       const categoria = (row["Categoría principal"] || "").toString().trim();
 
+      // Validación de anillos
       const esAnilloConValidacion = ["Anillos de Plata", "Anillos Enchapado"].includes(categoria);
-
-      const combinacionRaw = (
-        row["Combinaciones"] ||
-        row["PRODUCTO COMBINACION"] ||
-        row["producto_combinacion"] ||
-        ""
-      ).toString().trim().toLowerCase();
-
+      const combinacionRaw = combinacion.toLowerCase();
       const esMidi = combinacionRaw === "midi";
 
-      // ⚠️ Anillo sin combinaciones SOLO es error si NO es MIDI
       if (esAnilloConValidacion && combinacion === "" && !esMidi) {
         errores.push(`${sku} - combinaciones vacías (${categoria})`);
         return;
       }
 
-      const combiValida =
-        combinacion !== "" &&
-        combinacion.toLowerCase() !== "sin valor" &&
-        combinacion.toLowerCase() !== "null" &&
-        combinacion.toLowerCase() !== "ninguno" &&
-        combinacion.toLowerCase() !== "midi"; // ⬅️ CLAVE
+      const combiValida = combinacion !== "" && 
+                          !["sin valor", "null", "ninguno", "midi"].includes(combinacionRaw);
 
-      // 🧩 Si hay combinación válida → procesar
       if (combiValida) {
-        const combinaciones = combinacion.split(",");
+        // Validar formato
+        const lista = combinacion.split(",");
         let errorDetectado = false;
-
-        combinaciones.forEach(c => {
-          const valor = c.trim();
-
-          // Acepta: #10-12, 10-12, Numeración 19, numeracion 10, 19, etc.
-          const regex = /^#?\d+(-\d+)?$/i;
-          const regexNumeracion = /^numeraci[oó]n\s*\d+$/i;
-
-          if (!regex.test(valor) && !regexNumeracion.test(valor)) {
-            errores.push(`${sku} - ${valor}`);
+        lista.forEach(c => {
+          const val = c.trim();
+          if (!/^#?\d+(-\d+)?$/i.test(val) && !/^numeraci[oó]n\s*\d+$/i.test(val)) {
+            errores.push(`${sku} - Combinación inválida: ${val}`);
             errorDetectado = true;
           }
         });
-
         if (errorDetectado) return;
 
-        // ✅ Registrar como combinación válida
-        row["CANTIDAD"] = row["CANTIDAD"] || row["Cantidad"] || 0;
+        row["CANTIDAD"] = row["_stock_original"]; 
         datosCombinaciones.push(row);
 
       } else if (salida === "Reposición") {
-        // 🔹 Producto de reposición sin combinaciones
         datosReposicion.push(row);
-
       } else {
-        // 🔹 Producto nuevo sin combinaciones
         datosOriginales.push(row);
       }
     });
 
-    // Mostrar errores acumulados si hay
-    if (errores.length > 0) {
-      const mensajes = errores.map(e => `<div class="alert alert-warning alert-dismissible fade show" role="alert">
-        ${e}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-      </div>`).join("");
-      document.getElementById("alertas").innerHTML = mensajes;
-    } else {
-      document.getElementById("alertas").innerHTML = "";
+    // Mostrar Alertas
+    const divAlertas = document.getElementById("alertas");
+    if (divAlertas) {
+        divAlertas.innerHTML = errores.length 
+          ? errores.map(e => `<div class="alert alert-warning">${e}</div>`).join("") 
+          : "";
     }
 
-    // Mostrar TODO (nuevos + con combinaciones) por defecto
+    // Renderizar
     tipoSeleccionado = "sin_seleccion";
     datosFiltrados = [...datosOriginales, ...datosCombinaciones];
     renderTablaConOrden(datosFiltrados);
-    actualizarEstadoBotonesProcesar(); // 🔒 bloquear botones
-    document.getElementById("botonesTipo").classList.remove("d-none");
+    actualizarEstadoBotonesProcesar();
+    
+    const btnTipos = document.getElementById("botonesTipo");
+    if(btnTipos) btnTipos.classList.remove("d-none");
 
   };
   reader.readAsArrayBuffer(file);
