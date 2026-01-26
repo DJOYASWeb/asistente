@@ -612,7 +612,136 @@ window.descargarPlantillaEjemplo = function() {
 
 
 
+/* =========================================================
+   LÓGICA DE CARGA MASIVA (PRODUCTOS) - VERSIÓN CORREGIDA
+   ========================================================= */
 
+let datosCargadosTemporalmente = []; 
+
+// 1. Abrir Modal
+window.abrirModalCarga = function() {
+    const modal = document.getElementById("modalCargaMasiva");
+    if(!modal) { alert("Error: No encuentro el modal en el HTML"); return; }
+    
+    modal.style.display = "flex";
+    
+    // Resetear todo
+    document.getElementById("inputFileCarga").value = "";
+    document.getElementById("headPrevisualizacion").innerHTML = "";
+    document.getElementById("bodyPrevisualizacion").innerHTML = "";
+    document.getElementById("msgInicial").style.display = "block";
+    document.getElementById("infoCarga").textContent = "Esperando archivo...";
+    document.getElementById("infoCarga").className = "badge badge-secondary p-2";
+    document.getElementById("btnConfirmarCarga").disabled = true;
+    datosCargadosTemporalmente = [];
+};
+
+window.cerrarModalCarga = function() {
+    const modal = document.getElementById("modalCargaMasiva");
+    if(modal) modal.style.display = "none";
+};
+
+// 2. DETECTAR CARGA DE ARCHIVO
+// Usamos DOMContentLoaded para asegurar que el input exista
+document.addEventListener("DOMContentLoaded", function() {
+    
+    const input = document.getElementById("inputFileCarga");
+    if (!input) {
+        console.warn("Aviso: No se encontró el input 'inputFileCarga'. Si estás en otra página, ignora esto.");
+        return;
+    }
+
+    input.addEventListener("change", function(e) {
+        // Validación: ¿Existe la librería?
+        if (typeof XLSX === 'undefined') {
+            alert("❌ ERROR CRÍTICO: No se cargó la librería SheetJS (XLSX). \n\nAsegúrate de incluir el <script src='...xlsx.full.min.js'> en tu HTML.");
+            return;
+        }
+
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // Leemos la primera hoja
+                const firstSheet = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheet];
+                
+                // Convertimos a JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                if (jsonData.length === 0) {
+                    alert("⚠️ El archivo Excel está vacío o no se pudo leer.");
+                    return;
+                }
+
+                // ¡Éxito!
+                datosCargadosTemporalmente = jsonData;
+                renderizarTablaPrevia(jsonData);
+
+            } catch (err) {
+                console.error(err);
+                alert("❌ Error al leer el Excel. Revisa la consola para más detalles.");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+});
+
+// 3. DIBUJAR TABLA (Preview)
+function renderizarTablaPrevia(data) {
+    const thead = document.getElementById("headPrevisualizacion");
+    const tbody = document.getElementById("bodyPrevisualizacion");
+    const info = document.getElementById("infoCarga");
+    const btn = document.getElementById("btnConfirmarCarga");
+    const msg = document.getElementById("msgInicial");
+
+    // Limpiar
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+    if(msg) msg.style.display = "none";
+
+    // Columnas
+    const columnas = Object.keys(data[0]);
+    let htmlHead = "<tr>";
+    columnas.forEach(col => htmlHead += `<th class="bg-dark text-white" style="position:sticky; top:0;">${col}</th>`);
+    htmlHead += "</tr>";
+    thead.innerHTML = htmlHead;
+
+    // Filas (Solo mostramos las primeras 100 para que sea rápido)
+    const mostrar = data.slice(0, 100);
+    mostrar.forEach(row => {
+        let tr = "<tr>";
+        columnas.forEach(col => {
+            tr += `<td style="white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis;">${row[col]}</td>`;
+        });
+        tr += "</tr>";
+        tbody.innerHTML += tr;
+    });
+
+    // Actualizar UI
+    info.textContent = `✅ ${data.length} productos detectados`;
+    info.className = "badge badge-success p-2";
+    btn.disabled = false;
+}
+
+// 4. PROCESAR CARGA FINAL
+window.procesarCargaFinal = function() {
+    if (datosCargadosTemporalmente.length === 0) return;
+
+    if(!confirm(`¿Confirmas la importación de ${datosCargadosTemporalmente.length} registros?`)) return;
+
+    // AQUI VA TU LÓGICA DE GUARDADO EN BASE DE DATOS
+    console.log("Guardando datos...", datosCargadosTemporalmente);
+    
+    alert(`✅ ¡Proceso Iniciado! \nSe están procesando ${datosCargadosTemporalmente.length} productos.\n(Revisa la consola para ver los datos raw)`);
+    
+    cerrarModalCarga();
+};
 
 
 
