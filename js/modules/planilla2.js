@@ -338,21 +338,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 // =========================================================================
-// 1. CONSTANTES DE MAPEO (IDs -> Nombres Reales)
+// 1. FUNCIÓN AUXILIAR (Necesaria para buscar columnas por nombre aproximado)
 // =========================================================================
+function buscarColumnaID(row, palabrasClave) {
+  const keys = Object.keys(row);
+  return keys.find(k => {
+    // Normalizar: minúsculas, sin guiones bajos, sin espacios extra
+    const kNorm = k.toString().toLowerCase().replace(/_/g, " ").trim();
+    // Verificar que contenga TODAS las palabras clave
+    return palabrasClave.every(palabra => kNorm.includes(palabra));
+  });
+}
 
 // =========================================================================
-// 1. CONSTANTES DE MAPEO (3 Bloques Independientes)
+// 2. CONSTANTES DE MAPEO (Separadas por Grupo/Columna)
 // =========================================================================
 
-// A) MATERIALES (Solo los 3 que indicaste: 13, 11, 12)
+// GRUPO 1: Materiales (Busca en ID PRODUCTO MATERIAL)
 const MAPA_MATERIALES = {
   "13": "Accesorios",
   "11": "Joyas de plata por mayor",
-  "12": "Joyas Enchapadas" // Reemplaza al 5 según tu indicación
+  "12": "Joyas Enchapadas" // Corregido según tu indicación (ID 12 para Enchapadas)
 };
 
-// B) TIPOS (Columna ID PRODUCTO TIPO)
+// GRUPO 2: Tipos (Busca en ID PRODUCTO TIPO)
 const MAPA_TIPOS = {
   "19": "Anillos de Plata",
   "33": "Anillos Enchapados en Oro y Plata",
@@ -383,7 +392,7 @@ const MAPA_TIPOS = {
   "46": "Limpiadores"
 };
 
-// C) SUBTIPOS (Columna ID PRODUCTO SUBTIPO)
+// GRUPO 3: Subtipos (Busca en ID PRODUCTO SUBTIPO)
 const MAPA_SUBTIPOS = {
   "4": "Anillo Circón",
   "5": "Anillo con Micro Circón",
@@ -405,7 +414,7 @@ const MAPA_SUBTIPOS = {
   "17": "Aros Lapidado",
   "18": "Aros Mapuches",
   "15": "Aros Marquesita",
-  "24": "Aros Piedra Natural",
+  "74": "Aros Piedra Natural",
   "19": "Aros Swarovski Elements",
   "25": "Aros Trepadores y Cuff",
   "48": "Cadena Cartier",
@@ -440,22 +449,8 @@ const MAPA_SUBTIPOS = {
   "29": "Pulsera con Piedra"
 };
 
-
-// ==========================================
-// FUNCIÓN AUXILIAR (Faltaba esta parte)
-// ==========================================
-function buscarColumnaID(row, palabrasClave) {
-  const keys = Object.keys(row);
-  return keys.find(k => {
-    // Convertimos a minúsculas y quitamos guiones bajos para comparar
-    const kNorm = k.toString().toLowerCase().replace(/_/g, " ").trim();
-    // Verificamos que contenga todas las palabras clave requeridas
-    return palabrasClave.every(palabra => kNorm.includes(palabra));
-  });
-}
-
 // =========================================================================
-// FUNCIÓN PRINCIPAL DE LECTURA (Actualizada para 3 mapas)
+// 3. FUNCIÓN PRINCIPAL DE LECTURA (Lógica corregida por Columnas)
 // =========================================================================
 
 function leerExcelDesdeFilaA(file) {
@@ -466,7 +461,6 @@ function leerExcelDesdeFilaA(file) {
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
     
-    // Leer todo como texto para no perder ceros iniciales
     const opciones = { header: 1, defval: "" }; 
     const todasLasFilas = XLSX.utils.sheet_to_json(worksheet, opciones);
 
@@ -494,21 +488,21 @@ function leerExcelDesdeFilaA(file) {
       return obj;
     });
 
-    // --- NUEVA LÓGICA: 3 MAPAS + SOBRESCRITURA ---
+    // --- PROCESAMIENTO DE IDs (ESTRICTO POR COLUMNA) ---
     datos.forEach(row => {
 
-      // 1. MATERIAL (Usa MAPA_MATERIALES)
+      // A) MATERIALES -> Busca SOLO en columna "ID PRODUCTO MATERIAL"
       const keyIdMaterial = buscarColumnaID(row, ["id", "material"]); 
       const idMaterial = keyIdMaterial ? (row[keyIdMaterial] || "").toString().trim() : "";
       
       if (idMaterial && MAPA_MATERIALES[idMaterial]) {
         const nombreMat = MAPA_MATERIALES[idMaterial];
         row["Categoría principal"] = nombreMat;
-        // Sobrescribir columnas antiguas para consistencia
+        // Sobrescribimos columnas antiguas para que el resto del sistema lo vea
         row["PRODUCTO MATERIAL"] = nombreMat;
         row["producto_material"] = nombreMat;
       } else {
-        // Fallback antiguo
+        // Fallback antiguo si no viene ID
         const keyMaterialTexto = buscarColumnaID(row, ["producto", "material"]) || "PRODUCTO MATERIAL";
         const materialRaw = (row[keyMaterialTexto] || "").toString().trim().toLowerCase();
         if (materialRaw.includes("enchape")) row["Categoría principal"] = "ENCHAPADO";
@@ -517,8 +511,8 @@ function leerExcelDesdeFilaA(file) {
         else row["Categoría principal"] = ""; 
       }
 
-      // 2. TIPO (Usa MAPA_TIPOS)
-      // Buscar columna "ID...TIPO" que NO sea "SUBTIPO"
+      // B) TIPOS -> Busca SOLO en columna "ID PRODUCTO TIPO"
+      // Evitamos confundirnos con "SUBTIPO"
       const keysRow = Object.keys(row);
       const keyIdTipo = keysRow.find(k => {
           const s = k.toLowerCase();
@@ -533,7 +527,7 @@ function leerExcelDesdeFilaA(file) {
         row["tipo"] = nombreTipo;
       }
 
-      // 3. SUBTIPO (Usa MAPA_SUBTIPOS)
+      // C) SUBTIPOS -> Busca SOLO en columna "ID PRODUCTO SUBTIPO"
       const keyIdSubtipo = buscarColumnaID(row, ["id", "subtipo"]);
       const idSubtipo = keyIdSubtipo ? (row[keyIdSubtipo] || "").toString().trim() : "";
 
@@ -545,11 +539,10 @@ function leerExcelDesdeFilaA(file) {
       }
     });
 
-    // Construir orden visual
+    // Construir orden visual y renderizar
     ordenColumnasVista = [...headers];
     if (!ordenColumnasVista.includes("Categoría principal")) ordenColumnasVista.push("Categoría principal");
 
-    // Limpiar arrays globales y procesar clasificación
     datosCombinaciones = [];
     datosReposicion = [];
     datosOriginales = [];
