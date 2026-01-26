@@ -338,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 // =========================================================================
-// 1. FUNCIÓN AUXILIAR (Necesaria para buscar columnas por nombre aproximado)
+// 1. FUNCIÓN AUXILIAR (¡IMPORTANTE! No borrar)
 // =========================================================================
 function buscarColumnaID(row, palabrasClave) {
   const keys = Object.keys(row);
@@ -358,7 +358,7 @@ function buscarColumnaID(row, palabrasClave) {
 const MAPA_MATERIALES = {
   "13": "Accesorios",
   "11": "Joyas de plata por mayor",
-  "12": "Joyas Enchapadas" // Corregido según tu indicación (ID 12 para Enchapadas)
+  "12": "Joyas Enchapadas"
 };
 
 // GRUPO 2: Tipos (Busca en ID PRODUCTO TIPO)
@@ -414,7 +414,6 @@ const MAPA_SUBTIPOS = {
   "17": "Aros Lapidado",
   "18": "Aros Mapuches",
   "15": "Aros Marquesita",
-  "74": "Aros Piedra Natural",
   "19": "Aros Swarovski Elements",
   "25": "Aros Trepadores y Cuff",
   "48": "Cadena Cartier",
@@ -446,7 +445,8 @@ const MAPA_SUBTIPOS = {
   "30": "Pulsera con Piedra",
   "27": "Pulsera de Hombre",
   "28": "Pulsera de Plata",
-  "29": "Pulsera con Piedra"
+  "29": "Pulsera con Piedra",
+  "74": "Aros Piedra Natural"
 };
 
 // =========================================================================
@@ -461,6 +461,7 @@ function leerExcelDesdeFilaA(file) {
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
     
+    // Leer todo como texto para no perder ceros iniciales
     const opciones = { header: 1, defval: "" }; 
     const todasLasFilas = XLSX.utils.sheet_to_json(worksheet, opciones);
 
@@ -612,6 +613,7 @@ function leerExcelDesdeFilaA(file) {
   };
   reader.readAsArrayBuffer(file);
 }
+
 
 
 // =========================================================================
