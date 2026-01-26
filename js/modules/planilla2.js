@@ -457,6 +457,10 @@ const MAPA_SUBTIPOS = {
 // 3. FUNCIÓN PRINCIPAL DE LECTURA (Lógica Estricta + Filtro Subtipo)
 // =========================================================================
 
+// =========================================================================
+// 3. FUNCIÓN PRINCIPAL DE LECTURA (Con limpieza forzosa de Subtipos)
+// =========================================================================
+
 function leerExcelDesdeFilaA(file) {
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -492,10 +496,10 @@ function leerExcelDesdeFilaA(file) {
       return obj;
     });
 
-    // --- PROCESAMIENTO DE IDs ---
+    // --- PROCESAMIENTO DE IDs Y LIMPIEZA ---
     datos.forEach(row => {
 
-      // A) MATERIALES (Busca columna con "id" y "material")
+      // A) MATERIALES
       const keyIdMaterial = buscarColumnaID(row, ["id", "material"]); 
       const idMaterial = keyIdMaterial ? (row[keyIdMaterial] || "").toString().trim() : "";
       
@@ -505,7 +509,6 @@ function leerExcelDesdeFilaA(file) {
         row["PRODUCTO MATERIAL"] = nombreMat; 
         row["producto_material"] = nombreMat;
       } else {
-        // Fallback
         const keyMaterialTexto = buscarColumnaID(row, ["producto", "material"]) || "PRODUCTO MATERIAL";
         const materialRaw = (row[keyMaterialTexto] || "").toString().trim().toLowerCase();
         if (materialRaw.includes("enchape")) row["Categoría principal"] = "ENCHAPADO";
@@ -514,7 +517,7 @@ function leerExcelDesdeFilaA(file) {
         else row["Categoría principal"] = ""; 
       }
 
-      // B) TIPOS (Busca columna con "id" y "tipo", EXCLUYENDO "sub")
+      // B) TIPOS
       const keyIdTipo = buscarColumnaID(row, ["id", "tipo"], ["sub", "subtipo"]);
       const idTipo = keyIdTipo ? (row[keyIdTipo] || "").toString().trim() : "";
 
@@ -525,21 +528,28 @@ function leerExcelDesdeFilaA(file) {
         row["tipo"] = nombreTipo;
       }
 
-      // C) SUBTIPOS (Busca columna con "id" y "subtipo")
+      // C) SUBTIPOS
       const keyIdSubtipo = buscarColumnaID(row, ["id", "subtipo"]);
       const idSubtipo = keyIdSubtipo ? (row[keyIdSubtipo] || "").toString().trim() : "";
 
+      // 1. Intentar asignar por ID
       if (idSubtipo && MAPA_SUBTIPOS[idSubtipo]) {
-        let nombreSub = MAPA_SUBTIPOS[idSubtipo];
-
-        // 🛑 NUEVA VALIDACIÓN: Si es Enchapado en Oro/Plata -> VACÍO
-        if (nombreSub === "Enchapado en Oro" || nombreSub === "Enchapado en Plata") {
-            nombreSub = "";
-        }
-
+        const nombreSub = MAPA_SUBTIPOS[idSubtipo];
         row["producto_subtipo"] = nombreSub;
         row["PRODUCTO SUBTIPO"] = nombreSub; 
         row["subtipo"] = nombreSub;
+      }
+
+      // 2. LIMPIEZA FINAL (Esto es lo que faltaba)
+      // Revisamos qué valor quedó finalmente en la columna (venga del ID o del texto original)
+      // y si es uno de los prohibidos, lo borramos.
+      const valorFinalSubtipo = (row["producto_subtipo"] || row["PRODUCTO SUBTIPO"] || "").toString().trim();
+      const valorFinalLower = valorFinalSubtipo.toLowerCase();
+
+      if (valorFinalLower === "enchapado en oro" || valorFinalLower === "enchapado en plata") {
+          row["producto_subtipo"] = "";
+          row["PRODUCTO SUBTIPO"] = "";
+          row["subtipo"] = "";
       }
     });
 
