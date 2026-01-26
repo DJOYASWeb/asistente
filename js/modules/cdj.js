@@ -508,120 +508,103 @@ function renderizarPreview(datos) {
     }
 }
 
-// --- REEMPLAZA TU FUNCIÓN ejecutarCargaDefinitiva POR ESTA ---
-
 async function ejecutarCargaDefinitiva() {
+    // 1. Elementos UI
     const btn = document.getElementById('btnConfirmarCarga');
-    
-    // 1. Asegurarnos que tenemos códigos ocupados cargados
-    if (generados.size === 0) {
-        console.warn("Recargando códigos existentes por seguridad...");
-        await cargarCodigosExistentes(); 
-    }
+    const contenedorBarra = document.getElementById('contenedorProgreso');
+    const barra = document.getElementById('barraProgreso');
+    const txtEstado = document.getElementById('textoEstadoProgreso');
+    const txtPorcentaje = document.getElementById('porcentajeProgreso');
 
-    // 2. Generar el Pool inicial
+    // 2. Validaciones iniciales
+    if (generados.size === 0) await cargarCodigosExistentes();
     let pool = generarPoolDeCodigosDisponibles();
-    
-    // Validaciones
+
     if (pool.length < datosCargaPreliminar.length) {
-        alert(`❌ Error: Intentas cargar ${datosCargaPreliminar.length} clientes, pero solo quedan ${pool.length} códigos disponibles (del 1000 al 10000).`);
+        alert(`❌ Error: Faltan códigos. Tienes ${datosCargaPreliminar.length} clientes y solo ${pool.length} códigos.`);
         return;
     }
 
-    if (!confirm(`¿Confirmas cargar ${datosCargaPreliminar.length} clientes a la Base de Datos?`)) return;
+    if (!confirm(`¿Confirmas cargar ${datosCargaPreliminar.length} clientes?`)) return;
 
-    // UI: Bloquear botón
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Subiendo a Firebase...';
+    // 3. PREPARAR UI PARA CARGA
+    btn.disabled = true; // Bloquear botón para no darle doble clic
+    btn.style.display = "none"; // Ocultarlo
+    contenedorBarra.style.display = "block"; // Mostrar barra
 
     let procesados = 0;
     let errores = 0;
-    const dataTable = $('#tabla').DataTable();
-    const batch = window.db.batch(); // Usamos Batch para mayor velocidad y seguridad (opcional, pero recomendado)
-    let contadorBatch = 0;
+    const total = datosCargaPreliminar.length;
 
-    console.log("🚀 Iniciando carga masiva...");
-
-    // 3. Recorrer el Excel
-    for (let i = 0; i < datosCargaPreliminar.length; i++) {
+    // 4. BUCLE DE CARGA
+    for (let i = 0; i < total; i++) {
         const fila = datosCargaPreliminar[i];
 
-        // --- BUSCADOR INTELIGENTE DE COLUMNAS ---
-        // Busca el valor sin importar si la columna se llama "ID", "id prestashop", "ID_CLIENTE", etc.
+        // --- Actualizar Barra Visualmente ---
+        const porcentaje = Math.round(((i + 1) / total) * 100);
+        barra.style.width = `${porcentaje}%`;
+        txtPorcentaje.textContent = `${porcentaje}%`;
+        txtEstado.textContent = `Procesando ${i + 1} de ${total}: ${fila['Nombre'] || 'Cliente...'}`;
+        
+        // Pequeña pausa para que el navegador pueda dibujar la barra (si no, se congela)
+        await new Promise(r => setTimeout(r, 10));
+
+        // --- Lógica de Datos ---
         const encontrarValor = (keywords) => {
             const key = Object.keys(fila).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
             return key ? String(fila[key]).trim() : "";
         };
 
-        const idPS = encontrarValor(['id', 'prestashop', 'código', 'referencia']);
+        const idPS = encontrarValor(['id', 'prestashop', 'código']);
         const nombre = encontrarValor(['nombre', 'cliente', 'name']);
         const correo = encontrarValor(['correo', 'mail', 'email']);
 
-        // Si falta ID o Nombre, saltamos la fila
         if (!idPS || !nombre) {
-            console.warn(`⚠️ Fila ${i + 1} incompleta (Falta ID o Nombre). Se omite.`, fila);
             errores++;
             continue;
         }
 
-        // --- ASIGNACIÓN DE CÓDIGO ÚNICO ---
-        if (pool.length === 0) {
-            console.error("⛔ SE ACABARON LOS CÓDIGOS EN MEDIO DE LA CARGA.");
-            break;
-        }
-
-        // Elegir código al azar
+        // Asignar Código
         const randomIndex = Math.floor(Math.random() * pool.length);
         const codigoAsignado = pool[randomIndex];
-        
-        // ¡IMPORTANTE! Sacar del pool inmediatamente para no repetirlo en la siguiente iteración
-        pool.splice(randomIndex, 1); 
-        generados.add(codigoAsignado); // Marcar como usado globalmente
+        pool.splice(randomIndex, 1);
+        generados.add(codigoAsignado);
 
-        // --- GUARDAR EN FIRESTORE ---
-        const docRef = window.db.collection("codigos-generados").doc(codigoAsignado);
-        
-        // Guardamos uno por uno (más seguro para ver errores)
         try {
-            await docRef.set({
+            // Guardar en Firebase
+            await window.db.collection("codigos-generados").doc(codigoAsignado).set({
                 idPrestaShop: idPS,
                 nombre: nombre,
                 correo: correo || "Sin correo",
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-
-            // Agregar visualmente a la tabla (sin recargar todo)
-            dataTable.row.add([
-                `<input type="checkbox" class="selector-clienta" data-codigo="${codigoAsignado}">`,
-                idPS, nombre, correo, codigoAsignado,
-                `<button class="btn btn-sm btn-outline-primary" onclick="editarCliente('${codigoAsignado}')"><i class="fa-solid fa-pen-to-square"></i></button> 
-                 <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminarClienta('${codigoAsignado}')"><i class="fa-solid fa-trash-can"></i></button>`
-            ]);
-
             procesados++;
-            console.log(`✅ Fila ${i+1}: ${nombre} -> Código ${codigoAsignado}`);
-
         } catch (error) {
-            console.error(`❌ Error guardando fila ${i+1}:`, error);
+            console.error(error);
             errores++;
-            // Devolver código al pool si falló la BDD (opcional, pero buena práctica)
-            pool.push(codigoAsignado);
-            generados.delete(codigoAsignado);
         }
     }
 
-    // 4. Finalizar
-    dataTable.draw(false); // Dibujar tabla nueva
-    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Importar';
-    btn.disabled = false;
-
-    // Reporte final
-    let mensaje = `Proceso finalizado.\n✅ Cargados: ${procesados}\n⚠️ Omitidos/Error: ${errores}`;
-    alert(mensaje);
+    // 5. FINALIZACIÓN
+    txtEstado.textContent = "¡Finalizado!";
+    barra.className = "progress-bar bg-success"; // Barra sólida (ya no animada)
     
-    if (procesados > 0) {
-        cerrarModalCargaMasiva();
-    }
+    // Esperar medio segundo para que el usuario vea el 100%
+    await new Promise(r => setTimeout(r, 800));
+
+    // Cerrar y Refrescar
+    alert(`✅ Carga Completa.\n\nClientes agregados: ${procesados}\nErrores/Omitidos: ${errores}`);
+    
+    cerrarModalCargaMasiva();
+    
+    // RESTAURAR UI DEL MODAL (Por si se vuelve a abrir)
+    contenedorBarra.style.display = "none";
+    barra.style.width = "0%";
+    btn.style.display = "inline-block";
+    btn.disabled = false;
+    
+    // ¡IMPORTANTE! VER LOS CAMBIOS
+    cargarCodigosExistentes(); // Recarga la tabla de atrás automáticamente
 }
 
 window.cerrarModalCargaMasiva = function() {
