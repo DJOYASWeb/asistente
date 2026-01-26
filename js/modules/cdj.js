@@ -581,7 +581,32 @@ window.cerrarModalCargaMasiva = function() {
 };
 
 
+/* =========================================================
+   UTILIDAD: DESCARGAR PLANTILLA DE EJEMPLO
+   ========================================================= */
+window.descargarPlantillaEjemplo = function() {
+    // 1. Datos de ejemplo
+    const datosEjemplo = [
+        {
+            "ID PrestaShop": "1050",
+            "Nombre": "Ejemplo Juan Pérez",
+            "Correo": "juan.perez@email.com"
+        },
+        {
+            "ID PrestaShop": "2040",
+            "Nombre": "Ejemplo María López",
+            "Correo": "maria.lopez@email.com"
+        }
+    ];
 
+    // 2. Crear hoja de cálculo
+    const ws = XLSX.utils.json_to_sheet(datosEjemplo);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Plantilla Clientes");
+
+    // 3. Descargar archivo
+    XLSX.writeFile(wb, "Plantilla_Carga_Masiva.xlsx");
+};
 
 
 
