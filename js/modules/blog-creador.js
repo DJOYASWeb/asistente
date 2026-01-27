@@ -825,6 +825,22 @@ function esBlogCompleto(blog) {
     return tieneNombre && tieneCategoria && tieneUrl && tieneImagen;
 }
 
+
+/* =========================================================
+   AUTO ASIGNAR INTELIGENTE (SOLO BLOGS COMPLETOS)
+   ========================================================= */
+
+// 1. Función de Validación (NECESARIA para que el filtro funcione)
+function esBlogCompleto(blog) {
+    if (!blog) return false;
+    const tieneNombre = blog.nombre && blog.nombre.trim().length > 0;
+    const tieneCategoria = blog.categoria && blog.categoria.trim().length > 0;
+    const tieneUrl = blog.url && blog.url.trim().length > 0;
+    const tieneImagen = blog.imagen && blog.imagen.trim().length > 0;
+    
+    return tieneNombre && tieneCategoria && tieneUrl && tieneImagen;
+}
+
 // 2. Función Principal Modificada
 window.autoAsignarIntent = function(retriesLeft=3) {
     const sAnt = document.getElementById("selectAnterior");
@@ -851,7 +867,7 @@ window.autoAsignarIntent = function(retriesLeft=3) {
             return esBlogCompleto(blogReal);
         });
     } else {
-        // Si no se han cargado los datos aún, usamos el pool crudo (riesgoso pero necesario si falla la carga)
+        // Si no se han cargado los datos aún, usamos el pool crudo (riesgoso)
         console.warn("⚠️ datosTabla no está listo, usando pool sin validar.");
         poolValido = poolIdsRaw;
     }
@@ -868,7 +884,8 @@ window.autoAsignarIntent = function(retriesLeft=3) {
 
     function pick(selectEl, preferredId = null) {
         if (!selectEl) return;
-        // Intento 1: Usar ID del pool (si viene uno preferido)
+        
+        // Intento 1: Usar ID del pool
         if (preferredId) {
            const optFav = Array.from(selectEl.options).find(o => o.value == preferredId);
            if (optFav) {
@@ -876,9 +893,9 @@ window.autoAsignarIntent = function(retriesLeft=3) {
                if (!used.has(k)) { selectEl.value = preferredId; used.add(k); return; }
            }
         }
-        // Intento 2: Aleatorio normal (Solo si falla el pool o faltan blogs)
+        
+        // Intento 2: Aleatorio normal
         const opts = Array.from(selectEl.options).filter(o => o.value !== "");
-        // Mezclar opciones disponibles
         for (let i = opts.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [opts[i], opts[j]] = [opts[j], opts[i]];
@@ -889,11 +906,11 @@ window.autoAsignarIntent = function(retriesLeft=3) {
         }
     }
 
-    // Asignar usando solo los que pasaron la validación
+    // Asignar
     pick(s1, poolMezclado[0]);
     pick(s2, poolMezclado[1]);
     pick(s3, poolMezclado[2]);
-    pick(sAnt, null); // Anterior y siguiente siempre al azar (o puedes usar poolMezclado[3] y [4])
+    pick(sAnt, null);
     pick(sSig, null);
 
     // Mensaje informativo
@@ -903,7 +920,7 @@ window.autoAsignarIntent = function(retriesLeft=3) {
     
     let msg = "";
     if (poolMezclado.length > 0) {
-        msg = `✅ Asignados destacados. (${descartados} ignorados por estar incompletos)`;
+        msg = `✅ Asignados destacados. (${descartados} ignorados por incompletos)`;
     } else {
         msg = "⚠️ Pool vacío o incompleto. Se asignaron al azar.";
     }
@@ -911,7 +928,7 @@ window.autoAsignarIntent = function(retriesLeft=3) {
     if(typeof mostrarNotificacion === "function") mostrarNotificacion(msg, poolMezclado.length > 0 ? "exito" : "alerta");
 };
 
-// Re-bindear el botón (mantenemos tu lógica original aquí)
+// Re-bindear el botón
 (function(){
     const btnAuto = document.getElementById("btnAutoAsignar");
     if(btnAuto) {
@@ -921,8 +938,7 @@ window.autoAsignarIntent = function(retriesLeft=3) {
     }
 })();
 
-})
-// Función auxiliar para ver qué falta (para el tooltip)
+// Función auxiliar para ver qué falta (Usada en la tabla de preferencias)
 function obtenerFaltantes(blog) {
     let faltantes = [];
     if (!blog.nombre) faltantes.push("Nombre");
@@ -931,6 +947,11 @@ function obtenerFaltantes(blog) {
     if (!blog.imagen) faltantes.push("Imagen");
     return faltantes.join(", ");
 }
+
+
+
+
+})
 
 
 
