@@ -378,9 +378,18 @@ function editarFila(index) {
 
       <div class="row">
         <div class="col-lg-6 col-12">
-<span>ID de Blog</span>
+<div class="row">
+        <div class="col-lg-6 col-12">
+        <span>ID de Blog</span>
           <input type="text" id="editId" class="form-control mb-2" value="${dato.id}" readonly>
-<span>Nombre de Blog</span>
+<div>
+        <div class="col-lg-6 col-12">
+           <span>Fecha de Blog</span>   
+       <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fechaIso || normalizeFecha(dato.fecha || '').fechaIso || ''}">
+<div>
+       <div>
+
+          <span>Nombre de Blog</span>
           <input type="text" id="editNombre" class="form-control mb-2" value="${dato.nombre}">
           <span>Estado de Blog</span>
           <select id="editEstado" class="form-control mb-2">
@@ -388,8 +397,6 @@ function editarFila(index) {
             <option ${dato.estado === 'pendiente' ? 'selected' : ''}>pendiente</option>
             <option ${dato.estado === 'reescribir' ? 'selected' : ''}>reescribir</option>
           </select>
-           <span>Fecha de Blog</span>   
-       <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fechaIso || normalizeFecha(dato.fecha || '').fechaIso || ''}">
 
           <span>Categoría</span>
   <select id="editCategoria" class="form-control mb-3">
