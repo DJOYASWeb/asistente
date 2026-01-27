@@ -260,17 +260,21 @@
     </div>
   </div>
 
-  <div id="modalSeleccionPool" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
-      <div class="modal-contenido" style="background:white; padding:20px; border-radius:8px; width:90%; max-width:600px; max-height:80vh; display:flex; flex-direction:column;">
-          <div class="d-flex justify-content-between mb-3">
-              <h4>Gestionar Selección</h4>
-              <button class="btn-close" onclick="window.cerrarModalPool()"></button>
-          </div>
-          <input type="text" id="buscadorModal" class="form-control mb-3" placeholder="🔍 Buscar...">
-          <div id="listaModalBody" style="overflow-y:auto; flex:1;"></div>
-          <button class="btn btn-success mt-3" onclick="window.guardarCambiosModal()">Guardar</button>
-      </div>
-  </div>
+<div id="modalSeleccionPool" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div class="modal-contenido" style="background:white; padding:20px; border-radius:8px; width:90%; max-width:600px; height:80vh; display:flex; flex-direction:column;">
+        
+        <div class="d-flex justify-content-between mb-3">
+            <h4>Gestionar Selección</h4>
+            <button class="btn-close" onclick="window.cerrarModalPool()"></button>
+        </div>
+        
+        <input type="text" id="buscadorModal" class="form-control mb-3" placeholder="🔍 Buscar...">
+        
+        <div id="listaModalBody" style="overflow-y:auto; flex:1; border: 1px solid #eee; border-radius:4px;"></div>
+        
+        <button class="btn btn-success mt-3" onclick="window.guardarCambiosModal()">Guardar</button>
+    </div>
+</div>
 
   <div id="modalAgregarDato" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; width:90%; max-width:900px; padding:2rem; border-radius:12px; max-height:90vh; overflow-y:auto; position:relative;">
