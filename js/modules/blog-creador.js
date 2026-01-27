@@ -454,22 +454,25 @@ function safeBindRelacionados() {
     }
 
     paintNav();
-if (n === 2) {
-        // Usamos setTimeout para asegurar que se ejecute después de cualquier renderizado visual
+function setStepLocal(n) {
+    // ... (código anterior de ocultar/mostrar pasos) ...
+
+    // 🔥 SI VAMOS AL PASO 3 (Índice 2): CARGAR TODO
+    if (n === 2) {
         setTimeout(() => {
+            // 1. Cargar el Pool (Destacados 1, 2, 3)
             if (typeof window.cargarSelectsDestacados === 'function') {
-                // Limpiamos visualmente primero para dar feedback
-                ['select1', 'select2', 'select3'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el && el.value === "") el.innerHTML = '<option>Cargando Pool...</option>';
-                });
-                
-                // Cargamos la lista VIP
                 window.cargarSelectsDestacados();
             }
-        }, 50);
-    }
 
+            // 2. Cargar Navegación (Anterior / Siguiente) - NUEVO
+            if (typeof window.cargarSelectsNavegacion === 'function') {
+                window.cargarSelectsNavegacion();
+            }
+
+        }, 50); // Pequeña espera para asegurar que el DOM esté listo
+    }
+  }
   }
 
   /* ---------- utilidades ---------- */
@@ -1341,7 +1344,45 @@ window.cargarSelectsDestacados = function() {
     console.log(`✅ Selects de destacados actualizados con ${blogsCandidatos.length} blogs del Pool.`);
 };
 
+/* ==========================================
+   FUNCIÓN: CARGAR ANTERIOR/SIGUIENTE (SOLO TRANSCRITOS)
+   ========================================== */
+window.cargarSelectsNavegacion = function() {
+    const idsSelects = ['selectAnterior', 'selectSiguiente'];
+    
+    // 1. Filtramos: Solo blogs con estado 'transcrito'
+    // (Usamos toLowerCase por si acaso escribiste 'Transcrito' con mayúscula)
+    const blogsAptos = (window.datosTabla || []).filter(blog => {
+        return blog.estado && blog.estado.toLowerCase() === 'transcrito';
+    });
 
+    console.log(`📚 Cargando navegación con ${blogsAptos.length} blogs transcritos.`);
+
+    idsSelects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        const valorPrevio = select.value; // Guardar selección actual
+
+        // Limpiar
+        select.innerHTML = '<option value="">-- Selecciona un blog --</option>';
+
+        // Llenar
+        blogsAptos.forEach(blog => {
+            const opt = document.createElement('option');
+            // Usamos ID o docId según lo que tenga
+            opt.value = blog.id || blog.docId; 
+            // Mostramos Nombre y Fecha para ayudar a ordenar mentalmente
+            opt.textContent = `${blog.nombre} (${blog.categoria})`;
+            select.appendChild(opt);
+        });
+
+        // Restaurar selección
+        if (valorPrevio) {
+            select.value = valorPrevio;
+        }
+    });
+};
 
 
 
