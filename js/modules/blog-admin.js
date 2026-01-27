@@ -132,7 +132,8 @@ async function cargarDatosDesdeFirestore() {
       fecha: fechaUi,
       fechaIso,
       categoria: data.categoria || "",
-      url: data.url || ""
+      url: data.url || "",
+      imagen: data.imagen || ""
     };
   });
 
@@ -265,6 +266,7 @@ async function agregarNuevoDato() {
   const meta = document.getElementById('nuevoMeta').value.trim();
   const fecha = document.getElementById('nuevaFecha').value.trim();
   const categoria = document.getElementById('nuevaCategoria').value.trim();
+  const nuevaImagen = document.getElementById('nuevaImagen').value.trim();
   
   // 2. Normalizar fecha (usamos tu función auxiliar si existe, o la raw)
   const fechaRaw = document.getElementById('nuevaFecha')?.value; 
@@ -306,7 +308,8 @@ async function agregarNuevoDato() {
     fecha: norm.fecha,       
     fechaIso: norm.fechaIso, 
     categoria, 
-    url: urlGenerada, // <--- AGREGAMOS ESTO
+    url: urlGenerada, 
+    imagen: nuevaImagen, 
     creadoEn: firebase.firestore.FieldValue.serverTimestamp() 
   };
 
@@ -345,7 +348,8 @@ if (document.getElementById('nuevaUrl')) {
     document.getElementById('nuevaFecha').value = '';
     document.getElementById('nuevaCategoria').value = '';
     if(document.getElementById('nuevaUrl')) document.getElementById('nuevaUrl').value = '';
-
+// LIMPIEZA EXTRA: Agrega el campo de imagen al limpiar
+     if(document.getElementById('nuevaImagen')) document.getElementById('nuevaImagen').value = '';
     mostrarNotificacion("✅ Blog agregado correctamente", "exito");
 
   } catch (error) {
@@ -401,6 +405,9 @@ function editarFila(index) {
 
 <span>🔗 URL del Blog</span>
 <input type="text" id="editUrl" class="form-control mb-3" readonly style="background-color: #e9ecef;" value="${dato.url || ''}">
+
+<span>🖼️ URL Imagen Principal</span>
+<input type="text" id="nuevaImagen" class="form-control mb-3" placeholder="https://...">
 
           <span>Meta Descripción</span>
            <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
