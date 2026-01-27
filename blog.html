@@ -15,521 +15,189 @@
 <body class="protegido" data-theme="light">
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
-  <!-- Sidebar -->
-<div class="sidebar oculta-permisos" id="sidebar">
-  <div>
-    <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
-      <span class="icon"><i class="fas fa-bars"></i></span>
-      <span class="label">
-        <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
-      </span>
-    </h2>
 
-    <nav>
-      <!-- 1️⃣ INICIO -->
-      <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
-        <span class="icon"><i class="fas fa-home"></i></span>
-        <span class="label">Inicio</span>
-      </a>
 
-      <!-- 2️⃣ CATÁLOGO -->
-      <div class="menu-group" data-group="catalogo">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
-          <span class="icon"><i class="fa-regular fa-address-card"></i></span>
-          <span class="label">Catálogo</span>
-        </a>
-        <div class="submenu">
-          <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
-        </div>
-      </div>
-
-      <!-- 3️⃣ CONTENIDOS -->
-      <div class="menu-group" data-group="contenidos">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
-          <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
-          <span class="label">Contenidos</span>
-        </a>
-        <div class="submenu">
-          <a href="blog.html" data-tab="blog" class="submenu-item">DJOYAS Blog</a>
-          <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
-        </div>
-      </div>
-
-      <!-- 4️⃣ PLANILLAS -->
-      <div class="menu-group" data-group="planillas">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
-          <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
-          <span class="label">Planillas</span>
-        </a>
-        <div class="submenu">
-          <a href="#" data-tab="cotizar" class="submenu-item">Cotizar</a>
-          <a href="productos.html" data-tab="productos" class="submenu-item">Recategorizar</a>
-          <a href="planilla.html" data-tab="planilla" class="submenu-item">Planilla Presta</a>
-          <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
-        </div>
-      </div>
-
-      <!-- 5 Reportes -->
-      <a href="reportes_clientes.html" data-tab="reportes" data-tooltip="Reportes" class="menu-item">
-        <span class="icon"><i class="fas fa-home"></i></span>
-        <span class="label">Reportes</span>
-      </a>
-      
-    </nav>
-  </div>
-
-  <div class="bottom-links">
-    <a href="compresor.html" data-tab="tareas" class="menu-item">
-      <span class="icon"><i class="fa fa-cog"></i></span>
-      <span class="label">Comprimir IMG</span>
-    </a>
-    <a href="tareas.html" data-tab="tareas" class="menu-item">
-      <span class="icon"><i class="fas fa-list-check"></i></span>
-      <span class="label">Tareas Diarias</span>
-    </a>
-    <a href="calendario.html" data-tab="calendario" class="menu-item">
-      <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
-      <span class="label">Calendario</span>
-    </a>
-    <a href="configuracion.html" data-tab="configuracion" class="menu-item">
-      <span class="icon"><i class="fas fa-cog"></i></span>
-      <span class="label">Configuración</span>
-    </a>
-  </div>
-</div>
-
-  <!-- Contenido principal -->
   <div class="main-content">
+    
     <div class="topbar">
       <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
       <div class="profile-section">
         <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" id="avatar" onclick="toggleDropdown()" />
-        <div class="dropdown-menu" id="dropdown">
-          <div class="user-info">
-            <div class="user-name"><strong id="userName">Juan Pérez</strong></div>
-            <div class="user-email"><span id="userEmail">juan@correo.com</span></div>
-          </div>
-          <div class="theme-switch" onclick="toggleTheme()">
-            <span class="switch-icon" id="theme-icon">🌙</span>
-            <span class="switch-label">Modo oscuro</span>
-          </div>
-          <a href="settings.html">Configuración</a>
-          <a href="#" onclick="logout()">Cerrar sesión</a>
-        </div>
       </div>
     </div>
 
-      <!-- Popup iOS personalizado -->
-
-  <div class="tab-header">
-    <button class="tab-btn" id="btnCrear" onclick="showTab('crear')">Crear</button>
-    <button class="tab-btn active" id="btnCalendario" onclick="showTab('calendario')">Calendario</button>
-  </div>
-<div class="container">
-  <div class="tab-content-ios">
-
-<!-- TAB CREAR -->
-<div id="crear" class="tab-section d-none">
-  
-  <div class="container" id="blogWizard">
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="mb-0">Generador de Blog DJOYAS</h1>
-      <button class="btn btn-secondary btn-sm" onclick="window.mostrarPreferencias()">
-        <i class="fa fa-cog"></i> Administrar Preferencias
-      </button>
+    <div class="tab-header">
+      <button class="tab-btn" id="btnCrear" onclick="showTab('crear')">Crear</button>
+      <button class="tab-btn active" id="btnCalendario" onclick="showTab('calendario')">Calendario</button>
     </div>
 
-    <div class="ios-card mb-3">
-          <label>📝 Cargar blog existente:</label>
-          <div class="row">
-            <div class="col-9">
-              <select id="selectBlogExistente" class="form-control">
-                <option value="">-- Selecciona un blog existente --</option>
-              </select>
-            </div>
-            <div class="col-3">
-              <button id="btnIniciarBlog" class="btn btn-primary w-100" type="button" disabled>Iniciar blog</button>
-            </div>
-          </div>
-    </div>
+    <div class="container">
+      <div class="tab-content-ios">
 
-    <div class="ios-card mb-5 wizard-step" id="step1" style="display:none;">
-      <div class="cabecera-step row justify-content-between">
-        <div class="col-auto"><h2>Datos del blog:</h2></div>
-        <div class="col-auto"><span>Paso 1 de 4</span></div>
-      </div>
-      <hr>
-      <div class="row">
-        <div class="col-lg-6 col-12">
-          <label>📌 TÍTULO DEL BLOG:</label>
-          <input class="form-control" type="text" id="titulo" placeholder="Ingresa el título del blog">
-        </div>
-        <div class="col-lg-6 col-12">
-          <label>📆 FECHA DE PUBLICACIÓN:</label>
-          <input class="form-control" type="text" id="fecha" placeholder="Ingresa la fecha del blog">
-        </div>
-      </div>
-
-      <div class="row pt-3">
-        <div class="col-lg-6 col-12">
-          <label>👩‍💻 AUTOR/A:</label>
-          <select class="form-control" id="autor">
-            <option value="Sofía de DJOYAS" selected>Sofía de DJOYAS</option>
-            <option value="Sandra Conejeros">Sandra Conejeros</option>
-          </select>
-        </div>
-        <div class="col-lg-6 col-12">
-          <label>🏷️ CATEGORÍA:</label>
-          <select class="form-control" id="categoria">
-            <option value="Emprendimiento">Emprendimiento</option>
-            <option value="Sabías que?">Sabías que?</option>
-            <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
-            <option value="Innovación">Innovación</option>
-            <option value="Beneficios">Beneficios</option>
-            <option value="Sustentable">Sustentable</option>
-            <option value="Tips">Tips</option>
-            <option value="Tendencias">Tendencias</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row pt-3">
-        <div class="col-lg-6 col-12">
-          <label>🖼️ URL DE LA IMAGEN PRINCIPAL:</label>
-          <input class="form-control" type="text" id="imagen" placeholder="Ingresa la url de la imagen">
-        </div>
-        <div class="col-lg-6 col-12">
-          <label>🔤 Texto ALT de la imagen:</label>
-          <input class="form-control" type="text" id="altImagen" placeholder="Ingresa la descripcion de la imagen">
-        </div>
-      </div>
-
-      <div class="d-flex justify-content-end gap-2 mt-4">
-        <button class="btn btn-primary" id="next1" type="button">Siguiente</button>
-      </div>
-    </div>
-
-    <div class="ios-card mb-5 wizard-step" id="step2" style="display:none;">
-      <div class="cabecera-step row justify-content-between">
-        <div class="col-auto"><h2>Cuerpo del blog:</h2></div>
-        <div class="col-auto"><span>Paso 2 de 4</span></div>
-      </div>
-      <hr>
-      <section class="cuerpo py-3">
-        <div class="row py-3">
-          <div class="col-12">
-            <label>💎 CUERPO DEL BLOG (HTML):</label>
-          </div>
-          <div class="col-12">
-            <textarea class="form-control" id="cuerpo" rows="10" placeholder="Pega aquí el contenido HTML del blog"></textarea>
-          </div>
-        </div>
-      </section>
-      <div class="d-flex justify-content-between gap-2 mt-2">
-        <button class="btn btn-outline-secondary" id="prev2" type="button">Atrás</button>
-        <button class="btn btn-primary" id="next2" type="button">Siguiente</button>
-      </div>
-    </div>
-
-    <div class="ios-card mb-5 wizard-step" id="step3" style="display:none;">
-      <div class="cabecera-step row justify-content-between">
-        <div class="col-auto"><h2>Articulos relacionados del blog:</h2></div>
-        <div class="col-auto"><span>Paso 3 de 4</span></div>
-      </div>
-      <hr>
-      <section class="navegacion py-3">
-          <button class="btn btn-outline-success" id="btnAutoAsignar" type="button">Auto asignar</button>
-        <div class="row">
-          <div class="col-lg-6 col-12">
-            <label class="mt-2">Seleccionar blog anterior:</label>
-            <select class="form-control" id="selectAnterior"></select>
-            <label class="mt-2">Seleccionar blog siguiente:</label>
-            <select class="form-control" id="selectSiguiente"></select>
-          </div>
-          <div class="col-lg-6 col-12">
-            <div class="row">
-              <div class="col-12">
-                <label class="mt-2">Destacado 1</label>
-                <select class="form-control" id="select1"></select>
-              </div>
-              <div class="col-12 mt-2">
-                <label class="mt-2">Destacado 2</label>
-                <select class="form-control" id="select2"></select>
-              </div>
-              <div class="col-12 mt-2">
-                <label class="mt-2">Destacado 3</label>
-                <select class="form-control" id="select3"></select>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <div class="d-flex justify-content-between gap-2 mt-2">
-        <button class="btn btn-outline-secondary" id="prev3" type="button">Atrás</button>
-        <button class="btn btn-primary" id="next3" type="button">Siguiente</button>
-      </div>
-    </div>
-
-    <div class="ios-card mb-5 wizard-step" id="step4" style="display:none;">
-      <div class="cabecera-step row justify-content-between">
-        <div class="col-auto"><h2>Blog generado:</h2></div>
-        <div class="col-auto"><span>Paso 4 de 4</span></div>
-      </div>
-      <hr>
-      <section class="generar py-3">
-        <button class="btn btn-success" id="btnGenerar" type="button">Generar HTML</button>
-      </section>
-      <section class="resultado pt-3">
-        <div class="row justify-content-between align-items-center">
-          <div class="col-auto"><h2>📋 Código generado:</h2></div>
-          <div class="col-auto">
-            <button class="btn btn-outline-primary btn-copy" id="btnCopiar" type="button">📋 Copiar al portapapeles</button>
-          </div>
-          <div class="col-auto">
-             <button class="btn btn-outline-secondary" id="btnRedactarOtro" type="button">Redactar otro blog</button>
-          </div>
-        </div>
-        <pre id="resultado"></pre>
-      </section>
-      <div class="row justify-content-between mt-3">
-        <div class="col-auto"><button class="btn btn-outline-secondary" id="prev4" type="button">Atrás</button></div>
-      </div>
-    </div>
-    
-<div class="container d-none" id="seccionPreferencias">
-    
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <div class="d-flex align-items-center">
-        <button class="btn btn-outline-secondary me-3" onclick="window.cerrarPreferencias()">
-            <i class="fa fa-arrow-left"></i> Volver
-        </button>
-        <h2 class="mb-0 ml-2">⚙️ Configuración del Pool</h2>
-      </div>
-      <button class="btn btn-primary" onclick="window.abrirModalPool()">
-        <i class="fa fa-plus-circle"></i> Agregar / Quitar Blogs
-      </button>
-    </div>
-
-    <div class="ios-card mb-4">
-      <h4 class="mb-2">Tu Pool de Rotación</h4>
-      <p class="text-muted text-sm">Estos son los blogs seleccionados. Al usar "Auto Asignar", el sistema elegirá 3 al azar de esta lista.</p>
-      
-      <div class="table-responsive mt-3">
-        <table class="table table-hover">
-            <thead class="thead-light">
-                <tr>
-                    <th scope="col" style="width: 10%;">ID</th>
-                    <th scope="col" style="width: 60%;">Nombre del Blog</th>
-                    <th scope="col" style="width: 30%;">Estado Datos</th>
-                </tr>
-            </thead>
-            <tbody id="tablaPreferenciasBody">
-                </tbody>
-        </table>
-      </div>
-      
-      <div id="mensajeVacio" class="text-center py-4 d-none">
-          <p class="text-muted">No tienes blogs en tu pool. Haz clic en "Agregar / Quitar Blogs" para comenzar.</p>
-      </div>
-
-      <div class="mt-3 text-right">
-        <span id="contadorPoolTexto" class="font-weight-bold text-primary">0 blogs en el pool</span>
-      </div>
-    </div>
-
-  </div>
-
-  <div id="modalSeleccionPool" class="modal-overlay">
-      <div class="modal-contenido">
-          <div class="modal-header">
-              <h4 class="m-0">Gestionar Selección</h4>
-              <button type="button" class="close" onclick="window.cerrarModalPool()">&times;</button>
-          </div>
-          
-          <div class="p-3 bg-light border-bottom">
-              <input type="text" id="buscadorModal" class="form-control" placeholder="🔍 Buscar por ID o Nombre...">
-          </div>
-
-          <div class="modal-body" id="listaModalBody">
-              <p class="text-center"><i class="fa fa-spinner fa-spin"></i> Cargando lista...</p>
-          </div>
-
-          <div class="modal-footer justify-content-between align-items-center">
-              <span class="text-muted text-sm" id="contadorModalSeleccion">0 seleccionados</span>
-              <button class="btn btn-success" onclick="window.guardarCambiosModal()">
-                  <i class="fa fa-save"></i> Guardar Cambios
+        <div id="crear" class="tab-section d-none">
+          <div class="container" id="blogWizard">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h1 class="mb-0">Generador de Blog DJOYAS</h1>
+              <button class="btn btn-secondary btn-sm" onclick="window.mostrarPreferencias()">
+                <i class="fa fa-cog"></i> Administrar Preferencias
               </button>
+            </div>
+
+            <div class="ios-card mb-3">
+               <label>📝 Cargar blog existente:</label>
+               <div class="row">
+                 <div class="col-9">
+                   <select id="selectBlogExistente" class="form-control">
+                     <option value="">-- Selecciona un blog existente --</option>
+                   </select>
+                 </div>
+                 <div class="col-3">
+                   <button id="btnIniciarBlog" class="btn btn-primary w-100" type="button" disabled>Iniciar blog</button>
+                 </div>
+               </div>
+            </div>
+
+            <div class="ios-card mb-5 wizard-step" id="step1" style="display:none;">
+                <div class="cabecera-step row justify-content-between">
+                    <div class="col-auto"><h2>Datos del blog:</h2></div>
+                    <div class="col-auto"><span>Paso 1 de 4</span></div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-lg-6"><label>📌 TÍTULO:</label><input class="form-control" type="text" id="titulo"></div>
+                    <div class="col-lg-6"><label>📆 FECHA:</label><input class="form-control" type="text" id="fecha"></div>
+                </div>
+                <div class="row pt-3">
+                    <div class="col-lg-6"><label>👩‍💻 AUTOR:</label><select class="form-control" id="autor"><option>Sofía de DJOYAS</option></select></div>
+                    <div class="col-lg-6"><label>🏷️ CATEGORÍA:</label><select class="form-control" id="categoria"><option>Tips</option></select></div>
+                </div>
+                <div class="row pt-3">
+                    <div class="col-lg-6"><label>🖼️ URL IMAGEN:</label><input class="form-control" type="text" id="imagen"></div>
+                    <div class="col-lg-6"><label>🔤 ALT IMAGEN:</label><input class="form-control" type="text" id="altImagen"></div>
+                </div>
+                <button class="btn btn-primary mt-3 float-end" id="next1">Siguiente</button>
+            </div>
+
+            <div class="ios-card mb-5 wizard-step" id="step2" style="display:none;">
+                <h2>Cuerpo del blog (HTML):</h2>
+                <textarea class="form-control" id="cuerpo" rows="10"></textarea>
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-secondary" id="prev2">Atrás</button>
+                    <button class="btn btn-primary" id="next2">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="ios-card mb-5 wizard-step" id="step3" style="display:none;">
+                <h2>Relacionados:</h2>
+                <button class="btn btn-success mb-3" id="btnAutoAsignar">Auto asignar</button>
+                <div class="row">
+                    <div class="col-6"><label>Anterior</label><select id="selectAnterior" class="form-control"></select></div>
+                    <div class="col-6"><label>Siguiente</label><select id="selectSiguiente" class="form-control"></select></div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-4"><label>Destacado 1</label><select id="select1" class="form-control"></select></div>
+                    <div class="col-4"><label>Destacado 2</label><select id="select2" class="form-control"></select></div>
+                    <div class="col-4"><label>Destacado 3</label><select id="select3" class="form-control"></select></div>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-secondary" id="prev3">Atrás</button>
+                    <button class="btn btn-primary" id="next3">Siguiente</button>
+                </div>
+            </div>
+
+            <div class="ios-card mb-5 wizard-step" id="step4" style="display:none;">
+                <h2>Generar:</h2>
+                <button class="btn btn-success" id="btnGenerar">Generar HTML</button>
+                <pre id="resultado" class="mt-3 bg-light p-3 border"></pre>
+                <button class="btn btn-info mt-2" id="btnCopiar">Copiar Código</button>
+                <button class="btn btn-secondary mt-2" id="prev4">Atrás</button>
+            </div>
+
+          </div>
+
+          <div class="container d-none" id="seccionPreferencias">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <button class="btn btn-outline-secondary" onclick="window.cerrarPreferencias()">Volver</button>
+                <h2>⚙️ Configuración del Pool</h2>
+                <button class="btn btn-primary" onclick="window.abrirModalPool()">Agregar Blogs</button>
+            </div>
+            <div class="ios-card">
+                <table class="table"><tbody id="tablaPreferenciasBody"></tbody></table>
+                <div id="mensajeVacio" class="text-center d-none">Sin blogs seleccionados</div>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="calendario" class="tab-section"> <div class="top-bar ios-card mb-3">
+            <h2>📋 Gestión de Datos</h2>
+            <div class="row g-2">
+                <div class="col-md-6"><input class="form-control" type="text" id="filtroTexto" placeholder="🔍 Buscar..." oninput="filtrarTabla()"></div>
+                <div class="col-md-2"><button class="btn btn-primary w-100" onclick="abrirModalAgregarDato()">➕ Agregar</button></div>
+                <div class="col-md-2"><button class="btn btn-outline-success w-100" onclick="exportarSeleccionados()">📤 Exportar</button></div>
+                <div class="col-md-1"><button class="btn btn-secondary w-100" id="btnCargarCsv">📥</button><input type="file" id="csvInput" accept=".csv" class="d-none"></div>
+                <div class="col-md-1"><button class="btn btn-outline-primary w-100" onclick="cargarDatosDesdeFirestore()">🔄</button></div>
+            </div>
+          </div>
+            
+          <div id="contenedorTabla" class="ios-card">
+            <table id="tablaDatos" class="table table-hover">
+              <thead>
+                <tr>
+                  <th style="width: 40px;"><input type="checkbox" onclick="toggleSelectAll(this)"></th>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Estado</th>
+                  <th>Contenido</th>
+                  <th>Fecha</th>
+                  <th>Categoría</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="modalSeleccionPool" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+      <div class="modal-contenido" style="background:white; padding:20px; border-radius:8px; width:90%; max-width:600px; max-height:80vh; display:flex; flex-direction:column;">
+          <div class="d-flex justify-content-between mb-3">
+              <h4>Gestionar Selección</h4>
+              <button class="btn-close" onclick="window.cerrarModalPool()"></button>
+          </div>
+          <input type="text" id="buscadorModal" class="form-control mb-3" placeholder="🔍 Buscar...">
+          <div id="listaModalBody" style="overflow-y:auto; flex:1;"></div>
+          <button class="btn btn-success mt-3" onclick="window.guardarCambiosModal()">Guardar</button>
+      </div>
+  </div>
+
+  <div id="modalAgregarDato" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; width:90%; max-width:900px; padding:2rem; border-radius:12px; max-height:90vh; overflow-y:auto; position:relative;">
+      <button class="btn-close position-absolute top-0 end-0 m-3" onclick="cerrarModalAgregarDato()"></button>
+      <h3>➕ Agregar Nuevo Dato</h3>
+      <div class="row">
+          <div class="col-md-6">
+              <input type="number" id="nuevoId" class="form-control mb-2" placeholder="ID">
+              <input type="text" id="nuevoNombre" class="form-control mb-2" placeholder="Nombre">
+              <select id="nuevoEstado" class="form-control mb-2"><option value="pendiente">Pendiente</option><option value="transcrito">Transcrito</option></select>
+              <input type="date" id="nuevaFecha" class="form-control mb-2">
+              <textarea id="nuevoMeta" class="form-control" placeholder="Meta descripción"></textarea>
+          </div>
+          <div class="col-md-6">
+              <textarea id="nuevoBlog" class="form-control mb-2" rows="5" placeholder="Texto plano"></textarea>
+              <button class="btn btn-sm btn-secondary mb-2" onclick="convertirNuevoHtml()">Convertir HTML</button>
+              <textarea id="nuevoBlogHtml" class="form-control" rows="5" readonly></textarea>
           </div>
       </div>
-  </div>
-
-</div>
-
-
-
- <div id="calendario" class="tab-section">
-
-
-
-
-
-
-
-   <div class="top-bar ios-card">
-    <h2>📋 Gestión de Datos</h2>
-    <div class="buttons row alinear">
-<div class="col-lg-6 col-12 filtro"><input class="form-control" type="text" id="filtroTexto" placeholder="🔍 Buscar..." oninput="filtrarTabla()"></div>
-<div class="col-lg-2 col-12">
-    <button class="btn btn-primary w-100" onclick="abrirModalAgregarDato()">➕ Agregar Blog</button>
-</div>
-
-<div class="col-lg-2 col-6">
-    <button class="btn btn-outline-success w-100" onclick="exportarSeleccionados()">📤 Exportar</button>
-</div>
-
-<div class="col-lg-1 col-6">
-      <button class="btn btn-secondary w-100" id="btnCargarCsv">📥</button>
-      <input type="file" id="csvInput" accept=".csv" class="d-none">
-</div>
-<div class="col-lg-1 col-6"><button class="btn btn-outline-primary" onclick="cargarDatosDesdeFirestore()">🔄</button>
-</div>
-</div>
-  </div>
-    
-  <div id="contenedorTabla" class="ios-card">
-<table id="tablaDatos">
-      <thead>
-        <tr>
-          <th style="width: 40px;" class="text-center">
-            <input type="checkbox" class="form-check-input" onclick="toggleSelectAll(this)">
-          </th>
-          
-          <th>ID</th>
-          <th id="NombreBlog">Nombre</th>
-          <th class="movil">Estado</th>
-          <th class="movil contenido">Contenido</th>
-          <th class="movil">Fecha</th>
-          <th class="movil">Categoría</th>
-          <th class="movil">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        </tbody>
-    </table>
-  </div>
-  
-<!-- Modal para Agregar Dato -->
-<div id="modalAgregarDato" class="alinear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99;">
-  <div style="background:white; max-width:80%; width:90%; padding:2rem; border-radius:16px; position:relative; overflow:auto;">
-    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalAgregarDato()"></button>
-    <h3 class="mb-4">➕ Agregar Nuevo Dato</h3>
-    
-<div class="row">
-<div class="col-lg-6 col-12">
-<div class="contenido-left">
-<span>ID de Blog</span>
-<input type="number" id="nuevoId" class="form-control mb-3" placeholder="ID">
-<span>Nombre de Blog</span>
-<input type="text" id="nuevoNombre" class="form-control mb-3" placeholder="Nombre">
-<span>Estado de Blog</span>
-<select id="nuevoEstado" class="form-control mb-3">
-      <option value="">Selecciona estado</option>
-      <option value="transcrito">Transcrito</option>
-      <option value="pendiente">Pendiente</option>
-      <option value="reescribir">Reescribir</option>
-    </select>
- <span>Fecha de Blog</span>   
-    <input type="date" id="nuevaFecha" class="form-control mb-3">
-        <span>Categoría</span>
-    <select id="nuevaCategoria" class="form-control mb-3">
-      <option value="">Selecciona categoría</option>
-      <option value="Tips">Tips</option>
-      <option value="Emprendimiento">Emprendimiento</option>
-      <option value="Sabías que?">Sabías que?</option>
-      <option value="Beneficios">Beneficios</option>
-      <option value="Tendencias">Tendencias</option>
-      <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
-      <option value="Sustentable">Sustentable</option>
-      <option value="Innovación">Innovación</option>
-    </select>
-
-    <span>Meta Descripción</span>
-    <textarea id="nuevoMeta" class="form-control mb-3" placeholder="Meta descripción" style="height: 150px;"></textarea>
-</div>
-</div>
-<div class="col-lg-6 col-12">
-<div class="contenido-right">
-<span>Contenido de Blog (texto plano)</span>
-<textarea id="nuevoBlog" class="form-control mb-3" placeholder="Contenido del blog" rows="6" style="resize:none;"></textarea>
-
-<button class="btn btn-secondary mb-2" type="button" onclick="convertirNuevoHtml()">✨ Convertir a HTML</button>
-
-<span>Contenido de Blog (HTML generado)</span>
-<textarea id="nuevoBlogHtml" class="form-control mb-3" placeholder="HTML generado" rows="6" style="resize:none;" readonly></textarea>
-
-
-</div>
-</div>
-</div>
-    <button class="btn btn-primary w-100" onclick="agregarNuevoDato()">Guardar</button>
- </div>
-</div>
-
-<!-- Modal Confirmar Eliminación -->
-<div class="alinear" id="modalConfirmarEliminar" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:99;">
-  <div style="background:white; max-width:400px; width:90%; padding:2rem; border-radius:16px; text-align:center; position:relative;">
-    <h4>¿Seguro que deseas eliminar este blog?</h4>
-    <div class="mt-4">
-      <button class="btn btn-danger mt-3" onclick="eliminarFilaConfirmado()">Sí, eliminar</button>
-      <button class="btn btn-outline-secondary mt-3" onclick="cerrarModalEliminar()">Cancelar</button>
+      <button class="btn btn-primary w-100 mt-3" onclick="agregarNuevoDato()">Guardar</button>
     </div>
   </div>
-</div>
-
-
-<!-- Modal Vista Previa CSV -->
-<div id="csvPreviewModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:999; align-items:center; justify-content:center;">
-  <div class="iosModalContent" style="background:white; padding:1.2rem 1.5rem; border-radius:12px; max-width:960px; width:95%; max-height:90vh; overflow:auto; position:relative;">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <h5 class="m-0">Vista previa del CSV</h5>
-      <button class="btn-close" id="csvPrevClose" aria-label="Close"></button>
-    </div>
-
-    <div id="csvPrevErrors" class="alert alert-warning d-none"></div>
-
-    <div class="table-responsive">
-      <table class="table table-sm table-bordered align-middle" id="csvPreviewTable">
-        <thead></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div id="csvImportProgress" class="my-3 d-none">
-      <div class="progress">
-        <div class="progress-bar" role="progressbar" style="width:0%" aria-valuemin="0" aria-valuemax="100"></div>
-      </div>
-      <small id="csvImportStatus" class="text-muted"></small>
-    </div>
-
-    <div id="csvImportSummary" class="mt-3 d-none"></div>
-
-    <div class="d-flex gap-2 justify-content-end mt-3">
-      <button class="btn btn-outline-secondary" id="csvPrevCancel">Cancelar</button>
-      <button class="btn btn-primary" id="csvPrevImport" disabled>Importar</button>
-    </div>
-  </div>
-</div>
-
-
-  
-
-    
-  </div> 
-</div> 
-
-
-
 
 
 
