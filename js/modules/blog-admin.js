@@ -335,6 +335,11 @@ async function agregarNuevoDato() {
     // Limpiar formulario manual
     document.getElementById('nuevoId').value = '';
     document.getElementById('nuevoNombre').value = '';
+    // Al cargar los datos para editar:
+if (document.getElementById('nuevaUrl')) {
+    // Si el blog ya tiene URL, la mostramos. Si no, la dejamos vacía (o la generamos)
+    document.getElementById('nuevaUrl').value = data.url || ""; 
+}
     document.getElementById('nuevoEstado').value = '';
     document.getElementById('nuevoBlog').value = '';
     document.getElementById('nuevoBlogHtml').value = '';
@@ -395,6 +400,10 @@ function editarFila(index) {
       <option value="Sustentable">Sustentable</option>
       <option value="Innovación">Innovación</option>
     </select>
+
+<span>🔗 URL del Blog</span>
+<input type="text" id="editUrl" class="form-control mb-3" readonly style="background-color: #e9ecef;">
+
           <span>Meta Descripción</span>
            <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
@@ -446,6 +455,7 @@ function convertirEditBlogHtml() {
 }
 window.convertirEditBlogHtml = convertirEditBlogHtml;
 
+
 async function guardarEdicionFila() {
   const modal = document.querySelector('.modal-editar-blog');
   const index = modal.querySelector('#editIndex').value;
@@ -457,6 +467,9 @@ async function guardarEdicionFila() {
   const meta = modal.querySelector('#editMeta').value.trim();
   const fechaRaw = modal.querySelector('#editFecha').value; // yyyy-mm-dd
   const categoria = modal.querySelector('#editCategoria').value;
+  
+  // 1. Leer la URL del input (Asegúrate de agregar este input en el HTML del modal editar)
+  let urlEditada = modal.querySelector('#editUrl') ? modal.querySelector('#editUrl').value.trim() : "";
 
   if (!id || !nombre || !estado || !blog || !meta || !fechaRaw || !categoria) {
     mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
@@ -465,30 +478,52 @@ async function guardarEdicionFila() {
 
   const norm = normalizeFecha(fechaRaw);
 
+  // 2. Lógica de Respaldo: Si la URL está vacía, la regeneramos
+  if (!urlEditada) {
+      const limpiar = (txt) => (txt || "").toString().trim().toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-");
+      
+      const sCat = limpiar(categoria);
+      const sNom = limpiar(nombre);
+      urlEditada = `https://distribuidoradejoyas.cl/blog/${sCat}/${sNom}`;
+  }
+
   try {
+    // 3. Guardar en Firebase incluyendo la URL
     await firebase.firestore().collection('blogs').doc(id).update({
-      nombre, estado, blog, blogHtml, meta,
+      nombre, 
+      estado, 
+      blog, 
+      blogHtml, 
+      meta,
       fecha: norm.fecha,       // DD/MM/YYYY
       fechaIso: norm.fechaIso, // YYYY-MM-DD
-      categoria
+      categoria,
+      url: urlEditada          // <--- CAMPO NUEVO
     });
 
+    // 4. Actualizar tabla visualmente
     datosTabla[index] = {
       ...datosTabla[index],
       id, nombre, estado, blog, blogHtml, meta,
       fecha: norm.fecha,
       fechaIso: norm.fechaIso,
-      categoria
+      categoria,
+      url: urlEditada          // <--- CAMPO NUEVO
     };
 
     renderizarTabla();
     cerrarModalEditarDato();
-    mostrarNotificacion("✅ Blog guardado con éxito", "exito");
-  } catch {
+    mostrarNotificacion("✅ Blog actualizado con éxito", "exito");
+  } catch (error) {
+    console.error(error);
     mostrarNotificacion("❌ Error al actualizar el blog.", "error");
   }
 }
 window.guardarEdicionFila = guardarEdicionFila;
+
 
 document.addEventListener('click', e => {
   if (e.target && e.target.id === 'btnCopiarBlog') {
