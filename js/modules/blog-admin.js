@@ -261,7 +261,7 @@ async function agregarNuevoDato() {
   const fecha = document.getElementById('nuevaFecha').value.trim();
   const categoria = document.getElementById('nuevaCategoria').value.trim();
   
-  // Normalizar fecha si es necesario
+  // Normalizar fecha
   const fechaRaw = document.getElementById('nuevaFecha')?.value; 
   const norm = normalizeFecha(fechaRaw);
 
@@ -270,7 +270,21 @@ async function agregarNuevoDato() {
     return;
   }
 
-  // Objeto a guardar (usamos la fecha normalizada si quieres, o la del input)
+  // ---------------------------------------------------------
+  // 🔗 NUEVO: GENERAR URL AUTOMÁTICA
+  // ---------------------------------------------------------
+  const limpiarParaUrl = (texto) => {
+      return (texto || "").toString().trim().toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar tildes
+          .replace(/[^a-z0-9\s-]/g, "") // Quitar símbolos raros
+          .replace(/\s+/g, "-"); // Espacios a guiones
+  };
+
+  const slugTitulo = limpiarParaUrl(nombre);
+  const slugCategoria = limpiarParaUrl(categoria);
+  const urlGenerada = `https://distribuidoradejoyas.cl/blog/${slugCategoria}/${slugTitulo}`;
+  // ---------------------------------------------------------
+
   const nuevoDato = { 
     id, 
     nombre, 
@@ -278,19 +292,29 @@ async function agregarNuevoDato() {
     blog, 
     blogHtml, 
     meta, 
-    fecha: norm.fecha,       // Guardamos formato DD/MM/YYYY
-    fechaIso: norm.fechaIso, // Guardamos formato YYYY-MM-DD para ordenar
+    fecha: norm.fecha,       
+    fechaIso: norm.fechaIso, 
     categoria, 
+    url: urlGenerada, // <--- AQUÍ GUARDAMOS LA URL
     creadoEn: firebase.firestore.FieldValue.serverTimestamp() 
   };
 
   try {
-    await firebase.firestore().collection('blogs').doc(id).set(nuevoDato);
+    // Verificar si el ID ya existe para no sobrescribir por accidente
+    const docRef = firebase.firestore().collection('blogs').doc(id);
+    const docSnap = await docRef.get();
+    
+    if (docSnap.exists) {
+        mostrarNotificacion("⚠️ Ese ID ya existe. Usa otro.", "alerta");
+        return;
+    }
+
+    await docRef.set(nuevoDato);
     datosTabla.push(nuevoDato);
     renderizarTabla();
     cerrarModalAgregarDato();
     limpiarFormulario();
-    mostrarNotificacion("✅ Blog agregado correctamente", "exito");
+    mostrarNotificacion("✅ Blog agregado con URL correctamente", "exito");
   } catch (error) {
     console.error(error);
     mostrarNotificacion("❌ Error al guardar en Firestore.", "error");
@@ -372,6 +396,8 @@ function editarFila(index) {
     }
   }
 }
+
+
 window.editarFila = editarFila;
 
 
