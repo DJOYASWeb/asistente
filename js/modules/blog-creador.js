@@ -650,43 +650,59 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
     }
 
     // 2. Renderizar Tabla Principal
-    window.renderizarTablaPreferencias = function() {
-        const tbody = document.getElementById("tablaPreferenciasBody");
-        const msgVacio = document.getElementById("mensajeVacio");
-        const contadorTxt = document.getElementById("contadorPoolTexto");
+/* ==========================================
+   RENDERIZAR TABLA DE PREFERENCIAS (POOL)
+   ========================================== */
+window.renderizarTablaPreferencias = function() {
+    const tbody = document.getElementById("tablaPreferenciasBody");
+    const mensajeVacio = document.getElementById("mensajeVacio");
+    const contador = document.getElementById("contadorPoolTexto");
+
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+    
+    // Convertir el Set de IDs a Array
+    const poolArray = Array.from(window.poolIds);
+
+    if (poolArray.length === 0) {
+        mensajeVacio.classList.remove("d-none");
+        contador.textContent = "0 blogs en el pool";
+        return;
+    }
+
+    mensajeVacio.classList.add("d-none");
+    contador.textContent = `${poolArray.length} blogs en el pool`;
+
+    poolArray.forEach(id => {
+        const blog = window.blogsData[id]; // Asumiendo que tienes todos los datos cargados en blogsData
         
-        if (!tbody) return;
-        tbody.innerHTML = "";
+        if (!blog) return; // Si por algo no carga el dato, saltar
 
-        const guardados = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
-
-        if (guardados.length === 0) {
-            if(msgVacio) msgVacio.classList.remove("d-none");
-            if(contadorTxt) contadorTxt.textContent = "0 blogs en el pool";
-            return;
+        const completo = esBlogCompleto(blog);
+        
+        // Configurar Etiqueta de Estado
+        let estadoHtml = "";
+        if (completo) {
+            estadoHtml = `<span class="badge bg-success"><i class="fa fa-check"></i> Completo</span>`;
+        } else {
+            const faltan = obtenerFaltantes(blog);
+            estadoHtml = `<span class="badge bg-danger" title="Falta: ${faltan}"><i class="fa fa-times"></i> Incompleto</span>
+                          <small class="d-block text-muted" style="font-size:10px;">Falta: ${faltan}</small>`;
         }
-        if(msgVacio) msgVacio.classList.add("d-none");
-        if(contadorTxt) contadorTxt.textContent = `${guardados.length} blogs en el pool`;
 
-        guardados.forEach(id => {
-            const data = window.blogsData[id];
-            const tr = document.createElement("tr");
-            
-            if (!data) {
-                tr.innerHTML = `<td>${id}</td><td colspan="2" class="text-danger">Datos no cargados aún</td>`;
-            } else {
-                const estaCompleto = verificarIntegridadBlog(data);
-                const badgeClase = estaCompleto ? "status-completo" : "status-incompleto";
-                const badgeTexto = estaCompleto ? "✅ Completo" : "⚠️ Incompleto";
-                tr.innerHTML = `
-                    <td><strong>${id}</strong></td>
-                    <td>${data.nombre || 'Sin título'}</td>
-                    <td><span class="badge-status ${badgeClase}">${badgeTexto}</span></td>
-                `;
-            }
-            tbody.appendChild(tr);
-        });
-    };
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><small>${blog.id}</small></td>
+            <td>
+                <strong>${blog.nombre}</strong><br>
+                <small class="text-muted">${blog.categoria}</small>
+            </td>
+            <td>${estadoHtml}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+};
 
     // 3. Abrir Modal y Cargar Lista
     window.abrirModalPool = function() {
@@ -794,78 +810,116 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
         }
     };
 
-    // 6. AUTO ASIGNAR MEJORADO (Reemplaza la función global)
-    window.autoAsignarIntent = function(retriesLeft=3) {
-        const sAnt = document.getElementById("selectAnterior");
-        const sSig = document.getElementById("selectSiguiente");
-        const s1   = document.getElementById("select1");
-        const s2   = document.getElementById("select2");
-        const s3   = document.getElementById("select3");
+/* =========================================================
+   AUTO ASIGNAR INTELIGENTE (SOLO BLOGS COMPLETOS)
+   ========================================================= */
 
-        // Chequeo de seguridad
-        if (!s1 || !s2 || !s3) return; 
+// 1. Función auxiliar de validación (Pégala fuera o antes de la función principal)
+function esBlogCompleto(blog) {
+    if (!blog) return false;
+    const tieneNombre = blog.nombre && blog.nombre.trim().length > 0;
+    const tieneCategoria = blog.categoria && blog.categoria.trim().length > 0;
+    const tieneUrl = blog.url && blog.url.trim().length > 0;
+    const tieneImagen = blog.imagen && blog.imagen.trim().length > 0;
+    
+    return tieneNombre && tieneCategoria && tieneUrl && tieneImagen;
+}
 
-        // 1. Cargar Pool
-        const poolFavoritos = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
-        
-        // 2. Mezclar Pool (Shuffle)
-        const poolMezclado = [...poolFavoritos];
-        for (let i = poolMezclado.length - 1; i > 0; i--) {
+// 2. Función Principal Modificada
+window.autoAsignarIntent = function(retriesLeft=3) {
+    const sAnt = document.getElementById("selectAnterior");
+    const sSig = document.getElementById("selectSiguiente");
+    const s1   = document.getElementById("select1");
+    const s2   = document.getElementById("select2");
+    const s3   = document.getElementById("select3");
+
+    // Chequeo de seguridad
+    if (!s1 || !s2 || !s3) return; 
+
+    // A. Cargar Pool de IDs
+    const poolIdsRaw = JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]");
+    
+    // B. 🔥 FILTRADO INTELIGENTE 🔥
+    // Convertimos los IDs en objetos reales para revisarlos
+    let poolValido = [];
+    
+    if (window.datosTabla && window.datosTabla.length > 0) {
+        poolValido = poolIdsRaw.filter(id => {
+            // Busamos el blog en la memoria (datosTabla viene de blog-admin.js)
+            const blogReal = window.datosTabla.find(b => (b.id == id || b.docId == id));
+            // Solo pasa si existe y está COMPLETO
+            return esBlogCompleto(blogReal);
+        });
+    } else {
+        // Si no se han cargado los datos aún, usamos el pool crudo (riesgoso pero necesario si falla la carga)
+        console.warn("⚠️ datosTabla no está listo, usando pool sin validar.");
+        poolValido = poolIdsRaw;
+    }
+
+    // C. Mezclar Pool Validado (Shuffle)
+    const poolMezclado = [...poolValido];
+    for (let i = poolMezclado.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [poolMezclado[i], poolMezclado[j]] = [poolMezclado[j], poolMezclado[i]];
+    }
+
+    const used = new Set();
+    [sAnt,sSig,s1,s2,s3].forEach(sel => { if(sel) sel.value = ""; });
+
+    function pick(selectEl, preferredId = null) {
+        if (!selectEl) return;
+        // Intento 1: Usar ID del pool (si viene uno preferido)
+        if (preferredId) {
+           const optFav = Array.from(selectEl.options).find(o => o.value == preferredId);
+           if (optFav) {
+               const k = (optFav.textContent||"").trim();
+               if (!used.has(k)) { selectEl.value = preferredId; used.add(k); return; }
+           }
+        }
+        // Intento 2: Aleatorio normal (Solo si falla el pool o faltan blogs)
+        const opts = Array.from(selectEl.options).filter(o => o.value !== "");
+        // Mezclar opciones disponibles
+        for (let i = opts.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [poolMezclado[i], poolMezclado[j]] = [poolMezclado[j], poolMezclado[i]];
+            [opts[i], opts[j]] = [opts[j], opts[i]];
         }
-
-        const used = new Set();
-        [sAnt,sSig,s1,s2,s3].forEach(sel => { if(sel) sel.value = ""; });
-
-        function pick(selectEl, preferredId = null) {
-            if (!selectEl) return;
-            // Intento 1: Usar ID del pool
-            if (preferredId) {
-               const optFav = Array.from(selectEl.options).find(o => o.value == preferredId);
-               if (optFav) {
-                   const k = (optFav.textContent||"").trim();
-                   if (!used.has(k)) { selectEl.value = preferredId; used.add(k); return; }
-               }
-            }
-            // Intento 2: Aleatorio normal
-            const opts = Array.from(selectEl.options).filter(o => o.value !== "");
-            // Mezclar opciones disponibles
-            for (let i = opts.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [opts[i], opts[j]] = [opts[j], opts[i]];
-            }
-            for (const op of opts) {
-                const k = (op.textContent||"").trim();
-                if (!used.has(k)) { selectEl.value = op.value; used.add(k); return; }
-            }
+        for (const op of opts) {
+            const k = (op.textContent||"").trim();
+            if (!used.has(k)) { selectEl.value = op.value; used.add(k); return; }
         }
+    }
 
-        pick(s1, poolMezclado[0]);
-        pick(s2, poolMezclado[1]);
-        pick(s3, poolMezclado[2]);
-        pick(sAnt, null); // Anterior y siguiente siempre al azar
-        pick(sSig, null);
+    // Asignar usando solo los que pasaron la validación
+    pick(s1, poolMezclado[0]);
+    pick(s2, poolMezclado[1]);
+    pick(s3, poolMezclado[2]);
+    pick(sAnt, null); // Anterior y siguiente siempre al azar (o puedes usar poolMezclado[3] y [4])
+    pick(sSig, null);
 
-        const msg = poolMezclado.length > 0 ? `✅ 3 destacados de tu pool de ${poolMezclado.length}.` : "✅ Asignados al azar.";
-        if(typeof mostrarNotificacion === "function") mostrarNotificacion(msg, "exito");
-    };
+    // Mensaje informativo
+    const total = poolIdsRaw.length;
+    const validos = poolValido.length;
+    const descartados = total - validos;
+    
+    let msg = "";
+    if (poolMezclado.length > 0) {
+        msg = `✅ Asignados destacados. (${descartados} ignorados por estar incompletos)`;
+    } else {
+        msg = "⚠️ Pool vacío o incompleto. Se asignaron al azar.";
+    }
+    
+    if(typeof mostrarNotificacion === "function") mostrarNotificacion(msg, poolMezclado.length > 0 ? "exito" : "alerta");
+};
 
-    // Re-bindear el botón de auto asignar si es necesario
+// Re-bindear el botón (mantenemos tu lógica original aquí)
+(function(){
     const btnAuto = document.getElementById("btnAutoAsignar");
     if(btnAuto) {
-        // Clonamos el botón para eliminar listeners anteriores y evitar duplicados
         const newBtn = btnAuto.cloneNode(true);
         btnAuto.parentNode.replaceChild(newBtn, btnAuto);
         newBtn.addEventListener("click", () => window.autoAsignarIntent());
     }
-
 })();
-
-
-
-
-
 
 
 
