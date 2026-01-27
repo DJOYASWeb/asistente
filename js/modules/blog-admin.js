@@ -278,13 +278,10 @@ async function agregarNuevoDato() {
     return;
   }
 
-  // ---------------------------------------------------------
-  // 🔗 LOGICA DE URL (SLUG)
-  // ---------------------------------------------------------
-  // Intentamos leer del input visual primero
+// --- INICIO CAMBIO: Generar URL ---
   let urlGenerada = document.getElementById('nuevaUrl')?.value.trim();
 
-  // Si por alguna razón está vacío, lo calculamos aquí mismo como respaldo
+  // Si el input está vacío, lo calculamos automáticamente
   if (!urlGenerada) {
       const limpiar = (txt) => (txt || "").toString().trim().toLowerCase()
           .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -295,9 +292,9 @@ async function agregarNuevoDato() {
       const sNom = limpiar(nombre);
       urlGenerada = `https://distribuidoradejoyas.cl/blog/${sCat}/${sNom}`;
   }
-  // ---------------------------------------------------------
+  // --- FIN CAMBIO ---
 
-  // 4. Objeto a guardar
+  // Objeto a guardar
   const nuevoDato = { 
     id, 
     nombre, 
@@ -305,10 +302,10 @@ async function agregarNuevoDato() {
     blog, 
     blogHtml, 
     meta, 
-    fecha: norm.fecha,       // DD/MM/YYYY
-    fechaIso: norm.fechaIso, // YYYY-MM-DD
+    fecha: norm.fecha,       
+    fechaIso: norm.fechaIso, 
     categoria, 
-    url: urlGenerada,        // <--- ¡URL GUARDADA!
+    url: urlGenerada, // <--- AGREGAMOS ESTO
     creadoEn: firebase.firestore.FieldValue.serverTimestamp() 
   };
 
