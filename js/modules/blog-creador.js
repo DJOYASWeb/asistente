@@ -954,7 +954,29 @@ function obtenerFaltantes(blog) {
 })
 
 
+/* ==========================================
+   MOSTRAR / CERRAR MODAL DE PREFERENCIAS (POOL)
+   ========================================== */
+window.mostrarPreferencias = function() {
+    const modal = document.getElementById('modalPreferencias');
+    if (modal) {
+        modal.style.display = 'flex'; // Muestra el modal
+        
+        // Actualiza la tabla con los iconos de estado (validación)
+        if (typeof window.renderizarTablaPreferencias === 'function') {
+            window.renderizarTablaPreferencias();
+        }
+    } else {
+        console.error("No se encontró el modal con id 'modalPreferencias'");
+    }
+};
 
+window.cerrarPreferencias = function() {
+    const modal = document.getElementById('modalPreferencias');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
 
 
 
