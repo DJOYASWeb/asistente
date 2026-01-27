@@ -557,21 +557,33 @@ function safeBindRelacionados() {
     });
 
     byId("prev2")?.addEventListener("click", ()=> setStepLocal(0));
-byId("next2")?.addEventListener("click", ()=> {
+// Dentro de bindNavButtons...
+
+    byId("next2")?.addEventListener("click", ()=> {
       const ok = validateStep2Local(true);
       markDone(1, ok);
       
       if (ok) {
         const t = byId("cuerpo");
         editorHeightPx = t ? t.clientHeight : null;
-        
-        setStepLocal(2); // Avanza al paso 3
+        setStepLocal(2);
 
-        // 🔥 AGREGAR ESTO AQUÍ:
-        // Cargamos los selects justo cuando entramos a la pantalla de relacionados
-        if (typeof window.cargarSelectsDestacados === 'function') {
-            window.cargarSelectsDestacados();
-        }
+        // 🛑 PASO 1: Bloquear funciones antiguas
+        // Limpiamos manualmente para que si 'llenarSelects' corrió antes, lo borremos.
+        ['select1', 'select2', 'select3'].forEach(id => {
+             const el = document.getElementById(id);
+             if(el) el.innerHTML = '<option value="">Cargando Pool...</option>';
+        });
+
+        // ✅ PASO 2: Cargar el Pool (con un pequeño respiro de 100ms)
+        // El setTimeout asegura que nuestra función corra AL FINAL de todo, ganándole a cualquier otra.
+        setTimeout(() => {
+            if (typeof window.cargarSelectsDestacados === 'function') {
+                window.cargarSelectsDestacados();
+            } else {
+                console.error("⚠️ No encuentro la función cargarSelectsDestacados");
+            }
+        }, 100);
       }
     });
 
