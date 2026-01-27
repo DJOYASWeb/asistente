@@ -953,31 +953,106 @@ function obtenerFaltantes(blog) {
 
 })
 
+/* ==========================================
+   NAVEGACIÓN: MAGO <-> PREFERENCIAS
+   ========================================== */
+
+// 1. Mostrar la sección de preferencias (Oculta el wizard)
+window.mostrarPreferencias = function() {
+    const wizard = document.getElementById('blogWizard');
+    const preferencias = document.getElementById('seccionPreferencias');
+
+    if (wizard && preferencias) {
+        wizard.classList.add('d-none');       // Ocultamos el generador
+        preferencias.classList.remove('d-none'); // Mostramos la config
+        
+        // Dibujamos la tabla para ver qué tenemos y si están completos
+        window.renderizarTablaPreferencias();
+    }
+};
+
+// 2. Volver al generador (Oculta preferencias)
+window.cerrarPreferencias = function() {
+    const wizard = document.getElementById('blogWizard');
+    const preferencias = document.getElementById('seccionPreferencias');
+
+    if (wizard && preferencias) {
+        preferencias.classList.add('d-none'); // Ocultamos config
+        wizard.classList.remove('d-none');    // Mostramos generador
+    }
+};
 
 /* ==========================================
-   MOSTRAR / CERRAR MODAL DE PREFERENCIAS (POOL)
+   RENDERIZAR TABLA DE PREFERENCIAS (CON VALIDACIÓN)
    ========================================== */
-window.mostrarPreferencias = function() {
-    const modal = document.getElementById('modalSeleccionPool');
-    if (modal) {
-        modal.style.display = 'flex'; // Muestra el modal
+window.renderizarTablaPreferencias = function() {
+    const tbody = document.getElementById("tablaPreferenciasBody");
+    const mensajeVacio = document.getElementById("mensajeVacio");
+
+    if (!tbody) return;
+    tbody.innerHTML = ""; // Limpiar tabla
+    
+    // Obtenemos los IDs guardados (Pool)
+    const poolArray = Array.from(window.poolIds || []);
+
+    if (poolArray.length === 0) {
+        if(mensajeVacio) mensajeVacio.classList.remove("d-none");
+        return;
+    }
+    
+    if(mensajeVacio) mensajeVacio.classList.add("d-none");
+
+    // Recorremos los IDs guardados
+    poolArray.forEach(id => {
+        // Buscamos los datos reales del blog en memoria
+        // (Asegúrate de que datosTabla esté cargado desde blog-admin.js)
+        const blog = (window.datosTabla || []).find(b => (b.id == id || b.docId == id));
         
-        // Actualiza la tabla con los iconos de estado (validación)
-        if (typeof window.renderizarTablaPreferencias === 'function') {
-            window.renderizarTablaPreferencias();
+        // Si no encontramos el blog (quizás se borró), mostramos el ID solamente
+        if (!blog) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td colspan="2" class="text-danger">Blog ID: ${id} no encontrado (¿Eliminado?)</td>
+                <td><button class="btn btn-sm btn-danger" onclick="togglePool('${id}'); renderizarTablaPreferencias()">Quitar</button></td>
+            `;
+            tbody.appendChild(tr);
+            return;
         }
-    } else {
-        console.error("No se encontró el modal con id 'modalSeleccionPool'");
-    }
-};
 
-window.cerrarPreferencias = function() {
-    const modal = document.getElementById('modalSeleccionPool');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-};
+        // VALIDACIÓN: ¿Está completo?
+        const completo = esBlogCompleto(blog); // Usamos la función que creamos antes
+        let estadoHtml = "";
+        
+        if (completo) {
+            estadoHtml = `<span class="badge bg-success">✅ Completo</span>`;
+        } else {
+            // Calculamos qué falta para decírselo al usuario
+            const faltan = [];
+            if (!blog.nombre) faltan.push("Nombre");
+            if (!blog.categoria) faltan.push("Cat");
+            if (!blog.url) faltan.push("URL");
+            if (!blog.imagen) faltan.push("Img");
+            
+            estadoHtml = `<span class="badge bg-danger">❌ Incompleto</span>
+                          <div style="font-size: 10px; color: #dc3545;">Falta: ${faltan.join(", ")}</div>`;
+        }
 
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>
+                <div class="fw-bold">${blog.nombre}</div>
+                <small class="text-muted">${blog.categoria}</small>
+            </td>
+            <td class="text-center">${estadoHtml}</td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-danger" onclick="togglePool('${id}'); renderizarTablaPreferencias()">
+                   <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+};
 
 
 // updd v1
