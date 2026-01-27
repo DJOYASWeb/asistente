@@ -1236,7 +1236,7 @@ window.togglePool = function(id) {
     // 3. Actualizar contadores visuales locales (mientras responde Firebase)
     const contador = document.getElementById("contadorPoolTexto");
     if(contador) contador.innerText = `${window.poolIds.size} seleccionados`;
-};a
+}
 
 /* ==========================================
    FUNCIONES AUXILIARES (VALIDACIÓN)
