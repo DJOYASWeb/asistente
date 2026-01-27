@@ -408,7 +408,7 @@ function editarFila(index) {
 <input type="text" id="editUrl" class="form-control mb-3" readonly style="background-color: #e9ecef;" value="${dato.url || ''}">
 
 <span>🖼️ URL Imagen Principal</span>
-<input type="text" id="nuevaImagen" class="form-control mb-3" placeholder="https://...">
+<input type="text" id="editImagen" class="form-control mb-2" value="${dato.imagen || ''}">
 
           <span>Meta Descripción</span>
            <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
