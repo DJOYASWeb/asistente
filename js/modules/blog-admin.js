@@ -245,7 +245,7 @@ function cerrarModalAgregarDato() {
 window.cerrarModalAgregarDato = cerrarModalAgregarDato;
 
 function limpiarFormulario() {
-  ['nuevoId', 'nuevoNombre', 'nuevoEstado', 'nuevoBlog', 'nuevoBlogHtml', 'nuevoMeta', 'nuevaFecha', 'nuevaCategoria']
+['nuevoId', 'nuevoNombre', 'nuevoEstado', 'nuevoBlog', 'nuevoBlogHtml', 'nuevoMeta', 'nuevaFecha', 'nuevaCategoria', 'nuevaUrl']
     .forEach(id => document.getElementById(id).value = '');
 }
 
