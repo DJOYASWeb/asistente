@@ -2,15 +2,40 @@
 
 
 /* ==========================================
-   CONFIGURACIÓN INICIAL (Pegar al inicio del archivo)
+   CONFIGURACIÓN INICIAL Y CONEXIÓN FIREBASE
    ========================================== */
-const STORAGE_KEY_DESTACADOS = "djoyas_blog_pool_ids";
+const DB_COLLECTION_CONFIG = "config";
+const DB_DOC_POOL = "pool_destacados";
 
-// Inicializamos la variable global 'poolIds'
-// 1. Intentamos leer del LocalStorage
-// 2. Si hay datos, los convertimos en un Set
-// 3. Si no hay, creamos un Set vacío
-window.poolIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]"));
+// Inicializamos el Set vacío por defecto
+window.poolIds = new Set(); 
+
+// 🔥 ESCUCHADOR EN TIEMPO REAL (SNAPSHOT)
+// Esto descarga la lista al iniciar y la mantiene actualizada si cambias algo en otro lado
+firebase.firestore().collection(DB_COLLECTION_CONFIG).doc(DB_DOC_POOL)
+    .onSnapshot((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            // Convertimos el array de Firebase a nuestro Set local
+            window.poolIds = new Set(data.ids || []);
+            console.log("☁️ Pool sincronizado desde Firebase:", window.poolIds.size);
+        } else {
+            console.log("☁️ Creando documento de configuración por primera vez...");
+            // Si no existe, lo creamos vacío
+            firebase.firestore().collection(DB_COLLECTION_CONFIG).doc(DB_DOC_POOL).set({ ids: [] });
+        }
+
+        // Si el modal de preferencias está abierto, actualizamos la vista automáticamente
+        const modalPref = document.getElementById('modalPreferencias');
+        const modalSel = document.getElementById('modalSeleccionPool');
+        
+        if (modalPref && modalPref.style.display === 'flex') window.renderizarTablaPreferencias();
+        if (modalSel && modalSel.style.display === 'flex') window.renderizarListaModal();
+        
+        // Actualizamos contador si existe
+        const contador = document.getElementById("contadorPoolTexto");
+        if(contador) contador.innerText = `${window.poolIds.size} seleccionados`;
+    });
 
 
 let navegacionBlogs = [];
@@ -1151,28 +1176,38 @@ if (buscador) {
 /* ==========================================
    LOGICA DEL CHECKBOX (TOGGLE)
    ========================================== */
+/* ==========================================
+   LOGICA DEL CHECKBOX (GUARDAR EN FIREBASE)
+   ========================================== */
 window.togglePool = function(id) {
-    // Aseguramos que el ID sea string para evitar duplicados por tipo de dato
     const strId = id.toString();
 
-    // 1. Agregar o Quitar del Set
+    // 1. Actualización Optimista (Visual inmediata)
+    // Actualizamos la variable local primero para que se sienta rápido
     if (window.poolIds.has(strId)) {
         window.poolIds.delete(strId);
     } else {
         window.poolIds.add(strId);
     }
 
-    // 2. Guardar inmediatamente en LocalStorage
-    // (Así no se pierden los cambios si recargas la página)
-    localStorage.setItem(STORAGE_KEY_DESTACADOS, JSON.stringify(Array.from(window.poolIds)));
+    // 2. Guardar en Firestore (La nube)
+    // Convertimos el Set a Array porque Firestore no guarda Sets
+    const arrayParaGuardar = Array.from(window.poolIds);
 
-    // 3. Actualizar contador visual (si existe en la pantalla de atrás)
+    firebase.firestore().collection(DB_COLLECTION_CONFIG).doc(DB_DOC_POOL)
+        .set({ ids: arrayParaGuardar }, { merge: true })
+        .then(() => {
+            console.log("✅ Selección guardada en la nube.");
+        })
+        .catch((error) => {
+            console.error("❌ Error al guardar en Firebase:", error);
+            alert("Hubo un error al guardar tu selección en la nube.");
+        });
+
+    // 3. Actualizar contadores visuales locales (mientras responde Firebase)
     const contador = document.getElementById("contadorPoolTexto");
     if(contador) contador.innerText = `${window.poolIds.size} seleccionados`;
-
-    console.log(`Pool actualizado. Total: ${window.poolIds.size}`);
-};
-
+};a
 
 /* ==========================================
    FUNCIONES AUXILIARES (VALIDACIÓN)
