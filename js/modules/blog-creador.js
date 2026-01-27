@@ -1056,7 +1056,6 @@ window.renderizarTablaPreferencias = function() {
                 <div class="fw-bold">${blog.nombre}</div>
                 <small class="text-muted">${blog.categoria}</small>
             </td>
-            <td class="text-center">${estadoHtml}</td>
             <td class="text-end">
                 <button class="btn btn-sm btn-outline-danger" onclick="togglePool('${id}'); renderizarTablaPreferencias()">
                    <i class="fa fa-trash"></i>
