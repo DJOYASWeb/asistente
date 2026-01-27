@@ -1149,6 +1149,29 @@ if (buscador) {
 }
 
 
+/* ==========================================
+   LOGICA DEL CHECKBOX (TOGGLE)
+   ========================================== */
+window.togglePool = function(id) {
+    // Aseguramos que el ID sea string para evitar duplicados por tipo de dato
+    const strId = id.toString();
 
+    // 1. Agregar o Quitar del Set
+    if (window.poolIds.has(strId)) {
+        window.poolIds.delete(strId);
+    } else {
+        window.poolIds.add(strId);
+    }
+
+    // 2. Guardar inmediatamente en LocalStorage
+    // (Así no se pierden los cambios si recargas la página)
+    localStorage.setItem(STORAGE_KEY_DESTACADOS, JSON.stringify(Array.from(window.poolIds)));
+
+    // 3. Actualizar contador visual (si existe en la pantalla de atrás)
+    const contador = document.getElementById("contadorPoolTexto");
+    if(contador) contador.innerText = `${window.poolIds.size} seleccionados`;
+
+    console.log(`Pool actualizado. Total: ${window.poolIds.size}`);
+};
 
 // updd v1
