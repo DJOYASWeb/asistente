@@ -19,6 +19,7 @@ firebase.firestore().collection(DB_COLLECTION_CONFIG).doc(DB_DOC_POOL)
             // Convertimos el array de Firebase a nuestro Set local
             window.poolIds = new Set(data.ids || []);
             console.log("☁️ Pool sincronizado desde Firebase:", window.poolIds.size);
+            window.cargarSelectsDestacados();
         } else {
             console.log("☁️ Creando documento de configuración por primera vez...");
             // Si no existe, lo creamos vacío
@@ -37,6 +38,9 @@ firebase.firestore().collection(DB_COLLECTION_CONFIG).doc(DB_DOC_POOL)
         if(contador) contador.innerText = `${window.poolIds.size} seleccionados`;
     });
 
+
+
+    
 
 let navegacionBlogs = [];
 let blogs = [];
@@ -553,13 +557,21 @@ function safeBindRelacionados() {
     });
 
     byId("prev2")?.addEventListener("click", ()=> setStepLocal(0));
-    byId("next2")?.addEventListener("click", ()=> {
+byId("next2")?.addEventListener("click", ()=> {
       const ok = validateStep2Local(true);
       markDone(1, ok);
+      
       if (ok) {
         const t = byId("cuerpo");
         editorHeightPx = t ? t.clientHeight : null;
-        setStepLocal(2);
+        
+        setStepLocal(2); // Avanza al paso 3
+
+        // 🔥 AGREGAR ESTO AQUÍ:
+        // Cargamos los selects justo cuando entramos a la pantalla de relacionados
+        if (typeof window.cargarSelectsDestacados === 'function') {
+            window.cargarSelectsDestacados();
+        }
       }
     });
 
@@ -654,9 +666,14 @@ byId("btnGenerar")?.addEventListener("click", ()=> {
     });
   }
 
-  function bindRelacionados(){
-    if (typeof cargarNavegacionSelects === "function") cargarNavegacionSelects();
+function bindRelacionados(){
+    if (typeof cargarNavegacionSelects === "function") cargarNavegacionSelects(); // Carga Anterior/Siguiente (Todos)
     if (typeof llenarSelects === "function") llenarSelects();
+    
+    // 🔥 AGREGAR ESTO AQUÍ TAMBIÉN:
+    if (typeof window.cargarSelectsDestacados === 'function') {
+        window.cargarSelectsDestacados(); // Carga Destacados (Solo Pool)
+    }
   }
 
   document.addEventListener("DOMContentLoaded", ()=>{
