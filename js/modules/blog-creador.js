@@ -1174,4 +1174,39 @@ window.togglePool = function(id) {
     console.log(`Pool actualizado. Total: ${window.poolIds.size}`);
 };
 
+
+/* ==========================================
+   FUNCIONES AUXILIARES (VALIDACIÓN)
+   ========================================== */
+
+// 1. Verifica si el blog tiene los 4 datos obligatorios
+function esBlogCompleto(blog) {
+    if (!blog) return false;
+    
+    // Verificamos que existan y no estén vacíos
+    const tieneNombre = blog.nombre && blog.nombre.toString().trim().length > 0;
+    const tieneCategoria = blog.categoria && blog.categoria.toString().trim().length > 0;
+    const tieneUrl = blog.url && blog.url.toString().trim().length > 0;
+    const tieneImagen = blog.imagen && blog.imagen.toString().trim().length > 0;
+    
+    return tieneNombre && tieneCategoria && tieneUrl && tieneImagen;
+}
+
+// 2. Devuelve un texto con lo que le falta (para mostrar en rojo)
+function obtenerFaltantes(blog) {
+    if (!blog) return "Datos no encontrados";
+    
+    let faltantes = [];
+    if (!blog.nombre) faltantes.push("Nombre");
+    if (!blog.categoria) faltantes.push("Categoría");
+    if (!blog.url) faltantes.push("URL");
+    if (!blog.imagen) faltantes.push("Imagen");
+    
+    return faltantes.length > 0 ? faltantes.join(", ") : "Nada";
+}
+
+// Hacemos las funciones globales por si acaso se llaman desde HTML
+window.esBlogCompleto = esBlogCompleto;
+window.obtenerFaltantes = obtenerFaltantes;
+
 // updd v1
