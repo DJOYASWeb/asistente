@@ -251,40 +251,53 @@ function limpiarFormulario() {
 
 // js/modules/blog-admin.js
 
+/* =====================
+   AGREGAR NUEVO DATO (FINAL CON URL)
+===================== */
 async function agregarNuevoDato() {
+  // 1. Obtener valores del DOM
   const id = document.getElementById('nuevoId').value.trim();
   const nombre = document.getElementById('nuevoNombre').value.trim();
   const estado = document.getElementById('nuevoEstado').value.trim();
-  const blog = document.getElementById('nuevoBlog').value.trim();
-  const blogHtml = document.getElementById('nuevoBlogHtml').value.trim();
+  const blog = document.getElementById('nuevoBlog').value.trim();         // Texto plano
+  const blogHtml = document.getElementById('nuevoBlogHtml').value.trim(); // HTML convertido
   const meta = document.getElementById('nuevoMeta').value.trim();
   const fecha = document.getElementById('nuevaFecha').value.trim();
   const categoria = document.getElementById('nuevaCategoria').value.trim();
   
-  // Normalizar fecha
+  // 2. Normalizar fecha (usamos tu función auxiliar si existe, o la raw)
   const fechaRaw = document.getElementById('nuevaFecha')?.value; 
-  const norm = normalizeFecha(fechaRaw);
+  let norm = { fecha: fechaRaw, fechaIso: fechaRaw };
+  if (typeof normalizeFecha === 'function') {
+      norm = normalizeFecha(fechaRaw);
+  }
 
+  // 3. Validaciones
   if (!id || !nombre || !estado || !blog || !meta || !fecha || !categoria) {
-    mostrarNotificacion("⚠️ Completa todos los campos.", "alerta");
+    mostrarNotificacion("⚠️ Completa todos los campos obligatorios.", "alerta");
     return;
   }
 
   // ---------------------------------------------------------
-  // 🔗 NUEVO: GENERAR URL AUTOMÁTICA
+  // 🔗 LOGICA DE URL (SLUG)
   // ---------------------------------------------------------
-  const limpiarParaUrl = (texto) => {
-      return (texto || "").toString().trim().toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar tildes
-          .replace(/[^a-z0-9\s-]/g, "") // Quitar símbolos raros
-          .replace(/\s+/g, "-"); // Espacios a guiones
-  };
+  // Intentamos leer del input visual primero
+  let urlGenerada = document.getElementById('nuevaUrl')?.value.trim();
 
-  const slugTitulo = limpiarParaUrl(nombre);
-  const slugCategoria = limpiarParaUrl(categoria);
-  const urlGenerada = `https://distribuidoradejoyas.cl/blog/${slugCategoria}/${slugTitulo}`;
+  // Si por alguna razón está vacío, lo calculamos aquí mismo como respaldo
+  if (!urlGenerada) {
+      const limpiar = (txt) => (txt || "").toString().trim().toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-");
+      
+      const sCat = limpiar(categoria);
+      const sNom = limpiar(nombre);
+      urlGenerada = `https://distribuidoradejoyas.cl/blog/${sCat}/${sNom}`;
+  }
   // ---------------------------------------------------------
 
+  // 4. Objeto a guardar
   const nuevoDato = { 
     id, 
     nombre, 
@@ -292,36 +305,53 @@ async function agregarNuevoDato() {
     blog, 
     blogHtml, 
     meta, 
-    fecha: norm.fecha,       
-    fechaIso: norm.fechaIso, 
+    fecha: norm.fecha,       // DD/MM/YYYY
+    fechaIso: norm.fechaIso, // YYYY-MM-DD
     categoria, 
-    url: urlGenerada, // <--- AQUÍ GUARDAMOS LA URL
+    url: urlGenerada,        // <--- ¡URL GUARDADA!
     creadoEn: firebase.firestore.FieldValue.serverTimestamp() 
   };
 
   try {
-    // Verificar si el ID ya existe para no sobrescribir por accidente
+    // 5. Verificar duplicados en Firebase
     const docRef = firebase.firestore().collection('blogs').doc(id);
     const docSnap = await docRef.get();
     
     if (docSnap.exists) {
-        mostrarNotificacion("⚠️ Ese ID ya existe. Usa otro.", "alerta");
+        mostrarNotificacion("⚠️ Ese ID ya existe. Por favor usa otro.", "alerta");
         return;
     }
 
+    // 6. Guardar
     await docRef.set(nuevoDato);
+    
+    // 7. Actualizar tabla localmente (para no recargar toda la página)
     datosTabla.push(nuevoDato);
     renderizarTabla();
+    
+    // 8. Limpieza y Cierre
     cerrarModalAgregarDato();
-    limpiarFormulario();
-    mostrarNotificacion("✅ Blog agregado con URL correctamente", "exito");
+    
+    // Limpiar formulario manual
+    document.getElementById('nuevoId').value = '';
+    document.getElementById('nuevoNombre').value = '';
+    document.getElementById('nuevoEstado').value = '';
+    document.getElementById('nuevoBlog').value = '';
+    document.getElementById('nuevoBlogHtml').value = '';
+    document.getElementById('nuevoMeta').value = '';
+    document.getElementById('nuevaFecha').value = '';
+    document.getElementById('nuevaCategoria').value = '';
+    if(document.getElementById('nuevaUrl')) document.getElementById('nuevaUrl').value = '';
+
+    mostrarNotificacion("✅ Blog agregado correctamente", "exito");
+
   } catch (error) {
-    console.error(error);
+    console.error("Error al guardar:", error);
     mostrarNotificacion("❌ Error al guardar en Firestore.", "error");
   }
 }
 
-// ✅ ESTA LÍNEA ES LA QUE TE FALTA PARA QUE EL BOTÓN FUNCIONE:
+// Exponer la función globalmente para que el HTML la encuentre
 window.agregarNuevoDato = agregarNuevoDato;
 
 
