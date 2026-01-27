@@ -454,6 +454,22 @@ function safeBindRelacionados() {
     }
 
     paintNav();
+if (n === 2) {
+        // Usamos setTimeout para asegurar que se ejecute después de cualquier renderizado visual
+        setTimeout(() => {
+            if (typeof window.cargarSelectsDestacados === 'function') {
+                // Limpiamos visualmente primero para dar feedback
+                ['select1', 'select2', 'select3'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el && el.value === "") el.innerHTML = '<option>Cargando Pool...</option>';
+                });
+                
+                // Cargamos la lista VIP
+                window.cargarSelectsDestacados();
+            }
+        }, 50);
+    }
+
   }
 
   /* ---------- utilidades ---------- */
