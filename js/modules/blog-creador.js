@@ -1440,6 +1440,21 @@ window.autoAsignarCompleto = function() {
     }
 };
 
+// CONECTAR BOTÓN AL CARGAR
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("btnAutoAsignar");
+    if (btn) {
+        // Clonamos el botón para eliminar listeners viejos y poner el nuevo
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener("click", (e) => {
+            e.preventDefault(); // Evita recargas si está dentro de un form
+            window.autoAsignarCompleto();
+        });
+    }
+});
+
 
 
 
