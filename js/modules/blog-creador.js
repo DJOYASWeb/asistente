@@ -1243,4 +1243,65 @@ function obtenerFaltantes(blog) {
 window.esBlogCompleto = esBlogCompleto;
 window.obtenerFaltantes = obtenerFaltantes;
 
+
+/* ==========================================
+   CARGAR SELECTORES CON EL POOL (DESTACADOS)
+   ========================================== */
+window.cargarSelectsDestacados = function() {
+    // 1. Identificamos los 3 selectores de destacados
+    const idsSelects = ['select1', 'select2', 'select3'];
+    
+    // 2. Filtramos los blogs: Solo los que están en el Pool (window.poolIds)
+    const blogsCandidatos = (window.datosTabla || []).filter(blog => {
+        const id = (blog.id || blog.docId).toString();
+        // Debe estar en el Pool Y estar completo
+        return window.poolIds.has(id) && esBlogCompleto(blog);
+    });
+
+    // 3. Llenamos cada select
+    idsSelects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        // Guardamos lo que estaba seleccionado por si acaso
+        const valorPrevio = select.value;
+
+        // Limpiamos y ponemos la opción por defecto
+        select.innerHTML = '<option value="">-- Selecciona del Pool --</option>';
+
+        // Si el pool está vacío, avisamos
+        if (blogsCandidatos.length === 0) {
+            const opt = document.createElement('option');
+            opt.disabled = true;
+            opt.text = "(Tu pool está vacío o incompleto)";
+            select.appendChild(opt);
+            return;
+        }
+
+        // Insertamos las opciones
+        blogsCandidatos.forEach(blog => {
+            const id = blog.id || blog.docId;
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = `${blog.nombre} (${blog.categoria})`;
+            select.appendChild(option);
+        });
+
+        // Intentamos restaurar la selección anterior si sigue existiendo
+        if (valorPrevio && window.poolIds.has(valorPrevio)) {
+            select.value = valorPrevio;
+        }
+    });
+    
+    console.log(`✅ Selects de destacados actualizados con ${blogsCandidatos.length} blogs del Pool.`);
+};
+
+
+
+
+
+
+
+
+
 // updd v1
