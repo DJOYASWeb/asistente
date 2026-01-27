@@ -950,4 +950,28 @@ function exportarSeleccionados() {
   mostrarNotificacion(`✅ Exportados ${checkboxes.length} blogs con fecha formateada.`, "exito");
 }
 window.exportarSeleccionados = exportarSeleccionados;
+
+/* =====================
+   ACTUALIZAR URL EN VIVO (MODAL CALENDARIO)
+===================== */
+window.actualizarUrlModal = function() {
+    const nombre = document.getElementById("nuevoNombre").value;
+    const categoria = document.getElementById("nuevaCategoria").value;
+    
+    // Función local para limpiar
+    const limpiar = (txt) => (txt || "").toString().trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-");
+
+    const slugTitulo = limpiar(nombre);
+    const slugCat = limpiar(categoria || "categoria"); // Default si está vacío
+    
+    const urlFinal = `https://distribuidoradejoyas.cl/blog/${slugCat}/${slugTitulo}`;
+    
+    // Mostrar en el input visual
+    const inputUrl = document.getElementById("nuevaUrl");
+    if(inputUrl) inputUrl.value = urlFinal;
+};
+
 // v4
