@@ -921,5 +921,20 @@ window.autoAsignarIntent = function(retriesLeft=3) {
     }
 })();
 
-
 })
+// Función auxiliar para ver qué falta (para el tooltip)
+function obtenerFaltantes(blog) {
+    let faltantes = [];
+    if (!blog.nombre) faltantes.push("Nombre");
+    if (!blog.categoria) faltantes.push("Categoría");
+    if (!blog.url) faltantes.push("URL");
+    if (!blog.imagen) faltantes.push("Imagen");
+    return faltantes.join(", ");
+}
+
+
+
+
+
+
+// updd v1
