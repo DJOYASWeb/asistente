@@ -1055,4 +1055,87 @@ window.renderizarTablaPreferencias = function() {
 };
 
 
+/* ==========================================
+   GESTIÓN DEL MODAL DE SELECCIÓN (AGREGAR BLOGS AL POOL)
+   ========================================== */
+
+// 1. Abrir el modal
+window.abrirModalPool = function() {
+    const modal = document.getElementById('modalSeleccionPool');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Limpiamos el buscador al abrir
+        if(document.getElementById('buscadorModal')) document.getElementById('buscadorModal').value = '';
+        renderizarListaModal(); // Dibujamos la lista de opciones
+    }
+};
+
+// 2. Cerrar el modal
+window.cerrarModalPool = function() {
+    const modal = document.getElementById('modalSeleccionPool');
+    if (modal) modal.style.display = 'none';
+};
+
+// 3. Guardar (Simplemente cierra y actualiza la tabla de atrás)
+window.guardarCambiosModal = function() {
+    window.renderizarTablaPreferencias(); // Actualiza la tabla de configuración
+    window.cerrarModalPool();
+};
+
+// 4. Función interna para dibujar la lista de checkboxes
+function renderizarListaModal() {
+    const contenedor = document.getElementById('listaModalBody');
+    const inputBuscador = document.getElementById('buscadorModal');
+    const filtro = inputBuscador ? inputBuscador.value.toLowerCase() : "";
+
+    if (!contenedor) return;
+    contenedor.innerHTML = ""; // Limpiar lista
+
+    // Obtenemos TODOS los blogs de la memoria
+    const todosLosBlogs = window.datosTabla || [];
+
+    if (todosLosBlogs.length === 0) {
+        contenedor.innerHTML = '<div class="text-center p-3">No hay blogs cargados en el sistema.</div>';
+        return;
+    }
+
+    todosLosBlogs.forEach(blog => {
+        // Filtro de búsqueda (por nombre)
+        if (filtro && !blog.nombre.toLowerCase().includes(filtro)) return;
+
+        const id = (blog.id || blog.docId).toString();
+        const estaSeleccionado = window.poolIds.has(id);
+        
+        // Validación visual rápida (para saber si vale la pena seleccionarlo)
+        const completo = typeof esBlogCompleto === 'function' ? esBlogCompleto(blog) : true;
+        const iconoEstado = completo ? '<span class="text-success" title="Completo">✅</span>' : '<span class="text-warning" title="Incompleto">⚠️</span>';
+
+        const div = document.createElement('div');
+        div.className = "d-flex align-items-center border-bottom py-2";
+        div.innerHTML = `
+            <div class="me-3 ps-2">
+                <input type="checkbox" class="form-check-input" style="transform: scale(1.3); cursor:pointer;"
+                    ${estaSeleccionado ? "checked" : ""}
+                    onchange="togglePool('${id}'); renderizarListaModal();"> 
+            </div>
+            <div style="flex:1;">
+                <div class="fw-bold" style="font-size: 0.95rem;">${blog.nombre}</div>
+                <div class="text-muted small">
+                    ${iconoEstado} ${blog.categoria} <span class="ms-2 text-secondary">ID: ${id}</span>
+                </div>
+            </div>
+        `;
+        contenedor.appendChild(div);
+    });
+}
+
+// 5. Activar el buscador en tiempo real
+const buscador = document.getElementById('buscadorModal');
+if (buscador) {
+    buscador.oninput = renderizarListaModal;
+}
+
+
+
+
 // updd v1
