@@ -1,5 +1,18 @@
 // blog-creador.js
 
+
+/* ==========================================
+   CONFIGURACIÓN INICIAL (Pegar al inicio del archivo)
+   ========================================== */
+const STORAGE_KEY_DESTACADOS = "djoyas_blog_pool_ids";
+
+// Inicializamos la variable global 'poolIds'
+// 1. Intentamos leer del LocalStorage
+// 2. Si hay datos, los convertimos en un Set
+// 3. Si no hay, creamos un Set vacío
+window.poolIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DESTACADOS) || "[]"));
+
+
 let navegacionBlogs = [];
 let blogs = [];
 window.blogsData = {};
