@@ -378,16 +378,16 @@ function editarFila(index) {
 
       <div class="row">
         <div class="col-lg-6 col-12">
-<div class="row">
+<div class="row"
         <div class="col-lg-6 col-12">
         <span>ID de Blog</span>
           <input type="text" id="editId" class="form-control mb-2" value="${dato.id}" readonly>
-<div>
+</div>
         <div class="col-lg-6 col-12">
            <span>Fecha de Blog</span>   
        <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fechaIso || normalizeFecha(dato.fecha || '').fechaIso || ''}">
-<div>
-       <div>
+</div>
+</div>
 
           <span>Nombre de Blog</span>
           <input type="text" id="editNombre" class="form-control mb-2" value="${dato.nombre}">
