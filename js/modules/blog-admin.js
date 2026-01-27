@@ -376,62 +376,56 @@ function editarFila(index) {
       <h5 class="mb-4">✏️ Editar Blog</h5>
       <input type="hidden" id="editIndex" value="${index}">
 
-      <div class="row">
-        <div class="col-lg-6 col-12">
-<div class="row"
-        <div class="col-lg-6 col-12">
-        <span>ID de Blog</span>
-          <input type="text" id="editId" class="form-control mb-2" value="${dato.id}" readonly>
-</div>
-        <div class="col-lg-6 col-12">
-           <span>Fecha de Blog</span>   
-       <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fechaIso || normalizeFecha(dato.fecha || '').fechaIso || ''}">
-</div>
-</div>
+     <div class="col-lg-6 col-12">
+          
+          <div class="row">
+            <div class="col-6">
+               <span>ID de Blog</span>
+               <input type="text" id="editId" class="form-control mb-2" value="${dato.id}" readonly>
+            </div>
+            <div class="col-6">
+               <span>Fecha de Blog</span>
+               <input type="date" id="editFecha" class="form-control mb-2" value="${dato.fechaIso || normalizeFecha(dato.fecha || '').fechaIso || ''}">
+            </div>
+          </div>
 
           <span>Nombre de Blog</span>
           <input type="text" id="editNombre" class="form-control mb-2" value="${dato.nombre}">
-          <span>Estado de Blog</span>
-          <select id="editEstado" class="form-control mb-2">
-            <option ${dato.estado === 'transcrito' ? 'selected' : ''}>transcrito</option>
-            <option ${dato.estado === 'pendiente' ? 'selected' : ''}>pendiente</option>
-            <option ${dato.estado === 'reescribir' ? 'selected' : ''}>reescribir</option>
-          </select>
 
-          <span>Categoría</span>
-  <select id="editCategoria" class="form-control mb-3">
-      <option value="">Selecciona categoría</option>
-      <option value="Tips">Tips</option>
-      <option value="Emprendimiento">Emprendimiento</option>
-      <option value="Sabías que?">Sabías que?</option>
-      <option value="Beneficios">Beneficios</option>
-      <option value="Tendencias">Tendencias</option>
-      <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
-      <option value="Sustentable">Sustentable</option>
-      <option value="Innovación">Innovación</option>
-    </select>
+          <div class="row">
+            <div class="col-6">
+               <span>Estado de Blog</span>
+               <select id="editEstado" class="form-control mb-2">
+                 <option ${dato.estado === 'transcrito' ? 'selected' : ''}>transcrito</option>
+                 <option ${dato.estado === 'pendiente' ? 'selected' : ''}>pendiente</option>
+                 <option ${dato.estado === 'reescribir' ? 'selected' : ''}>reescribir</option>
+               </select>
+            </div>
+            <div class="col-6">
+               <span>Categoría</span>
+               <select id="editCategoria" class="form-control mb-3">
+                 <option value="">Selecciona categoría</option>
+                 <option value="Tips">Tips</option>
+                 <option value="Emprendimiento">Emprendimiento</option>
+                 <option value="Sabías que?">Sabías que?</option>
+                 <option value="Beneficios">Beneficios</option>
+                 <option value="Tendencias">Tendencias</option>
+                 <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
+                 <option value="Sustentable">Sustentable</option>
+                 <option value="Innovación">Innovación</option>
+               </select>
+            </div>
+          </div>
 
-<span>🔗 URL del Blog</span>
-<input type="text" id="editUrl" class="form-control mb-3" readonly style="background-color: #e9ecef;" value="${dato.url || ''}">
+          <span>🔗 URL del Blog</span>
+          <input type="text" id="editUrl" class="form-control mb-3" readonly style="background-color: #e9ecef;" value="${dato.url || ''}">
 
-<span>🖼️ URL Imagen Principal</span>
-<input type="text" id="editImagen" class="form-control mb-2" value="${dato.imagen || ''}">
+          <span>🖼️ URL Imagen Principal</span>
+          <input type="text" id="editImagen" class="form-control mb-2" value="${dato.imagen || ''}">
 
           <span>Meta Descripción</span>
-           <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
+          <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
-        <div class="col-lg-6 col-12">
-        <span>Contenido de Blog </span>
-          <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
-          <span>Contenido de Blog (HTML generado)</span>
-          <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
-          <button class="btn btn-secondary my-2" onclick="convertirEditBlogHtml()">✨ Convertir a HTML</button>
-          <button class="btn btn-outline-primary btn-sm my-2" id="btnCopiarBlog" type="button" >📋 Copiar HTML</button>
-        </div>
-      </div>
-
-      <button class="btn btn-primary w-100 mt-4" onclick="guardarEdicionFila()">Guardar cambios</button>
-    </div>
   `;
 
   document.body.appendChild(modal);
