@@ -1384,7 +1384,61 @@ window.cargarSelectsNavegacion = function() {
     });
 };
 
+/* ==========================================
+   AUTO ASIGNAR COMPLETO (NAVEGACIÓN + POOL)
+   ========================================== */
+window.autoAsignarCompleto = function() {
+    console.log("🎲 Iniciando auto-asignación inteligente...");
 
+    // 1. OBTENER CANDIDATOS
+    // A) Para Navegación: Todos los 'transcritos'
+    const candidatosNav = (window.datosTabla || []).filter(b => 
+        b.estado && b.estado.toLowerCase() === 'transcrito'
+    );
+
+    // B) Para Destacados: Solo los del Pool que estén Completos
+    const candidatosPool = (window.datosTabla || []).filter(b => {
+        const id = (b.id || b.docId).toString();
+        return window.poolIds.has(id) && esBlogCompleto(b);
+    });
+
+    // 2. FUNCIÓN PARA MEZCLAR Y ELEGIR (Shuffle)
+    const elegirAzar = (lista, cantidad) => {
+        if (lista.length === 0) return [];
+        // Copiamos y mezclamos
+        const mezclados = [...lista].sort(() => 0.5 - Math.random());
+        // Devolvemos los primeros 'n'
+        return mezclados.slice(0, cantidad);
+    };
+
+    // 3. SELECCIONAR GANADORES
+    const elegidosNav = elegirAzar(candidatosNav, 2);      // Necesitamos 2
+    const elegidosPool = elegirAzar(candidatosPool, 3);    // Necesitamos 3
+
+    // 4. ASIGNAR AL DOM
+    // -- Navegación --
+    const selAnt = document.getElementById('selectAnterior');
+    const selSig = document.getElementById('selectSiguiente');
+
+    if (selAnt) selAnt.value = elegidosNav[0] ? (elegidosNav[0].id || elegidosNav[0].docId) : "";
+    if (selSig) selSig.value = elegidosNav[1] ? (elegidosNav[1].id || elegidosNav[1].docId) : "";
+
+    // -- Destacados --
+    const sel1 = document.getElementById('select1');
+    const sel2 = document.getElementById('select2');
+    const sel3 = document.getElementById('select3');
+
+    if (sel1) sel1.value = elegidosPool[0] ? (elegidosPool[0].id || elegidosPool[0].docId) : "";
+    if (sel2) sel2.value = elegidosPool[1] ? (elegidosPool[1].id || elegidosPool[1].docId) : "";
+    if (sel3) sel3.value = elegidosPool[2] ? (elegidosPool[2].id || elegidosPool[2].docId) : "";
+
+    // 5. FEEDBACK
+    if (typeof mostrarNotificacion === 'function') {
+        let msg = "✅ Asignación automática completada.";
+        if (candidatosPool.length < 3) msg += " (Nota: Tu Pool tiene pocos blogs).";
+        mostrarNotificacion(msg, "exito");
+    }
+};
 
 
 
