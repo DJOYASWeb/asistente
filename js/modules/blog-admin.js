@@ -472,6 +472,7 @@ async function guardarEdicionFila() {
   const meta = modal.querySelector('#editMeta').value.trim();
   const fechaRaw = modal.querySelector('#editFecha').value; // yyyy-mm-dd
   const categoria = modal.querySelector('#editCategoria').value;
+  const imagen = modal.querySelector('#editImagen').value.trim();
   
   // 1. Leer la URL del input (Asegúrate de agregar este input en el HTML del modal editar)
   let urlEditada = modal.querySelector('#editUrl') ? modal.querySelector('#editUrl').value.trim() : "";
@@ -493,6 +494,7 @@ async function guardarEdicionFila() {
       const sCat = limpiar(categoria);
       const sNom = limpiar(nombre);
       urlEditada = `https://distribuidoradejoyas.cl/blog/${sCat}/${sNom}`;
+
   }
 
   try {
@@ -506,7 +508,8 @@ async function guardarEdicionFila() {
       fecha: norm.fecha,       // DD/MM/YYYY
       fechaIso: norm.fechaIso, // YYYY-MM-DD
       categoria,
-      url: urlEditada          // <--- CAMPO NUEVO
+      url: urlEditada ,         
+      imagen: imagen
     });
 
     // 4. Actualizar tabla visualmente
@@ -516,7 +519,8 @@ async function guardarEdicionFila() {
       fecha: norm.fecha,
       fechaIso: norm.fechaIso,
       categoria,
-      url: urlEditada          // <--- CAMPO NUEVO
+      url: urlEditada,
+      imagen: imagen
     };
 
     renderizarTabla();
