@@ -15,9 +15,91 @@
 <body class="protegido" data-theme="light">
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
+  <!-- Sidebar -->
+<div class="sidebar oculta-permisos" id="sidebar">
+  <div>
+    <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+      <span class="icon"><i class="fas fa-bars"></i></span>
+      <span class="label">
+        <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
+      </span>
+    </h2>
 
+    <nav>
+      <!-- 1️⃣ INICIO -->
+      <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
+        <span class="icon"><i class="fas fa-home"></i></span>
+        <span class="label">Inicio</span>
+      </a>
 
-  <div class="main-content">
+      <!-- 2️⃣ CATÁLOGO -->
+      <div class="menu-group" data-group="catalogo">
+        <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
+          <span class="icon"><i class="fa-regular fa-address-card"></i></span>
+          <span class="label">Catálogo</span>
+        </a>
+        <div class="submenu">
+          <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
+        </div>
+      </div>
+
+      <!-- 3️⃣ CONTENIDOS -->
+      <div class="menu-group" data-group="contenidos">
+        <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
+          <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
+          <span class="label">Contenidos</span>
+        </a>
+        <div class="submenu">
+          <a href="blog.html" data-tab="blog" class="submenu-item">DJOYAS Blog</a>
+          <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
+        </div>
+      </div>
+
+      <!-- 4️⃣ PLANILLAS -->
+      <div class="menu-group" data-group="planillas">
+        <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
+          <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
+          <span class="label">Planillas</span>
+        </a>
+        <div class="submenu">
+          <a href="#" data-tab="cotizar" class="submenu-item">Cotizar</a>
+          <a href="productos.html" data-tab="productos" class="submenu-item">Recategorizar</a>
+          <a href="planilla.html" data-tab="planilla" class="submenu-item">Planilla Presta</a>
+          <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
+        </div>
+      </div>
+
+      <!-- 5 Reportes -->
+      <a href="reportes_clientes.html" data-tab="reportes" data-tooltip="Reportes" class="menu-item">
+        <span class="icon"><i class="fas fa-home"></i></span>
+        <span class="label">Reportes</span>
+      </a>
+      
+    </nav>
+  </div>
+
+  <div class="bottom-links">
+    <a href="compresor.html" data-tab="tareas" class="menu-item">
+      <span class="icon"><i class="fa fa-cog"></i></span>
+      <span class="label">Comprimir IMG</span>
+    </a>
+    <a href="tareas.html" data-tab="tareas" class="menu-item">
+      <span class="icon"><i class="fas fa-list-check"></i></span>
+      <span class="label">Tareas Diarias</span>
+    </a>
+    <a href="calendario.html" data-tab="calendario" class="menu-item">
+      <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
+      <span class="label">Calendario</span>
+    </a>
+    <a href="configuracion.html" data-tab="configuracion" class="menu-item">
+      <span class="icon"><i class="fas fa-cog"></i></span>
+      <span class="label">Configuración</span>
+    </a>
+  </div>
+</div>
+
+  <!-- Contenido principal -->
+    <div class="main-content">
     
     <div class="topbar">
       <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
@@ -198,6 +280,9 @@
       <button class="btn btn-primary w-100 mt-3" onclick="agregarNuevoDato()">Guardar</button>
     </div>
   </div>
+
+
+
 
 
 
