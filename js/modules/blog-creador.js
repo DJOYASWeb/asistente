@@ -1385,59 +1385,63 @@ window.cargarSelectsNavegacion = function() {
 };
 
 /* ==========================================
-   AUTO ASIGNAR COMPLETO (NAVEGACIÓN + POOL)
+   AUTO ASIGNAR ROBUSTO (BASADO EN OPCIONES DISPONIBLES)
    ========================================== */
 window.autoAsignarCompleto = function() {
-    console.log("🎲 Iniciando auto-asignación inteligente...");
+    console.log("🎲 Iniciando auto-asignación...");
 
-    // 1. OBTENER CANDIDATOS
-    // A) Para Navegación: Todos los 'transcritos'
-    const candidatosNav = (window.datosTabla || []).filter(b => 
-        b.estado && b.estado.toLowerCase() === 'transcrito'
-    );
+    // 1. REFRESCAR LISTAS (Por seguridad)
+    // Forzamos la recarga de opciones para asegurarnos de que hay algo que elegir
+    if (typeof window.cargarSelectsNavegacion === 'function') window.cargarSelectsNavegacion();
+    if (typeof window.cargarSelectsDestacados === 'function') window.cargarSelectsDestacados();
 
-    // B) Para Destacados: Solo los del Pool que estén Completos
-    const candidatosPool = (window.datosTabla || []).filter(b => {
-        const id = (b.id || b.docId).toString();
-        return window.poolIds.has(id) && esBlogCompleto(b);
-    });
-
-    // 2. FUNCIÓN PARA MEZCLAR Y ELEGIR (Shuffle)
-    const elegirAzar = (lista, cantidad) => {
-        if (lista.length === 0) return [];
-        // Copiamos y mezclamos
-        const mezclados = [...lista].sort(() => 0.5 - Math.random());
-        // Devolvemos los primeros 'n'
-        return mezclados.slice(0, cantidad);
-    };
-
-    // 3. SELECCIONAR GANADORES
-    const elegidosNav = elegirAzar(candidatosNav, 2);      // Necesitamos 2
-    const elegidosPool = elegirAzar(candidatosPool, 3);    // Necesitamos 3
-
-    // 4. ASIGNAR AL DOM
-    // -- Navegación --
-    const selAnt = document.getElementById('selectAnterior');
-    const selSig = document.getElementById('selectSiguiente');
-
-    if (selAnt) selAnt.value = elegidosNav[0] ? (elegidosNav[0].id || elegidosNav[0].docId) : "";
-    if (selSig) selSig.value = elegidosNav[1] ? (elegidosNav[1].id || elegidosNav[1].docId) : "";
-
-    // -- Destacados --
-    const sel1 = document.getElementById('select1');
-    const sel2 = document.getElementById('select2');
-    const sel3 = document.getElementById('select3');
-
-    if (sel1) sel1.value = elegidosPool[0] ? (elegidosPool[0].id || elegidosPool[0].docId) : "";
-    if (sel2) sel2.value = elegidosPool[1] ? (elegidosPool[1].id || elegidosPool[1].docId) : "";
-    if (sel3) sel3.value = elegidosPool[2] ? (elegidosPool[2].id || elegidosPool[2].docId) : "";
-
-    // 5. FEEDBACK
-    if (typeof mostrarNotificacion === 'function') {
-        let msg = "✅ Asignación automática completada.";
-        if (candidatosPool.length < 3) msg += " (Nota: Tu Pool tiene pocos blogs).";
-        mostrarNotificacion(msg, "exito");
+    // 2. FUNCIÓN DE AYUDA: ELEGIR AL AZAR DE UN SELECT
+    function obtenerOpcionesValidas(idSelect) {
+        const select = document.getElementById(idSelect);
+        if (!select) return [];
+        // Tomamos todas las opciones que tengan valor (ignoramos la opción "-- Seleccionar --")
+        return Array.from(select.options).filter(opt => opt.value && opt.value.trim() !== "");
     }
+
+    // 3. AUTO ASIGNAR NAVEGACIÓN (Anterior / Siguiente)
+    // Usamos las opciones de 'selectAnterior' como fuente (son las mismas que Siguiente)
+    const opcionesNav = obtenerOpcionesValidas('selectAnterior');
+    
+    if (opcionesNav.length < 2) {
+        console.warn("⚠️ No hay suficientes blogs transcritos para navegación.");
+    } else {
+        // Mezclar
+        const mezcladosNav = [...opcionesNav].sort(() => 0.5 - Math.random());
+        
+        const sAnt = document.getElementById("selectAnterior");
+        const sSig = document.getElementById("selectSiguiente");
+
+        // Asignar valores (El ID real está en .value)
+        if (sAnt && mezcladosNav[0]) sAnt.value = mezcladosNav[0].value;
+        if (sSig && mezcladosNav[1]) sSig.value = mezcladosNav[1].value;
+    }
+
+    // 4. AUTO ASIGNAR DESTACADOS (Pool)
+    // Usamos las opciones de 'select1' como fuente (el Pool)
+    const opcionesPool = obtenerOpcionesValidas('select1');
+
+    if (opcionesPool.length === 0) {
+        console.warn("⚠️ El Pool está vacío o no se cargó en los selects.");
+        if(typeof mostrarNotificacion === 'function') mostrarNotificacion("El Pool está vacío. Agrega blogs en Preferencias.", "error");
+    } else {
+        // Mezclar
+        const mezcladosPool = [...opcionesPool].sort(() => 0.5 - Math.random());
+
+        const s1 = document.getElementById("select1");
+        const s2 = document.getElementById("select2");
+        const s3 = document.getElementById("select3");
+
+        if (s1 && mezcladosPool[0]) s1.value = mezcladosPool[0].value;
+        if (s2 && mezcladosPool[1]) s2.value = mezcladosPool[1].value;
+        if (s3 && mezcladosPool[2]) s3.value = mezcladosPool[2].value;
+    }
+
+    console.log("✅ Auto asignación finalizada.");
 };
 
 // CONECTAR BOTÓN AL CARGAR
