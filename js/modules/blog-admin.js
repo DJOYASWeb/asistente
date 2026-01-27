@@ -256,19 +256,21 @@ function limpiarFormulario() {
 /* =====================
    AGREGAR NUEVO DATO (FINAL CON URL)
 ===================== */
+/* =====================
+   AGREGAR NUEVO DATO (CON URL E IMAGEN AUTO)
+===================== */
 async function agregarNuevoDato() {
   // 1. Obtener valores del DOM
   const id = document.getElementById('nuevoId').value.trim();
   const nombre = document.getElementById('nuevoNombre').value.trim();
   const estado = document.getElementById('nuevoEstado').value.trim();
-  const blog = document.getElementById('nuevoBlog').value.trim();         // Texto plano
-  const blogHtml = document.getElementById('nuevoBlogHtml').value.trim(); // HTML convertido
+  const blog = document.getElementById('nuevoBlog').value.trim();
+  const blogHtml = document.getElementById('nuevoBlogHtml').value.trim();
   const meta = document.getElementById('nuevoMeta').value.trim();
   const fecha = document.getElementById('nuevaFecha').value.trim();
   const categoria = document.getElementById('nuevaCategoria').value.trim();
-  const nuevaImagen = document.getElementById('nuevaImagen').value.trim();
   
-  // 2. Normalizar fecha (usamos tu función auxiliar si existe, o la raw)
+  // 2. Normalizar fecha (si existe tu función auxiliar)
   const fechaRaw = document.getElementById('nuevaFecha')?.value; 
   let norm = { fecha: fechaRaw, fechaIso: fechaRaw };
   if (typeof normalizeFecha === 'function') {
@@ -281,10 +283,11 @@ async function agregarNuevoDato() {
     return;
   }
 
-// --- INICIO CAMBIO: Generar URL ---
+  // ---------------------------------------------------------
+  // 🔗 A. LOGICA DE URL (SLUG)
+  // ---------------------------------------------------------
   let urlGenerada = document.getElementById('nuevaUrl')?.value.trim();
-
-  // Si el input está vacío, lo calculamos automáticamente
+  
   if (!urlGenerada) {
       const limpiar = (txt) => (txt || "").toString().trim().toLowerCase()
           .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
@@ -295,9 +298,18 @@ async function agregarNuevoDato() {
       const sNom = limpiar(nombre);
       urlGenerada = `https://distribuidoradejoyas.cl/blog/${sCat}/${sNom}`;
   }
-  // --- FIN CAMBIO ---
 
-  // Objeto a guardar
+  // ---------------------------------------------------------
+  // 🖼️ B. LOGICA DE IMAGEN (AUTO POR ID)
+  // ---------------------------------------------------------
+  let imagenFinal = document.getElementById('nuevaImagen') ? document.getElementById('nuevaImagen').value.trim() : "";
+
+  if (!imagenFinal) {
+      // Usamos el formato exacto que pediste basado en el ID
+      imagenFinal = `https://distribuidoradejoyas.cl/img/cms/paginas%20internas/blogs/blog-${id}.jpg`;
+  }
+
+  // 4. Objeto a guardar
   const nuevoDato = { 
     id, 
     nombre, 
@@ -305,16 +317,16 @@ async function agregarNuevoDato() {
     blog, 
     blogHtml, 
     meta, 
-    fecha: norm.fecha,       
-    fechaIso: norm.fechaIso, 
+    fecha: norm.fecha,       // DD/MM/YYYY
+    fechaIso: norm.fechaIso, // YYYY-MM-DD
     categoria, 
-    url: urlGenerada, 
-    imagen: nuevaImagen, 
+    url: urlGenerada,        // <--- URL LISTA
+    imagen: imagenFinal,     // <--- IMAGEN LISTA
     creadoEn: firebase.firestore.FieldValue.serverTimestamp() 
   };
 
   try {
-    // 5. Verificar duplicados en Firebase
+    // 5. Verificar duplicados
     const docRef = firebase.firestore().collection('blogs').doc(id);
     const docSnap = await docRef.get();
     
@@ -323,33 +335,22 @@ async function agregarNuevoDato() {
         return;
     }
 
-    // 6. Guardar
+    // 6. Guardar en Firebase
     await docRef.set(nuevoDato);
     
-    // 7. Actualizar tabla localmente (para no recargar toda la página)
-    datosTabla.push(nuevoDato);
-    renderizarTabla();
+    // 7. Actualizar tabla localmente (si usas snapshot esto es opcional, pero bueno para feedback inmediato)
+    // datosTabla.push(nuevoDato); // Descomentar si no usas onSnapshot
+    // renderizarTabla();          // Descomentar si no usas onSnapshot
     
     // 8. Limpieza y Cierre
     cerrarModalAgregarDato();
     
-    // Limpiar formulario manual
-    document.getElementById('nuevoId').value = '';
-    document.getElementById('nuevoNombre').value = '';
-    // Al cargar los datos para editar:
-if (document.getElementById('nuevaUrl')) {
-    // Si el blog ya tiene URL, la mostramos. Si no, la dejamos vacía (o la generamos)
-    document.getElementById('nuevaUrl').value = data.url || ""; 
-}
-    document.getElementById('nuevoEstado').value = '';
-    document.getElementById('nuevoBlog').value = '';
-    document.getElementById('nuevoBlogHtml').value = '';
-    document.getElementById('nuevoMeta').value = '';
-    document.getElementById('nuevaFecha').value = '';
-    document.getElementById('nuevaCategoria').value = '';
-    if(document.getElementById('nuevaUrl')) document.getElementById('nuevaUrl').value = '';
-// LIMPIEZA EXTRA: Agrega el campo de imagen al limpiar
-     if(document.getElementById('nuevaImagen')) document.getElementById('nuevaImagen').value = '';
+    // Limpiar formulario (incluyendo los nuevos campos)
+    const idsALimpiar = ['nuevoId', 'nuevoNombre', 'nuevoEstado', 'nuevoBlog', 'nuevoBlogHtml', 'nuevoMeta', 'nuevaFecha', 'nuevaCategoria', 'nuevaUrl', 'nuevaImagen'];
+    idsALimpiar.forEach(campo => {
+        if(document.getElementById(campo)) document.getElementById(campo).value = '';
+    });
+
     mostrarNotificacion("✅ Blog agregado correctamente", "exito");
 
   } catch (error) {
