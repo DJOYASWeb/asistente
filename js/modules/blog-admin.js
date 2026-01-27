@@ -376,7 +376,8 @@ function editarFila(index) {
       <h5 class="mb-4">✏️ Editar Blog</h5>
       <input type="hidden" id="editIndex" value="${index}">
 
-     <div class="col-lg-6 col-12">
+      <div class="row">
+<div class="col-lg-6 col-12">
           
           <div class="row">
             <div class="col-6">
@@ -426,6 +427,18 @@ function editarFila(index) {
           <span>Meta Descripción</span>
           <textarea id="editMeta" class="form-control mb-2">${dato.meta}</textarea>
         </div>
+        <div class="col-lg-6 col-12">
+        <span>Contenido de Blog </span>
+          <textarea id="editBlog" class="form-control mb-2">${dato.blog}</textarea>
+          <span>Contenido de Blog (HTML generado)</span>
+          <textarea id="editBlogHtml" class="form-control mb-2">${dato.blogHtml || ''}</textarea>
+          <button class="btn btn-secondary my-2" onclick="convertirEditBlogHtml()">✨ Convertir a HTML</button>
+          <button class="btn btn-outline-primary btn-sm my-2" id="btnCopiarBlog" type="button" >📋 Copiar HTML</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary w-100 mt-4" onclick="guardarEdicionFila()">Guardar cambios</button>
+    </div>
   `;
 
   document.body.appendChild(modal);
