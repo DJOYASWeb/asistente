@@ -132,6 +132,7 @@ async function cargarDatosDesdeFirestore() {
       fecha: fechaUi,
       fechaIso,
       categoria: data.categoria || ""
+      url: data.url || ""
     };
   });
 
