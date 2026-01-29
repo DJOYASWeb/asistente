@@ -774,18 +774,8 @@ function renderizarTablaPrevia(data) {
 
 // 4. PROCESAR CARGA FINAL
 window.procesarCargaFinal = function() {
-    if (datosCargadosTemporalmente.length === 0) return;
-
-    if(!confirm(`¿Confirmas la importación de ${datosCargadosTemporalmente.length} registros?`)) return;
-
-    // AQUI VA TU LÓGICA DE GUARDADO EN BASE DE DATOS
-    console.log("Guardando datos...", datosCargadosTemporalmente);
-    
-    alert(`✅ ¡Proceso Iniciado! \nSe están procesando ${datosCargadosTemporalmente.length} productos.\n(Revisa la consola para ver los datos raw)`);
-    
-    cerrarModalCarga();
+    ejecutarCargaDefinitiva();
 };
-
 
 
 
