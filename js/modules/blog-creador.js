@@ -181,22 +181,30 @@ function generarHTML() {
     .map(i => Number.isInteger(i) ? blogs[i] : null)
     .filter(Boolean);
 
-const destacadosHTML = destacadosSel.map(blog => `
+const destacadosHTML = destacadosSel.map(blog => {
+    // Usamos 'nombre' si 'titulo' no existe, e 'imagen' si 'img' no existe
+    const tituloFinal = blog.nombre || blog.titulo || "Sin título";
+    const imagenFinal = blog.imagen || blog.img || "";
+    const urlFinal = blog.url || "#";
+    const categoriaFinal = blog.categoria || "General";
+
+    return `
         <hr>
         <div class="row card-recomendados">
           <div class="col-5 portada-recomendados">
-            <a href="${blog.url}"><img src="${blog.img}" alt=""></a>
+            <a href="${urlFinal}"><img src="${imagenFinal}" alt="${tituloFinal}"></a>
           </div>
           <div class="col-7">
-            <a href="${blog.url}"><h3 class="recomendados pt-2">${blog.titulo}</h3></a>
+            <a href="${urlFinal}"><h3 class="recomendados pt-2">${tituloFinal}</h3></a>
             <div class="etiquetas">
-                <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blog.categoria)}">
-                    ${blog.categoria}
+                <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(categoriaFinal)}">
+                    ${categoriaFinal}
                 </a>
             </div>
           </div>
         </div>
-  `).join('\n');
+    `;
+}).join('\n');
 
   const slug = categoria.toLowerCase().replace(/\s+/g, '-');
   const slugAnterior = blogAnterior?.categoria ? blogAnterior.categoria.toLowerCase().replace(/\s+/g, '-') : slug;
