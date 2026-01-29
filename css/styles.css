@@ -2999,3 +2999,7 @@ grid-auto-rows: minmax(100px, auto);
         background: rgba(0,0,0,0.5); z-index: 9999;
         display: flex; justify-content: center; align-items: center;
     }
+
+    .progress-bar {
+    transition: width 0.4s ease;
+}
