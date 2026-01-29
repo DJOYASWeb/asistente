@@ -508,7 +508,6 @@ function renderizarPreview(datos) {
     }
 }
 
-// REEMPLAZA ESTA FUNCIÓN EN cdj.js
 async function ejecutarCargaDefinitiva() {
     const btn = document.getElementById('btnConfirmarCarga');
     const contenedorBarra = document.getElementById('contenedorProgreso');
@@ -516,39 +515,41 @@ async function ejecutarCargaDefinitiva() {
     const txtEstado = document.getElementById('textoEstadoProgreso');
     const txtPorcentaje = document.getElementById('porcentajeProgreso');
 
-    // Usar la variable que contiene los datos del Excel detectado
+    // Determinamos qué fuente de datos usar
     const datosParaProcesar = datosCargaPreliminar.length > 0 ? datosCargaPreliminar : datosCargadosTemporalmente;
 
     if (!datosParaProcesar || datosParaProcesar.length === 0) {
-        mostrarNotificacion("No hay datos para cargar. Selecciona un archivo primero.", "alerta");
+        alert("No hay datos para procesar. Por favor, carga un archivo Excel.");
         return;
     }
 
-    // 1. Validar disponibilidad de códigos de 4 dígitos (1000-9999)
+    // 1. Obtener códigos disponibles (1000-9999) que no estén en uso
+    if (generados.size === 0) await cargarCodigosExistentes();
     let pool = generarPoolDeCodigosDisponibles();
+
     if (pool.length < datosParaProcesar.length) {
         alert(`❌ Error: Solo quedan ${pool.length} códigos disponibles para ${datosParaProcesar.length} clientes.`);
         return;
     }
 
-    if (!confirm(`¿Confirmas la creación de ${datosParaProcesar.length} clientas con sus respectivos códigos únicos?`)) return;
+    if (!confirm(`¿Confirmas la creación de ${datosParaProcesar.length} clientas con códigos únicos?`)) return;
 
     // 2. Preparar UI
     btn.disabled = true;
-    contenedorBarra.style.display = "block";
+    if (contenedorBarra) contenedorBarra.style.display = "block";
 
     let procesados = 0;
     let errores = 0;
     const total = datosParaProcesar.length;
     
-    // 3. Configurar Batch de Firebase para escritura masiva
+    // 3. Batch de Firebase (Lotes de 500 para máximo rendimiento)
     let batch = window.db.batch();
     let contadorBatch = 0;
 
     for (let i = 0; i < total; i++) {
         const fila = datosParaProcesar[i];
 
-        // Mapeo flexible para limpiar caracteres extraños como "Ã³"
+        // Mapeo flexible para tus columnas (ID_Cliente, Nombre, correo electrónico)
         const encontrarValor = (keywords) => {
             const key = Object.keys(fila).find(k => 
                 keywords.some(kw => k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(kw))
@@ -561,17 +562,18 @@ async function ejecutarCargaDefinitiva() {
         const correo = encontrarValor(['correo', 'mail', 'email']);
 
         if (!idPS || !nombre) {
-            console.warn("Fila omitida por falta de datos obligatorios:", fila);
+            console.warn("Fila omitida por falta de ID o Nombre:", fila);
             errores++;
             continue;
         }
 
-        // 4. Generar código de 4 dígitos único usando tu lógica de Pool
+        // 4. ASIGNACIÓN DE CÓDIGO ÚNICO (Lógica individual por cliente)
         const randomIndex = Math.floor(Math.random() * pool.length);
         const codigoAsignado = pool[randomIndex];
-        pool.splice(randomIndex, 1); // Eliminar del pool para que no se repita en esta carga
+        pool.splice(randomIndex, 1); // Lo quitamos del pool para que no se repita en esta carga
+        generados.add(codigoAsignado);
 
-        // 5. Preparar el documento en el Batch
+        // 5. Preparar documento en Firestore
         const docRef = window.db.collection("codigos-generados").doc(codigoAsignado);
         batch.set(docRef, {
             idPrestaShop: idPS,
@@ -583,16 +585,17 @@ async function ejecutarCargaDefinitiva() {
         procesados++;
         contadorBatch++;
 
-        // Ejecutar carga cada 500 registros (límite de Firebase)
+        // Ejecutar el commit cada 500 registros o al final
         if (contadorBatch === 500 || i === total - 1) {
             try {
                 await batch.commit();
-                const porcentaje = Math.round(((i + 1) / total) * 100);
-                barra.style.width = `${porcentaje}%`;
-                txtPorcentaje.textContent = `${porcentaje}%`;
-                txtEstado.textContent = `Procesando ${i + 1} de ${total}...`;
-                
-                batch = window.db.batch(); // Reiniciar batch
+                // Actualizar barra de progreso
+                if (barra && txtPorcentaje) {
+                    const porcentaje = Math.round(((i + 1) / total) * 100);
+                    barra.style.width = `${porcentaje}%`;
+                    txtPorcentaje.textContent = `${porcentaje}%`;
+                }
+                batch = window.db.batch();
                 contadorBatch = 0;
             } catch (error) {
                 console.error("Error al guardar lote:", error);
@@ -601,28 +604,44 @@ async function ejecutarCargaDefinitiva() {
         }
     }
 
-    // 6. Finalización
-    alert(`✅ Carga finalizada.\n\n- Clientas creadas con éxito: ${procesados}\n- Filas con error: ${errores}`);
+    alert(`✅ Carga Completa.\n\n- Clientas creadas: ${procesados}\n- Errores: ${errores}`);
     
-    cerrarModalCargaMasiva();
-    refrescarContenidos(); // Esta función limpia la tabla y recarga desde Firebase
+    // 6. Finalización y Limpieza
+    window.cerrarModalCargaMasiva();
+    refrescarContenidos(); // Recarga la tabla con los nuevos datos de la BBDD
 }
 
 
 window.cerrarModalCargaMasiva = function() {
-    document.getElementById('modalCargaMasiva').style.display = 'none';
+    const modal = document.getElementById('modalCargaMasiva');
+    if (modal) modal.style.display = 'none';
     
-    // Limpieza de datos
-    document.getElementById('archivoMasivo').value = '';
-    document.getElementById('tablaPreviewCarga').querySelector('tbody').innerHTML = '';
-    document.getElementById('mensajeVacioPreview').style.display = 'block';
-    document.getElementById('btnConfirmarCarga').disabled = true;
-    document.getElementById('estadoCarga').textContent = "Esperando archivo...";
-    document.getElementById('estadoCarga').className = "badge bg-secondary";
-    
-    datosCargaPreliminar = []; // Vaciar memoria
-};
+    // Limpieza protegida (si el elemento no existe, no hace nada y no da error)
+    const inputArchivo = document.getElementById('archivoMasivo') || document.getElementById('inputFileCarga');
+    if (inputArchivo) inputArchivo.value = '';
 
+    const tablaPreview = document.getElementById('tablaPreviewCarga');
+    if (tablaPreview) {
+        const tbody = tablaPreview.querySelector('tbody');
+        if (tbody) tbody.innerHTML = '';
+    }
+
+    const msgVacio = document.getElementById('mensajeVacioPreview') || document.getElementById('msgInicial');
+    if (msgVacio) msgVacio.style.display = 'block';
+
+    const btn = document.getElementById('btnConfirmarCarga');
+    if (btn) {
+        btn.disabled = true;
+        btn.style.display = 'inline-block';
+    }
+
+    const contenedorProgreso = document.getElementById('contenedorProgreso');
+    if (contenedorProgreso) contenedorProgreso.style.display = 'none';
+
+    // Vaciar memoria
+    datosCargaPreliminar = [];
+    datosCargadosTemporalmente = [];
+};
 
 /* =========================================================
    UTILIDAD: DESCARGAR PLANTILLA DE EJEMPLO
