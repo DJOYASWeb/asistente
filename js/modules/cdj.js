@@ -508,67 +508,64 @@ function renderizarPreview(datos) {
     }
 }
 
+// 1. REEMPLAZA COMPLETAMENTE TU FUNCIÓN ejecutarCargaDefinitiva
 async function ejecutarCargaDefinitiva() {
-    // 1. Elementos de la Interfaz de Usuario
     const btn = document.getElementById('btnConfirmarCarga');
     const contenedorBarra = document.getElementById('contenedorProgreso');
     const barra = document.getElementById('barraProgreso');
     const txtEstado = document.getElementById('textoEstadoProgreso');
     const txtPorcentaje = document.getElementById('porcentajeProgreso');
 
-    // 2. Validaciones de disponibilidad de códigos
-    if (generados.size === 0) await cargarCodigosExistentes();
-    let pool = generarPoolDeCodigosDisponibles();
-
-    if (pool.length < datosCargaPreliminar.length) {
-        mostrarNotificacion(`❌ Error: Solo quedan ${pool.length} códigos disponibles para ${datosCargaPreliminar.length} clientes.`, "error");
+    if (datosCargaPreliminar.length === 0) {
+        alert("No hay datos para cargar.");
         return;
     }
 
-    if (!confirm(`¿Confirmas la carga masiva de ${datosCargaPreliminar.length} clientes?`)) return;
+    // Validar disponibilidad de códigos
+    let pool = generarPoolDeCodigosDisponibles();
+    if (pool.length < datosCargaPreliminar.length) {
+        alert(`❌ Error: Solo quedan ${pool.length} códigos para ${datosCargaPreliminar.length} clientes.`);
+        return;
+    }
 
-    // 3. Preparar UI para el proceso
+    if (!confirm(`¿Confirmas cargar ${datosCargaPreliminar.length} clientes a la base de datos?`)) return;
+
     btn.disabled = true;
-    btn.style.display = "none";
     contenedorBarra.style.display = "block";
 
     let procesados = 0;
     let errores = 0;
     const total = datosCargaPreliminar.length;
     
-    // Configuración de lotes (Batches) de Firebase
+    // Uso de Batch para subida masiva (lotes de 500)
     let batch = window.db.batch();
     let contadorBatch = 0;
 
-    // 4. Bucle de procesamiento
     for (let i = 0; i < total; i++) {
         const fila = datosCargaPreliminar[i];
 
-        // Función interna para encontrar columnas por palabras clave
+        // Mapeo ultra-flexible para tus columnas (ID_Cliente, correo electrÃ³nico, etc)
         const encontrarValor = (keywords) => {
-            const key = Object.keys(fila).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
+            const key = Object.keys(fila).find(k => 
+                keywords.some(kw => k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(kw))
+            );
             return key ? String(fila[key]).trim() : "";
         };
 
-        // Extraer datos según las columnas de tu Excel
-        const idPS = encontrarValor(['id', 'prestashop', 'código', 'codigo']);
-        const nombre = encontrarValor(['nombre', 'cliente', 'name', 'full name']);
+        const idPS = encontrarValor(['id', 'cliente', 'prestashop']);
+        const nombre = encontrarValor(['nombre', 'name', 'cliente']);
         const correo = encontrarValor(['correo', 'mail', 'email']);
 
-        // Validar datos mínimos obligatorios
         if (!idPS || !nombre) {
-            console.error("Fila incompleta omitida:", fila);
+            console.error("Fila omitida por falta de ID o Nombre:", fila);
             errores++;
             continue;
         }
 
-        // Asignar Código Aleatorio del Pool
         const randomIndex = Math.floor(Math.random() * pool.length);
         const codigoAsignado = pool[randomIndex];
         pool.splice(randomIndex, 1);
-        generados.add(codigoAsignado);
 
-        // Preparar la operación en el batch
         const docRef = window.db.collection("codigos-generados").doc(codigoAsignado);
         batch.set(docRef, {
             idPrestaShop: idPS,
@@ -580,46 +577,42 @@ async function ejecutarCargaDefinitiva() {
         procesados++;
         contadorBatch++;
 
-        // Si llegamos a 500 registros o al final, ejecutamos el batch
         if (contadorBatch === 500 || i === total - 1) {
             try {
                 await batch.commit();
-                
-                // Actualizar progreso visual
                 const porcentaje = Math.round(((i + 1) / total) * 100);
                 barra.style.width = `${porcentaje}%`;
                 txtPorcentaje.textContent = `${porcentaje}%`;
-                txtEstado.textContent = `Guardados ${i + 1} de ${total}...`;
+                txtEstado.textContent = `Guardando ${i + 1} de ${total}...`;
                 
-                // Reiniciar batch para el siguiente grupo
                 batch = window.db.batch();
                 contadorBatch = 0;
             } catch (error) {
-                console.error("Error al ejecutar batch:", error);
+                console.error("Error en Batch:", error);
                 errores += contadorBatch;
             }
         }
     }
 
-    // 5. Finalización y Limpieza
-    txtEstado.textContent = "¡Proceso finalizado con éxito!";
-    barra.className = "progress-bar bg-success";
+    alert(`✅ Proceso terminado.\n\n- Cargados: ${procesados}\n- Errores/Omitidos: ${errores}`);
     
-    await new Promise(r => setTimeout(r, 1000));
-
-    alert(`✅ Carga Completa.\n\n- Clientes registrados: ${procesados}\n- Errores u omitidos: ${errores}`);
-    
+    // LIMPIEZA CRÍTICA: Cerramos modal y refrescamos la tabla correctamente
     cerrarModalCargaMasiva();
     
-    // Restaurar UI original
-    contenedorBarra.style.display = "none";
-    barra.style.width = "0%";
-    btn.style.display = "inline-block";
-    btn.disabled = false;
-    
-    // Refrescar la tabla principal para ver los nuevos datos
-    refrescarContenidos();
+    // Usamos la función de refresco que ya tienes para limpiar la tabla antes de recargar
+    refrescarContenidos(); 
 }
+
+// 2. REEMPLAZA procesarCargaFinal PARA QUE USE LA LÓGICA ANTERIOR
+window.procesarCargaFinal = function() {
+    // En lugar de solo imprimir en consola, llamamos a la función que guarda
+    if (datosCargadosTemporalmente.length > 0) {
+        datosCargaPreliminar = datosCargadosTemporalmente;
+        ejecutarCargaDefinitiva();
+    } else {
+        alert("Primero selecciona un archivo Excel válido.");
+    }
+};
 
 window.cerrarModalCargaMasiva = function() {
     document.getElementById('modalCargaMasiva').style.display = 'none';
