@@ -509,102 +509,116 @@ function renderizarPreview(datos) {
 }
 
 async function ejecutarCargaDefinitiva() {
-    // 1. Elementos UI
+    // 1. Elementos de la Interfaz de Usuario
     const btn = document.getElementById('btnConfirmarCarga');
     const contenedorBarra = document.getElementById('contenedorProgreso');
     const barra = document.getElementById('barraProgreso');
     const txtEstado = document.getElementById('textoEstadoProgreso');
     const txtPorcentaje = document.getElementById('porcentajeProgreso');
 
-    // 2. Validaciones iniciales
+    // 2. Validaciones de disponibilidad de códigos
     if (generados.size === 0) await cargarCodigosExistentes();
     let pool = generarPoolDeCodigosDisponibles();
 
     if (pool.length < datosCargaPreliminar.length) {
-        alert(`❌ Error: Faltan códigos. Tienes ${datosCargaPreliminar.length} clientes y solo ${pool.length} códigos.`);
+        mostrarNotificacion(`❌ Error: Solo quedan ${pool.length} códigos disponibles para ${datosCargaPreliminar.length} clientes.`, "error");
         return;
     }
 
-    if (!confirm(`¿Confirmas cargar ${datosCargaPreliminar.length} clientes?`)) return;
+    if (!confirm(`¿Confirmas la carga masiva de ${datosCargaPreliminar.length} clientes?`)) return;
 
-    // 3. PREPARAR UI PARA CARGA
-    btn.disabled = true; // Bloquear botón para no darle doble clic
-    btn.style.display = "none"; // Ocultarlo
-    contenedorBarra.style.display = "block"; // Mostrar barra
+    // 3. Preparar UI para el proceso
+    btn.disabled = true;
+    btn.style.display = "none";
+    contenedorBarra.style.display = "block";
 
     let procesados = 0;
     let errores = 0;
     const total = datosCargaPreliminar.length;
+    
+    // Configuración de lotes (Batches) de Firebase
+    let batch = window.db.batch();
+    let contadorBatch = 0;
 
-    // 4. BUCLE DE CARGA
+    // 4. Bucle de procesamiento
     for (let i = 0; i < total; i++) {
         const fila = datosCargaPreliminar[i];
 
-        // --- Actualizar Barra Visualmente ---
-        const porcentaje = Math.round(((i + 1) / total) * 100);
-        barra.style.width = `${porcentaje}%`;
-        txtPorcentaje.textContent = `${porcentaje}%`;
-        txtEstado.textContent = `Procesando ${i + 1} de ${total}: ${fila['Nombre'] || 'Cliente...'}`;
-        
-        // Pequeña pausa para que el navegador pueda dibujar la barra (si no, se congela)
-        await new Promise(r => setTimeout(r, 10));
-
-        // --- Lógica de Datos ---
+        // Función interna para encontrar columnas por palabras clave
         const encontrarValor = (keywords) => {
             const key = Object.keys(fila).find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
             return key ? String(fila[key]).trim() : "";
         };
 
-        const idPS = encontrarValor(['id', 'prestashop', 'código']);
-        const nombre = encontrarValor(['nombre', 'cliente', 'name']);
+        // Extraer datos según las columnas de tu Excel
+        const idPS = encontrarValor(['id', 'prestashop', 'código', 'codigo']);
+        const nombre = encontrarValor(['nombre', 'cliente', 'name', 'full name']);
         const correo = encontrarValor(['correo', 'mail', 'email']);
 
+        // Validar datos mínimos obligatorios
         if (!idPS || !nombre) {
+            console.error("Fila incompleta omitida:", fila);
             errores++;
             continue;
         }
 
-        // Asignar Código
+        // Asignar Código Aleatorio del Pool
         const randomIndex = Math.floor(Math.random() * pool.length);
         const codigoAsignado = pool[randomIndex];
         pool.splice(randomIndex, 1);
         generados.add(codigoAsignado);
 
-        try {
-            // Guardar en Firebase
-            await window.db.collection("codigos-generados").doc(codigoAsignado).set({
-                idPrestaShop: idPS,
-                nombre: nombre,
-                correo: correo || "Sin correo",
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            procesados++;
-        } catch (error) {
-            console.error(error);
-            errores++;
+        // Preparar la operación en el batch
+        const docRef = window.db.collection("codigos-generados").doc(codigoAsignado);
+        batch.set(docRef, {
+            idPrestaShop: idPS,
+            nombre: nombre,
+            correo: correo || "Sin correo",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        procesados++;
+        contadorBatch++;
+
+        // Si llegamos a 500 registros o al final, ejecutamos el batch
+        if (contadorBatch === 500 || i === total - 1) {
+            try {
+                await batch.commit();
+                
+                // Actualizar progreso visual
+                const porcentaje = Math.round(((i + 1) / total) * 100);
+                barra.style.width = `${porcentaje}%`;
+                txtPorcentaje.textContent = `${porcentaje}%`;
+                txtEstado.textContent = `Guardados ${i + 1} de ${total}...`;
+                
+                // Reiniciar batch para el siguiente grupo
+                batch = window.db.batch();
+                contadorBatch = 0;
+            } catch (error) {
+                console.error("Error al ejecutar batch:", error);
+                errores += contadorBatch;
+            }
         }
     }
 
-    // 5. FINALIZACIÓN
-    txtEstado.textContent = "¡Finalizado!";
-    barra.className = "progress-bar bg-success"; // Barra sólida (ya no animada)
+    // 5. Finalización y Limpieza
+    txtEstado.textContent = "¡Proceso finalizado con éxito!";
+    barra.className = "progress-bar bg-success";
     
-    // Esperar medio segundo para que el usuario vea el 100%
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise(r => setTimeout(r, 1000));
 
-    // Cerrar y Refrescar
-    alert(`✅ Carga Completa.\n\nClientes agregados: ${procesados}\nErrores/Omitidos: ${errores}`);
+    alert(`✅ Carga Completa.\n\n- Clientes registrados: ${procesados}\n- Errores u omitidos: ${errores}`);
     
     cerrarModalCargaMasiva();
     
-    // RESTAURAR UI DEL MODAL (Por si se vuelve a abrir)
+    // Restaurar UI original
     contenedorBarra.style.display = "none";
     barra.style.width = "0%";
     btn.style.display = "inline-block";
     btn.disabled = false;
     
-    // ¡IMPORTANTE! VER LOS CAMBIOS
-    cargarCodigosExistentes(); // Recarga la tabla de atrás automáticamente
+    // Refrescar la tabla principal para ver los nuevos datos
+    refrescarContenidos();
 }
 
 window.cerrarModalCargaMasiva = function() {
