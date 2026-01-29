@@ -509,48 +509,44 @@ function renderizarPreview(datos) {
 }
 
 async function ejecutarCargaDefinitiva() {
-    // 1. Referencias de UI dentro del modal
     const btn = document.getElementById('btnConfirmarCarga');
     const contenedorBarra = document.getElementById('contenedorProgreso');
     const barra = document.getElementById('barraProgreso');
     const txtEstado = document.getElementById('textoEstadoProgreso');
     const txtPorcentaje = document.getElementById('porcentajeProgreso');
 
-    // Determinamos la fuente de datos (soporta ambos nombres de variables)
     const datos = (datosCargaPreliminar && datosCargaPreliminar.length > 0) 
                   ? datosCargaPreliminar 
                   : datosCargadosTemporalmente;
 
     if (!datos || datos.length === 0) {
-        mostrarNotificacion("No hay datos detectados para procesar.", "alerta");
+        mostrarNotificacion("No hay datos para procesar.", "alerta");
         return;
     }
 
-    // Preparar el pool de códigos únicos (1000-9999)
-    if (generados.size === 0) await cargarCodigosExistentes();
+    // 1. Preparar validación de duplicados y códigos
+    const snapshotExistentes = await window.db.collection("codigos-generados").get();
+    const mapaExistentes = {}; // { idPrestaShop: codigoGenerado }
+    snapshotExistentes.forEach(doc => {
+        mapaExistentes[doc.data().idPrestaShop] = doc.id;
+    });
+
     let pool = generarPoolDeCodigosDisponibles();
-
-    if (pool.length < datos.length) {
-        mostrarNotificacion(`Espacio insuficiente: Solo quedan ${pool.length} códigos para ${datos.length} clientas.`, "error");
-        return;
-    }
-
-    // 2. Iniciar Proceso Visual
-    if (btn) btn.style.display = "none"; 
+    
+    // 2. UI Inicial
+    if (btn) btn.style.display = "none";
     if (contenedorBarra) contenedorBarra.style.display = "block";
 
     let procesados = 0;
+    let actualizados = 0;
     let errores = 0;
     const total = datos.length;
     
-    // Configuración de Batch (Lotes de 500 para Firestore)
     let batch = window.db.batch();
     let contadorBatch = 0;
 
     for (let i = 0; i < total; i++) {
         const fila = datos[i];
-
-        // Mapeo flexible de columnas (ignora mayúsculas, espacios y caracteres extraños)
         const encontrarValor = (keywords) => {
             const key = Object.keys(fila).find(k => 
                 keywords.some(kw => k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(kw))
@@ -567,34 +563,42 @@ async function ejecutarCargaDefinitiva() {
             continue;
         }
 
-        // Asignación de código individual
-        const randomIndex = Math.floor(Math.random() * pool.length);
-        const codigoAsignado = pool[randomIndex];
-        pool.splice(randomIndex, 1);
-        generados.add(codigoAsignado);
+        let codigoFinal;
+        let esActualizacion = false;
 
-        // Registro en base de datos
-        const docRef = window.db.collection("codigos-generados").doc(codigoAsignado);
+        // 3. Lógica de Restricción: ¿Ya existe el ID de PrestaShop?
+        if (mapaExistentes[idPS]) {
+            codigoFinal = mapaExistentes[idPS];
+            esActualizacion = true;
+        } else {
+            if (pool.length === 0) {
+                mostrarNotificacion("Sin códigos disponibles en el pool.", "error");
+                break;
+            }
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            codigoFinal = pool[randomIndex];
+            pool.splice(randomIndex, 1);
+            esActualizacion = false;
+        }
+
+        const docRef = window.db.collection("codigos-generados").doc(codigoFinal);
         batch.set(docRef, {
             idPrestaShop: idPS,
             nombre: nombre,
             correo: correo || "Sin correo",
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }, { merge: true }); // Merge asegura que no borre otros campos si existieran
 
-        procesados++;
+        esActualizacion ? actualizados++ : procesados++;
         contadorBatch++;
 
-        // Ejecutar Commit y actualizar Barra de Carga
         if (contadorBatch === 500 || i === total - 1) {
             try {
                 await batch.commit();
-                
-                // Actualización estética de la barra
                 const porcentaje = Math.round(((i + 1) / total) * 100);
                 if (barra) barra.style.width = `${porcentaje}%`;
                 if (txtPorcentaje) txtPorcentaje.textContent = `${porcentaje}%`;
-                if (txtEstado) txtEstado.textContent = `Registrando: ${nombre}...`;
+                if (txtEstado) txtEstado.textContent = `Procesando: ${nombre}...`;
                 
                 batch = window.db.batch();
                 contadorBatch = 0;
@@ -604,20 +608,18 @@ async function ejecutarCargaDefinitiva() {
         }
     }
 
-    // 3. Finalización Estética
-    if (txtEstado) txtEstado.textContent = "¡Carga completada!";
-    if (barra) barra.classList.replace('bg-primary', 'bg-success');
+    // 4. Finalización y Notificación
+    if (barra) barra.className = "progress-bar bg-success";
+    if (txtEstado) txtEstado.textContent = "¡Carga finalizada con éxito!";
 
-    // Esperar un momento para que el usuario vea el 100%
     setTimeout(() => {
-        mostrarNotificacion(`Carga masiva exitosa: ${procesados} clientas creadas.`, "exito");
-        if (errores > 0) mostrarNotificacion(`${errores} filas fueron omitidas por datos incompletos.`, "alerta");
+        mostrarNotificacion(`Proceso completo: ${procesados} nuevos y ${actualizados} actualizados.`, "exito");
+        if (errores > 0) mostrarNotificacion(`${errores} filas omitidas por datos inválidos.`, "alerta");
         
         window.cerrarModalCargaMasiva();
-        refrescarContenidos(); // Recarga la tabla principal con los nuevos IDs
-    }, 800);
+        refrescarContenidos();
+    }, 1000);
 }
-
 
 window.cerrarModalCargaMasiva = function() {
     const modal = document.getElementById('modalCargaMasiva');
