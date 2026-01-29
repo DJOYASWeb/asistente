@@ -149,67 +149,58 @@ function limpiarParaUrl(texto) {
    GENERAR HTML
 ===================== */
 function generarHTML() {
+  // 1. Obtener valores básicos
   const titulo = document.getElementById("titulo")?.value?.trim();
   const fecha = document.getElementById("fecha")?.value?.trim();
   const autor = document.getElementById("autor")?.value?.trim();
   const categoria = document.getElementById("categoria")?.value?.trim();
   const imagen = document.getElementById("imagen")?.value?.trim();
-  const altImagen = document.getElementById("altImagen")?.value?.trim();
-  const cuerpoRaw = document.getElementById("cuerpo")?.value?.trim();
-  const cuerpo = cuerpoRaw ? cuerpoRaw.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') : "";
+  const altImagen = document.getElementById("altImagen")?.value?.trim() || titulo; // Default al título
+  const cuerpo = document.getElementById("cuerpo")?.value?.trim() || "";
 
   if (!titulo || !fecha || !autor || !categoria || !imagen || !cuerpo) {
     alert("Por favor completa todos los campos obligatorios antes de generar el HTML.");
     return;
   }
 
-  // Relacionados
-  const selAnt = document.getElementById("selectAnterior");
-  const selSig = document.getElementById("selectSiguiente");
-  const idxAnt = selAnt ? parseInt(selAnt.value, 10) : NaN;
-  const idxSig = selSig ? parseInt(selSig.value, 10) : NaN;
+  // 2. Función de ayuda para buscar el objeto del blog por ID en la memoria
+  const buscarBlog = (id) => {
+    if (!id) return null;
+    return (window.datosTabla || []).find(b => (b.id == id || b.docId == id));
+  };
 
-  const blogAnterior = Number.isInteger(idxAnt) ? navegacionBlogs[idxAnt] : null;
-  const blogSiguiente = Number.isInteger(idxSig) ? navegacionBlogs[idxSig] : null;
+  // 3. Obtener Blogs Relacionados (Anterior/Siguiente) y Destacados
+  const blogAnterior = buscarBlog(document.getElementById("selectAnterior")?.value);
+  const blogSiguiente = buscarBlog(document.getElementById("selectSiguiente")?.value);
 
-  const sel1 = document.getElementById("select1");
-  const sel2 = document.getElementById("select2");
-  const sel3 = document.getElementById("select3");
+  const destacadosSel = [
+    buscarBlog(document.getElementById("select1")?.value),
+    buscarBlog(document.getElementById("select2")?.value),
+    buscarBlog(document.getElementById("select3")?.value)
+  ].filter(Boolean);
 
-  const destacadosSel = [sel1, sel2, sel3]
-    .map(sel => sel ? parseInt(sel.value, 10) : NaN)
-    .map(i => Number.isInteger(i) ? blogs[i] : null)
-    .filter(Boolean);
-
-const destacadosHTML = destacadosSel.map(blog => {
-    // Usamos 'nombre' si 'titulo' no existe, e 'imagen' si 'img' no existe
-    const tituloFinal = blog.nombre || blog.titulo || "Sin título";
-    const imagenFinal = blog.imagen || blog.img || "";
-    const urlFinal = blog.url || "#";
-    const categoriaFinal = blog.categoria || "General";
-
-    return `
+  // 4. Generar HTML de Destacados (Usando campos correctos: nombre, imagen, url)
+  const destacadosHTML = destacadosSel.map(blog => `
         <hr>
         <div class="row card-recomendados">
           <div class="col-5 portada-recomendados">
-            <a href="${urlFinal}"><img src="${imagenFinal}" alt="${tituloFinal}"></a>
+            <a href="${blog.url || '#'}"><img src="${blog.imagen || ''}" alt="${blog.nombre || ''}"></a>
           </div>
           <div class="col-7">
-            <a href="${urlFinal}"><h3 class="recomendados pt-2">${tituloFinal}</h3></a>
+            <a href="${blog.url || '#'}"><h3 class="recomendados pt-2">${blog.nombre || ''}</h3></a>
             <div class="etiquetas">
-                <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(categoriaFinal)}">
-                    ${categoriaFinal}
+                <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blog.categoria)}">
+                    ${blog.categoria || ''}
                 </a>
             </div>
           </div>
         </div>
-    `;
-}).join('\n');
+  `).join('\n');
 
-  const slug = categoria.toLowerCase().replace(/\s+/g, '-');
-  const slugAnterior = blogAnterior?.categoria ? blogAnterior.categoria.toLowerCase().replace(/\s+/g, '-') : slug;
-  const slugSiguiente = blogSiguiente?.categoria ? blogSiguiente.categoria.toLowerCase().replace(/\s+/g, '-') : slug;
+  const slug = limpiarParaUrl(categoria);
 
+  // 5. Construcción del Template Final
+  // Nota: Eliminamos el <p> alrededor de ${cuerpo} para evitar el error de etiquetas anidadas
   const html = `
 <div class="blog container">
   <div class="row division">
@@ -226,14 +217,12 @@ const destacadosHTML = destacadosSel.map(blog => {
         </div>
       </section>
 
-      <!-- Contenido Blog -->
       <section class="contenido-blog">
-        <p>${cuerpo}</p>
+        ${cuerpo}
       </section>
 
       <hr>
 
-      <!-- Redes Sociales -->
       <section class="rrss-blog row container py-3">
         <div class="col-6"><a>${autor}, </a><a>${fecha}</a></div>
         <div class="col-6 iconos-blog">
@@ -244,55 +233,53 @@ const destacadosHTML = destacadosSel.map(blog => {
         </div>
       </section>
 
-      <!-- Navegación entre artículos -->
       <section class="navegacion-articulos row mt-5">
-  <div class="col-lg-6 col-md-6 col-12">
-    <div class="bloque">
-      <a href="${blogAnterior?.url || '#'}">
-        <p class="etiqueta-blog"><i class="fa fa-angle-left mx-2"></i>Blog anterior</p>
-      </a>
-      <hr>
-      <div class="row card-recomendados">
-        <div class="col-auto">
-          <h3 class="recomendados pt-2">
-            <a href="${blogAnterior?.url || '#'}">${blogAnterior?.titulo || '—'}</a>
-          </h3>
-          <div class="etiquetas">
-            <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blogAnterior?.categoria || categoria)}">
-              ${blogAnterior?.categoria || categoria}
+        <div class="col-lg-6 col-md-6 col-12">
+          <div class="bloque">
+            <a href="${blogAnterior?.url || '#'}">
+              <p class="etiqueta-blog"><i class="fa fa-angle-left mx-2"></i>Blog anterior</p>
             </a>
+            <hr>
+            <div class="row card-recomendados">
+              <div class="col-auto">
+                <h3 class="recomendados pt-2">
+                  <a href="${blogAnterior?.url || '#'}">${blogAnterior?.nombre || '—'}</a>
+                </h3>
+                <div class="etiquetas">
+                  <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blogAnterior?.categoria || categoria)}">
+                    ${blogAnterior?.categoria || categoria}
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <div class="col-lg-6 col-md-6 col-12">
-    <div class="bloque2">
-      <a href="${blogSiguiente?.url || '#'}">
-        <p class="etiqueta-blog">Blog siguiente <i class="fa fa-angle-right mx-2"></i></p>
-      </a>
-      <hr>
-      <div class="row card-recomendados">
-        <div class="col-auto">
-          <h3 class="recomendados pt-2">
-            <a href="${blogSiguiente?.url || '#'}">${blogSiguiente?.titulo || '—'}</a>
-          </h3>
-          <div class="etiquetas">
-            <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blogSiguiente?.categoria || categoria)}">
-              ${blogSiguiente?.categoria || categoria}
+        <div class="col-lg-6 col-md-6 col-12">
+          <div class="bloque2">
+            <a href="${blogSiguiente?.url || '#'}">
+              <p class="etiqueta-blog">Blog siguiente <i class="fa fa-angle-right mx-2"></i></p>
             </a>
+            <hr>
+            <div class="row card-recomendados">
+              <div class="col-auto">
+                <h3 class="recomendados pt-2">
+                  <a href="${blogSiguiente?.url || '#'}">${blogSiguiente?.nombre || '—'}</a>
+                </h3>
+                <div class="etiquetas">
+                  <a class="etiqueta-tag" href="https://distribuidoradejoyas.cl/blog/${limpiarParaUrl(blogSiguiente?.categoria || categoria)}">
+                    ${blogSiguiente?.categoria || categoria}
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
     </div>
     <div class="col-12 col-md-12 col-lg-4 bloque-lateral">
 
-      <!-- Más vistos -->
       <section class="destacados mt-5">
         <div class="caja">
           <h2 class="titulo-card">Blog más vistos</h2>
@@ -300,14 +287,12 @@ const destacadosHTML = destacadosSel.map(blog => {
         </div>
       </section>
 
-      <!-- Contenido publicidad -->
       <section class="publicidad-blog mt-5">
         <a href="https://distribuidoradejoyas.cl/djoyas-inspira.24">
           <img src="/img/cms/paginas internas/blogs/inspira-blog.jpg" class="caja-img" alt="portada de blog">
         </a>
       </section>
 
-      <!-- Etiquetas de contenido -->
       <section class="contenidos">
         <div class="caja mt-5">
           <h2 class="titulo-card">Consejos, Tendencias y Mucho Más</h2>
@@ -322,14 +307,15 @@ const destacadosHTML = destacadosSel.map(blog => {
       </section>
     </div>
   </div>
-
-
 </div>
 `.trim();
 
   document.getElementById("resultado").textContent = html;
 }
 window.generarHTML = generarHTML;
+
+
+
 
 function copiarHTML() {
   const resultado = document.getElementById("resultado").textContent;
