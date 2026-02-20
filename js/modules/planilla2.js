@@ -443,10 +443,10 @@ const MAPA_SUBTIPOS = {
   "34": "Colgantes Lapidado",
   "36": "Colgantes Niño Niña",
   "43": "Collares con Circón",
-  "41": "Collares de Piedra",b
+  "41": "Collares de Piedra",
   "26": "Piercings de Plata 925",
   "31": "Pulsera con Circón",
-  "29": "Pulsera con Piedra",
+  "29": "Pulsera Macramé Hilo",
   "27": "Pulsera de Hombre",
   "28": "Pulsera de Plata",
   "30": "Pulsera con Piedra",
