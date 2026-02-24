@@ -2774,13 +2774,24 @@ window.miPlanillaExcel = null;
 window.celdaActualExcel = null; // Guardará en qué celda estamos parados
 
 function abrirModalExcel() {
-  let modal = document.getElementById("modalExcelWeb");
+ let modal = document.getElementById("modalExcelWeb");
   if (!modal) {
     modal = document.createElement("div");
     modal.className = "modal fade";
     modal.id = "modalExcelWeb";
     modal.tabIndex = -1;
     modal.innerHTML = `
+      <style>
+        #modalExcelWeb .jexcel tbody td {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+        #modalExcelWeb .jexcel tbody tr {
+            height: 32px !important; /* Altura fija tipo Excel */
+        }
+      </style>
+
       <div class="modal-dialog modal-dialog-centered" style="max-width: 80%;">
         <div class="modal-content shadow-lg">
           <div class="modal-header bg-light pb-2">
