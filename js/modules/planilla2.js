@@ -2773,7 +2773,7 @@ function generarTablaImagenes() {
 window.miPlanillaExcel = null;
 
 function abrirModalExcel() {
-  // 1. Crear el modal si no existe (pantalla completa para más comodidad)
+  // 1. Crear el modal si no existe
   let modal = document.getElementById("modalExcelWeb");
   if (!modal) {
     modal = document.createElement("div");
@@ -2781,13 +2781,15 @@ function abrirModalExcel() {
     modal.id = "modalExcelWeb";
     modal.tabIndex = -1;
     modal.innerHTML = `
-      <div class="modal-dialog modal-fullscreen">
+      <div class="modal-dialog modal-dialog-centered" style="max-width: 80%;">
         <div class="modal-content">
           <div class="modal-header bg-light">
             <h5 class="modal-title"><i class="fas fa-file-excel text-success"></i> Edición Masiva (Modo Excel)</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cerrarModalExcel()"></button>
           </div>
-          <div class="modal-body" id="bodyExcelWeb" style="padding: 0; overflow: hidden; background: #f8f9fa;"></div>
+          <div class="modal-body" id="bodyExcelWeb" style="padding: 0; background: #f8f9fa;">
+            <div class="text-center p-4" id="cargandoExcel">Cargando tabla...</div>
+          </div>
           <div class="modal-footer bg-light">
             <button class="btn btn-success" data-bs-dismiss="modal" onclick="cerrarModalExcel()">Guardar y Actualizar Tabla</button>
           </div>
@@ -2797,10 +2799,7 @@ function abrirModalExcel() {
     document.body.appendChild(modal);
   }
 
-  const contenedorExcel = document.getElementById("bodyExcelWeb");
-  contenedorExcel.innerHTML = ""; // Limpiar instancia previa
-
-  // Usar los datos que estamos viendo actualmente
+  // 2. Usar los datos que estamos viendo actualmente
   let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
     ? datosFiltrados
     : [...datosOriginales, ...datosCombinaciones];
@@ -2810,63 +2809,71 @@ function abrirModalExcel() {
     return;
   }
 
-  const columnasVisibles = ordenColumnasVista.length ? ordenColumnasVista : Object.keys(dataset[0]);
-
-  const datosParaExcel = dataset.map(fila => {
-      return columnasVisibles.map(col => (fila[col] ?? "").toString());
-  });
-
-  // Configuración de columnas (Ancho pequeño por defecto)
-  const configuracionColumnas = columnasVisibles.map(col => ({
-      type: 'text',
-      title: col,
-      width: 90 // <-- Ancho reducido tipo Excel nativo
-  }));
-
-  // Inicializar Excel web
-  window.miPlanillaExcel = jspreadsheet(contenedorExcel, {
-      data: datosParaExcel,
-      columns: configuracionColumnas,
-      search: true,
-      pagination: 100,      // Más filas por página
-      tableOverflow: true,
-      tableHeight: "calc(100vh - 140px)", // Ocupa todo el modal
-      tableWidth: "100%",
-      wordWrap: false,      // <-- CLAVE: Evita que las filas se hagan gigantes si hay mucho texto
-      
-      onchange: function(instance, cell, x, y, value) {
-          const nombreColumna = columnasVisibles[x];
-          if (dataset[y]) {
-              dataset[y][nombreColumna] = value;
-              
-              const skuModificado = extraerCodigo(dataset[y]);
-              if (skuModificado) {
-                  const actualizarEnLista = (lista) => {
-                      const item = lista.find(r => extraerCodigo(r) === skuModificado);
-                      if (item) item[nombreColumna] = value;
-                  };
-                  actualizarEnLista(datosOriginales);
-                  actualizarEnLista(datosCombinaciones);
-                  actualizarEnLista(datosReposicion);
-              }
-          }
-      }
-  });
-
-  // Mostrar el modal
+  // 3. Mostrar el modal PRIMERO (esto soluciona el bug del scroll horizontal)
   const modalInst = new bootstrap.Modal(modal);
   modalInst.show();
+
+  // 4. Esperar a que la animación de Bootstrap termine para inyectar el Excel
+  modal.addEventListener('shown.bs.modal', function inicializarExcel() {
+      // Removemos el listener para que no se duplique la próxima vez que se abra
+      modal.removeEventListener('shown.bs.modal', inicializarExcel);
+
+      const contenedorExcel = document.getElementById("bodyExcelWeb");
+      contenedorExcel.innerHTML = ""; // Limpiar el "Cargando..." o instancia previa
+
+      const columnasVisibles = ordenColumnasVista.length ? ordenColumnasVista : Object.keys(dataset[0]);
+
+      const datosParaExcel = dataset.map(fila => {
+          return columnasVisibles.map(col => (fila[col] ?? "").toString());
+      });
+
+      const configuracionColumnas = columnasVisibles.map(col => ({
+          type: 'text',
+          title: col,
+          width: 90 // Ancho compacto tipo Excel
+      }));
+
+      // Inicializar Excel web
+      window.miPlanillaExcel = jspreadsheet(contenedorExcel, {
+          data: datosParaExcel,
+          columns: configuracionColumnas,
+          search: true,
+          pagination: 100,
+          tableOverflow: true,
+          tableHeight: "70vh",  // Alto ajustado
+          tableWidth: "100%",   // Ancho dinámico que activará el scroll
+          wordWrap: false,      // Mantiene todo en 1 sola línea por fila
+          
+          onchange: function(instance, cell, x, y, value) {
+              const nombreColumna = columnasVisibles[x];
+              if (dataset[y]) {
+                  dataset[y][nombreColumna] = value;
+                  
+                  const skuModificado = extraerCodigo(dataset[y]);
+                  if (skuModificado) {
+                      const actualizarEnLista = (lista) => {
+                          const item = lista.find(r => extraerCodigo(r) === skuModificado);
+                          if (item) item[nombreColumna] = value;
+                      };
+                      actualizarEnLista(datosOriginales);
+                      actualizarEnLista(datosCombinaciones);
+                      actualizarEnLista(datosReposicion);
+                  }
+              }
+          }
+      });
+  });
 }
 
 function cerrarModalExcel() {
-    // Al cerrar, re-renderizamos la tabla HTML normal para que refleje lo que editaste
     let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
       ? datosFiltrados
       : [...datosOriginales, ...datosCombinaciones];
       
     renderTablaConOrden(dataset);
-    mostrarNotificacion("Tabla actualizada con tus ediciones", "exito");
+    if(typeof mostrarNotificacion === 'function') {
+        mostrarNotificacion("Tabla actualizada con tus ediciones", "exito");
+    }
 }
-
 
 //V2.2
