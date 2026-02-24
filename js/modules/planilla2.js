@@ -2771,9 +2771,9 @@ function generarTablaImagenes() {
 
 
 window.miPlanillaExcel = null;
+window.celdaActualExcel = null; // Guardará en qué celda estamos parados
 
 function abrirModalExcel() {
-  // 1. Crear el modal si no existe
   let modal = document.getElementById("modalExcelWeb");
   if (!modal) {
     modal = document.createElement("div");
@@ -2782,16 +2782,25 @@ function abrirModalExcel() {
     modal.tabIndex = -1;
     modal.innerHTML = `
       <div class="modal-dialog modal-dialog-centered" style="max-width: 80%;">
-        <div class="modal-content">
-          <div class="modal-header bg-light">
+        <div class="modal-content shadow-lg">
+          <div class="modal-header bg-light pb-2">
             <h5 class="modal-title"><i class="fas fa-file-excel text-success"></i> Edición Masiva (Modo Excel)</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cerrarModalExcel()"></button>
           </div>
-          <div class="modal-body" id="bodyExcelWeb" style="padding: 0; background: #f8f9fa;">
-            <div class="text-center p-4" id="cargandoExcel">Cargando tabla...</div>
+          
+          <div class="bg-white border-bottom p-2 d-flex align-items-center">
+            <span class="me-2 text-muted fw-bold fst-italic" style="font-family: serif; font-size: 1.2rem;">fx</span>
+            <input type="text" id="barraExcelVista" class="form-control form-control-sm border-info shadow-none" placeholder="Selecciona una celda para ver o editar su contenido completo...">
           </div>
+
+          <div class="modal-body" id="bodyExcelWeb" style="padding: 0; background: #f8f9fa;">
+            <div class="text-center p-4 text-muted" id="cargandoExcel">
+              <i class="fas fa-spinner fa-spin"></i> Cargando tabla...
+            </div>
+          </div>
+          
           <div class="modal-footer bg-light">
-            <button class="btn btn-success" data-bs-dismiss="modal" onclick="cerrarModalExcel()">Guardar y Actualizar Tabla</button>
+            <button class="btn btn-success px-4" data-bs-dismiss="modal" onclick="cerrarModalExcel()">Guardar y Actualizar Tabla</button>
           </div>
         </div>
       </div>
@@ -2799,7 +2808,6 @@ function abrirModalExcel() {
     document.body.appendChild(modal);
   }
 
-  // 2. Usar los datos que estamos viendo actualmente
   let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
     ? datosFiltrados
     : [...datosOriginales, ...datosCombinaciones];
@@ -2809,17 +2817,17 @@ function abrirModalExcel() {
     return;
   }
 
-  // 3. Mostrar el modal PRIMERO (esto soluciona el bug del scroll horizontal)
   const modalInst = new bootstrap.Modal(modal);
   modalInst.show();
 
-  // 4. Esperar a que la animación de Bootstrap termine para inyectar el Excel
   modal.addEventListener('shown.bs.modal', function inicializarExcel() {
-      // Removemos el listener para que no se duplique la próxima vez que se abra
       modal.removeEventListener('shown.bs.modal', inicializarExcel);
 
       const contenedorExcel = document.getElementById("bodyExcelWeb");
-      contenedorExcel.innerHTML = ""; // Limpiar el "Cargando..." o instancia previa
+      contenedorExcel.innerHTML = ""; 
+      
+      const barraVista = document.getElementById("barraExcelVista");
+      barraVista.value = ""; // Limpiar la barra al abrir
 
       const columnasVisibles = ordenColumnasVista.length ? ordenColumnasVista : Object.keys(dataset[0]);
 
@@ -2830,20 +2838,20 @@ function abrirModalExcel() {
       const configuracionColumnas = columnasVisibles.map(col => ({
           type: 'text',
           title: col,
-          width: 90 // Ancho compacto tipo Excel
+          width: 90 
       }));
 
-      // Inicializar Excel web
       window.miPlanillaExcel = jspreadsheet(contenedorExcel, {
           data: datosParaExcel,
           columns: configuracionColumnas,
           search: true,
           pagination: 100,
           tableOverflow: true,
-          tableHeight: "70vh",  // Alto ajustado
-          tableWidth: "100%",   // Ancho dinámico que activará el scroll
-          wordWrap: false,      // Mantiene todo en 1 sola línea por fila
+          tableHeight: "65vh",  // Le restamos un poco para que quepa la barra de fórmulas
+          tableWidth: "100%",   
+          wordWrap: false,      
           
+          // 1. EVENTO ORIGINAL: Guardar datos cuando la celda cambia
           onchange: function(instance, cell, x, y, value) {
               const nombreColumna = columnasVisibles[x];
               if (dataset[y]) {
@@ -2860,20 +2868,32 @@ function abrirModalExcel() {
                       actualizarEnLista(datosReposicion);
                   }
               }
+              // Si la celda que cambió es la que tengo seleccionada, actualizo la barra
+              if (window.celdaActualExcel && window.celdaActualExcel.x == x && window.celdaActualExcel.y == y) {
+                  barraVista.value = value;
+              }
+          },
+          
+          // 2. 🔥 NUEVO EVENTO: Detectar celda seleccionada para previsualizar
+          onselection: function(instance, x1, y1, x2, y2, origin) {
+              // Guardamos en qué celda exacta hicimos clic
+              window.celdaActualExcel = { x: x1, y: y1 };
+              
+              // Obtenemos el texto de esa celda y lo mandamos a la barra de arriba
+              const valorActual = instance.jexcel.getValueFromCoords(x1, y1);
+              barraVista.value = valorActual || "";
           }
       });
-  });
-}
 
-function cerrarModalExcel() {
-    let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
-      ? datosFiltrados
-      : [...datosOriginales, ...datosCombinaciones];
-      
-    renderTablaConOrden(dataset);
-    if(typeof mostrarNotificacion === 'function') {
-        mostrarNotificacion("Tabla actualizada con tus ediciones", "exito");
-    }
+      // 3. 🔥 NUEVO EVENTO: Editar desde la barra de fórmulas
+      barraVista.oninput = function() {
+          if (window.celdaActualExcel) {
+              const { x, y } = window.celdaActualExcel;
+              // Al escribir en la barra, inyectamos el valor directo en la celda
+              window.miPlanillaExcel.setValueFromCoords(x, y, this.value);
+          }
+      };
+  });
 }
 
 //V2.2
