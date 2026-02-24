@@ -1035,7 +1035,7 @@ function mostrarTablaFiltrada(datos) {
 
 /** ---------- EXPORTACIONES ---------- **/
 
-function exportarXLSX(tipo, datos) {
+function exportarCSV(tipo, datos) {
   const transformados = transformarDatosParaExportar(datos);
   const ws = XLSX.utils.json_to_sheet(transformados);
   const wb = XLSX.utils.book_new();
@@ -1046,33 +1046,39 @@ function exportarXLSX(tipo, datos) {
   const dia = String(ahora.getDate()).padStart(2, "0");
   const mes = String(ahora.getMonth() + 1).padStart(2, "0");
   const anio = String(ahora.getFullYear()).slice(-2);
-
   const fechaStr = `${dia}-${mes}-${anio}`;
 
-let baseNombre;
-switch (tipo) {
-  case "todo":
-  case "nuevo":
-    baseNombre = "productos_nuevos";
-    break;
+  let baseNombre;
+  switch (tipo) {
+    case "todo":
+    case "nuevo":
+      baseNombre = "productos_nuevos";
+      break;
+    case "combinacion":
+      baseNombre = "combinaciones";
+      break;
+    case "reposición":
+    case "reposicion": 
+      baseNombre = "productos_reposicion";
+      break;
+    default:
+      baseNombre = "exportacion_planilla";
+      break;
+  }
 
-  case "combinacion":
-    baseNombre = "combinaciones";
-    break;
-
-  case "reposición":
-  case "reposicion": 
-    baseNombre = "productos_reposicion";
-    break;
-
-  default:
-    baseNombre = "exportacion_planilla";
-    break;
+  const nombre = `${baseNombre}_${fechaStr}.csv`;
+  
+  // 🔥 EL TRUCO: bookType le dice a la librería que genere un CSV
+  // FS: ";" fuerza a usar punto y coma como separador (ideal para PrestaShop)
+  XLSX.writeFile(wb, nombre, { bookType: "csv", FS: ";" });
 }
 
-
-  const nombre = `${baseNombre}_${fechaStr}.xlsx`;
-  XLSX.writeFile(wb, nombre);
+function exportarCSVPersonalizado(nombre, datos) {
+  const ws = XLSX.utils.json_to_sheet(datos);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
+  
+  XLSX.writeFile(wb, `${nombre}.csv`, { bookType: "csv", FS: ";" });
 }
 
 function inyectarPadresEnDataset(datos) {
@@ -1204,7 +1210,8 @@ const transformados = transformarDatosParaExportar(dataset);
 
 function procesarExportacion() {
   if (tipoSeleccionado === "combinacion_cantidades") {
-    exportarXLSXPersonalizado("combinacion_cantidades", datosCombinacionCantidades);
+    // Apuntamos a la nueva función CSV
+    exportarCSVPersonalizado("combinacion_cantidades", window.datosCombinacionCantidades || datosCombinacionCantidades);
     return;
   }
 
@@ -1214,18 +1221,12 @@ function procesarExportacion() {
 
   dataset = inyectarPadresEnDataset(dataset);
 
-  // ⬅️ CORRECCIÓN: exporta según el tipo real
-  exportarXLSX(tipoSeleccionado, dataset);
+  // Apuntamos a la nueva función CSV principal
+  exportarCSV(tipoSeleccionado, dataset);
 }
 
 
 
-function exportarXLSXPersonalizado(nombre, datos) {
-  const ws = XLSX.utils.json_to_sheet(datos);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
-  XLSX.writeFile(wb, `${nombre}.xlsx`);
-}
 
 /** ---------- FILTROS Y VISTAS ---------- **/
 
@@ -2113,15 +2114,14 @@ function abrirModalPrevisualizacionProcesado(resultado) {
   modalInst.show();
 }
 
-// === EXPORTAR A EXCEL ===
 function exportarCombinacionesProcesadas() {
   if (!window.resultadoCombinacionesProcesado?.length) {
     alert("No hay datos procesados para exportar.");
     return;
   }
-  exportarXLSXPersonalizado("combinacion_cantidades", window.resultadoCombinacionesProcesado);
+  // Cambiamos a exportarCSVPersonalizado
+  exportarCSVPersonalizado("combinaciones_procesadas", window.resultadoCombinacionesProcesado);
 }
-
 
 async function descargarImagenesZIP() {
   const filas = obtenerFilasActivas({
