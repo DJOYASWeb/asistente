@@ -2862,6 +2862,11 @@ function abrirModalExcel() {
           tableWidth: "100%",   
           wordWrap: false,      
           
+minSpareRows: 0,           // Cero filas vacías "de reserva" al final
+          minSpareCols: 0,           // Cero columnas vacías extra a la derecha
+          allowInsertColumn: false,  // Bloquea que se creen columnas nuevas accidentalmente
+          allowInsertRow: false,     // Bloquea que se creen filas extra al pegar o hacer clic derecho
+
           // 1. EVENTO ORIGINAL: Guardar datos cuando la celda cambia
           onchange: function(instance, cell, x, y, value) {
               const nombreColumna = columnasVisibles[x];
