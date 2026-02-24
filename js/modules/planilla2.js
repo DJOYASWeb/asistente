@@ -961,6 +961,8 @@ function transformarDatosParaExportar(datos) {
 
 
 /** ---------- RENDER DE TABLAS (respeta ordenColumnasVista) ---------- **/
+// Variable global para guardar la instancia del Excel
+window.miPlanillaExcel = null;
 
 function renderTablaConOrden(datos) {
   const tablaDiv = document.getElementById("tablaPreview");
@@ -972,47 +974,66 @@ function renderTablaConOrden(datos) {
     return;
   }
 
-  // Si no hay orden definido (edge case), usar keys del primer registro
-  const columnas = ordenColumnasVista.length
-    ? ordenColumnasVista
-    : Object.keys(datos[0]);
+  // 1. Limpiar el contenedor (por si había una tabla antes)
+  tablaDiv.innerHTML = "";
 
-  let html = `<table class="table table-bordered table-sm align-middle">
-                <thead>
-                  <tr>`;
+  // 2. Definir las columnas visibles
+  const columnasVisibles = ordenColumnasVista.length ? ordenColumnasVista : Object.keys(datos[0]);
 
-  columnas.forEach(col => {
-    html += `<th class="small">${col}</th>`;
+  // 3. Transformar los datos de objetos a una matriz 2D (que es lo que mejor lee Jspreadsheet)
+  const datosParaExcel = datos.map(fila => {
+      return columnasVisibles.map(col => (fila[col] ?? "").toString());
   });
 
-  html += `</tr></thead><tbody>`;
+  // 4. Configurar las columnas del Excel web
+  const configuracionColumnas = columnasVisibles.map(col => ({
+      type: 'text',
+      title: col,
+      width: 150 // Ancho estándar de columna (puedes ajustarlo luego)
+  }));
 
-  datos.forEach(fila => {
-    html += `<tr style="height: 36px;">`;
+  // 5. ¡Lanzar la magia! Crear la tabla editable
+  window.miPlanillaExcel = jspreadsheet(tablaDiv, {
+      data: datosParaExcel,
+      columns: configuracionColumnas,
+      search: true,         // Agrega un buscador nativo arriba de la tabla
+      pagination: 50,       // Muestra de a 50 filas para que no se pegue el navegador
+      tableOverflow: true,
+      tableHeight: "60vh",  // Alto de la tabla con scroll
+      tableWidth: "100%",
+      wordWrap: true,
+      
+      // ⚡ EL CEREBRO: ¿Qué pasa cuando editas, pegas o arrastras celdas?
+      onchange: function(instance, cell, x, y, value) {
+          // x = índice de la columna, y = índice de la fila, value = el nuevo texto
+          const nombreColumna = columnasVisibles[x];
+          const nuevoValor = value;
 
-    columnas.forEach(col => {
-      const contenido = (fila[col] ?? "").toString();
-      const previsual = contenido.length > 60
-        ? contenido.substring(0, 60) + "..."
-        : contenido;
+          // 1. Actualizamos el array que estás viendo
+          if (datosFiltrados[y]) {
+              datosFiltrados[y][nombreColumna] = nuevoValor;
 
-      html += `
-        <td class="small text-truncate"
-            title="${contenido}"
-            style="max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-          ${previsual}
-        </td>`;
-    });
-
-    html += `</tr>`;
+              // 2. Sincronizamos con el array original para no perder el cambio al exportar
+              // Usamos el SKU (código) para encontrar a quién le pertenece este cambio
+              const skuModificado = extraerCodigo(datosFiltrados[y]);
+              
+              if (skuModificado) {
+                  const actualizarEnLista = (lista) => {
+                      const item = lista.find(r => extraerCodigo(r) === skuModificado);
+                      if (item) item[nombreColumna] = nuevoValor;
+                  };
+                  
+                  // Disparamos la actualización en todas las listas maestras
+                  actualizarEnLista(datosOriginales);
+                  actualizarEnLista(datosCombinaciones);
+                  actualizarEnLista(datosReposicion);
+              }
+          }
+      }
   });
 
-  html += `</tbody></table>`;
-  tablaDiv.innerHTML = html;
-
+  // Mostrar los botones de acción
   procesarBtn.classList.remove("d-none");
-
-  // Mostrar el botón de procesar imágenes (aparte)
   const procesarImagenesBtn = document.getElementById("botonProcesarImagenes");
   if (procesarImagenesBtn) procesarImagenesBtn.classList.remove("d-none");
 }
