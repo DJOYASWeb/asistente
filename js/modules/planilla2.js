@@ -2907,4 +2907,22 @@ function abrirModalExcel() {
   });
 }
 
+
+function cerrarModalExcel() {
+  // 1. Tomamos los datos que acaban de ser editados
+  let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
+    ? datosFiltrados
+    : [...datosOriginales, ...datosCombinaciones];
+      
+  // 2. Re-renderizamos la tabla principal (la vista compacta HTML)
+  renderTablaConOrden(dataset);
+  
+  // 3. Notificamos al usuario
+  if(typeof mostrarNotificacion === 'function') {
+      mostrarNotificacion("Tabla actualizada con tus ediciones", "exito");
+  } else {
+      alert("Tabla actualizada con tus ediciones");
+  }
+}
+
 //V2.2
