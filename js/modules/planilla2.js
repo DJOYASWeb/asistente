@@ -2770,7 +2770,103 @@ function generarTablaImagenes() {
 }
 
 
+window.miPlanillaExcel = null;
+
+function abrirModalExcel() {
+  // 1. Crear el modal si no existe (pantalla completa para más comodidad)
+  let modal = document.getElementById("modalExcelWeb");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.className = "modal fade";
+    modal.id = "modalExcelWeb";
+    modal.tabIndex = -1;
+    modal.innerHTML = `
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-header bg-light">
+            <h5 class="modal-title"><i class="fas fa-file-excel text-success"></i> Edición Masiva (Modo Excel)</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cerrarModalExcel()"></button>
+          </div>
+          <div class="modal-body" id="bodyExcelWeb" style="padding: 0; overflow: hidden; background: #f8f9fa;"></div>
+          <div class="modal-footer bg-light">
+            <button class="btn btn-success" data-bs-dismiss="modal" onclick="cerrarModalExcel()">Guardar y Actualizar Tabla</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  const contenedorExcel = document.getElementById("bodyExcelWeb");
+  contenedorExcel.innerHTML = ""; // Limpiar instancia previa
+
+  // Usar los datos que estamos viendo actualmente
+  let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
+    ? datosFiltrados
+    : [...datosOriginales, ...datosCombinaciones];
+
+  if (!dataset.length) {
+    alert("No hay datos para editar.");
+    return;
+  }
+
+  const columnasVisibles = ordenColumnasVista.length ? ordenColumnasVista : Object.keys(dataset[0]);
+
+  const datosParaExcel = dataset.map(fila => {
+      return columnasVisibles.map(col => (fila[col] ?? "").toString());
+  });
+
+  // Configuración de columnas (Ancho pequeño por defecto)
+  const configuracionColumnas = columnasVisibles.map(col => ({
+      type: 'text',
+      title: col,
+      width: 90 // <-- Ancho reducido tipo Excel nativo
+  }));
+
+  // Inicializar Excel web
+  window.miPlanillaExcel = jspreadsheet(contenedorExcel, {
+      data: datosParaExcel,
+      columns: configuracionColumnas,
+      search: true,
+      pagination: 100,      // Más filas por página
+      tableOverflow: true,
+      tableHeight: "calc(100vh - 140px)", // Ocupa todo el modal
+      tableWidth: "100%",
+      wordWrap: false,      // <-- CLAVE: Evita que las filas se hagan gigantes si hay mucho texto
+      
+      onchange: function(instance, cell, x, y, value) {
+          const nombreColumna = columnasVisibles[x];
+          if (dataset[y]) {
+              dataset[y][nombreColumna] = value;
+              
+              const skuModificado = extraerCodigo(dataset[y]);
+              if (skuModificado) {
+                  const actualizarEnLista = (lista) => {
+                      const item = lista.find(r => extraerCodigo(r) === skuModificado);
+                      if (item) item[nombreColumna] = value;
+                  };
+                  actualizarEnLista(datosOriginales);
+                  actualizarEnLista(datosCombinaciones);
+                  actualizarEnLista(datosReposicion);
+              }
+          }
+      }
+  });
+
+  // Mostrar el modal
+  const modalInst = new bootstrap.Modal(modal);
+  modalInst.show();
+}
+
+function cerrarModalExcel() {
+    // Al cerrar, re-renderizamos la tabla HTML normal para que refleje lo que editaste
+    let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
+      ? datosFiltrados
+      : [...datosOriginales, ...datosCombinaciones];
+      
+    renderTablaConOrden(dataset);
+    mostrarNotificacion("Tabla actualizada con tus ediciones", "exito");
+}
 
 
-
-//V2.1
+//V2.2
