@@ -54,8 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "mysql.html": "planillas",
       "cotizar.html": "planillas",
       "reportes_clientes.html": "reportes",
-      "correo.html": "reportes",
-      "web.html": "reportes",
+      "correo.html": "redactor",
+      "web.html": "redactor",
     };
 
     const activeGroup = groups[currentPage];
