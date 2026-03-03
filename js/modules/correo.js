@@ -142,7 +142,6 @@ window.guardarConfiguracionEnFirebase = async function() {
 };
 
 
-
 // --- 2. PANTALLA COMPLETA (FULLSCREEN) ---
 window.toggleFullscreen = function() {
   const colEditor = document.getElementById('columna-editor-codigo');
