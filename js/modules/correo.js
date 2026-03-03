@@ -2,6 +2,10 @@ let proyectoActualId = null;
 let editorCodeMirror = null;
 let configPersonalizada = { bloques: [], variables: [] };
 
+// Variables para saber qué elemento estamos editando en el modal
+let editandoTipo = null; 
+let editandoIndex = null;
+
 // --- 0. CARGAR CONFIGURACIÓN DESDE FIREBASE ---
 window.cargarConfiguracionSnippets = async function() {
   try {
@@ -11,12 +15,10 @@ window.cargarConfiguracionSnippets = async function() {
     } else {
       configPersonalizada = {
         bloques: [
-          { nombre: "Título", codigo: "<h2 style='text-align:center;'>Nuevo Título</h2>\n" },
-          { nombre: "Espacio", codigo: "<div style='height: 30px;'>&nbsp;</div>\n" }
+          { nombre: "Título", codigo: "<h2 style='text-align:center;'>Nuevo Título</h2>\n" }
         ],
         variables: [
-          { nombre: "Nombre", codigo: "{{ contact.FIRSTNAME }}" },
-          { nombre: "Desuscribirse", codigo: "{{ unsubscribe }}" }
+          { nombre: "Nombre", codigo: "{{ contact.FIRSTNAME }}" }
         ]
       };
     }
@@ -33,14 +35,14 @@ window.renderizarBotonera = function() {
   if(!toolbarBloques || !toolbarVariables) return;
 
   let htmlBloques = `<span class="text-muted small fw-bold mt-1 w-100">Bloques Rápidos:</span>`;
-  configPersonalizada.bloques.forEach((b, index) => {
+  configPersonalizada.bloques.forEach((b) => {
     const codeB64 = btoa(unescape(encodeURIComponent(b.codigo)));
     htmlBloques += `<button class="btn btn-sm btn-dark" onclick="inyectarCodigoPersonalizado('${codeB64}')"><i class="fas fa-layer-group"></i> ${b.nombre}</button>`;
   });
   toolbarBloques.innerHTML = htmlBloques;
 
   let htmlVariables = `<span class="text-muted small fw-bold mt-1 w-100">Variables Brevo:</span>`;
-  configPersonalizada.variables.forEach((v, index) => {
+  configPersonalizada.variables.forEach((v) => {
     const codeB64 = btoa(unescape(encodeURIComponent(v.codigo)));
     htmlVariables += `<button class="btn btn-sm btn-outline-success" onclick="inyectarCodigoPersonalizado('${codeB64}')">{ } ${v.nombre}</button>`;
   });
@@ -54,7 +56,7 @@ window.inyectarCodigoPersonalizado = function(codigoB64) {
   editorCodeMirror.focus();
 };
 
-// --- 1. LÓGICA DE LA VISTA DE CONFIGURACIÓN (REEMPLAZA AL MODAL) ---
+// --- 1. LÓGICA DE LA VISTA DE CONFIGURACIÓN Y MODAL ---
 window.abrirVistaConfiguracion = function() {
   renderizarListaConfiguracion();
   document.getElementById('cabecera-principal').classList.add('d-none');
@@ -73,12 +75,18 @@ window.renderizarListaConfiguracion = function() {
   const lista = document.getElementById('lista-configuracion');
   let html = '';
 
+  // Función interna para escapar HTML y no romper la vista
+  const escaparHTML = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
   html += `<h6 class="fw-bold text-primary mt-2 d-block">Bloques Rápidos</h6>`;
   configPersonalizada.bloques.forEach((b, i) => {
     html += `
     <div class="list-group-item d-flex justify-content-between align-items-center bg-white mb-2 border rounded shadow-sm">
-      <div><strong>${b.nombre}</strong> <br><span class="text-muted small">Código: ${b.codigo.substring(0, 40)}...</span></div>
-      <button class="btn btn-sm btn-outline-danger" onclick="eliminarSnippet('bloques', ${i})"><i class="fas fa-trash"></i> Eliminar</button>
+      <div><strong>${b.nombre}</strong> <br><span class="text-muted small" style="font-family: monospace;">${escaparHTML(b.codigo).substring(0, 60)}...</span></div>
+      <div>
+        <button class="btn btn-sm btn-outline-primary me-2" onclick="abrirModalEdicion('bloques', ${i})"><i class="fas fa-edit"></i> Editar</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="eliminarSnippet('bloques', ${i})"><i class="fas fa-trash"></i></button>
+      </div>
     </div>`;
   });
 
@@ -86,16 +94,49 @@ window.renderizarListaConfiguracion = function() {
   configPersonalizada.variables.forEach((v, i) => {
     html += `
     <div class="list-group-item d-flex justify-content-between align-items-center bg-white mb-2 border rounded shadow-sm">
-      <div><strong>${v.nombre}</strong> <span class="text-muted small ms-2">(${v.codigo})</span></div>
-      <button class="btn btn-sm btn-outline-danger" onclick="eliminarSnippet('variables', ${i})"><i class="fas fa-trash"></i> Eliminar</button>
+      <div><strong>${v.nombre}</strong> <span class="text-muted small ms-2" style="font-family: monospace;">(${escaparHTML(v.codigo)})</span></div>
+      <div>
+        <button class="btn btn-sm btn-outline-primary me-2" onclick="abrirModalEdicion('variables', ${i})"><i class="fas fa-edit"></i> Editar</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="eliminarSnippet('variables', ${i})"><i class="fas fa-trash"></i></button>
+      </div>
     </div>`;
   });
 
   lista.innerHTML = html;
 };
 
-window.agregarSnippet = function() {
-  const tipo = document.getElementById('config-tipo').value; 
+// Abre el modal tanto para CREAR como para EDITAR
+window.abrirModalEdicion = function(tipo = null, index = null) {
+  const modal = document.getElementById('modalEdicionSnippet');
+  const titulo = document.getElementById('tituloModalEdicion');
+  
+  editandoTipo = tipo;
+  editandoIndex = index;
+
+  if (index !== null) {
+    // Modo Edición
+    titulo.innerHTML = '<i class="fas fa-pen"></i> Editar Elemento';
+    document.getElementById('config-tipo').value = tipo;
+    document.getElementById('config-nombre').value = configPersonalizada[tipo][index].nombre;
+    document.getElementById('config-codigo').value = configPersonalizada[tipo][index].codigo;
+  } else {
+    // Modo Nuevo
+    titulo.innerHTML = '<i class="fas fa-plus"></i> Nuevo Elemento';
+    document.getElementById('config-tipo').value = 'bloques';
+    document.getElementById('config-nombre').value = '';
+    document.getElementById('config-codigo').value = '';
+  }
+
+  modal.style.display = 'block';
+};
+
+window.cerrarModalEdicion = function() {
+  document.getElementById('modalEdicionSnippet').style.display = 'none';
+};
+
+// Guarda lo que está en el modal en la variable local
+window.guardarSnippetModal = function() {
+  const tipoSeleccionado = document.getElementById('config-tipo').value; 
   const nombre = document.getElementById('config-nombre').value.trim();
   const codigo = document.getElementById('config-codigo').value;
 
@@ -104,16 +145,22 @@ window.agregarSnippet = function() {
     return;
   }
 
-  if (tipo === 'bloque') {
-    configPersonalizada.bloques.push({ nombre, codigo });
+  if (editandoIndex !== null) {
+    // Si cambió de tipo (ej: de bloque a variable), lo movemos de arreglo
+    if (editandoTipo !== tipoSeleccionado) {
+      configPersonalizada[editandoTipo].splice(editandoIndex, 1);
+      configPersonalizada[tipoSeleccionado].push({ nombre, codigo });
+    } else {
+      // Si es el mismo tipo, solo actualizamos
+      configPersonalizada[tipoSeleccionado][editandoIndex] = { nombre, codigo };
+    }
   } else {
-    configPersonalizada.variables.push({ nombre, codigo });
+    // Es uno nuevo, lo agregamos al final
+    configPersonalizada[tipoSeleccionado].push({ nombre, codigo });
   }
 
-  document.getElementById('config-nombre').value = '';
-  document.getElementById('config-codigo').value = '';
-  
   renderizarListaConfiguracion();
+  cerrarModalEdicion();
 };
 
 window.eliminarSnippet = function(tipoLista, index) {
@@ -126,16 +173,16 @@ window.eliminarSnippet = function(tipoLista, index) {
 window.guardarConfiguracionEnFirebase = async function() {
   try {
     await db.collection("configuraciones").doc("editor_correos").set(configPersonalizada);
-    alert("¡Configuración guardada exitosamente!");
+    alert("¡Configuración guardada en Firebase exitosamente!");
     renderizarBotonera(); 
-    volverDesdeConfiguracion(); // Volvemos a la pantalla principal automáticamente
+    volverDesdeConfiguracion(); 
   } catch (error) {
     console.error("Error guardando:", error);
     alert("Hubo un error al guardar.");
   }
 };
 
-// --- 2. PANTALLA COMPLETA (FULLSCREEN) ---
+// --- 2. PANTALLA COMPLETA ---
 window.toggleFullscreen = function() {
   const colEditor = document.getElementById('columna-editor-codigo');
   const btn = document.getElementById('btn-fullscreen');
@@ -151,12 +198,10 @@ window.toggleFullscreen = function() {
     btn.classList.replace('btn-danger', 'btn-outline-secondary');
   }
 
-  setTimeout(() => {
-    if(editorCodeMirror) editorCodeMirror.refresh();
-  }, 200);
+  setTimeout(() => { if(editorCodeMirror) editorCodeMirror.refresh(); }, 200);
 };
 
-// --- 3. CARGAR PROYECTOS DESDE FIREBASE ---
+// --- 3. PROYECTOS FIREBASE ---
 window.cargarProyectosCorreo = async function() {
   const contenedor = document.getElementById('vista-proyectos');
   if(!contenedor) return;
@@ -199,9 +244,8 @@ window.cargarProyectosCorreo = async function() {
   }
 };
 
-// --- 4. ABRIR EL EDITOR ---
+// --- 4. ABRIR / CERRAR EDITOR ---
 window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
-  // Ocultar cabecera y grilla, mostrar solo el editor
   document.getElementById('cabecera-principal').classList.add('d-none');
   document.getElementById('vista-proyectos').classList.add('d-none');
   document.getElementById('vista-editor').classList.remove('d-none');
@@ -211,17 +255,8 @@ window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
   proyectoActualId = id === 'nuevo' ? null : id;
 
   if (!editorCodeMirror) {
-    editorCodeMirror = CodeMirror.fromTextArea(textareaHtml, {
-      mode: "xml",
-      theme: "monokai",
-      lineNumbers: true,
-      autoCloseTags: true,
-      lineWrapping: true
-    });
-    
-    editorCodeMirror.on('change', () => {
-      window.actualizarPreview();
-    });
+    editorCodeMirror = CodeMirror.fromTextArea(textareaHtml, { mode: "xml", theme: "monokai", lineNumbers: true, autoCloseTags: true, lineWrapping: true });
+    editorCodeMirror.on('change', () => { window.actualizarPreview(); });
   }
 
   if (id === 'nuevo') {
@@ -239,7 +274,16 @@ window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
   }, 100);
 };
 
-// --- 5. GUARDAR PROYECTO EN FIREBASE ---
+window.volverAProyectos = function() {
+  const colEditor = document.getElementById('columna-editor-codigo');
+  if (colEditor && colEditor.classList.contains('editor-fullscreen')) window.toggleFullscreen();
+
+  document.getElementById('vista-editor').classList.add('d-none');
+  document.getElementById('cabecera-principal').classList.remove('d-none');
+  document.getElementById('vista-proyectos').classList.remove('d-none');
+};
+
+// --- 5. GUARDAR PROYECTO ---
 window.guardarProyectoCorreo = async function() {
   const inputTitulo = document.getElementById('input-titulo-proyecto');
   const btnGuardar = document.getElementById('btn-guardar-correo');
@@ -282,28 +326,13 @@ window.guardarProyectoCorreo = async function() {
   }
 };
 
-// --- 6. FUNCIONES DE VISTA Y UTILIDADES ---
-window.volverAProyectos = function() {
-  const colEditor = document.getElementById('columna-editor-codigo');
-  if (colEditor && colEditor.classList.contains('editor-fullscreen')) {
-    window.toggleFullscreen();
-  }
-
-  // Ocultar editor, volver a mostrar cabecera y grilla
-  document.getElementById('vista-editor').classList.add('d-none');
-  document.getElementById('cabecera-principal').classList.remove('d-none');
-  document.getElementById('vista-proyectos').classList.remove('d-none');
-};
-
+// --- 6. PREVISUALIZACIÓN Y COPIA ---
 window.actualizarPreview = function() {
   const iframe = document.getElementById('preview-iframe');
   if (!iframe || !editorCodeMirror) return;
-
   const codigo = editorCodeMirror.getValue();
   const frameDoc = iframe.contentDocument || iframe.contentWindow.document;
-  frameDoc.open();
-  frameDoc.write(codigo);
-  frameDoc.close();
+  frameDoc.open(); frameDoc.write(codigo); frameDoc.close();
 };
 
 window.cambiarVistaPreview = function(tipo) {
@@ -312,21 +341,15 @@ window.cambiarVistaPreview = function(tipo) {
   const btnMovil = document.getElementById('btn-vista-movil');
 
   if (tipo === 'movil') {
-    iframe.style.width = '375px'; 
-    btnMovil.classList.add('active');
-    btnWeb.classList.remove('active');
+    iframe.style.width = '375px'; btnMovil.classList.add('active'); btnWeb.classList.remove('active');
   } else {
-    iframe.style.width = '100%'; 
-    btnWeb.classList.add('active');
-    btnMovil.classList.remove('active');
+    iframe.style.width = '100%'; btnWeb.classList.add('active'); btnMovil.classList.remove('active');
   }
 };
 
 window.copiarCodigo = function() {
   if(!editorCodeMirror) return;
-  navigator.clipboard.writeText(editorCodeMirror.getValue()).then(() => {
-    alert("¡Código copiado al portapapeles listo para Brevo!");
-  });
+  navigator.clipboard.writeText(editorCodeMirror.getValue()).then(() => alert("¡Código copiado listo para Brevo!"));
 };
 
 // --- INICIALIZACIÓN ---
