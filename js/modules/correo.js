@@ -60,11 +60,6 @@ window.inyectarCodigoPersonalizado = function(codigoB64) {
 };
 
 // --- 1. LÓGICA DEL MODAL DE CONFIGURACIÓN ---
-window.abrirModalConfig = function() {
-  renderizarListaModal();
-  const modal = new bootstrap.Modal(document.getElementById('modalConfigSnippets'));
-  modal.show();
-};
 
 window.renderizarListaModal = function() {
   const lista = document.getElementById('lista-configuracion');
@@ -121,17 +116,32 @@ window.eliminarSnippet = function(tipoLista, index) {
   }
 };
 
+
+// --- 1. LÓGICA DEL MODAL DE CONFIGURACIÓN ---
+window.abrirModalConfig = function() {
+  renderizarListaModal();
+  // Lo abrimos al estilo de tu modales.js
+  document.getElementById('modalConfigSnippets').style.display = 'block';
+};
+
+window.cerrarModalConfig = function() {
+  // Lo cerramos manualmente
+  document.getElementById('modalConfigSnippets').style.display = 'none';
+};
+
 window.guardarConfiguracionEnFirebase = async function() {
   try {
     await db.collection("configuraciones").doc("editor_correos").set(configPersonalizada);
     alert("¡Configuración guardada exitosamente!");
     renderizarBotonera(); // Refrescar botones en el editor
-    bootstrap.Modal.getInstance(document.getElementById('modalConfigSnippets')).hide();
+    cerrarModalConfig();  // Cerramos el modal
   } catch (error) {
     console.error("Error guardando:", error);
     alert("Hubo un error al guardar.");
   }
 };
+
+
 
 // --- 2. PANTALLA COMPLETA (FULLSCREEN) ---
 window.toggleFullscreen = function() {
