@@ -2,14 +2,13 @@ let proyectoActualId = null;
 let editorCodeMirror = null;
 let configPersonalizada = { bloques: [], variables: [] };
 
-// --- 0. CARGAR CONFIGURACIÓN DE SNIPPETS DESDE FIREBASE ---
+// --- 0. CARGAR CONFIGURACIÓN DESDE FIREBASE ---
 window.cargarConfiguracionSnippets = async function() {
   try {
     const doc = await db.collection("configuraciones").doc("editor_correos").get();
     if (doc.exists) {
       configPersonalizada = doc.data();
     } else {
-      // Si no existe en Firebase, creamos unos por defecto
       configPersonalizada = {
         bloques: [
           { nombre: "Título", codigo: "<h2 style='text-align:center;'>Nuevo Título</h2>\n" },
@@ -33,16 +32,13 @@ window.renderizarBotonera = function() {
   
   if(!toolbarBloques || !toolbarVariables) return;
 
-  // Renderizar Bloques
   let htmlBloques = `<span class="text-muted small fw-bold mt-1 w-100">Bloques Rápidos:</span>`;
   configPersonalizada.bloques.forEach((b, index) => {
-    // Codificamos en Base64 para pasarlo seguro al onclick
     const codeB64 = btoa(unescape(encodeURIComponent(b.codigo)));
     htmlBloques += `<button class="btn btn-sm btn-dark" onclick="inyectarCodigoPersonalizado('${codeB64}')"><i class="fas fa-layer-group"></i> ${b.nombre}</button>`;
   });
   toolbarBloques.innerHTML = htmlBloques;
 
-  // Renderizar Variables
   let htmlVariables = `<span class="text-muted small fw-bold mt-1 w-100">Variables Brevo:</span>`;
   configPersonalizada.variables.forEach((v, index) => {
     const codeB64 = btoa(unescape(encodeURIComponent(v.codigo)));
@@ -51,7 +47,6 @@ window.renderizarBotonera = function() {
   toolbarVariables.innerHTML = htmlVariables;
 };
 
-// Función universal para inyectar desde los botones dinámicos
 window.inyectarCodigoPersonalizado = function(codigoB64) {
   if(!editorCodeMirror) return;
   const codigo = decodeURIComponent(escape(atob(codigoB64)));
@@ -59,35 +54,40 @@ window.inyectarCodigoPersonalizado = function(codigoB64) {
   editorCodeMirror.focus();
 };
 
-// --- 1. LÓGICA DEL MODAL DE CONFIGURACIÓN (ADAPTADO A TU SISTEMA) ---
-window.abrirModalConfig = function() {
-  renderizarListaModal();
-  document.getElementById('modalConfigSnippets').style.display = 'block'; // Usamos block en vez de flex para que respete el scroll
+// --- 1. LÓGICA DE LA VISTA DE CONFIGURACIÓN (REEMPLAZA AL MODAL) ---
+window.abrirVistaConfiguracion = function() {
+  renderizarListaConfiguracion();
+  document.getElementById('cabecera-principal').classList.add('d-none');
+  document.getElementById('vista-proyectos').classList.add('d-none');
+  document.getElementById('vista-editor').classList.add('d-none');
+  document.getElementById('vista-configuracion').classList.remove('d-none');
 };
 
-window.cerrarModalConfig = function() {
-  document.getElementById('modalConfigSnippets').style.display = 'none';
+window.volverDesdeConfiguracion = function() {
+  document.getElementById('vista-configuracion').classList.add('d-none');
+  document.getElementById('cabecera-principal').classList.remove('d-none');
+  document.getElementById('vista-proyectos').classList.remove('d-none');
 };
 
-window.renderizarListaModal = function() {
+window.renderizarListaConfiguracion = function() {
   const lista = document.getElementById('lista-configuracion');
   let html = '';
 
-  html += `<h7 class="fw-bold text-primary mt-2 d-block">Bloques Rápidos</h7>`;
+  html += `<h6 class="fw-bold text-primary mt-2 d-block">Bloques Rápidos</h6>`;
   configPersonalizada.bloques.forEach((b, i) => {
     html += `
-    <div class="list-group-item d-flex justify-content-between align-items-center bg-light mb-1 border">
-      <div><strong>${b.nombre}</strong> <span class="text-muted small">(${b.codigo.substring(0, 20)}...)</span></div>
-      <button class="btn btn-sm btn-danger" onclick="eliminarSnippet('bloques', ${i})"><i class="fas fa-trash"></i></button>
+    <div class="list-group-item d-flex justify-content-between align-items-center bg-white mb-2 border rounded shadow-sm">
+      <div><strong>${b.nombre}</strong> <br><span class="text-muted small">Código: ${b.codigo.substring(0, 40)}...</span></div>
+      <button class="btn btn-sm btn-outline-danger" onclick="eliminarSnippet('bloques', ${i})"><i class="fas fa-trash"></i> Eliminar</button>
     </div>`;
   });
 
-  html += `<h7 class="fw-bold text-success mt-3 d-block">Variables</h7>`;
+  html += `<h6 class="fw-bold text-success mt-4 d-block">Variables Brevo</h6>`;
   configPersonalizada.variables.forEach((v, i) => {
     html += `
-    <div class="list-group-item d-flex justify-content-between align-items-center bg-light mb-1 border">
-      <div><strong>${v.nombre}</strong> <span class="text-muted small">(${v.codigo})</span></div>
-      <button class="btn btn-sm btn-danger" onclick="eliminarSnippet('variables', ${i})"><i class="fas fa-trash"></i></button>
+    <div class="list-group-item d-flex justify-content-between align-items-center bg-white mb-2 border rounded shadow-sm">
+      <div><strong>${v.nombre}</strong> <span class="text-muted small ms-2">(${v.codigo})</span></div>
+      <button class="btn btn-sm btn-outline-danger" onclick="eliminarSnippet('variables', ${i})"><i class="fas fa-trash"></i> Eliminar</button>
     </div>`;
   });
 
@@ -110,17 +110,16 @@ window.agregarSnippet = function() {
     configPersonalizada.variables.push({ nombre, codigo });
   }
 
-  // Limpiar inputs
   document.getElementById('config-nombre').value = '';
   document.getElementById('config-codigo').value = '';
   
-  renderizarListaModal();
+  renderizarListaConfiguracion();
 };
 
 window.eliminarSnippet = function(tipoLista, index) {
   if(confirm("¿Seguro que deseas eliminar este elemento?")) {
     configPersonalizada[tipoLista].splice(index, 1);
-    renderizarListaModal();
+    renderizarListaConfiguracion();
   }
 };
 
@@ -129,7 +128,7 @@ window.guardarConfiguracionEnFirebase = async function() {
     await db.collection("configuraciones").doc("editor_correos").set(configPersonalizada);
     alert("¡Configuración guardada exitosamente!");
     renderizarBotonera(); 
-    cerrarModalConfig(); // Cerramos con nuestra función
+    volverDesdeConfiguracion(); // Volvemos a la pantalla principal automáticamente
   } catch (error) {
     console.error("Error guardando:", error);
     alert("Hubo un error al guardar.");
@@ -152,7 +151,6 @@ window.toggleFullscreen = function() {
     btn.classList.replace('btn-danger', 'btn-outline-secondary');
   }
 
-  // Recalcular el tamaño del editor CodeMirror
   setTimeout(() => {
     if(editorCodeMirror) editorCodeMirror.refresh();
   }, 200);
@@ -203,6 +201,8 @@ window.cargarProyectosCorreo = async function() {
 
 // --- 4. ABRIR EL EDITOR ---
 window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
+  // Ocultar cabecera y grilla, mostrar solo el editor
+  document.getElementById('cabecera-principal').classList.add('d-none');
   document.getElementById('vista-proyectos').classList.add('d-none');
   document.getElementById('vista-editor').classList.remove('d-none');
   
@@ -289,7 +289,9 @@ window.volverAProyectos = function() {
     window.toggleFullscreen();
   }
 
+  // Ocultar editor, volver a mostrar cabecera y grilla
   document.getElementById('vista-editor').classList.add('d-none');
+  document.getElementById('cabecera-principal').classList.remove('d-none');
   document.getElementById('vista-proyectos').classList.remove('d-none');
 };
 
@@ -329,6 +331,6 @@ window.copiarCodigo = function() {
 
 // --- INICIALIZACIÓN ---
 document.addEventListener("DOMContentLoaded", () => {
-  window.cargarConfiguracionSnippets(); // Carga tus bloques personalizados
-  window.cargarProyectosCorreo();       // Carga los proyectos guardados
+  window.cargarConfiguracionSnippets();
+  window.cargarProyectosCorreo();
 });
