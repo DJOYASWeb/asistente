@@ -9,7 +9,7 @@ window.cargarConfiguracionSnippets = async function() {
     if (doc.exists) {
       configPersonalizada = doc.data();
     } else {
-      // Si no existe, creamos unos por defecto
+      // Si no existe en Firebase, creamos unos por defecto
       configPersonalizada = {
         bloques: [
           { nombre: "Título", codigo: "<h2 style='text-align:center;'>Nuevo Título</h2>\n" },
@@ -59,7 +59,15 @@ window.inyectarCodigoPersonalizado = function(codigoB64) {
   editorCodeMirror.focus();
 };
 
-// --- 1. LÓGICA DEL MODAL DE CONFIGURACIÓN ---
+// --- 1. LÓGICA DEL MODAL DE CONFIGURACIÓN (ADAPTADO A TU SISTEMA) ---
+window.abrirModalConfig = function() {
+  renderizarListaModal();
+  document.getElementById('modalConfigSnippets').style.display = 'block'; // Usamos block en vez de flex para que respete el scroll
+};
+
+window.cerrarModalConfig = function() {
+  document.getElementById('modalConfigSnippets').style.display = 'none';
+};
 
 window.renderizarListaModal = function() {
   const lista = document.getElementById('lista-configuracion');
@@ -87,7 +95,7 @@ window.renderizarListaModal = function() {
 };
 
 window.agregarSnippet = function() {
-  const tipo = document.getElementById('config-tipo').value; // "bloque" o "variable"
+  const tipo = document.getElementById('config-tipo').value; 
   const nombre = document.getElementById('config-nombre').value.trim();
   const codigo = document.getElementById('config-codigo').value;
 
@@ -116,31 +124,17 @@ window.eliminarSnippet = function(tipoLista, index) {
   }
 };
 
-
-// --- 1. LÓGICA DEL MODAL DE CONFIGURACIÓN ---
-window.abrirModalConfig = function() {
-  renderizarListaModal();
-  // Lo abrimos al estilo de tu modales.js
-  document.getElementById('modalConfigSnippets').style.display = 'block';
-};
-
-window.cerrarModalConfig = function() {
-  // Lo cerramos manualmente
-  document.getElementById('modalConfigSnippets').style.display = 'none';
-};
-
 window.guardarConfiguracionEnFirebase = async function() {
   try {
     await db.collection("configuraciones").doc("editor_correos").set(configPersonalizada);
     alert("¡Configuración guardada exitosamente!");
-    renderizarBotonera(); // Refrescar botones en el editor
-    cerrarModalConfig();  // Cerramos el modal
+    renderizarBotonera(); 
+    cerrarModalConfig(); // Cerramos con nuestra función
   } catch (error) {
     console.error("Error guardando:", error);
     alert("Hubo un error al guardar.");
   }
 };
-
 
 // --- 2. PANTALLA COMPLETA (FULLSCREEN) ---
 window.toggleFullscreen = function() {
@@ -290,9 +284,8 @@ window.guardarProyectoCorreo = async function() {
 
 // --- 6. FUNCIONES DE VISTA Y UTILIDADES ---
 window.volverAProyectos = function() {
-  // Si estaba en pantalla completa, lo achicamos al salir
   const colEditor = document.getElementById('columna-editor-codigo');
-  if (colEditor.classList.contains('editor-fullscreen')) {
+  if (colEditor && colEditor.classList.contains('editor-fullscreen')) {
     window.toggleFullscreen();
   }
 
