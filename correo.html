@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calendario</title>
+  <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+</head>
+
+<body class="protegido" data-theme="light">
+  <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- Sidebar -->
+<div class="sidebar oculta-permisos" id="sidebar">
+  <div>
+    <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+      <span class="icon"><i class="fas fa-bars"></i></span>
+      <span class="label">
+        <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
+      </span>
+    </h2>
+
+    <nav>
+      <!-- 1️⃣ INICIO -->
+      <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
+        <span class="icon"><i class="fas fa-home"></i></span>
+        <span class="label">Inicio</span>
+      </a>
+
+      <!-- 2️⃣ CATÁLOGO -->
+      <div class="menu-group" data-group="catalogo">
+        <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
+          <span class="icon"><i class="fa-regular fa-address-card"></i></span>
+          <span class="label">Catálogo</span>
+        </a>
+        <div class="submenu">
+          <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
+        </div>
+      </div>
+
+      <!-- 3️⃣ CONTENIDOS -->
+      <div class="menu-group" data-group="contenidos">
+        <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
+          <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
+          <span class="label">Contenidos</span>
+        </a>
+        <div class="submenu">
+          <a href="blog.html" data-tab="blog" class="submenu-item">DJOYAS Blog</a>
+          <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
+        </div>
+      </div>
+
+      <!-- 4️⃣ PLANILLAS -->
+      <div class="menu-group" data-group="planillas">
+        <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
+          <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
+          <span class="label">Planillas</span>
+        </a>
+        <div class="submenu">
+          <a href="#" data-tab="cotizar" class="submenu-item">Cotizar</a>
+          <a href="productos.html" data-tab="productos" class="submenu-item">Recategorizar</a>
+          <a href="planilla.html" data-tab="planilla" class="submenu-item">Planilla Presta</a>
+          <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
+        </div>
+      </div>
+
+      <!-- 5 Reportes -->
+      <a href="reportes_clientes.html" data-tab="reportes" data-tooltip="Reportes" class="menu-item">
+        <span class="icon"><i class="fas fa-home"></i></span>
+        <span class="label">Reportes</span>
+      </a>
+    </nav>
+  </div>
+
+  <div class="bottom-links">
+    <a href="compresor.html" data-tab="tareas" class="menu-item">
+      <span class="icon"><i class="fa fa-cog"></i></span>
+      <span class="label">Comprimir IMG</span>
+    </a>
+    <a href="tareas.html" data-tab="tareas" class="menu-item">
+      <span class="icon"><i class="fas fa-list-check"></i></span>
+      <span class="label">Tareas Diarias</span>
+    </a>
+    <a href="calendario.html" data-tab="calendario" class="menu-item">
+      <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
+      <span class="label">Calendario</span>
+    </a>
+    <a href="configuracion.html" data-tab="configuracion" class="menu-item">
+      <span class="icon"><i class="fas fa-cog"></i></span>
+      <span class="label">Configuración</span>
+    </a>
+  </div>
+</div>
+
+  <!-- Contenido principal -->
+<div class="content-area">
+  <div class="dashboard-header d-flex justify-content-between mb-4">
+    <div>
+      <h1>Redactor de Correos (Brevo) ✉️</h1>
+      <p class="text-muted">Gestiona y diseña tus plantillas HTML para envíos masivos</p>
+    </div>
+  </div>
+
+  <div id="vista-proyectos" class="row">
+    <div class="col-12 col-md-4 col-lg-3 mb-4">
+      <div class="ios-card d-flex flex-column align-items-center justify-content-center h-100 shadow-sm" style="min-height: 200px; cursor: pointer; border: 2px dashed #007bff; background-color: rgba(0, 123, 255, 0.05);" onclick="abrirEditorCorreo('nuevo')">
+        <i class="fas fa-plus fa-3x mb-2 text-primary"></i>
+        <h5 class="text-primary mt-2">Nuevo Proyecto</h5>
+      </div>
+    </div>
+    
+    <div class="col-12 col-md-4 col-lg-3 mb-4">
+      <div class="ios-card d-flex flex-column justify-content-between h-100 shadow-sm" style="min-height: 200px; cursor: pointer;" onclick="abrirEditorCorreo('Campaña Día de la Madre')">
+        <div>
+          <h5 class="fw-bold">Campaña Día de la Madre</h5>
+          <p class="text-muted" style="font-size: 0.85rem;">Última edición: hace 2 días</p>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <span class="badge bg-success">Brevo Ready</span>
+          <i class="fas fa-edit text-secondary"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="vista-editor" class="d-none">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <button class="btn btn-outline-secondary" onclick="volverAProyectos()"><i class="fas fa-arrow-left"></i> Volver</button>
+      <h3 id="titulo-proyecto" class="m-0 fw-bold">Nuevo Proyecto</h3>
+      <button class="btn btn-primary"><i class="fas fa-save"></i> Guardar Plantilla</button>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-6 mb-4">
+        <div class="ios-card h-100 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="m-0"><i class="fa-solid fa-code text-primary"></i> Código HTML</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="copiarCodigo()"><i class="fas fa-copy"></i> Copiar</button>
+          </div>
+          <textarea id="codigo-html" class="form-control" style="font-family: monospace; height: 60vh; font-size: 14px; resize: none; background-color: #1e1e1e; color: #d4d4d4; border-radius: 8px;" placeholder=""></textarea>
+        </div>
+      </div>
+
+      <div class="col-lg-6 mb-4">
+        <div class="ios-card h-100 shadow-sm d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="m-0"><i class="fa-solid fa-eye text-primary"></i> Vista Previa</h5>
+            
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-outline-primary active" id="btn-vista-web" onclick="cambiarVistaPreview('web')"><i class="fas fa-desktop"></i> PC</button>
+              <button type="button" class="btn btn-outline-primary" id="btn-vista-movil" onclick="cambiarVistaPreview('movil')"><i class="fas fa-mobile-alt"></i> Móvil</button>
+            </div>
+          </div>
+          
+          <div id="contenedor-iframe" class="flex-grow-1 d-flex justify-content-center align-items-start" style="background-color: #e9ecef; border-radius: 8px; padding: 15px; overflow-y: auto; height: 60vh;">
+            <iframe id="preview-iframe" style="width: 100%; height: 100%; min-height: 500px; border: none; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: width 0.3s ease;"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>   
+
+<!-- DataTables Bootstrap 5 JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<!-- Firebase Core -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<!-- Tu script -->
+<script src="js/modules/firebase-init.js"></script>
+<script src="js/modules/modales.js"></script>
+<script src="js/modules/tabs.js"></script>
+<script type="module" src="js/modules/correo.js"></script>
+<script type="module" src="js/modules/checkAuth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="js/modules/permisos-tabs.js"></script>
+<script src="js/modules/verificar-tabs.js"></script>
+</body>
+</html>
