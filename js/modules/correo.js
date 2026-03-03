@@ -1,7 +1,161 @@
 let proyectoActualId = null;
 let editorCodeMirror = null;
+let configPersonalizada = { bloques: [], variables: [] };
 
-// --- 1. CARGAR PROYECTOS DESDE FIREBASE ---
+// --- 0. CARGAR CONFIGURACIÓN DE SNIPPETS DESDE FIREBASE ---
+window.cargarConfiguracionSnippets = async function() {
+  try {
+    const doc = await db.collection("configuraciones").doc("editor_correos").get();
+    if (doc.exists) {
+      configPersonalizada = doc.data();
+    } else {
+      // Si no existe, creamos unos por defecto
+      configPersonalizada = {
+        bloques: [
+          { nombre: "Título", codigo: "<h2 style='text-align:center;'>Nuevo Título</h2>\n" },
+          { nombre: "Espacio", codigo: "<div style='height: 30px;'>&nbsp;</div>\n" }
+        ],
+        variables: [
+          { nombre: "Nombre", codigo: "{{ contact.FIRSTNAME }}" },
+          { nombre: "Desuscribirse", codigo: "{{ unsubscribe }}" }
+        ]
+      };
+    }
+    renderizarBotonera();
+  } catch (error) {
+    console.error("Error cargando configuración:", error);
+  }
+};
+
+window.renderizarBotonera = function() {
+  const toolbarBloques = document.getElementById('toolbar-bloques');
+  const toolbarVariables = document.getElementById('toolbar-variables');
+  
+  if(!toolbarBloques || !toolbarVariables) return;
+
+  // Renderizar Bloques
+  let htmlBloques = `<span class="text-muted small fw-bold mt-1 w-100">Bloques Rápidos:</span>`;
+  configPersonalizada.bloques.forEach((b, index) => {
+    // Codificamos en Base64 para pasarlo seguro al onclick
+    const codeB64 = btoa(unescape(encodeURIComponent(b.codigo)));
+    htmlBloques += `<button class="btn btn-sm btn-dark" onclick="inyectarCodigoPersonalizado('${codeB64}')"><i class="fas fa-layer-group"></i> ${b.nombre}</button>`;
+  });
+  toolbarBloques.innerHTML = htmlBloques;
+
+  // Renderizar Variables
+  let htmlVariables = `<span class="text-muted small fw-bold mt-1 w-100">Variables Brevo:</span>`;
+  configPersonalizada.variables.forEach((v, index) => {
+    const codeB64 = btoa(unescape(encodeURIComponent(v.codigo)));
+    htmlVariables += `<button class="btn btn-sm btn-outline-success" onclick="inyectarCodigoPersonalizado('${codeB64}')">{ } ${v.nombre}</button>`;
+  });
+  toolbarVariables.innerHTML = htmlVariables;
+};
+
+// Función universal para inyectar desde los botones dinámicos
+window.inyectarCodigoPersonalizado = function(codigoB64) {
+  if(!editorCodeMirror) return;
+  const codigo = decodeURIComponent(escape(atob(codigoB64)));
+  editorCodeMirror.replaceSelection(codigo);
+  editorCodeMirror.focus();
+};
+
+// --- 1. LÓGICA DEL MODAL DE CONFIGURACIÓN ---
+window.abrirModalConfig = function() {
+  renderizarListaModal();
+  const modal = new bootstrap.Modal(document.getElementById('modalConfigSnippets'));
+  modal.show();
+};
+
+window.renderizarListaModal = function() {
+  const lista = document.getElementById('lista-configuracion');
+  let html = '';
+
+  html += `<h7 class="fw-bold text-primary mt-2 d-block">Bloques Rápidos</h7>`;
+  configPersonalizada.bloques.forEach((b, i) => {
+    html += `
+    <div class="list-group-item d-flex justify-content-between align-items-center bg-light mb-1 border">
+      <div><strong>${b.nombre}</strong> <span class="text-muted small">(${b.codigo.substring(0, 20)}...)</span></div>
+      <button class="btn btn-sm btn-danger" onclick="eliminarSnippet('bloques', ${i})"><i class="fas fa-trash"></i></button>
+    </div>`;
+  });
+
+  html += `<h7 class="fw-bold text-success mt-3 d-block">Variables</h7>`;
+  configPersonalizada.variables.forEach((v, i) => {
+    html += `
+    <div class="list-group-item d-flex justify-content-between align-items-center bg-light mb-1 border">
+      <div><strong>${v.nombre}</strong> <span class="text-muted small">(${v.codigo})</span></div>
+      <button class="btn btn-sm btn-danger" onclick="eliminarSnippet('variables', ${i})"><i class="fas fa-trash"></i></button>
+    </div>`;
+  });
+
+  lista.innerHTML = html;
+};
+
+window.agregarSnippet = function() {
+  const tipo = document.getElementById('config-tipo').value; // "bloque" o "variable"
+  const nombre = document.getElementById('config-nombre').value.trim();
+  const codigo = document.getElementById('config-codigo').value;
+
+  if(!nombre || !codigo) {
+    alert("Por favor ingresa un nombre y el código.");
+    return;
+  }
+
+  if (tipo === 'bloque') {
+    configPersonalizada.bloques.push({ nombre, codigo });
+  } else {
+    configPersonalizada.variables.push({ nombre, codigo });
+  }
+
+  // Limpiar inputs
+  document.getElementById('config-nombre').value = '';
+  document.getElementById('config-codigo').value = '';
+  
+  renderizarListaModal();
+};
+
+window.eliminarSnippet = function(tipoLista, index) {
+  if(confirm("¿Seguro que deseas eliminar este elemento?")) {
+    configPersonalizada[tipoLista].splice(index, 1);
+    renderizarListaModal();
+  }
+};
+
+window.guardarConfiguracionEnFirebase = async function() {
+  try {
+    await db.collection("configuraciones").doc("editor_correos").set(configPersonalizada);
+    alert("¡Configuración guardada exitosamente!");
+    renderizarBotonera(); // Refrescar botones en el editor
+    bootstrap.Modal.getInstance(document.getElementById('modalConfigSnippets')).hide();
+  } catch (error) {
+    console.error("Error guardando:", error);
+    alert("Hubo un error al guardar.");
+  }
+};
+
+// --- 2. PANTALLA COMPLETA (FULLSCREEN) ---
+window.toggleFullscreen = function() {
+  const colEditor = document.getElementById('columna-editor-codigo');
+  const btn = document.getElementById('btn-fullscreen');
+  
+  colEditor.classList.toggle('editor-fullscreen');
+  const isFull = colEditor.classList.contains('editor-fullscreen');
+
+  if (isFull) {
+    btn.innerHTML = '<i class="fas fa-compress"></i> Achicar';
+    btn.classList.replace('btn-outline-secondary', 'btn-danger');
+  } else {
+    btn.innerHTML = '<i class="fas fa-expand"></i> Expandir';
+    btn.classList.replace('btn-danger', 'btn-outline-secondary');
+  }
+
+  // Recalcular el tamaño del editor CodeMirror
+  setTimeout(() => {
+    if(editorCodeMirror) editorCodeMirror.refresh();
+  }, 200);
+};
+
+// --- 3. CARGAR PROYECTOS DESDE FIREBASE ---
 window.cargarProyectosCorreo = async function() {
   const contenedor = document.getElementById('vista-proyectos');
   if(!contenedor) return;
@@ -44,7 +198,7 @@ window.cargarProyectosCorreo = async function() {
   }
 };
 
-// --- 2. ABRIR EL EDITOR ---
+// --- 4. ABRIR EL EDITOR ---
 window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
   document.getElementById('vista-proyectos').classList.add('d-none');
   document.getElementById('vista-editor').classList.remove('d-none');
@@ -53,7 +207,6 @@ window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
   const textareaHtml = document.getElementById('codigo-html');
   proyectoActualId = id === 'nuevo' ? null : id;
 
-  // Inicializar CodeMirror SOLO si no existe, y cuando el div ya está visible
   if (!editorCodeMirror) {
     editorCodeMirror = CodeMirror.fromTextArea(textareaHtml, {
       mode: "xml",
@@ -63,13 +216,11 @@ window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
       lineWrapping: true
     });
     
-    // Evento para actualizar la vista previa al escribir
     editorCodeMirror.on('change', () => {
       window.actualizarPreview();
     });
   }
 
-  // Setear el contenido según si es nuevo o guardado
   if (id === 'nuevo') {
     inputTitulo.value = 'Nueva Campaña Brevo';
     editorCodeMirror.setValue('');
@@ -78,7 +229,6 @@ window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
     editorCodeMirror.setValue(decodeURIComponent(escape(atob(contenidoB64))));
   }
   
-  // Forzar un refresh visual del editor
   setTimeout(() => {
     editorCodeMirror.refresh();
     editorCodeMirror.focus();
@@ -86,7 +236,7 @@ window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
   }, 100);
 };
 
-// --- 3. GUARDAR EN FIREBASE ---
+// --- 5. GUARDAR PROYECTO EN FIREBASE ---
 window.guardarProyectoCorreo = async function() {
   const inputTitulo = document.getElementById('input-titulo-proyecto');
   const btnGuardar = document.getElementById('btn-guardar-correo');
@@ -125,47 +275,18 @@ window.guardarProyectoCorreo = async function() {
   } catch (error) {
     console.error("Error al guardar:", error);
     alert("Hubo un error al guardar. Revisa la consola.");
-    btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Plantilla';
     btnGuardar.disabled = false;
   }
 };
 
-// --- 4. MOTOR DE INYECCIÓN DE BLOQUES ---
-window.inyectarCodigo = function(tipo) {
-  if(!editorCodeMirror) return;
-  
-  let snippet = "";
-  
-  switch(tipo) {
-    case 'titulo':
-      snippet = `\n<h2 style="color: #333333; font-family: Arial, sans-serif; text-align: center; margin: 20px 0;">¡Nuevas Joyas Disponibles!</h2>\n`;
-      break;
-    case 'boton':
-      snippet = `\n<div style="text-align: center; margin: 20px 0;">\n  <a href="https://distribuidoradejoyas.cl" style="background-color: #d9534f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-family: Arial, sans-serif; font-weight: bold; font-size: 16px;">Comprar Ahora</a>\n</div>\n`;
-      break;
-    case 'espacio':
-      snippet = `\n<div style="height: 30px; line-height: 30px; font-size: 30px;">&nbsp;</div>\n`;
-      break;
-    case 'footer':
-      snippet = `\n<div style="background-color: #f8f9fa; padding: 30px 20px; text-align: center; font-family: Arial, sans-serif; font-size: 12px; color: #777777;">\n  <p><strong>DJOYAS</strong> - Tu estilo en joyas de plata y enchapadas.</p>\n  <p>Enviado a {{ contact.EMAIL }} porque te suscribiste en nuestro sitio.</p>\n  <a href="{{ unsubscribe }}" style="color: #d9534f; text-decoration: underline;">Haz clic aquí para dejar de recibir estos correos</a>\n</div>\n`;
-      break;
-    case 'var_nombre':
-      snippet = `{{ contact.FIRSTNAME }}`;
-      break;
-    case 'var_espejo':
-      snippet = `{{ mirror }}`;
-      break;
-    case 'var_baja':
-      snippet = `{{ unsubscribe }}`;
-      break;
+// --- 6. FUNCIONES DE VISTA Y UTILIDADES ---
+window.volverAProyectos = function() {
+  // Si estaba en pantalla completa, lo achicamos al salir
+  const colEditor = document.getElementById('columna-editor-codigo');
+  if (colEditor.classList.contains('editor-fullscreen')) {
+    window.toggleFullscreen();
   }
 
-  editorCodeMirror.replaceSelection(snippet);
-  editorCodeMirror.focus();
-};
-
-// --- 5. FUNCIONES DE VISTA Y UTILIDADES ---
-window.volverAProyectos = function() {
   document.getElementById('vista-editor').classList.add('d-none');
   document.getElementById('vista-proyectos').classList.remove('d-none');
 };
@@ -206,6 +327,6 @@ window.copiarCodigo = function() {
 
 // --- INICIALIZACIÓN ---
 document.addEventListener("DOMContentLoaded", () => {
-  // Solo cargamos los proyectos, CodeMirror se inicializa al abrir uno
-  window.cargarProyectosCorreo();
+  window.cargarConfiguracionSnippets(); // Carga tus bloques personalizados
+  window.cargarProyectosCorreo();       // Carga los proyectos guardados
 });
