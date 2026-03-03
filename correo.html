@@ -113,11 +113,11 @@
   </div>
 
   <div id="vista-proyectos" class="row">
-  </div>
+      </div>
 
   <div id="vista-editor" class="d-none">
     
-<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
       <button class="btn btn-outline-secondary" onclick="volverAProyectos()"><i class="fas fa-arrow-left"></i> Volver</button>
       
       <div class="d-flex align-items-center" style="background: rgba(0,0,0,0.05); border-radius: 8px; padding: 2px 10px;">
@@ -130,12 +130,31 @@
 
     <div class="row">
       <div class="col-lg-6 mb-4">
-        <div class="ios-card h-100 shadow-sm">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="m-0"><i class="fa-solid fa-code text-primary"></i> Código HTML</h5>
-            <button class="btn btn-sm btn-outline-primary" onclick="copiarCodigo()"><i class="fas fa-copy"></i> Copiar</button>
+        <div class="ios-card h-100 shadow-sm d-flex flex-column">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="m-0"><i class="fa-solid fa-code text-primary"></i> Editor Pro</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="copiarCodigo()"><i class="fas fa-copy"></i> Copiar Código</button>
           </div>
-          <textarea id="codigo-html" class="form-control" style="font-family: monospace; height: 60vh; font-size: 14px; resize: none; background-color: #1e1e1e; color: #d4d4d4; border-radius: 8px;" placeholder=""></textarea>
+
+          <div class="mb-2 p-2" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <span class="text-muted small fw-bold mt-1 w-100">Bloques Rápidos:</span>
+              <button class="btn btn-sm btn-dark" onclick="inyectarCodigo('titulo')"><i class="fas fa-heading"></i> Título</button>
+              <button class="btn btn-sm btn-dark" onclick="inyectarCodigo('boton')"><i class="fas fa-hand-pointer"></i> Botón CTA</button>
+              <button class="btn btn-sm btn-dark" onclick="inyectarCodigo('espacio')"><i class="fas fa-arrows-alt-v"></i> Espacio</button>
+              <button class="btn btn-sm btn-dark" onclick="inyectarCodigo('footer')"><i class="fas fa-shoe-prints"></i> Footer</button>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="text-muted small fw-bold mt-1 w-100">Variables Brevo:</span>
+              <button class="btn btn-sm btn-outline-success" onclick="inyectarCodigo('var_nombre')">{ } Nombre</button>
+              <button class="btn btn-sm btn-outline-success" onclick="inyectarCodigo('var_espejo')"><i class="fas fa-external-link-alt"></i> Ver en web</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="inyectarCodigo('var_baja')"><i class="fas fa-heart-broken"></i> Desuscribirse</button>
+            </div>
+          </div>
+
+          <div class="flex-grow-1" style="border-radius: 8px; overflow: hidden; border: 1px solid #444;">
+            <textarea id="codigo-html" class="form-control"></textarea>
+          </div>
         </div>
       </div>
 
@@ -157,9 +176,7 @@
       </div>
     </div>
   </div>
-
 </div>
-
 
 
 

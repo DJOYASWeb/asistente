@@ -1,15 +1,14 @@
-// Variable global para saber si estamos editando o creando uno nuevo
 let proyectoActualId = null;
+let editorCodeMirror = null;
 
 // --- 1. CARGAR PROYECTOS DESDE FIREBASE ---
 window.cargarProyectosCorreo = async function() {
   const contenedor = document.getElementById('vista-proyectos');
-  
+  if(!contenedor) return;
+
   try {
-    // Consultamos la colección "correos_brevo" ordenada por fecha
     const snapshot = await db.collection("correos_brevo").orderBy("fechaActualizacion", "desc").get();
     
-    // El primer botón siempre será el de "Nuevo Proyecto"
     let html = `
     <div class="col-12 col-md-4 col-lg-3 mb-4">
       <div class="ios-card d-flex flex-column align-items-center justify-content-center h-100 shadow-sm" style="min-height: 200px; cursor: pointer; border: 2px dashed #007bff; background-color: rgba(0, 123, 255, 0.05);" onclick="abrirEditorCorreo('nuevo')">
@@ -18,14 +17,10 @@ window.cargarProyectosCorreo = async function() {
       </div>
     </div>`;
 
-    // Recorremos los guardados en Firebase
     snapshot.forEach(doc => {
       const data = doc.data();
       const fecha = data.fechaActualizacion ? data.fechaActualizacion.toDate().toLocaleDateString() : 'Reciente';
-      
-      // Limpiamos los textos para que no rompan el HTML al pasarlos por parámetro
       const nombreSeguro = data.nombre ? data.nombre.replace(/'/g, "\\'") : 'Sin nombre';
-      // Codificamos el HTML en Base64 para pasarlo seguro por el onclick
       const contenidoB64 = btoa(unescape(encodeURIComponent(data.codigo || '')));
 
       html += `
@@ -45,7 +40,7 @@ window.cargarProyectosCorreo = async function() {
 
     contenedor.innerHTML = html;
   } catch (error) {
-    console.error("Error cargando plantillas de correo:", error);
+    console.error("Error cargando plantillas:", error);
   }
 };
 
@@ -54,36 +49,51 @@ window.abrirEditorCorreo = function(id, nombre = '', contenidoB64 = '') {
   document.getElementById('vista-proyectos').classList.add('d-none');
   document.getElementById('vista-editor').classList.remove('d-none');
   
-  const textarea = document.getElementById('codigo-html');
   const inputTitulo = document.getElementById('input-titulo-proyecto');
-
-  // Si es nuevo, el ID queda nulo. Si es uno existente, guardamos su ID.
+  const textareaHtml = document.getElementById('codigo-html');
   proyectoActualId = id === 'nuevo' ? null : id;
 
+  // Inicializar CodeMirror SOLO si no existe, y cuando el div ya está visible
+  if (!editorCodeMirror) {
+    editorCodeMirror = CodeMirror.fromTextArea(textareaHtml, {
+      mode: "xml",
+      theme: "monokai",
+      lineNumbers: true,
+      autoCloseTags: true,
+      lineWrapping: true
+    });
+    
+    // Evento para actualizar la vista previa al escribir
+    editorCodeMirror.on('change', () => {
+      window.actualizarPreview();
+    });
+  }
+
+  // Setear el contenido según si es nuevo o guardado
   if (id === 'nuevo') {
     inputTitulo.value = 'Nueva Campaña Brevo';
-    textarea.value = '';
+    editorCodeMirror.setValue('');
   } else {
     inputTitulo.value = nombre;
-    // Decodificamos el Base64 a texto HTML normal
-    textarea.value = decodeURIComponent(escape(atob(contenidoB64)));
+    editorCodeMirror.setValue(decodeURIComponent(escape(atob(contenidoB64))));
   }
   
+  // Forzar un refresh visual del editor
   setTimeout(() => {
+    editorCodeMirror.refresh();
+    editorCodeMirror.focus();
     window.actualizarPreview();
-  }, 50);
+  }, 100);
 };
 
 // --- 3. GUARDAR EN FIREBASE ---
 window.guardarProyectoCorreo = async function() {
   const inputTitulo = document.getElementById('input-titulo-proyecto');
-  const textarea = document.getElementById('codigo-html');
   const btnGuardar = document.getElementById('btn-guardar-correo');
   
   const nombre = inputTitulo.value.trim() || 'Campaña sin nombre';
-  const codigo = textarea.value;
+  const codigo = editorCodeMirror ? editorCodeMirror.getValue() : ''; 
   
-  // Estado de carga en el botón
   btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
   btnGuardar.disabled = true;
 
@@ -95,23 +105,17 @@ window.guardarProyectoCorreo = async function() {
 
   try {
     if (proyectoActualId) {
-      // Actualizar proyecto existente
       await db.collection("correos_brevo").doc(proyectoActualId).update(datos);
     } else {
-      // Crear proyecto nuevo
       datos.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
       const docRef = await db.collection("correos_brevo").add(datos);
-      proyectoActualId = docRef.id; // Lo guardamos por si vuelve a darle a "Guardar" sin salir
+      proyectoActualId = docRef.id; 
     }
     
-    // Feedback visual de éxito
     btnGuardar.innerHTML = '<i class="fas fa-check"></i> ¡Guardado!';
     btnGuardar.classList.replace('btn-primary', 'btn-success');
-    
-    // Refrescamos la lista de proyectos en segundo plano
     window.cargarProyectosCorreo();
 
-    // Restauramos el botón después de 2 segundos
     setTimeout(() => {
       btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Plantilla';
       btnGuardar.classList.replace('btn-success', 'btn-primary');
@@ -119,26 +123,58 @@ window.guardarProyectoCorreo = async function() {
     }, 2000);
 
   } catch (error) {
-    console.error("Error al guardar en Firebase:", error);
+    console.error("Error al guardar:", error);
     alert("Hubo un error al guardar. Revisa la consola.");
     btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar Plantilla';
     btnGuardar.disabled = false;
   }
 };
 
-// --- 4. FUNCIONES DE VISTA Y UTILIDADES ---
+// --- 4. MOTOR DE INYECCIÓN DE BLOQUES ---
+window.inyectarCodigo = function(tipo) {
+  if(!editorCodeMirror) return;
+  
+  let snippet = "";
+  
+  switch(tipo) {
+    case 'titulo':
+      snippet = `\n<h2 style="color: #333333; font-family: Arial, sans-serif; text-align: center; margin: 20px 0;">¡Nuevas Joyas Disponibles!</h2>\n`;
+      break;
+    case 'boton':
+      snippet = `\n<div style="text-align: center; margin: 20px 0;">\n  <a href="https://distribuidoradejoyas.cl" style="background-color: #d9534f; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-family: Arial, sans-serif; font-weight: bold; font-size: 16px;">Comprar Ahora</a>\n</div>\n`;
+      break;
+    case 'espacio':
+      snippet = `\n<div style="height: 30px; line-height: 30px; font-size: 30px;">&nbsp;</div>\n`;
+      break;
+    case 'footer':
+      snippet = `\n<div style="background-color: #f8f9fa; padding: 30px 20px; text-align: center; font-family: Arial, sans-serif; font-size: 12px; color: #777777;">\n  <p><strong>DJOYAS</strong> - Tu estilo en joyas de plata y enchapadas.</p>\n  <p>Enviado a {{ contact.EMAIL }} porque te suscribiste en nuestro sitio.</p>\n  <a href="{{ unsubscribe }}" style="color: #d9534f; text-decoration: underline;">Haz clic aquí para dejar de recibir estos correos</a>\n</div>\n`;
+      break;
+    case 'var_nombre':
+      snippet = `{{ contact.FIRSTNAME }}`;
+      break;
+    case 'var_espejo':
+      snippet = `{{ mirror }}`;
+      break;
+    case 'var_baja':
+      snippet = `{{ unsubscribe }}`;
+      break;
+  }
+
+  editorCodeMirror.replaceSelection(snippet);
+  editorCodeMirror.focus();
+};
+
+// --- 5. FUNCIONES DE VISTA Y UTILIDADES ---
 window.volverAProyectos = function() {
   document.getElementById('vista-editor').classList.add('d-none');
   document.getElementById('vista-proyectos').classList.remove('d-none');
 };
 
 window.actualizarPreview = function() {
-  const codigoHtml = document.getElementById('codigo-html');
   const iframe = document.getElementById('preview-iframe');
-  
-  if (!codigoHtml || !iframe) return;
+  if (!iframe || !editorCodeMirror) return;
 
-  const codigo = codigoHtml.value;
+  const codigo = editorCodeMirror.getValue();
   const frameDoc = iframe.contentDocument || iframe.contentWindow.document;
   frameDoc.open();
   frameDoc.write(codigo);
@@ -162,21 +198,14 @@ window.cambiarVistaPreview = function(tipo) {
 };
 
 window.copiarCodigo = function() {
-  const textarea = document.getElementById('codigo-html');
-  textarea.select();
-  document.execCommand('copy');
-  alert("¡Código copiado al portapapeles listo para Brevo!");
+  if(!editorCodeMirror) return;
+  navigator.clipboard.writeText(editorCodeMirror.getValue()).then(() => {
+    alert("¡Código copiado al portapapeles listo para Brevo!");
+  });
 };
 
 // --- INICIALIZACIÓN ---
 document.addEventListener("DOMContentLoaded", () => {
-  const codigoHtml = document.getElementById('codigo-html');
-  
-  // Escuchar escritura
-  if (codigoHtml) {
-    codigoHtml.addEventListener('input', window.actualizarPreview);
-  }
-
-  // Cargar los proyectos guardados apenas entra a la página
+  // Solo cargamos los proyectos, CodeMirror se inicializa al abrir uno
   window.cargarProyectosCorreo();
 });
