@@ -175,42 +175,54 @@
     </div>
   </div>
 
-  <div id="vista-configuracion" class="d-none">
+<div id="vista-configuracion" class="d-none">
     
     <div class="d-flex justify-content-between align-items-center mb-4">
       <button class="btn btn-outline-secondary" onclick="volverDesdeConfiguracion()"><i class="fas fa-arrow-left"></i> Volver a Proyectos</button>
       <h3 class="m-0 fw-bold"><i class="fas fa-cog"></i> Configurar Bloques y Variables</h3>
-      <button class="btn btn-success" onclick="guardarConfiguracionEnFirebase()"><i class="fas fa-save"></i> Guardar Cambios</button>
+      <button class="btn btn-success" onclick="guardarConfiguracionEnFirebase()"><i class="fas fa-save"></i> Guardar Cambios en Firebase</button>
     </div>
 
     <div class="ios-card shadow-sm mb-4">
-      <div class="p-4 mb-4" style="background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
-        <h5 class="fw-bold mb-3">Agregar Nuevo Elemento</h5>
-        <div class="row g-3 align-items-end">
-          <div class="col-md-3">
-            <label class="form-label fw-bold text-muted small m-0 mb-1">Tipo de Elemento</label>
-            <select id="config-tipo" class="form-select">
-              <option value="bloque">Bloque Rápido (HTML)</option>
-              <option value="variable">Variable Brevo ({{ }})</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label fw-bold text-muted small m-0 mb-1">Nombre del botón</label>
-            <input type="text" id="config-nombre" class="form-control" placeholder="Ej. Footer, Nombre">
-          </div>
-          <div class="col-md-4">
-            <label class="form-label fw-bold text-muted small m-0 mb-1">Código a inyectar</label>
-            <textarea id="config-codigo" class="form-control" rows="1" placeholder="Código HTML o {{ variable }}"></textarea>
-          </div>
-          <div class="col-md-2">
-            <button class="btn btn-primary w-100" onclick="agregarSnippet()"><i class="fas fa-plus"></i> Añadir</button>
-          </div>
-        </div>
+      <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h5 class="fw-bold m-0">Tus Elementos Guardados</h5>
+        <button class="btn btn-primary" onclick="abrirModalEdicion()"><i class="fas fa-plus"></i> Agregar Nuevo Elemento</button>
       </div>
       
-      <h5 class="fw-bold mb-3 mt-4">Tus Elementos Guardados</h5>
       <div id="lista-configuracion" class="list-group">
         </div>
+    </div>
+  </div>
+
+  <div class="modal alinear" id="modalEdicionSnippet" tabindex="-1" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; overflow-y: auto;">
+    <div class="modal-dialog" style="margin: 5% auto; max-width: 600px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      <div class="modal-content" style="border: none;">
+        <div class="modal-header d-flex justify-content-between align-items-center p-3 border-bottom">
+          <h5 class="modal-title fw-bold m-0" id="tituloModalEdicion"><i class="fas fa-pen"></i> Elemento</h5>
+          <button type="button" class="btn-close" onclick="cerrarModalEdicion()"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small">Tipo de Elemento</label>
+            <select id="config-tipo" class="form-select">
+              <option value="bloques">Bloque Rápido (HTML)</option>
+              <option value="variables">Variable Brevo ({{ }})</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small">Nombre del botón</label>
+            <input type="text" id="config-nombre" class="form-control" placeholder="Ej. Footer, Nombre">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small">Código a inyectar</label>
+            <textarea id="config-codigo" class="form-control" rows="6" placeholder="Pega el código HTML o la {{ variable }}"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer p-3 border-top d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" onclick="cerrarModalEdicion()">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="guardarSnippetModal()"><i class="fas fa-check"></i> Guardar Elemento</button>
+        </div>
+      </div>
     </div>
   </div>
 
