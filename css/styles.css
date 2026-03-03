@@ -3003,3 +3003,21 @@ grid-auto-rows: minmax(100px, auto);
     .progress-bar {
     transition: width 0.4s ease;
 }
+
+.editor-fullscreen {
+        position: fixed !important;
+        top: 0; left: 0; right: 0; bottom: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 9999;
+        background: #f4f6f9;
+        padding: 20px;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+    .editor-fullscreen .ios-card {
+        height: 100% !important;
+    }
+    .editor-fullscreen .CodeMirror {
+        height: calc(100vh - 160px) !important; /* Ajusta la altura dinámicamente */
+    }
