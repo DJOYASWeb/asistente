@@ -668,7 +668,7 @@ function fechaFromIsoToDisplay(iso) {
     modal.style.display = show ? "flex" : "none";
   }
 
-  function renderPreviewTable(rows, headers){
+function renderPreviewTable(rows, headers){
     const thead = $("#csvPreviewTable thead");
     const tbody = $("#csvPreviewTable tbody");
     thead.innerHTML = "";
@@ -677,23 +677,25 @@ function fechaFromIsoToDisplay(iso) {
     // Encabezados
     const trh = document.createElement("tr");
     headers.forEach(h => {
-      const th = document.createElement("th");
-      th.textContent = h;
-      trh.appendChild(th);
+        const th = document.createElement("th");
+        th.textContent = h;
+        trh.appendChild(th);
     });
     thead.appendChild(trh);
 
-    // Primeras 5 filas
-    rows.slice(0,5).forEach(r => {
-      const tr = document.createElement("tr");
-      headers.forEach(h => {
-        const td = document.createElement("td");
-        td.textContent = (r[h] ?? "").toString();
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
+    // Renderizar TODAS las filas (sin el slice de 5)
+    rows.forEach(r => {
+        const tr = document.createElement("tr");
+        headers.forEach(h => {
+            const td = document.createElement("td");
+            let contenido = (r[h] ?? "").toString();
+            // Recortar texto muy largo solo para la previsualización visual
+            td.textContent = contenido.length > 50 ? contenido.slice(0, 50) + "..." : contenido;
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
     });
-  }
+}
 
   function validarHeaders(headers){
     const faltantes = REQUIRED_HEADERS.filter(h => !headers.includes(h));
@@ -786,67 +788,67 @@ function fechaFromIsoToDisplay(iso) {
   });
 
   // Mapea filas y hace commit por lotes con progreso
-  async function importCsvRowsWithProgress(rows, onProgress){
+async function importCsvRowsWithProgress(rows, onProgress){
     const db = firebase.firestore();
-    const chunkSize = 400; // seguro para límite de batch (~500)
+    const chunkSize = 50; // Bajamos el chunk para que la barra de progreso sea más fluida
     const fallos = [];
     let ok = 0, fail = 0;
     const total = rows.length;
 
-    const pick = (obj, key) => {
-      // clave exacta (cabeceras en español tal cual)
-      return (obj[key] ?? "").toString().trim();
-    };
+    const pick = (obj, key) => (obj[key] ?? "").toString().trim();
 
     for (let i = 0; i < rows.length; i += chunkSize) {
-      const slice = rows.slice(i, i + chunkSize);
-      const batch = db.batch();
+        const slice = rows.slice(i, i + chunkSize);
+        const batch = db.batch();
 
-      slice.forEach((r, idx) => {
-        const rowNum = i + idx + 2; // +2 por encabezado
-        const id         = pick(r, "ID de Blog");
-        const nombre     = pick(r, "Nombre de Blog");
-        const estado     = pick(r, "Estado de Blog") || "pendiente";
-        const fecha      = pick(r, "Fecha de Blog");
-        const categoria  = pick(r, "Categoría");
-        const meta       = pick(r, "Meta Descripción");
-        const contenido  = pick(r, "Contenido de Blog"); // texto plano
+        slice.forEach((r, idx) => {
+            const rowNum = i + idx + 2;
+            const id = pick(r, "ID de Blog");
+            const nombre = pick(r, "Nombre de Blog");
+            const fecha = pick(r, "Fecha de Blog");
+            const contenido = pick(r, "Contenido de Blog");
 
-        if (!nombre) {
-          fail++; fallos.push(`Fila ${rowNum}: falta "Nombre de Blog"`);
-          return; // no se agrega al batch
+            if (!nombre || !id) {
+                fail++; 
+                fallos.push(`Fila ${rowNum}: Falta ID o Nombre.`);
+                return;
+            }
+
+            const ref = db.collection("blogs").doc(id);
+            const norm = normalizeFecha(fecha);
+            
+            // CRÍTICO: Convertimos a HTML aquí mismo para que entre listo a la DB
+            const htmlGenerado = convertirTextoABlogHtml(contenido);
+
+            const docBody = {
+                id: id,
+                nombre: nombre,
+                estado: pick(r, "Estado de Blog") || "pendiente",
+                fecha: norm.fecha,
+                fechaIso: norm.fechaIso,
+                categoria: pick(r, "Categoría"),
+                meta: pick(r, "Meta Descripción"),
+                blog: contenido,
+                blogHtml: htmlGenerado, // Ya no entra vacío
+                creadoEn: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            batch.set(ref, docBody, { merge: true });
+            ok++;
+        });
+
+        await batch.commit();
+
+        // Actualizar barra de progreso
+        const processed = Math.min(i + slice.length, total);
+        const pct = Math.round((processed / total) * 100);
+        if (typeof onProgress === "function") {
+            onProgress(pct, `Subiendo: ${processed} de ${total} blogs...`);
         }
-
-const ref = id ? db.collection("blogs").doc(id) : db.collection("blogs").doc();
-const norm = normalizeFecha(fecha); 
-    const docBody = {
-  id: ref.id,
-  nombre,
-  estado,
-  fecha: norm.fecha,                  // 👈 DD/MM/YYYY para UI/HTML
-  fechaIso: norm.fechaIso,            // 👈 YYYY-MM-DD para ordenar/filtrar
-  categoria,
-  meta,
-  blog: contenido,
-  blogHtml: ""
-};
-
-batch.set(ref, docBody, { merge: true });
-        ok++;
-      });
-
-      await batch.commit();
-
-      const processed = Math.min(i + slice.length, total);
-      const pct = Math.round((processed / total) * 100);
-      if (typeof onProgress === "function") {
-        onProgress(pct, `Procesando ${processed} / ${total}...`);
-      }
     }
 
-    if (typeof onProgress === "function") onProgress(100, `Completado: ${ok} OK, ${fail} con errores.`);
     return { ok, fail, total, fallos };
-  }
+}
 })();
 
 

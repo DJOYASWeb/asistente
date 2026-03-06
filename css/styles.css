@@ -3021,3 +3021,20 @@ grid-auto-rows: minmax(100px, auto);
     .editor-fullscreen .CodeMirror {
         height: calc(100vh - 160px) !important; /* Ajusta la altura dinámicamente */
     }
+
+    #csvPreviewTable {
+    font-size: 0.8rem;
+}
+
+.table-responsive {
+    max-height: 400px; /* Limita la altura del preview */
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+/* Estilo para la barra de progreso */
+.progress-bar {
+    transition: width 0.4s ease; /* Para que el movimiento sea suave */
+    background-color: #007bff;
+}
