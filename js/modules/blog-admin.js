@@ -830,6 +830,7 @@ async function importCsvRowsWithProgress(rows, onProgress){
                 meta: pick(r, "Meta Descripción"),
                 blog: contenido,
                 blogHtml: htmlGenerado, // Ya no entra vacío
+                imagen: imagenAuto,
                 creadoEn: firebase.firestore.FieldValue.serverTimestamp()
             };
 
@@ -1064,5 +1065,17 @@ window.actualizarUrlModal = function() {
     const inputUrl = document.getElementById("nuevaUrl");
     if(inputUrl) inputUrl.value = urlFinal;
 };
+
+// Cada vez que escribas un ID en el modal de "Agregar", la URL de imagen se pre-llena
+document.getElementById('nuevoId')?.addEventListener('input', (e) => {
+    const id = e.target.value.trim();
+    const inputImagen = document.getElementById('nuevaImagen');
+    if (id && inputImagen) {
+        inputImagen.value = `https://distribuidoradejoyas.cl/img/cms/paginas%20internas/blogs/blog-${id}.jpg`;
+    }
+});
+
+
+
 
 // v4
