@@ -1009,6 +1009,19 @@ function exportarSeleccionados() {
   // Encabezados
   let csvContent = "ID,Meta titulo,Meta Descripción,Categoria,Autor,Fecha\n";
 
+  // Diccionario de categorías. 
+  // Falla de escalabilidad: Si agregas una categoría nueva en el futuro, DEBES agregarla aquí también.
+  const mapaCategorias = {
+    "Tips": 2,
+    "Emprendimiento": 3,
+    "Sabías que?": 4,
+    "Beneficios": 5,
+    "Tendencias": 6,
+    "Cuidado y Mantenimiento": 7,
+    "Sustentable": 8,
+    "Innovación": 9
+  };
+
   checkboxes.forEach(cb => {
     const index = cb.dataset.index;
     const dato = datosTabla[index];
@@ -1022,26 +1035,28 @@ function exportarSeleccionados() {
       // --- LÓGICA DE TRANSFORMACIÓN DE FECHA ---
       let fechaFormateada = dato.fecha || "";
       
-      // Si la fecha viene como "08/01/2026" (DD/MM/AAAA)
       if (fechaFormateada.includes('/')) {
-        const partes = fechaFormateada.split('/'); // [08, 01, 2026]
+        const partes = fechaFormateada.split('/');
         if (partes.length === 3) {
-            // Reordenamos: AAAA-MM-DD y agregamos la hora fija
             fechaFormateada = `${partes[2]}-${partes[1]}-${partes[0]} 10:00:00`;
         }
       } 
-      // Si por casualidad ya viene lista, solo le agregamos la hora si le falta
       else if (fechaFormateada.length === 10 && fechaFormateada.includes('-')) {
           fechaFormateada = `${fechaFormateada} 10:00:00`;
       }
+
+      // --- INTERCEPCIÓN DE CATEGORÍA ---
+      // Si la categoría existe en el mapa, saca el número. Si no existe o viene mal escrita, devuelve un string vacío para no corromper la columna numérica del CSV.
+      const categoriaTexto = (dato.categoria || "").trim();
+      const idCategoria = mapaCategorias[categoriaTexto] || "";
 
       const fila = [
         escape(dato.id || dato.docId),      
         escape(dato.nombre),                
         escape(dato.meta),                  
-        escape(dato.categoria),             
-        escape("Sofía de DJOYAS"),          
-        escape(fechaFormateada) // ✅ Fecha transformada (2026-01-08 10:00:00)
+        escape(idCategoria), // <-- Exportando el ID numérico
+        escape("Sofía de DJOYAS"), // Sigo viendo a este autor fijo. Otra deuda técnica.         
+        escape(fechaFormateada) 
       ];
 
       csvContent += fila.join(",") + "\n";
@@ -1059,7 +1074,7 @@ function exportarSeleccionados() {
   link.click();
   document.body.removeChild(link);
   
-  mostrarNotificacion(`✅ Exportados ${checkboxes.length} blogs con fecha formateada.`, "exito");
+  mostrarNotificacion(`✅ Exportados ${checkboxes.length} blogs.`, "exito");
 }
 window.exportarSeleccionados = exportarSeleccionados;
 
