@@ -790,10 +790,18 @@ function renderPreviewTable(rows, headers){
   // Mapea filas y hace commit por lotes con progreso
 async function importCsvRowsWithProgress(rows, onProgress){
     const db = firebase.firestore();
-    const chunkSize = 50; // Bajamos el chunk para que la barra de progreso sea más fluida
+    const chunkSize = 50; 
     const fallos = [];
     let ok = 0, fail = 0;
     const total = rows.length;
+
+    // Función interna para limpiar texto (Slugify)
+    const limpiarParaUrl = (txt) => {
+        return (txt || "").toString().trim().toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quita acentos
+            .replace(/[^a-z0-9\s-]/g, "")                   // Quita símbolos
+            .replace(/\s+/g, "-");                          // Espacios por guiones
+    };
 
     const pick = (obj, key) => (obj[key] ?? "").toString().trim();
 
@@ -805,7 +813,7 @@ async function importCsvRowsWithProgress(rows, onProgress){
             const rowNum = i + idx + 2;
             const id = pick(r, "ID de Blog");
             const nombre = pick(r, "Nombre de Blog");
-            const fecha = pick(r, "Fecha de Blog");
+            const categoria = pick(r, "Categoría") || "general";
             const contenido = pick(r, "Contenido de Blog");
 
             if (!nombre || !id) {
@@ -814,11 +822,23 @@ async function importCsvRowsWithProgress(rows, onProgress){
                 return;
             }
 
-            const ref = db.collection("blogs").doc(id);
-            const norm = normalizeFecha(fecha);
+            // --- 🚀 GENERACIÓN AUTOMÁTICA DE DATOS FALTANTES ---
+            const slugCat = limpiarParaUrl(categoria);
+            const slugNom = limpiarParaUrl(nombre);
             
-            // CRÍTICO: Convertimos a HTML aquí mismo para que entre listo a la DB
-            const htmlGenerado = convertirTextoABlogHtml(contenido);
+            // 1. Generar URL del Blog
+            const urlAuto = `https://distribuidoradejoyas.cl/blog/${slugCat}/${slugNom}`;
+            
+            // 2. Generar URL de la Imagen (basada en ID)
+            const imagenAuto = `https://distribuidoradejoyas.cl/img/cms/paginas%20internas/blogs/blog-${id}.jpg`;
+            
+            // 3. Generar HTML (para que no suba vacío)
+            const htmlGenerado = typeof convertirTextoABlogHtml === 'function' 
+                ? convertirTextoABlogHtml(contenido) 
+                : "";
+
+            const ref = db.collection("blogs").doc(id);
+            const norm = normalizeFecha(pick(r, "Fecha de Blog"));
 
             const docBody = {
                 id: id,
@@ -826,11 +846,12 @@ async function importCsvRowsWithProgress(rows, onProgress){
                 estado: pick(r, "Estado de Blog") || "pendiente",
                 fecha: norm.fecha,
                 fechaIso: norm.fechaIso,
-                categoria: pick(r, "Categoría"),
+                categoria: categoria,
                 meta: pick(r, "Meta Descripción"),
                 blog: contenido,
-                blogHtml: htmlGenerado, // Ya no entra vacío
-                imagen: imagenAuto,
+                blogHtml: htmlGenerado,
+                url: urlAuto,      // <-- AHORA SÍ TIENE DATO
+                imagen: imagenAuto, // <-- AHORA SÍ TIENE DATO
                 creadoEn: firebase.firestore.FieldValue.serverTimestamp()
             };
 
@@ -840,11 +861,10 @@ async function importCsvRowsWithProgress(rows, onProgress){
 
         await batch.commit();
 
-        // Actualizar barra de progreso
         const processed = Math.min(i + slice.length, total);
         const pct = Math.round((processed / total) * 100);
         if (typeof onProgress === "function") {
-            onProgress(pct, `Subiendo: ${processed} de ${total} blogs...`);
+            onProgress(pct, `Procesando ${processed} de ${total} blogs...`);
         }
     }
 
