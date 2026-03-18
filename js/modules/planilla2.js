@@ -2867,17 +2867,38 @@ minSpareRows: 0,           // Cero filas vacías "de reserva" al final
           allowInsertColumn: false,  // Bloquea que se creen columnas nuevas accidentalmente
           allowInsertRow: false,     // Bloquea que se creen filas extra al pegar o hacer clic derecho
 
-          // 1. EVENTO ORIGINAL: Guardar datos cuando la celda cambia
+// 1. EVENTO ORIGINAL: Guardar datos cuando la celda cambia
           onchange: function(instance, cell, x, y, value) {
               const nombreColumna = columnasVisibles[x];
+              
               if (dataset[y]) {
                   dataset[y][nombreColumna] = value;
+                  
+                  // 🔥 CORRECCIÓN AQUÍ: Sincronización forzada de Stock
+                  // Si editamos algo que huela a cantidad, sobreescribimos la variable oculta
+                  const colNorm = nombreColumna.toString().toLowerCase().trim();
+                  if (colNorm.includes("cantidad") || colNorm.includes("stock")) {
+                      const valorNumerico = Number(value) || 0;
+                      dataset[y]["_stock_original"] = valorNumerico;
+                      dataset[y]["CANTIDAD"] = valorNumerico;
+                      dataset[y]["cantidad"] = valorNumerico;
+                  }
                   
                   const skuModificado = extraerCodigo(dataset[y]);
                   if (skuModificado) {
                       const actualizarEnLista = (lista) => {
                           const item = lista.find(r => extraerCodigo(r) === skuModificado);
-                          if (item) item[nombreColumna] = value;
+                          if (item) {
+                              item[nombreColumna] = value;
+                              
+                              // Replicar la sincronización en las listas de respaldo
+                              if (colNorm.includes("cantidad") || colNorm.includes("stock")) {
+                                  const valNum = Number(value) || 0;
+                                  item["_stock_original"] = valNum;
+                                  item["CANTIDAD"] = valNum;
+                                  item["cantidad"] = valNum;
+                              }
+                          }
                       };
                       actualizarEnLista(datosOriginales);
                       actualizarEnLista(datosCombinaciones);
