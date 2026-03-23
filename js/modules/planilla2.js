@@ -825,7 +825,7 @@ function construirCategorias(row) {
     }
   }
 
-  // 6. Filtro especial ENCHAPADO
+// 6. Filtro especial ENCHAPADO
   if (categoriaPrincipal && categoriaPrincipal.toUpperCase().includes("ENCHAPADO")) {
     for (let i = unicas.length - 1; i >= 0; i--) {
       const cat = unicas[i].toLowerCase();
@@ -836,9 +836,9 @@ function construirCategorias(row) {
     }
   }
 
-  return unicas.join(", ");
+  // Inversión del array: orden de hijo a padre
+  return unicas.reverse().join(", ");
 }
-
 
 // --- Precio ---
 function parsePrecioConIVA(valor) {
