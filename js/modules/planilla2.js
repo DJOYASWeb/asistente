@@ -2749,7 +2749,7 @@ function generarTablaImagenes() {
       <tbody>
   `;
 
-  filas.forEach(row => {
+filas.forEach(row => {
     const sku = extraerCodigo(row);
     const nombre = row["NOMBRE PRODUCTO"] || "";
     const rawUrl = row["FOTO LINK INDIVIDUAL"] || row["FOTO LINK INDIVIDIDUAL"];
@@ -2773,10 +2773,16 @@ function generarTablaImagenes() {
 
     const claseVerde = localStorage.getItem("sku_ok_" + sku) ? "bg-success text-white" : "";
 
+    // 🔥 LÓGICA NUEVA: Validación de correspondencia SKU vs Nombre
+    const skuLimpio = sku.trim().toUpperCase();
+    const nombreLimpio = nombre.trim().toUpperCase();
+    const tituloMatch = (skuLimpio !== "" && nombreLimpio.includes(skuLimpio)) ? "SI" : "";
+
     html += `
       <tr class="${filaClass}">
         <td class="sku-copy ${claseVerde}" style="cursor:pointer;" data-sku="${sku}"><strong>${sku}</strong></td>
         <td class="text-truncate" style="max-width: 250px;">${nombre}</td>
+        <td class="text-center fw-bold text-primary">${tituloMatch}</td>
         <td>${badges.join(" ")}</td>
         <td>
           ${urlDescarga ? `<button class="btn btn-outline-primary btn-sm py-0" onclick="descargarUnaImagen('${urlDescarga}', '${sku}')"><i class="fas fa-download"></i></button>` : ``}
