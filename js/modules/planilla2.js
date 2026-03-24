@@ -2743,9 +2743,9 @@ function generarTablaImagenes() {
         </div>
     </div>
 
-    <div class="table-responsive">
+<div class="table-responsive">
     <table class="table table-bordered table-sm table-hover bg-white">
-      <thead class="table-light"><tr><th>CODIGO</th><th>NOMBRE</th><th>ESTADO</th><th>ACCIÓN</th></tr></thead>
+      <thead class="table-light"><tr><th>CODIGO</th><th>NOMBRE</th><th>TITULO</th><th>ESTADO</th><th>ACCIÓN</th></tr></thead>
       <tbody>
   `;
 
