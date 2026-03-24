@@ -7,7 +7,7 @@ window.datosReposicion = [];
 window.datosFiltrados = [];
 window.datosCombinacionCantidades = [];
 window.tipoSeleccionado = "sin_seleccion";
-
+abrirModalExcel
 
 
 
@@ -2911,7 +2911,7 @@ minSpareRows: 0,           // Cero filas vacías "de reserva" al final
               }
           },
           
-          // 2. 🔥 NUEVO EVENTO: Detectar celda seleccionada para previsualizar
+// 2. 🔥 NUEVO EVENTO: Detectar celda seleccionada para previsualizar
           onselection: function(instance, x1, y1, x2, y2, origin) {
               // Guardamos en qué celda exacta hicimos clic
               window.celdaActualExcel = { x: x1, y: y1 };
@@ -2919,6 +2919,42 @@ minSpareRows: 0,           // Cero filas vacías "de reserva" al final
               // Obtenemos el texto de esa celda y lo mandamos a la barra de arriba
               const valorActual = instance.jexcel.getValueFromCoords(x1, y1);
               barraVista.value = valorActual || "";
+          }, // <-- OJO: Esta coma es vital para que no se rompa el objeto
+
+          // 4. 🔥 NUEVO EVENTO: Capturar eliminación de filas y purgar datos
+          ondeleterow: function(instance, rowNumber, numOfRows) {
+              const startIdx = parseInt(rowNumber);
+              const skusEliminados = [];
+
+              // 1. Rescatar SKUs de las filas que están a punto de ser eliminadas
+              for (let i = 0; i < numOfRows; i++) {
+                  const filaAfectada = dataset[startIdx + i];
+                  if (filaAfectada) {
+                      const sku = extraerCodigo(filaAfectada);
+                      if (sku) skusEliminados.push(sku);
+                  }
+              }
+
+              // 2. Eliminar del dataset local para que los índices (x, y) no se desfasen
+              dataset.splice(startIdx, numOfRows);
+
+              // 3. Purgar las bases de datos globales
+              skusEliminados.forEach(sku => {
+                  const cazarYDestruir = (lista) => {
+                      const idx = lista.findIndex(r => extraerCodigo(r) === sku);
+                      if (idx !== -1) lista.splice(idx, 1);
+                  };
+                  
+                  cazarYDestruir(window.datosOriginales);
+                  cazarYDestruir(window.datosCombinaciones);
+                  cazarYDestruir(window.datosReposicion);
+                  
+                  if (Array.isArray(window.datosFiltrados) && window.datosFiltrados !== dataset) {
+                      cazarYDestruir(window.datosFiltrados);
+                  }
+              });
+              
+              document.getElementById("barraExcelVista").value = "";
           }
       });
 
@@ -2928,9 +2964,15 @@ minSpareRows: 0,           // Cero filas vacías "de reserva" al final
               const { x, y } = window.celdaActualExcel;
               // Al escribir en la barra, inyectamos el valor directo en la celda
               window.miPlanillaExcel.setValueFromCoords(x, y, this.value);
-          }
+          }d
       };
   });
+
+
+
+
+
+  
 }
 
 
