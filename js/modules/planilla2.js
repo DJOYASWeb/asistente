@@ -2773,10 +2773,12 @@ filas.forEach(row => {
 
     const claseVerde = localStorage.getItem("sku_ok_" + sku) ? "bg-success text-white" : "";
 
-    // 🔥 LÓGICA NUEVA: Validación de correspondencia SKU vs Nombre
-    const skuLimpio = sku.trim().toUpperCase();
-    const nombreLimpio = nombre.trim().toUpperCase();
-    const tituloMatch = (skuLimpio !== "" && nombreLimpio.includes(skuLimpio)) ? "SI" : "";
+    // 🔥 LÓGICA NUEVA: Validación estricta SKU vs Nombre (sin espacios basura)
+    const skuLimpio = String(sku).replace(/\s+/g, '').toUpperCase();
+    const nombreLimpio = String(nombre).replace(/\s+/g, '').toUpperCase();
+    
+    // Compara si son exactamente iguales tras quitar espacios
+    const tituloMatch = (skuLimpio !== "" && skuLimpio === nombreLimpio) ? "SI" : "";
 
     html += `
       <tr class="${filaClass}">
