@@ -1603,16 +1603,20 @@ function procesarCombinacionesFinal() {
     const baseCodigo = prod["Referencia"] || "";
     const detalle = Array.isArray(prod["Detalle"]) ? prod["Detalle"] : [];
 
-    detalle.forEach(d => {
+detalle.forEach(d => {
       const combinacion = (d.numeracion || "").trim();
       const cantidad = d.cantidad || 0;
       if (!combinacion) return;
 
-const referencia = baseCodigo.slice(0, -3) + combinacion.padStart(3, "0");
+      // Evaluación dinámica: si es exactamente una letra A-Z, cambia el atributo
+      const esLetra = /^[A-Z]$/i.test(combinacion);
+      const atributoTexto = esLetra ? "Letra:select:0" : "Número:radio:0";
+
+      const referencia = baseCodigo.slice(0, -3) + combinacion.padStart(3, "0");
 
       resultado.push({
         "ID": idManual,
-        "Attribute (Name:Type:Position)*": "Número:radio:0",
+        "Attribute (Name:Type:Position)*": atributoTexto,
         "Value (Value:Position)*": `${combinacion}:0`,
         "Referencia": referencia,
         "Cantidad": cantidad,
