@@ -45,15 +45,22 @@ function esAnillo(row) {
 
 function esColganteLetra(row) {
   const tipo = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase();
-  if (!tipo.includes("colgante")) return false;
+  const nombre = (row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "").toString().toLowerCase();
 
+  // 1. Ampliamos el filtro: Debe ser Colgante o Collar
+  const esColganteOCollar = tipo.includes("colgante") || tipo.includes("collar") || 
+                            nombre.includes("colgante") || nombre.includes("collar");
+  
+  if (!esColganteOCollar) return false;
+
+  // 2. Nueva validación: ¿Contiene explícitamente "letra" o "letras" en el nombre?
+  if (nombre.includes("letra")) return true;
+
+  // 3. Mantenemos el rescate por SKU/Combinación por si el nombre viene mal escrito
   const comb = (row["PRODUCTO COMBINACION"] || row["producto_combinación"] || "").toString().trim();
   const codigo = extraerCodigo(row);
-
-  // a) si la columna producto_combinacion trae una sola letra A-Z
+  
   if (/^[A-Z]$/i.test(comb)) return true;
-
-  // b) si el SKU termina en una letra A-Z (PCLCC10055200A)
   if (/[A-Z]$/i.test(codigo)) return true;
 
   return false;
@@ -587,12 +594,17 @@ function leerExcelDesdeFilaA(file) {
       const combiValida = combinacion !== "" && 
                           !["sin valor", "null", "ninguno", "midi"].includes(combinacionRaw);
 
-      if (combiValida) {
+if (combiValida) {
         const lista = combinacion.split(",");
         let errorDetectado = false;
         lista.forEach(c => {
           const val = c.trim();
-          if (!/^#?\d+(-\d+)?$/i.test(val) && !/^numeraci[oó]n\s*\d+$/i.test(val)) {
+          
+          // Evalúa si es un número válido (anillos) o una letra individual A-Z (collares/colgantes)
+          const esNumeroValido = /^#?\d+(-\d+)?$/i.test(val) || /^numeraci[oó]n\s*\d+$/i.test(val);
+          const esLetraValida = /^[A-Z]$/i.test(val);
+
+          if (!esNumeroValido && !esLetraValida) {
             errores.push(`${sku} - Combinación inválida: ${val}`);
             errorDetectado = true;
           }
