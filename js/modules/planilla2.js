@@ -116,8 +116,10 @@ function agruparAnillosComoPadres(productos) {
     base["codigo_producto"] = codigoPadre;
 
     // ✅ stock 0 solo en el padre, no altera los hijos
-    base["Cantidad"] = 0;
+base["Cantidad"] = 0;
     base["cantidad"] = 0;
+    base["CANTIDAD"] = 0;
+    base["_stock_original"] = 0;
 
     // limpiar campos que no deben heredarse
     base["prestashop_id"] = "";
@@ -1120,13 +1122,13 @@ function crearPadreDesdeHijo(row) {
   const codigoPadre = `${pref}000`;
   base["codigo_producto"] = codigoPadre;
   base["CODIGO PRODUCTO"] = codigoPadre; // por si tu Excel usa esta columna
-  base["prestashop_id"] = "";
+base["prestashop_id"] = "";
   base["Combinaciones"] = "";
   base["producto_combinacion"] = "";
-base["Cantidad"] = 0;
-    base["cantidad"] = 0;
-    base["CANTIDAD"] = 0;
-    base["_stock_original"] = 0;
+  base["Cantidad"] = 0;
+  base["cantidad"] = 0;
+  base["CANTIDAD"] = 0;
+  base["_stock_original"] = 0;
 
   return base;
 }
