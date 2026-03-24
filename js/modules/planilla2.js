@@ -1123,8 +1123,10 @@ function crearPadreDesdeHijo(row) {
   base["prestashop_id"] = "";
   base["Combinaciones"] = "";
   base["producto_combinacion"] = "";
-  base["Cantidad"] = 0;
-  base["cantidad"] = 0;
+base["Cantidad"] = 0;
+    base["cantidad"] = 0;
+    base["CANTIDAD"] = 0;
+    base["_stock_original"] = 0;
 
   return base;
 }
