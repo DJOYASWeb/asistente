@@ -890,7 +890,7 @@ function transformarDatosParaExportar(datos) {
     );
 
     // 🧠 Detectar si es anillo
-    const esAnilloProducto = esAnillo(row);
+const esAnilloProducto = esAnillo(row) || esColganteLetra(row);
 
     // 🧠 Detectar si es MIDI
     const esMidi =
