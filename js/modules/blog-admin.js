@@ -371,7 +371,7 @@ function editarFila(index) {
   modal.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; display:flex;';
 
   modal.innerHTML = `
-    <div class="contenido-modal" style="background:white; padding:4rem; border-radius:16px; width:90%; max-width:60%; margin:auto; position:relative;">
+    <div class="contenido-modal" style="background:var(--surface); padding:2rem; border-radius:16px; width:90%; max-width:60%; margin:auto; position:relative;">
       <button class="btn-close position-absolute end-0 top-0 m-4" onclick="cerrarModalEditarDato()"></button>
       <h5 class="mb-4">✏️ Editar Blog</h5>
       <input type="hidden" id="editIndex" value="${index}">
@@ -419,7 +419,7 @@ function editarFila(index) {
           </div>
 
           <span>🔗 URL del Blog</span>
-          <input type="text" id="editUrl" class="form-control mb-3" readonly style="background-color: #e9ecef;" value="${dato.url || ''}">
+          <input type="text" id="editUrl" class="form-control mb-3" readonly value="${dato.url || ''}">
 
           <span>🖼️ URL Imagen Principal</span>
           <input type="text" id="editImagen" class="form-control mb-2" value="${dato.imagen || ''}">
