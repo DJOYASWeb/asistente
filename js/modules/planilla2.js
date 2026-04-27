@@ -2822,7 +2822,7 @@ function abrirModalExcel() {
 
       <div class="modal-dialog modal-dialog-centered" style="max-width: 80%;">
         <div class="modal-content shadow-lg">
-          <div class="modal-header bg-light pb-2">
+          <div class="modal-header pb-2">
             <h5 class="modal-title"><i class="fas fa-file-excel text-success"></i> Edición Masiva (Modo Excel)</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cerrarModalExcel()"></button>
           </div>
