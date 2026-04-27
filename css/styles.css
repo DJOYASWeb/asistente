@@ -143,7 +143,7 @@ a { text-decoration: none; color: inherit; }
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: auto;
   background: var(--bg);
 }
 
