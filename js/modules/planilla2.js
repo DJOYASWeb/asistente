@@ -2710,7 +2710,7 @@ function generarTablaImagenes() {
       </div>
     </div>
 
-    <div class="card mb-4 shadow-sm border-0 bg-light">
+    <div class="card mb-4 shadow-sm border-0">
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col-md-7 border-end">
@@ -2733,7 +2733,7 @@ function generarTablaImagenes() {
         </div>
     </div>
 
-    <div id="progresoZipContainer" class="mb-3 d-none p-3 bg-white border rounded shadow-sm">
+    <div id="progresoZipContainer" class="mb-3 d-none p-3 border rounded shadow-sm">
         <div class="d-flex justify-content-between mb-1">
             <span id="estadoProgreso" class="text-primary fw-bold small">Procesando...</span>
             <span id="contadorProgreso" class="text-muted small">0/${filas.length}</span>
@@ -2827,7 +2827,7 @@ function abrirModalExcel() {
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cerrarModalExcel()"></button>
           </div>
           
-          <div class="bg-white border-bottom p-2 d-flex align-items-center">
+          <div class="border-bottom p-2 d-flex align-items-center">
             <span class="me-2 text-muted fw-bold fst-italic" style="font-family: serif; font-size: 1.2rem;">fx</span>
             <input type="text" id="barraExcelVista" class="form-control form-control-sm border-info shadow-none" placeholder="Selecciona una celda para ver o editar su contenido completo...">
           </div>
@@ -2838,7 +2838,7 @@ function abrirModalExcel() {
             </div>
           </div>
           
-          <div class="modal-footer bg-light">
+          <div class="modal-footer">
             <button class="btn btn-success px-4" data-bs-dismiss="modal" onclick="cerrarModalExcel()">Guardar y Actualizar Tabla</button>
           </div>
         </div>
