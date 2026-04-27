@@ -2827,7 +2827,7 @@ function abrirModalExcel() {
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="cerrarModalExcel()"></button>
           </div>
           
-          <div class="border-bottom p-2 d-flex align-items-center">
+          <div class="p-2 d-flex align-items-center">
             <span class="me-2 text-muted fw-bold fst-italic" style="font-family: serif; font-size: 1.2rem;">fx</span>
             <input type="text" id="barraExcelVista" class="form-control form-control-sm border-info shadow-none" placeholder="Selecciona una celda para ver o editar su contenido completo...">
           </div>
