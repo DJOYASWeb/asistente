@@ -278,8 +278,8 @@ dropZone.addEventListener('drop', (e) => {
 function updateThumbnail(file) {
     fileNameDisplay.textContent = `📂 Archivo cargado: ${file.name}`;
     // Opcional: Cambiar el borde a verde o sólido para indicar éxito
-    dropZone.style.borderColor = '#28a745'; 
-    dropZone.style.borderStyle = 'solid';
+    dropZone.style.background = 'var(--surface-3)'; 
+    dropZone.style.borderStyle = 'dashed';
 }
 
 // Funcionalidad del botón Reset (arriba a la derecha)
