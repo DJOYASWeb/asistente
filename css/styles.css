@@ -375,6 +375,8 @@ button.btn {
   border: 1px solid transparent;
   transition: background var(--ease), opacity var(--ease), transform 0.1s;
   white-space: nowrap;
+    background: var(--surface-3);
+    color: #fff;
 }
 .btn:active { transform: scale(0.98); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
