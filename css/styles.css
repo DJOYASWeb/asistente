@@ -479,6 +479,8 @@ select:focus,
 textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+  background-color: none;
+  color:#fff;
 }
 
 textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
@@ -1410,4 +1412,8 @@ body.protegido { display: none; }
 .jexcel > thead > tr > td {
 
     background: var(--surface)!important;
+}
+
+.table-bordered>:not(caption)>*>* {
+    border: 1px solid var(--surface-3)!important;
 }
