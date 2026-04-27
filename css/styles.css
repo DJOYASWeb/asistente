@@ -387,7 +387,7 @@ button.btn {
     color: #fff !important;
   border-color: var(--text-1);
 }
-.btn-primary:hover { opacity: 0.85; color: var(--surface) !important; }
+.btn-primary:hover {color: #fff !important; border:none;}
 
 /* Acento */
 .btn-accent {
