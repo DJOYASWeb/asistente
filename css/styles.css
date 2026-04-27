@@ -1422,5 +1422,5 @@ border: 1px solid var(--surface-2)!important;
 }
 
 .jexcel{
-  border:none;
+  border:none!important;
 }
