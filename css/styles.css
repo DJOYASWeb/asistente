@@ -1348,7 +1348,7 @@ pre {
   }
   .sidebar.active { transform: translateX(0); }
 
-  .ios-card { padding: 1rem; }
+  .ios-card { padding: 1rem;margin-top: 1rem; }
   .modal-contenidos { margin: 1rem; }
   .content-area { padding: 1rem; }
 
