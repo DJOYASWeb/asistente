@@ -348,9 +348,9 @@ h2 { font-size: 20px !important; font-weight: 500; letter-spacing: -0.01em; line
 h3 { font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--text-1); }
 h4 { font-size: 14px; font-weight: 500; color: var(--text-1); }
 
-.text-muted  { color: var(--text-2); }
-.text-hint   { color: var(--text-3); }
-.text-accent { color: var(--accent); }
+.text-muted  { color: var(--text-2)!important; }
+.text-hint   { color: var(--text-3)!important; }
+.text-accent { color: var(--accent)!important; }
 .text-xs     { font-size: 12px; }
 .text-sm     { font-size: 13px; }
 .text-lg     { font-size: 17px; }
