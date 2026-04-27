@@ -1416,3 +1416,7 @@ body.protegido { display: none; }
 .table-bordered>:not(caption)>*>* {
     border: 1px solid var(--surface-3)!important;
 }
+
+.jexcel > tbody > tr > td{
+border: 1px solid var(--surface-2)!important;
+}
