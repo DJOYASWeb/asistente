@@ -383,8 +383,8 @@ button.btn {
 
 /* Primario */
 .btn-primary {
-  background: var(--text-1);
-  color: var(--surface);
+    background: var(--accent) !important;
+    color: #fff !important;
   border-color: var(--text-1);
 }
 .btn-primary:hover { opacity: 0.85; color: var(--surface) !important; }
@@ -694,6 +694,10 @@ tbody tr:last-child td { border-bottom: none; }
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border);
   position: relative;
+}
+
+.modal-content{
+      background: var(--surface);
 }
 
 .modal-contenidos {
