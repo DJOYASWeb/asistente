@@ -243,7 +243,7 @@ if (!doc.exists) return mostrarNotificacion("Contenido no encontrado", "alerta")
         const cardMini = document.createElement("div");
         cardMini.className = "col-md-6 col-lg-4 mb-3";
         cardMini.innerHTML = `
-          <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, ${plantilla.fondo});">
+          <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer;">
             <div>
               <h6 class="${plantilla.clase}">${plantilla.label}</h6>
               <strong>${data.titulo}</strong>
@@ -346,7 +346,7 @@ function generarContenidoSemanal() {
     const cardDest = document.createElement("div");
     cardDest.className = "col-md-6 col-lg-4 mb-3";
     cardDest.innerHTML = `
-      <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #ffffff, #f8f9fa);">
+      <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer;">
         <div>
           <h6 class="text-primary">🔹 DESTACADO (ID ${destacado.idNum})</h6>
           <strong>${destacado.data.titulo}</strong>
@@ -361,7 +361,7 @@ function generarContenidoSemanal() {
       const cardCar = document.createElement("div");
       cardCar.className = "col-md-6 col-lg-4 mb-3";
       cardCar.innerHTML = `
-        <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #fff0f5, #fafafa);">
+        <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer;">
           <div>
             <h6 class="text-danger">🎠 CARRUSEL (ID ${destacado.idNum - 1})</h6>
             <strong>${previo.data.titulo}</strong>
