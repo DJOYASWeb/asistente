@@ -1402,3 +1402,12 @@ body.protegido { display: none; }
     background-color: none;
     border-radius: 5px;
 }
+
+#modalExcelWeb .jexcel tbody td {
+    background: var(--surface);
+}
+
+.jexcel > thead > tr > td {
+
+    background: var(--surface)!important;
+}
