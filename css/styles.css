@@ -400,13 +400,12 @@ button.btn {
 /* Secundario */
 .btn-secondary,
 .btn-outline {
-  background: var(--surface-2);
+  background: var(--surface)!important;
   color: var(--text-1);
-  border-color: var(--border);
 }
 .btn-secondary:hover,
 .btn-outline:hover {
-  background: var(--surface-3);
+    background-color: var(--surface-3) !important;
   color: var(--text-1) !important;
 }
 
