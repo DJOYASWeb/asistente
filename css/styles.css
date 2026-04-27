@@ -1424,3 +1424,7 @@ border: 1px solid var(--surface-2)!important;
 .jexcel{
   border:none!important;
 }
+
+.jexcel_filter{
+  display: none!important;
+}
