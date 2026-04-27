@@ -1409,7 +1409,7 @@ body.protegido { display: none; }
 }
 
 .jexcel > thead > tr > td {
-
+border: 1px solid var(--surface-2)!important;
     background: var(--surface)!important;
 }
 
