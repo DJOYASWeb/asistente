@@ -1230,7 +1230,6 @@ pre {
 .btn-copy:hover { background: var(--surface-3); color: var(--text-1) !important; }
 
 .celda-blog {
-  display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
