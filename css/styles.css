@@ -514,7 +514,7 @@ select {
 
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 
-.table > :not(caption) > * > * { background-color: var(--surface); }
+.table > :not(caption) > * > * { background-color: var(--surface); color:#fff;}
 
 thead th {
   font-size: 12px;
