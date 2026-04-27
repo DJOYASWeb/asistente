@@ -204,7 +204,6 @@ if (!doc.exists) return mostrarNotificacion("Contenido no encontrado", "alerta")
         </section>`,
         clase: "text-primary",
         label: "🔹 DESTACADO",
-        fondo: "#ffffff, #f8f9fa"
       },
       carrusel: {
         html: `<li class="card" data-title="${data.titulo}" data-subtitle="${data.descripcion}" data-img="${data.imagen}" data-date="${fechaFormato}" data-category="${data.categoria}" data-duration="${data.duracion}" data-link="${data.link}" data-autor="${data.autor}" data-section="${data.categoria}">
@@ -219,7 +218,6 @@ if (!doc.exists) return mostrarNotificacion("Contenido no encontrado", "alerta")
         </li>`,
         clase: "text-danger",
         label: "🎠 CARRUSEL",
-        fondo: "#fff0f5, #fafafa"
       },
       popular: {
         html: `<li class="card" data-title="${data.titulo}" data-subtitle="${data.descripcion}" data-img="${data.imagen}" data-date="${fechaFormato}" data-category="${data.categoria}" data-duration="${data.duracion}" data-link="${data.link}" data-autor="${data.autor}" data-section="${data.tematica || data.categoria}">
@@ -233,7 +231,6 @@ if (!doc.exists) return mostrarNotificacion("Contenido no encontrado", "alerta")
         </li>`,
         clase: "text-warning",
         label: "🔥 POPULAR",
-        fondo: "#fdf3e6, #ffffff"
       }
     };
 
