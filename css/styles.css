@@ -163,7 +163,9 @@ a { text-decoration: none; color: inherit; }
 .content-area {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1.5rem 1.75rem;
+  height: 0; /* fuerza que flex respete el scroll en lugar de expandirse */
 }
 
 /* =============================================
@@ -514,7 +516,7 @@ select {
 
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 
-.table > :not(caption) > * > * { background-color: var(--surface); color:#fff;}
+.table > :not(caption) > * > * { background-color: var(--surface); color: var(--text-1); }
 
 thead th {
   font-size: 12px;
