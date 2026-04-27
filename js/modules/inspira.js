@@ -168,7 +168,7 @@ async function generarBloqueContenido() {
     const cardMini = document.createElement("div");
     cardMini.className = "col-md-6 col-lg-4 mb-3";
     cardMini.innerHTML = `
-      <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer; background: linear-gradient(135deg, #ecf5ff, #ffffff);">
+      <div class="ios-card p-3 h-100 d-flex flex-column justify-content-between" style="cursor:pointer;">
         <div>
           <h6 class="text-info">🌟 INFLUENCER</h6>
           <strong>Formulario personalizado</strong>
