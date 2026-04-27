@@ -2832,7 +2832,7 @@ function abrirModalExcel() {
             <input type="text" id="barraExcelVista" class="form-control form-control-sm border-info shadow-none" placeholder="Selecciona una celda para ver o editar su contenido completo...">
           </div>
 
-          <div class="modal-body" id="bodyExcelWeb" style="padding: 0; background: #f8f9fa;">
+          <div class="modal-body" id="bodyExcelWeb" style="padding: 0;">
             <div class="text-center p-4 text-muted" id="cargandoExcel">
               <i class="fas fa-spinner fa-spin"></i> Cargando tabla...
             </div>

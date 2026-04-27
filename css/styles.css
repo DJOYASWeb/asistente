@@ -1388,3 +1388,17 @@ body.protegido { display: none; }
   width: 90%;
   box-shadow: var(--shadow-md);
 }
+
+.jexcel{
+    background: var(--surface);
+}
+
+.jexcel_content {
+    box-shadow: none!important;
+}
+
+.jexcel_page_selected {
+    font-weight: bold;
+    background-color: none;
+    border-radius: 5px;
+}
