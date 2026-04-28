@@ -288,18 +288,6 @@ if (!editorWebCM) {
   editorWebCM.setValue(contenido);
   editorWebCM.clearHistory();
 
-  // Modo del editor según tab
-  editorWebCM.setOption('mode', meta.modo);
-  document.getElementById('selector-modo-web').value = meta.modo;
-
-  // Contenido
-  document.getElementById('input-titulo-web').value = id === 'nuevo' ? 'Nuevo archivo' : nombre;
-
-const selectPadre = document.getElementById('input-tipo-padre');
-  if (selectPadre) selectPadre.value = tipoPadre;
-
-  editorWebCM.setValue(id === 'nuevo' ? '' : decodeURIComponent(escape(atob(contenidoB64))));
-
   // Si usa biblioteca, cargarla (siempre fresca al abrir)
   if (meta.usaBiblioteca) await cargarBibliotecaWeb();
 
@@ -310,6 +298,7 @@ const selectPadre = document.getElementById('input-tipo-padre');
     } catch(e) {
       maqEstructura = [];
     }
+    console.log('Estructura cargada:', JSON.stringify(maqEstructura));
     maqSeleccionado = null;
     
   cambiarModoEdicion('codigo'); // siempre abre en modo código
