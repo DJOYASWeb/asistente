@@ -1044,7 +1044,7 @@ function abrirModalDetalleProducto(codigo, index) {
 
   modal.querySelector("#modalDetalleBody").innerHTML = `
     <div class="mb-3 d-flex align-items-center justify-content-between">
-      <h6 class="text-primary mb-0">SKU: ${codigo}</h6>
+      <h6 class="mb-0">${codigo}</h6>
       <div class="ms-3 flex-grow-1">
         <input type="text" id="idManualInput" class="form-control form-control-sm fw-bold"
           placeholder="Ingresar ID" value="${idValue}">
