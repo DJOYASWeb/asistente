@@ -119,7 +119,7 @@ async function cargarProyectosWebTab(tab) {
       const contenidoB64  = btoa(unescape(encodeURIComponent(d.codigo || '')));
 
         html += `
-        <div class="web-proyecto-card" data-tipo-padre="${d.tipoPadre || 'Otro'}" onclick="abrirEditorWeb('${doc.id}','${nombreSeguro}','${contenidoB64}')">
+        <div class="web-proyecto-card" data-tipo-padre="${d.tipoPadre || 'Otro'}" onclick="abrirEditorWeb('${doc.id}','${nombreSeguro}','${contenidoB64}','${d.tipoPadre || 'Otro'}')">
             <div class="card-preview-wrap">
             <iframe class="card-preview-iframe" scrolling="no" sandbox="allow-scripts"></iframe>
             </div>
@@ -265,7 +265,7 @@ window.abrirEnNuevaVentanaWeb = function() {
 };
 
 // ─── 5. ABRIR EDITOR ────────────────────────────────────
-window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '') {
+window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '', tipoPadre = 'Otro') {
   const meta = WEB_TABS[webTabActual];
 
   // Ocultar vista proyectos
@@ -300,8 +300,8 @@ window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '') {
   // Contenido
   document.getElementById('input-titulo-web').value = id === 'nuevo' ? 'Nuevo archivo' : nombre;
 
-  const selectPadre = document.getElementById('input-tipo-padre');
-  if (selectPadre) selectPadre.value = (id !== 'nuevo' && d?.tipoPadre) ? d.tipoPadre : 'Otro';
+const selectPadre = document.getElementById('input-tipo-padre');
+  if (selectPadre) selectPadre.value = tipoPadre;
 
   editorWebCM.setValue(id === 'nuevo' ? '' : decodeURIComponent(escape(atob(contenidoB64))));
 
