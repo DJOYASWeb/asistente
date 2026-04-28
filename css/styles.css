@@ -1181,3 +1181,21 @@ body.protegido { display: none; }
     background-color: var(--surface)!important;
     border: 1px solid var(--surface-3)!important;
 }
+
+/* Asegura que el body del login sea un flex centrado */
+body:not(.protegido) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  background: var(--surface-1, #fff);
+}
