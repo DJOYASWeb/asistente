@@ -1176,3 +1176,8 @@ body.protegido { display: none; }
   background: var(--surface-3) !important;
   color: #fff;
 }
+
+.list-group-item {
+    background-color: var(--surface)!important;
+    border: 1px solid var(--surface-3)!important;
+}
