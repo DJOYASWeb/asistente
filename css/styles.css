@@ -1136,3 +1136,8 @@ body.protegido { display: none; }
 }
 .wizbox.is-done .wiz-title { color: var(--accent); }
 .wizbox.is-done .wiz-sub   { color: var(--accent); }
+
+.btn-secondary:focus:not(:focus-visible){
+  background: var(--surface-3) !important;
+  color: #fff;
+}
