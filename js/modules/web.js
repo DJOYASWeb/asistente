@@ -36,15 +36,6 @@ const WEB_TABS = {
     modo:       'htmlmixed',
     usaBiblioteca: true,
   },
-  clases: {
-    label:      'Clases',
-    icon:       'fas fa-tags',
-    badge:      'badge-clases',
-    desc:       'Clases CSS reutilizables — forman parte de la biblioteca',
-    coleccion:  'web_clases',
-    modo:       'css',
-    usaBiblioteca: false,
-  },
   css: {
     label:      'CSS',
     icon:       'fab fa-css3-alt',
@@ -150,15 +141,13 @@ document.querySelectorAll('.card-preview-iframe').forEach((iframe, i) => {
 // ─── 3. CARGAR BIBLIOTECA (CSS + Clases + JS) ───────────
 async function cargarBibliotecaWeb() {
   try {
-    const [snapClases, snapCSS, snapJS] = await Promise.all([
-      db.collection('web_clases').get(),
+const [snapCSS, snapJS] = await Promise.all([
       db.collection('web_css').get(),
       db.collection('web_js').get(),
     ]);
 
-    webBiblioteca.clases = snapClases.docs.map(d => ({ nombre: d.data().nombre, codigo: d.data().codigo || '' }));
-    webBiblioteca.css    = snapCSS.docs.map(d    => ({ nombre: d.data().nombre, codigo: d.data().codigo || '' }));
-    webBiblioteca.js     = snapJS.docs.map(d     => ({ nombre: d.data().nombre, codigo: d.data().codigo || '' }));
+    webBiblioteca.css = snapCSS.docs.map(d => ({ nombre: d.data().nombre, codigo: d.data().codigo || '' }));
+    webBiblioteca.js  = snapJS.docs.map(d  => ({ nombre: d.data().nombre, codigo: d.data().codigo || '' }));
 
   } catch (err) {
     console.error('Error cargando biblioteca:', err);
@@ -194,10 +183,9 @@ function buildPreviewHTML(codigoUsuario) {
   }
 
   // Para Maquetas / Sistema: inyecta toda la biblioteca
-  const cssCompleto = [
-    ...webBiblioteca.css.map(p => `/* === ${p.nombre} === */\n${p.codigo}`),
-    ...webBiblioteca.clases.map(p => `/* === ${p.nombre} === */\n${p.codigo}`),
-  ].join('\n\n');
+const cssCompleto = webBiblioteca.css
+    .map(p => `/* === ${p.nombre} === */\n${p.codigo}`)
+    .join('\n\n');
 
   const jsCompleto = webBiblioteca.js
     .map(p => `/* === ${p.nombre} === */\n${p.codigo}`)
