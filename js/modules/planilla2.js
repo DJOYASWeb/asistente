@@ -728,9 +728,9 @@ function procesarExportacion() {
   exportarCSV(tipoSeleccionado, dataset);
 }
 
-// ============================================
+// =============================================
 // FILTROS Y VISTAS
-// ============================================
+// =============================================
 
 function actualizarEstadoBotonesProcesar() {
   const btnProcesar  = document.getElementById("botonProcesar");
