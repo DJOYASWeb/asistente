@@ -82,7 +82,7 @@ window.renderizarListaConfiguracion = function() {
   configPersonalizada.bloques.forEach((b, i) => {
     html += `
     <div class="list-group-item d-flex justify-content-between align-items-center mb-2 rounded shadow-sm">
-      <div><strong>${b.nombre}</strong> <br><span class="text-muted small" style="font-family: monospace;">${escaparHTML(b.codigo).substring(0, 60)}...</span></div>
+      <div><strong class="text-white">${b.nombre}</strong> <br><span class="text-muted small" style="font-family: monospace;">${escaparHTML(b.codigo).substring(0, 60)}...</span></div>
       <div>
         <button class="btn btn-sm btn-outline-primary me-2" onclick="abrirModalEdicion('bloques', ${i})"><i class="fas fa-edit"></i> Editar</button>
         <button class="btn btn-sm btn-outline-danger" onclick="eliminarSnippet('bloques', ${i})"><i class="fas fa-trash"></i></button>
@@ -94,7 +94,7 @@ window.renderizarListaConfiguracion = function() {
   configPersonalizada.variables.forEach((v, i) => {
     html += `
     <div class="list-group-item d-flex justify-content-between align-items-center mb-2 rounded shadow-sm">
-      <div><strong>${v.nombre}</strong> <span class="text-muted small ms-2" style="font-family: monospace;">(${escaparHTML(v.codigo)})</span></div>
+      <div><strong class="text-white">${v.nombre}</strong> <span class="text-muted small ms-2" style="font-family: monospace;">(${escaparHTML(v.codigo)})</span></div>
       <div>
         <button class="btn btn-sm btn-outline-primary me-2" onclick="abrirModalEdicion('variables', ${i})"><i class="fas fa-edit"></i> Editar</button>
         <button class="btn btn-sm btn-outline-danger" onclick="eliminarSnippet('variables', ${i})"><i class="fas fa-trash"></i></button>
