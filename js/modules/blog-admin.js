@@ -170,10 +170,10 @@ function renderizarTabla() {
       <td class="celda-categoria">${dato.categoria || ''}</td>
       <td>
         <div style="display:flex;align-items:center;gap:4px;">
-          <button class="btn " onclick="editarFila(${index})" title="Editar">
+          <button class="btn btn-icon" onclick="editarFila(${index})" title="Editar">
             <i class="fa-solid fa-pen-to-square"></i>
           </button>
-          <button class="btn" data-id="${id}" onclick="confirmarEliminarFila(this)" title="Eliminar">
+          <button class="btn btn-icon" data-id="${id}" onclick="confirmarEliminarFila(this)" title="Eliminar">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>

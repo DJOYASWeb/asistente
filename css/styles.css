@@ -1428,3 +1428,9 @@ border: 1px solid var(--surface-2)!important;
 .jexcel_filter{
   display: none!important;
 }
+
+.btn-icon:hover{
+  color: #fff;
+ background: var(--accent-soft);
+
+}
