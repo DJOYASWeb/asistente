@@ -1438,3 +1438,10 @@ border: 1px solid var(--surface-2)!important;
 
 border-color: var(--accent) !important;
 }
+
+.wizard-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: .6rem;
+  margin: .5rem 0 1rem;
+}
