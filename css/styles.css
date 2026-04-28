@@ -1444,4 +1444,11 @@ border-color: var(--accent) !important;
   flex-wrap: nowrap;
   gap: .6rem;
   margin: .5rem 0 1rem;
+  justify-content: space-around;
+}
+
+.wizbox{
+      background: var(--surface-3);
+    padding: 1rem;
+    border-radius: 10px;
 }
