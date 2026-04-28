@@ -430,6 +430,22 @@ textarea {
   appearance: none;
 }
 
+input[type="file"]::file-selector-button {
+  /* estilos del botón "Seleccionar archivo" */
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+input[type="file"] {
+  background-color: transparent; /* o el color de tu fondo oscuro */
+  color: #ccc;
+  border: 1px solid #555;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+
 .form-control:hover,
 input:hover,
 select:hover { border-color: var(--border-hover); }
