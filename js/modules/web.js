@@ -218,7 +218,7 @@ function buildPreviewHTML(codigoUsuario) {
 ${cssCompleto}
   </style>
 </head>
-<body style="margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;">
+<body style="margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding: 1rem; box-sizing:border-box; width:100%;">
 
 ${codigoUsuario}
 
