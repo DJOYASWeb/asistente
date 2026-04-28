@@ -537,6 +537,29 @@ window.guardarConfiguracionWebFirebase = async function() {
   }
 };
 
+
+window.verTodoWeb = async function() {
+  const meta = WEB_TABS[webTabActual];
+  const snap = await db.collection(meta.coleccion).orderBy('fechaActualizacion','desc').get();
+
+  let bloques = '';
+  snap.forEach(doc => {
+    const d = doc.data();
+    bloques += `
+<!-- ═══════════════════════════════
+     ${d.nombre || 'Sin nombre'}
+═══════════════════════════════ -->
+<section style="padding: 2rem; border-bottom: 2px dashed #ddd;">
+  <p style="font-family:monospace; font-size:.75rem; color:#999; margin-bottom:1rem;">// ${d.nombre || 'Sin nombre'}</p>
+  ${d.codigo || ''}
+</section>`;
+  });
+
+  const html = buildPreviewHTML(bloques);
+  const blob = new Blob([html], { type: 'text/html' });
+  window.open(URL.createObjectURL(blob), '_blank');
+};
+
 // ─── INICIALIZACIÓN ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   cargarConfiguracionWebSnippets();
