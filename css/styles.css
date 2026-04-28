@@ -1183,7 +1183,7 @@ body.protegido { display: none; }
 }
 
 /* Asegura que el body del login sea un flex centrado */
-body:not(.protegido) {
+body.login-page {
   display: flex;
   justify-content: center;
   align-items: center;
