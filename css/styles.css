@@ -349,7 +349,7 @@ button.btn {
 .btn-accent:hover { opacity: 0.88; color: #fff !important; }
 
 .btn-secondary,
-.btn-outline { background: var(--surface) !important; color: var(--text-1); border: 1px solid var(--border); }
+.btn-outline { background: var(--surface) !important; color: var(--text-1); border: 1px solid var(--border)!important; }
 .btn-secondary:hover,
 .btn-outline:hover { background-color: var(--surface-3) !important; color: var(--text-1) !important; }
 
