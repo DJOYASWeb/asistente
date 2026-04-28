@@ -394,6 +394,12 @@ button.btn {
   color: var(--accent) !important;
 }
 
+.cabecera-bar{
+padding: 0 0.75rem;
+    display: flex;
+}
+
+
 /* Overrides Bootstrap */
 .btn:focus:not(:focus-visible) { outline: 0; background: revert; color: revert; }
 .btn:hover { color: revert;    border-color: var(--accent)!important; }
