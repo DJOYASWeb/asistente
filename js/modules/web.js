@@ -684,7 +684,6 @@ function crearFila(numCols) {
   return { uid: uid(), cols };
 }
 
-// ── Renderizar canvas completo ────────────────
 window.renderizarCanvas = function() {
   const zona = document.getElementById('canvas-drop-zone');
   if (!zona) return;
@@ -705,6 +704,47 @@ window.renderizarCanvas = function() {
       </div>
       ${sec.filas.map((fila, fi) => renderizarFila(sec.uid, fila, fi)).join('')}
     </div>`).join('');
+
+  // Inyectar cada bloque en su iframe aislado
+  document.querySelectorAll('.maq-bloque-iframe').forEach(iframe => {
+    const bloqueUid = iframe.dataset.uid;
+    let bloque = null;
+
+    for (const sec of maqEstructura) {
+      for (const fila of sec.filas) {
+        for (const col of fila.cols) {
+          const found = col.bloques.find(b => b.uid === bloqueUid);
+          if (found) { bloque = found; break; }
+        }
+        if (bloque) break;
+      }
+      if (bloque) break;
+    }
+
+    if (!bloque) return;
+
+    const cssB = webBiblioteca.css.map(p => p.codigo).join('\n');
+    const jsB  = webBiblioteca.js.map(p => p.codigo).join('\n');
+
+    const html = `<!DOCTYPE html>
+<html><head>
+<style>*{box-sizing:border-box;margin:0;padding:0;}${cssB}</style>
+</head>
+<body style="display:flex;align-items:center;justify-content:center;padding:8px;">
+${bloque.codigo}
+<script>${jsB}<\/script>
+</body></html>`;
+
+    const blob = new Blob([html], { type: 'text/html' });
+    iframe.src = URL.createObjectURL(blob);
+
+    iframe.onload = () => {
+      try {
+        const h = iframe.contentDocument?.body?.scrollHeight;
+        if (h) iframe.style.height = h + 'px';
+      } catch(e) {}
+    };
+  });
 };
 
 function renderizarFila(secUid, fila, fi) {
@@ -724,8 +764,6 @@ function renderizarFila(secUid, fila, fi) {
 }
 
 function renderizarCol(secUid, filaUid, col) {
-  const cssB = webBiblioteca.css.map(p => p.codigo).join('\n');
-  const jsB  = webBiblioteca.js.map(p => p.codigo).join('\n');
   const bloquesHTML = col.bloques.length
     ? col.bloques.map((b, bi) => `
         <div class="maq-bloque ${maqSeleccionado?.bloqueUid===b.uid?'seleccionado':''}"
@@ -735,12 +773,11 @@ function renderizarCol(secUid, filaUid, col) {
           ondragover="event.preventDefault()"
           ondrop="soltarEnBloque(event,'${secUid}','${filaUid}','${col.uid}',${bi})">
           <div class="maq-bloque-toolbar">
-            <button onclick="event.stopPropagation();subirBloque('${secUid}','${filaUid}','${col.uid}',${bi})" style="background:#4f46e5;color:#fff;" title="Subir"><i class="fas fa-chevron-up"></i></button>
-            <button onclick="event.stopPropagation();bajarBloque('${secUid}','${filaUid}','${col.uid}',${bi})" style="background:#4f46e5;color:#fff;" title="Bajar"><i class="fas fa-chevron-down"></i></button>
-            <button onclick="event.stopPropagation();eliminarBloqueDeCol('${secUid}','${filaUid}','${col.uid}','${b.uid}')" style="background:#ef4444;color:#fff;" title="Eliminar"><i class="fas fa-times"></i></button>
+            <button onclick="event.stopPropagation();subirBloque('${secUid}','${filaUid}','${col.uid}',${bi})" style="background:#4f46e5;color:#fff;"><i class="fas fa-chevron-up"></i></button>
+            <button onclick="event.stopPropagation();bajarBloque('${secUid}','${filaUid}','${col.uid}',${bi})" style="background:#4f46e5;color:#fff;"><i class="fas fa-chevron-down"></i></button>
+            <button onclick="event.stopPropagation();eliminarBloqueDeCol('${secUid}','${filaUid}','${col.uid}','${b.uid}')" style="background:#ef4444;color:#fff;"><i class="fas fa-times"></i></button>
           </div>
-          <style>${cssB}</style>
-          ${b.codigo}
+          <iframe class="maq-bloque-iframe" data-uid="${b.uid}" scrolling="no" style="width:100%;border:none;pointer-events:none;display:block;"></iframe>
         </div>`).join('')
     : `<div class="maq-col-placeholder">Arrastra un bloque aquí</div>`;
 
