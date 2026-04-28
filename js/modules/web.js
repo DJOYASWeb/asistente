@@ -84,6 +84,9 @@ window.cambiarTabWeb = function(tab) {
     ind.style.display = meta.usaBiblioteca ? 'none' : 'inline-flex';
   }
 
+  const btnVerTodo = document.getElementById('btn-ver-todo');
+  if (btnVerTodo) btnVerTodo.style.display = (tab === 'css' || tab === 'js') ? 'inline-flex' : 'none';
+
   cargarProyectosWebTab(tab);
 };
 
@@ -542,22 +545,39 @@ window.verTodoWeb = async function() {
   const meta = WEB_TABS[webTabActual];
   const snap = await db.collection(meta.coleccion).orderBy('fechaActualizacion','desc').get();
 
-  let bloques = '';
+  let codigo = '';
   snap.forEach(doc => {
     const d = doc.data();
-    bloques += `
-<!-- ═══════════════════════════════
-     ${d.nombre || 'Sin nombre'}
-═══════════════════════════════ -->
-<section style="padding: 2rem; border-bottom: 2px dashed #ddd;">
-  <p style="font-family:monospace; font-size:.75rem; color:#999; margin-bottom:1rem;">// ${d.nombre || 'Sin nombre'}</p>
-  ${d.codigo || ''}
-</section>`;
+    codigo += `/* ═══════════════════════════════
+   ${d.nombre || 'Sin nombre'}
+═══════════════════════════════ */\n\n${d.codigo || ''}\n\n\n`;
   });
 
-  const html = buildPreviewHTML(bloques);
-  const blob = new Blob([html], { type: 'text/html' });
-  window.open(URL.createObjectURL(blob), '_blank');
+  // Crear modal si no existe
+  if (!document.getElementById('modal-ver-todo')) {
+    document.body.insertAdjacentHTML('beforeend', `
+      <div id="modal-ver-todo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; overflow-y:auto;">
+        <div style="margin:3% auto; max-width:800px; background:#1e1e1e; border-radius:12px; box-shadow:0 4px 30px rgba(0,0,0,0.5);">
+          <div class="d-flex justify-content-between align-items-center p-3 border-bottom border-secondary">
+            <h5 class="fw-bold m-0 text-white" id="modal-ver-todo-titulo"></h5>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-light" onclick="copiarTodoVerTodo()"><i class="fas fa-copy"></i> Copiar todo</button>
+              <button class="btn-close btn-close-white" onclick="document.getElementById('modal-ver-todo').style.display='none'"></button>
+            </div>
+          </div>
+          <pre id="modal-ver-todo-codigo" style="margin:0; padding:1.5rem; color:#f8f8f2; font-family:monospace; font-size:.82rem; white-space:pre-wrap; word-break:break-word; max-height:75vh; overflow-y:auto;"></pre>
+        </div>
+      </div>`);
+  }
+
+  document.getElementById('modal-ver-todo-titulo').textContent = meta.label + ' — Código completo';
+  document.getElementById('modal-ver-todo-codigo').textContent = codigo;
+  document.getElementById('modal-ver-todo').style.display = 'block';
+};
+
+window.copiarTodoVerTodo = function() {
+  const codigo = document.getElementById('modal-ver-todo-codigo').textContent;
+  navigator.clipboard.writeText(codigo).then(() => alert('¡Código copiado!'));
 };
 
 // ─── INICIALIZACIÓN ─────────────────────────────────────
