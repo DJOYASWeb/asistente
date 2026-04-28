@@ -298,7 +298,6 @@ if (!editorWebCM) {
     } catch(e) {
       maqEstructura = [];
     }
-    console.log('Estructura cargada:', JSON.stringify(maqEstructura));
     maqSeleccionado = null;
     
   cambiarModoEdicion('codigo'); // siempre abre en modo código
@@ -940,15 +939,19 @@ window.exportarVisualACodigo = function() {
   const cssCompleto = webBiblioteca.css.map(p => p.codigo).join('\n');
   const jsCompleto  = webBiblioteca.js.map(p => p.codigo).join('\n');
 
+  const colClass = { 1: 'col-12', 2: 'col-12 col-md-6', 3: 'col-12 col-md-4', 4: 'col-12 col-md-3' };
+
   const cuerpo = maqEstructura.map(sec => {
     const filasHTML = sec.filas.map(fila => {
+      const numCols  = fila.cols.length;
+      const clase    = colClass[numCols] || 'col-12 col-md';
       const colsHTML = fila.cols.map(col => {
         const bloquesHTML = col.bloques.map(b => b.codigo).join('\n');
-        return `    <div style="flex:1;">\n${bloquesHTML}\n    </div>`;
+        return `      <div class="${clase}">\n${bloquesHTML}\n      </div>`;
       }).join('\n');
-      return `  <div style="display:flex;gap:16px;">\n${colsHTML}\n  </div>`;
+      return `  <div class="row g-3">\n${colsHTML}\n  </div>`;
     }).join('\n');
-    return `<section>\n${filasHTML}\n</section>`;
+    return `<section class="container-fluid py-3">\n${filasHTML}\n</section>`;
   }).join('\n\n');
 
   const htmlFinal = `<!DOCTYPE html>
@@ -956,9 +959,11 @@ window.exportarVisualACodigo = function() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>\n${cssCompleto}\n  </style>
 </head>
 <body style="margin:0;">\n\n${cuerpo}\n\n<script>\n${jsCompleto}\n<\/script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"><\/script>
 </body>
 </html>`;
 
