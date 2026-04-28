@@ -87,6 +87,9 @@ window.cambiarTabWeb = function(tab) {
   const btnVerTodo = document.getElementById('btn-ver-todo');
   if (btnVerTodo) btnVerTodo.style.display = (tab === 'css' || tab === 'js') ? 'inline-flex' : 'none';
 
+  const wrapFiltro = document.getElementById('wrap-filtro-padre');
+  if (wrapFiltro) wrapFiltro.style.display = tab === 'sistema' ? 'flex' : 'none';
+
   cargarProyectosWebTab(tab);
 };
 
@@ -116,7 +119,7 @@ async function cargarProyectosWebTab(tab) {
       const contenidoB64  = btoa(unescape(encodeURIComponent(d.codigo || '')));
 
         html += `
-        <div class="web-proyecto-card" onclick="abrirEditorWeb('${doc.id}','${nombreSeguro}','${contenidoB64}')">
+        <div class="web-proyecto-card" data-tipo-padre="${d.tipoPadre || 'Otro'}" onclick="abrirEditorWeb('${doc.id}','${nombreSeguro}','${contenidoB64}')">
             <div class="card-preview-wrap">
             <iframe class="card-preview-iframe" scrolling="no" sandbox="allow-scripts"></iframe>
             </div>
@@ -273,6 +276,8 @@ window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '') {
   // Mostrar / ocultar badge de biblioteca en el editor
   const badgeEd = document.getElementById('web-biblioteca-badge-editor');
   if (badgeEd) badgeEd.style.display = meta.usaBiblioteca ? 'inline-flex' : 'none';
+  const wrapPadre = document.getElementById('wrap-tipo-padre');
+  if (wrapPadre) wrapPadre.style.display = webTabActual === 'sistema' ? 'flex' : 'none';
 
   webProyectoActualId = id === 'nuevo' ? null : id;
 
@@ -294,6 +299,10 @@ window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '') {
 
   // Contenido
   document.getElementById('input-titulo-web').value = id === 'nuevo' ? 'Nuevo archivo' : nombre;
+
+  const selectPadre = document.getElementById('input-tipo-padre');
+  if (selectPadre) selectPadre.value = (id !== 'nuevo' && d?.tipoPadre) ? d.tipoPadre : 'Otro';
+
   editorWebCM.setValue(id === 'nuevo' ? '' : decodeURIComponent(escape(atob(contenidoB64))));
 
   // Si usa biblioteca, cargarla (siempre fresca al abrir)
@@ -327,10 +336,15 @@ window.guardarProyectoWeb = async function() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
   btn.disabled  = true;
 
+const tipoPadre = webTabActual === 'sistema'
+    ? (document.getElementById('input-tipo-padre')?.value || 'Otro')
+    : null;
+
   const datos = {
     nombre,
     codigo,
     tipo:               webTabActual,
+    tipoPadre,
     fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp(),
   };
 
@@ -400,7 +414,7 @@ window.renderizarBotoneraWeb = function() {
   const tbS = document.getElementById('toolbar-snippets-web');
   if (!tbB || !tbS) return;
 
-  let hB = `<span class="text-muted small fw-bold mt-1 w-100">Bloques Rápidos:</span>`;
+    let hB = ``;
   (webConfigBloques.bloques || []).forEach(b => {
     const c = btoa(unescape(encodeURIComponent(b.codigo)));
     hB += `<button class="btn btn-sm btn-dark" onclick="inyectarCodigoWeb('${c}')">
@@ -409,7 +423,7 @@ window.renderizarBotoneraWeb = function() {
   });
   tbB.innerHTML = hB;
 
-  let hS = `<span class="text-muted small fw-bold mt-1 w-100">Snippets:</span>`;
+    let hS = ``;
   (webConfigBloques.snippets || []).forEach(s => {
     const c = btoa(unescape(encodeURIComponent(s.codigo)));
     hS += `<button class="btn btn-sm btn-outline-info" onclick="inyectarCodigoWeb('${c}')">
@@ -578,6 +592,16 @@ window.verTodoWeb = async function() {
 window.copiarTodoVerTodo = function() {
   const codigo = document.getElementById('modal-ver-todo-codigo').textContent;
   navigator.clipboard.writeText(codigo).then(() => alert('¡Código copiado!'));
+};
+
+window.filtrarPadreWeb = function(tipoPadre, btnEl) {
+  document.querySelectorAll('#wrap-filtro-padre button').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+
+  document.querySelectorAll('#grid-proyectos-web .web-proyecto-card:not(.nuevo)').forEach(card => {
+    const cardTipo = card.dataset.tipoPadre;
+    card.style.display = (!tipoPadre || cardTipo === tipoPadre) ? '' : 'none';
+  });
 };
 
 // ─── INICIALIZACIÓN ─────────────────────────────────────

@@ -372,6 +372,17 @@
                 <i class="fas fa-database"></i> Biblioteca
               </span>
             </div>
+
+              <div id="wrap-filtro-padre" style="display:none;" class="d-flex gap-2 flex-wrap mb-2">
+                <button class="btn btn-xs btn-outline-secondary active" onclick="filtrarPadreWeb(null, this)">Todos</button>
+                <button class="btn btn-xs btn-outline-secondary" onclick="filtrarPadreWeb('Botón', this)">Botón</button>
+                <button class="btn btn-xs btn-outline-secondary" onclick="filtrarPadreWeb('Tarjeta', this)">Tarjeta</button>
+                <button class="btn btn-xs btn-outline-secondary" onclick="filtrarPadreWeb('Formulario', this)">Formulario</button>
+                <button class="btn btn-xs btn-outline-secondary" onclick="filtrarPadreWeb('Tipografía', this)">Tipografía</button>
+                <button class="btn btn-xs btn-outline-secondary" onclick="filtrarPadreWeb('Color', this)">Color</button>
+                <button class="btn btn-xs btn-outline-secondary" onclick="filtrarPadreWeb('Otro', this)">Otro</button>
+              </div>
+
             <p class="text-muted small mb-0" id="web-tipo-desc">
               Prototipos y estructuras visuales de páginas
             </p>
@@ -414,6 +425,17 @@
           <span id="web-biblioteca-badge-editor" class="biblioteca-badge-editor">
             <i class="fas fa-database"></i> Este archivo forma parte de la biblioteca
           </span>
+              <div id="wrap-tipo-padre" style="display:none; align-items:center; gap:8px;">
+                <label class="text-muted small fw-bold mb-0">Tipo:</label>
+                <select id="input-tipo-padre" class="form-select form-select-sm" style="width:auto;">
+                  <option value="Botón">Botón</option>
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Formulario">Formulario</option>
+                  <option value="Tipografía">Tipografía</option>
+                  <option value="Color">Color</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
         </div>
 
         <div class="d-flex gap-2">
