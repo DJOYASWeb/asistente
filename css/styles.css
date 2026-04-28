@@ -1433,3 +1433,8 @@ border: 1px solid var(--surface-2)!important;
  background: var(--accent-soft);
 
 }
+
+.btn.disabled, .btn:disabled, fieldset:disabled {
+
+      border-color: none;
+}
