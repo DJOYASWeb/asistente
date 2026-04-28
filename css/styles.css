@@ -277,6 +277,7 @@ a { text-decoration: none; color: inherit; }
   border: 1px solid var(--border);
   padding: 1.25rem 1.5rem;
   box-shadow: var(--shadow-xs);
+  margin-top:1rem;
 }
 
 .card-sm {
@@ -543,7 +544,6 @@ tbody tr:last-child td { border-bottom: none; }
   border-radius: var(--r-lg);
   padding: 3px;
   gap: 2px;
-  margin-bottom: 1.25rem;
 }
 
 .tab-btn {
