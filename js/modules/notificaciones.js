@@ -2,7 +2,7 @@
  * Muestra una notificación tipo toast en la esquina inferior derecha.
  *
  * @param {string} mensaje - Texto a mostrar en la notificación.
- * @param {string} estado - Estado visual: "exito" (verde) o "error" (rojo). Por defecto: "exito".
+ * @param {string} estado  - "exito" | "error" | "alerta" | "info". Por defecto: "exito".
  *
  * Ejemplos:
  * mostrarNotificacion("Guardado correctamente", "exito");
@@ -12,30 +12,25 @@ function mostrarNotificacion(mensaje, estado = "exito") {
   const containerId = "notificacionesContainer";
   let container = document.getElementById(containerId);
 
-  // Crea el contenedor si no existe
   if (!container) {
     container = document.createElement("div");
     container.id = containerId;
-    container.style.position = "fixed";
-    container.style.bottom = "1rem";
-    container.style.right = "1rem";
-    container.style.zIndex = "9999";
-    container.style.display = "flex";
-    container.style.flexDirection = "column";
-    container.style.gap = "0.5rem";
+    container.style.cssText = "position:fixed;bottom:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;";
     document.body.appendChild(container);
   }
 
-  // Determinar icono según estado
-  let icono = "✅";
-  if (estado === "error") icono = "❌";
-  if (estado === "alerta") icono = "⚠️";
+  const iconos = {
+    exito:  "fa-circle-check",
+    error:  "fa-circle-xmark",
+    alerta: "fa-triangle-exclamation",
+    info:   "fa-circle-info",
+  };
+  const icono = iconos[estado] || "fa-circle-check";
 
-  // Crea la notificación
   const notif = document.createElement("div");
   notif.className = `toast-notif toast-${estado}`;
   notif.innerHTML = `
-    <span class="toast-icon">${icono}</span>
+    <span class="toast-icon"><i class="fa-solid ${icono}"></i></span>
     <span class="toast-msg">${mensaje}</span>
     <button class="toast-close">&times;</button>
     <div class="toast-progress toast-progress-${estado}"></div>
@@ -43,17 +38,12 @@ function mostrarNotificacion(mensaje, estado = "exito") {
 
   container.appendChild(notif);
 
-  const progress = notif.querySelector(".toast-progress");
-
-  // Cierre manual
   notif.querySelector(".toast-close").onclick = () => notif.remove();
 
-  // Animación de barra y desaparición automática
+  const progress = notif.querySelector(".toast-progress");
   progress.style.width = "0%";
   progress.style.transition = "width 2s linear";
-  setTimeout(() => {
-    progress.style.width = "100%";
-  }, 50);
+  setTimeout(() => { progress.style.width = "100%"; }, 50);
 
   setTimeout(() => {
     notif.style.opacity = "0";
@@ -62,14 +52,3 @@ function mostrarNotificacion(mensaje, estado = "exito") {
   }, 2000);
 }
 
-
-
-
-
-
-
-
-
-
-
-//v.1.5
