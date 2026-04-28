@@ -112,20 +112,28 @@ async function cargarProyectosWebTab(tab) {
       const nombreSeguro  = (d.nombre || 'Sin nombre').replace(/'/g, "\\'");
       const contenidoB64  = btoa(unescape(encodeURIComponent(d.codigo || '')));
 
-      html += `
+        html += `
         <div class="web-proyecto-card" onclick="abrirEditorWeb('${doc.id}','${nombreSeguro}','${contenidoB64}')">
-          <div>
+            <div class="card-preview-wrap">
+            <iframe class="card-preview-iframe" scrolling="no" sandbox="allow-scripts"></iframe>
+            </div>
+            <div class="card-footer-info">
             <div class="card-nombre">${d.nombre || 'Sin nombre'}</div>
-            <span class="badge-tipo ${meta.badge}">${meta.label}</span>
-          </div>
-          <div class="d-flex justify-content-between align-items-center mt-2">
-            <span class="card-fecha">${fecha}</span>
-            <i class="fas fa-edit text-secondary" style="font-size:.8rem;"></i>
-          </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+                <span class="badge-tipo ${meta.badge}">${meta.label}</span>
+                <span class="card-fecha">${fecha}</span>
+            </div>
+            </div>
         </div>`;
     });
 
     grid.innerHTML = html;
+    // Renderizar miniaturas
+document.querySelectorAll('.card-preview-iframe').forEach((iframe, i) => {
+  const doc2 = iframe.contentDocument || iframe.contentWindow.document;
+  const codigo = snap.docs[i]?.data().codigo || '';
+  doc2.open(); doc2.write(buildPreviewHTML(codigo)); doc2.close();
+});
   } catch (err) {
     console.error('Error cargando proyectos:', err);
     grid.innerHTML = '<div class="text-danger small p-2">Error al cargar.</div>';
