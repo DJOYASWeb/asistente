@@ -112,7 +112,7 @@ body {
 
 
 input::placeholder {
-  color: #4b4b4b;
+  color: #4b4b4b!important;
   opacity: 1; /* Firefox lo reduce por defecto */
 }
 
