@@ -427,7 +427,7 @@ textarea {
   transition: border-color var(--ease), box-shadow var(--ease);
   -webkit-appearance: none;
   appearance: none;
-  line-height:
+  line-height:2;
 }
 
 input[type="file"]::file-selector-button {
