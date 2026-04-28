@@ -596,237 +596,326 @@ window.filtrarPadreWeb = function(tipoPadre, btnEl) {
 };
 
 
+
+
+
+
+
 // ═══════════════════════════════════════════
-//  MAQUETADOR VISUAL
+//  MAQUETADOR VISUAL — Sección > Fila > Col > Bloque
 // ═══════════════════════════════════════════
 
-let maquetaBloques  = [];   // [{id, nombre, codigo}] orden del canvas
-let bloqueSeleccionadoId = null;
-let dragBloqueData  = null;
+let maqEstructura      = [];   // [{uid, filas:[{uid, cols:[{uid, bloques:[{uid,nombre,codigo}]}]}]}]
+let maqSeleccionado    = null; // {seccionUid, filaUid, colUid, bloqueUid}
+let maqDragBloque      = null; // datos del bloque siendo arrastrado desde panel izq
+let maqDragBloqueCanvas = null; // {seccionUid, filaUid, colUid, bloqueUid}
+
+const uid = () => Date.now() + Math.random().toString(36).slice(2);
 
 // ── Cambiar entre modo Código y Visual ──────
 window.cambiarModoEdicion = function(modo) {
-  const modocodigo = document.getElementById('tab-modo-codigo');
-  const modovisual = document.getElementById('tab-modo-visual');
-  const filaEditor = document.querySelector('#vista-editor-web .row');
+  const btnCodigo   = document.getElementById('tab-modo-codigo');
+  const btnVisual   = document.getElementById('tab-modo-visual');
+  const filaEditor  = document.querySelector('#vista-editor-web .row');
   const vistaVisual = document.getElementById('modo-visual-web');
 
   if (modo === 'visual') {
-    filaEditor.style.display   = 'none';
-    vistaVisual.style.display  = 'block';
-    modocodigo.className = 'btn btn-sm btn-outline-secondary';
-    modovisual.className = 'btn btn-sm btn-primary';
+    filaEditor.style.display  = 'none';
+    vistaVisual.style.display = 'block';
+    btnCodigo.className = 'btn btn-sm btn-outline-secondary';
+    btnVisual.className = 'btn btn-sm btn-primary';
     cargarBloquesEnPanelIzquierdo();
     renderizarCanvas();
   } else {
-    filaEditor.style.display   = '';
-    vistaVisual.style.display  = 'none';
-    modocodigo.className = 'btn btn-sm btn-primary';
-    modovisual.className = 'btn btn-sm btn-outline-secondary';
+    filaEditor.style.display  = '';
+    vistaVisual.style.display = 'none';
+    btnCodigo.className = 'btn btn-sm btn-primary';
+    btnVisual.className = 'btn btn-sm btn-outline-secondary';
   }
 };
 
-// ── Cargar bloques del sistema en panel izq ─
+// ── Panel izquierdo ──────────────────────────
 window.cargarBloquesEnPanelIzquierdo = async function() {
   const panel = document.getElementById('lista-bloques-sistema');
   panel.innerHTML = '<p class="text-muted small px-2">Cargando...</p>';
-
   try {
-    const snap = await db.collection('web_sistema').orderBy('fechaActualizacion','desc').get();
+    const snap   = await db.collection('web_sistema').orderBy('fechaActualizacion','desc').get();
     const grupos = {};
-
     snap.forEach(doc => {
       const d    = doc.data();
       const tipo = d.tipoPadre || 'Otro';
       if (!grupos[tipo]) grupos[tipo] = [];
       grupos[tipo].push({ id: doc.id, nombre: d.nombre, codigo: d.codigo || '' });
     });
-
     let html = '';
     for (const [tipo, items] of Object.entries(grupos)) {
       html += `<div class="bloque-grupo-label">${tipo}</div>`;
       items.forEach(item => {
-        const dataB64 = btoa(unescape(encodeURIComponent(JSON.stringify(item))));
-        html += `
-          <div class="bloque-sistema-item" 
-            draggable="true"
-            ondragstart="iniciarDragBloque(event, '${dataB64}')">
-            <i class="fas fa-grip-vertical" style="color:#555; font-size:.7rem;"></i>
-            ${item.nombre}
-          </div>`;
+        const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(item))));
+        html += `<div class="bloque-sistema-item" draggable="true" ondragstart="iniciarDragBloque(event,'${b64}')">
+          <i class="fas fa-grip-vertical" style="color:#555;font-size:.7rem;"></i>${item.nombre}
+        </div>`;
       });
     }
-
     panel.innerHTML = html || '<p class="text-muted small px-2">Sin bloques</p>';
-  } catch(err) {
-    panel.innerHTML = '<p class="text-danger small px-2">Error al cargar</p>';
+  } catch(e) {
+    panel.innerHTML = '<p class="text-danger small px-2">Error</p>';
   }
 };
 
-// ── Drag desde panel izquierdo ───────────────
-window.iniciarDragBloque = function(event, dataB64) {
-  dragBloqueData = JSON.parse(decodeURIComponent(escape(atob(dataB64))));
+window.iniciarDragBloque = function(event, b64) {
+  maqDragBloque = JSON.parse(decodeURIComponent(escape(atob(b64))));
+  maqDragBloqueCanvas = null;
   event.dataTransfer.effectAllowed = 'copy';
 };
 
-// ── Soltar en canvas ─────────────────────────
-window.soltarBloqueCanvas = function(event) {
-  event.preventDefault();
-  if (!dragBloqueData) return;
-
-  const nuevoBloque = {
-    uid:    Date.now(),
-    id:     dragBloqueData.id,
-    nombre: dragBloqueData.nombre,
-    codigo: dragBloqueData.codigo,
-  };
-
-  maquetaBloques.push(nuevoBloque);
-  dragBloqueData = null;
+// ── Estructura ────────────────────────────────
+window.agregarSeccion = function() {
+  maqEstructura.push({
+    uid:   uid(),
+    filas: [ crearFila(1) ]
+  });
   renderizarCanvas();
 };
 
-// ── Renderizar canvas ────────────────────────
-window.renderizarCanvas = function() {
-  const zona        = document.getElementById('canvas-drop-zone');
-  const placeholder = document.getElementById('canvas-placeholder');
+function crearFila(numCols) {
+  const cols = [];
+  for (let i = 0; i < numCols; i++) cols.push({ uid: uid(), bloques: [] });
+  return { uid: uid(), cols };
+}
 
-  if (maquetaBloques.length === 0) {
-    zona.innerHTML = '';
-    zona.appendChild(placeholder || crearPlaceholder());
+// ── Renderizar canvas completo ────────────────
+window.renderizarCanvas = function() {
+  const zona = document.getElementById('canvas-drop-zone');
+  if (!zona) return;
+
+  if (maqEstructura.length === 0) {
+    zona.innerHTML = `<div style="text-align:center;color:#aaa;padding:3rem;border:2px dashed #ccc;border-radius:12px;font-size:.9rem;">Pulsa "+ Sección" para empezar</div>`;
     return;
   }
 
-  // Construir CSS global de biblioteca
-  const cssCompleto = webBiblioteca.css
-    .map(p => p.codigo).join('\n');
-
-  let html = '';
-  maquetaBloques.forEach((bloque, index) => {
-    html += `
-      <div class="canvas-bloque ${bloque.uid === bloqueSeleccionadoId ? 'seleccionado' : ''}"
-        onclick="seleccionarBloqueCanvas(${bloque.uid})"
-        draggable="true"
-        ondragstart="iniciarReordenCanvas(event, ${index})"
-        ondragover="event.preventDefault()"
-        ondrop="soltarReordenCanvas(event, ${index})">
-        
-        <div class="canvas-bloque-toolbar">
-          <button onclick="event.stopPropagation(); moverBloqueArriba(${index})" title="Subir" style="background:#4f46e5; color:#fff;">
-            <i class="fas fa-chevron-up"></i>
-          </button>
-          <button onclick="event.stopPropagation(); moverBloqueAbajo(${index})" title="Bajar" style="background:#4f46e5; color:#fff;">
-            <i class="fas fa-chevron-down"></i>
-          </button>
-          <button onclick="event.stopPropagation(); eliminarBloqueCanvas(${index})" title="Eliminar" style="background:#ef4444; color:#fff;">
-            <i class="fas fa-times"></i>
-          </button>
+  zona.innerHTML = maqEstructura.map((sec, si) => `
+    <div class="maq-seccion" data-sec="${sec.uid}">
+      <div class="maq-seccion-toolbar">
+        <span class="maq-seccion-label">Sección ${si+1}</span>
+        <div style="display:flex;gap:4px;">
+          <button class="btn-maq btn-maq-dark" onclick="agregarFilaEnSeccion('${sec.uid}',1)">+ Fila</button>
+          <button class="btn-maq btn-maq-danger" onclick="eliminarSeccion('${sec.uid}')"><i class="fas fa-trash"></i></button>
         </div>
-
-        <div style="padding:16px;">
-          <style>${cssCompleto}</style>
-          ${bloque.codigo}
-        </div>
-      </div>`;
-  });
-
-  zona.innerHTML = html;
+      </div>
+      ${sec.filas.map((fila, fi) => renderizarFila(sec.uid, fila, fi)).join('')}
+    </div>`).join('');
 };
 
-// ── Seleccionar bloque ───────────────────────
-window.seleccionarBloqueCanvas = function(uid) {
-  bloqueSeleccionadoId = uid;
-  const bloque = maquetaBloques.find(b => b.uid === uid);
-  if (!bloque) return;
+function renderizarFila(secUid, fila, fi) {
+  return `
+    <div class="maq-fila" data-fila="${fila.uid}">
+      <div style="width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span class="maq-seccion-label">Fila ${fi+1} — ${fila.cols.length} col(s)</span>
+        <div style="display:flex;gap:4px;">
+          ${[1,2,3,4].map(n => `<button class="btn-maq ${fila.cols.length===n?'btn-maq-primary':'btn-maq-dark'}" onclick="cambiarColsFila('${secUid}','${fila.uid}',${n})">${n}</button>`).join('')}
+          <button class="btn-maq btn-maq-danger" onclick="eliminarFila('${secUid}','${fila.uid}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;width:100%;">
+        ${fila.cols.map(col => renderizarCol(secUid, fila.uid, col)).join('')}
+      </div>
+    </div>`;
+}
 
+function renderizarCol(secUid, filaUid, col) {
+  const cssB = webBiblioteca.css.map(p => p.codigo).join('\n');
+  const bloquesHTML = col.bloques.length
+    ? col.bloques.map((b, bi) => `
+        <div class="maq-bloque ${maqSeleccionado?.bloqueUid===b.uid?'seleccionado':''}"
+          draggable="true"
+          onclick="seleccionarBloque('${secUid}','${filaUid}','${col.uid}','${b.uid}')"
+          ondragstart="iniciarDragDesdeCanvas(event,'${secUid}','${filaUid}','${col.uid}','${b.uid}')"
+          ondragover="event.preventDefault()"
+          ondrop="soltarEnBloque(event,'${secUid}','${filaUid}','${col.uid}',${bi})">
+          <div class="maq-bloque-toolbar">
+            <button onclick="event.stopPropagation();subirBloque('${secUid}','${filaUid}','${col.uid}',${bi})" style="background:#4f46e5;color:#fff;" title="Subir"><i class="fas fa-chevron-up"></i></button>
+            <button onclick="event.stopPropagation();bajarBloque('${secUid}','${filaUid}','${col.uid}',${bi})" style="background:#4f46e5;color:#fff;" title="Bajar"><i class="fas fa-chevron-down"></i></button>
+            <button onclick="event.stopPropagation();eliminarBloqueDeCol('${secUid}','${filaUid}','${col.uid}','${b.uid}')" style="background:#ef4444;color:#fff;" title="Eliminar"><i class="fas fa-times"></i></button>
+          </div>
+          <style>${cssB}</style>
+          ${b.codigo}
+        </div>`).join('')
+    : `<div class="maq-col-placeholder">Arrastra un bloque aquí</div>`;
+
+  return `
+    <div class="maq-col" data-col="${col.uid}"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="soltarEnCol(event,'${secUid}','${filaUid}','${col.uid}')">
+      ${bloquesHTML}
+    </div>`;
+}
+
+// ── Drop en columna (desde panel izq o canvas) ─
+window.soltarEnCol = function(event, secUid, filaUid, colUid) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.target.closest('.maq-col')?.classList.remove('drag-over');
+
+  if (maqDragBloque) {
+    // viene del panel izquierdo
+    const col = getCol(secUid, filaUid, colUid);
+    if (col) col.bloques.push({ uid: uid(), nombre: maqDragBloque.nombre, codigo: maqDragBloque.codigo });
+    maqDragBloque = null;
+  } else if (maqDragBloqueCanvas) {
+    // viene de otro lugar del canvas — mover
+    const { secUid: oSec, filaUid: oFila, colUid: oCol, bloqueUid: oBloq } = maqDragBloqueCanvas;
+    const colOrigen  = getCol(oSec, oFila, oCol);
+    const colDestino = getCol(secUid, filaUid, colUid);
+    if (!colOrigen || !colDestino) return;
+    const idx    = colOrigen.bloques.findIndex(b => b.uid === oBloq);
+    const [movido] = colOrigen.bloques.splice(idx, 1);
+    colDestino.bloques.push(movido);
+    maqDragBloqueCanvas = null;
+  }
+  renderizarCanvas();
+};
+
+// Drop entre bloques (reordenar dentro de columna)
+window.soltarEnBloque = function(event, secUid, filaUid, colUid, indexDestino) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (!maqDragBloqueCanvas) return;
+  const { secUid: oSec, filaUid: oFila, colUid: oCol, bloqueUid: oBloq } = maqDragBloqueCanvas;
+  if (oCol !== colUid) return; // si viene de otra col, lo maneja soltarEnCol
+  const col  = getCol(secUid, filaUid, colUid);
+  const from = col.bloques.findIndex(b => b.uid === oBloq);
+  const [movido] = col.bloques.splice(from, 1);
+  col.bloques.splice(indexDestino, 0, movido);
+  maqDragBloqueCanvas = null;
+  renderizarCanvas();
+};
+
+window.iniciarDragDesdeCanvas = function(event, secUid, filaUid, colUid, bloqueUid) {
+  maqDragBloqueCanvas = { secUid, filaUid, colUid, bloqueUid };
+  maqDragBloque = null;
+  event.dataTransfer.effectAllowed = 'move';
+  event.stopPropagation();
+};
+
+// ── Seleccionar bloque → panel derecho ────────
+window.seleccionarBloque = function(secUid, filaUid, colUid, bloqueUid) {
+  maqSeleccionado = { secUid, filaUid, colUid, bloqueUid };
+  const col    = getCol(secUid, filaUid, colUid);
+  const bloque = col?.bloques.find(b => b.uid === bloqueUid);
+  if (!bloque) return;
   document.getElementById('panel-bloque-nombre').textContent = bloque.nombre;
   document.getElementById('panel-bloque-codigo').value       = bloque.codigo;
   renderizarCanvas();
 };
 
-// ── Editar bloque desde panel derecho ────────
+// ── Editar desde panel derecho ────────────────
 window.actualizarBloqueSeleccionado = function() {
-  if (!bloqueSeleccionadoId) return;
-  const bloque = maquetaBloques.find(b => b.uid === bloqueSeleccionadoId);
+  if (!maqSeleccionado) return;
+  const { secUid, filaUid, colUid, bloqueUid } = maqSeleccionado;
+  const col    = getCol(secUid, filaUid, colUid);
+  const bloque = col?.bloques.find(b => b.uid === bloqueUid);
   if (!bloque) return;
   bloque.codigo = document.getElementById('panel-bloque-codigo').value;
   renderizarCanvas();
 };
 
-// ── Eliminar bloque seleccionado ─────────────
 window.eliminarBloqueSeleccionado = function() {
-  if (!bloqueSeleccionadoId) return;
-  maquetaBloques = maquetaBloques.filter(b => b.uid !== bloqueSeleccionadoId);
-  bloqueSeleccionadoId = null;
+  if (!maqSeleccionado) return;
+  const { secUid, filaUid, colUid, bloqueUid } = maqSeleccionado;
+  eliminarBloqueDeCol(secUid, filaUid, colUid, bloqueUid);
+  maqSeleccionado = null;
   document.getElementById('panel-bloque-nombre').textContent = 'Selecciona un bloque';
-  document.getElementById('panel-bloque-codigo').value       = '';
+  document.getElementById('panel-bloque-codigo').value = '';
+};
+
+// ── Acciones estructura ───────────────────────
+window.agregarFilaEnSeccion = function(secUid, numCols) {
+  const sec = maqEstructura.find(s => s.uid === secUid);
+  if (sec) sec.filas.push(crearFila(numCols));
   renderizarCanvas();
 };
 
-window.eliminarBloqueCanvas = function(index) {
-  if (maquetaBloques[index].uid === bloqueSeleccionadoId) {
-    bloqueSeleccionadoId = null;
-    document.getElementById('panel-bloque-nombre').textContent = 'Selecciona un bloque';
-    document.getElementById('panel-bloque-codigo').value = '';
+window.cambiarColsFila = function(secUid, filaUid, numCols) {
+  const fila = getFila(secUid, filaUid);
+  if (!fila) return;
+  while (fila.cols.length < numCols) fila.cols.push({ uid: uid(), bloques: [] });
+  while (fila.cols.length > numCols) {
+    const col = fila.cols.pop();
+    // mover bloques huérfanos a la primera columna
+    if (col.bloques.length) fila.cols[0].bloques.push(...col.bloques);
   }
-  maquetaBloques.splice(index, 1);
   renderizarCanvas();
 };
 
-// ── Reordenar con drag dentro del canvas ─────
-let dragIndexCanvas = null;
-
-window.iniciarReordenCanvas = function(event, index) {
-  dragIndexCanvas = index;
-  event.stopPropagation();
-  event.dataTransfer.effectAllowed = 'move';
-};
-
-window.soltarReordenCanvas = function(event, indexDestino) {
-  event.preventDefault();
-  event.stopPropagation();
-  if (dragIndexCanvas === null || dragIndexCanvas === indexDestino) return;
-  const [movido] = maquetaBloques.splice(dragIndexCanvas, 1);
-  maquetaBloques.splice(indexDestino, 0, movido);
-  dragIndexCanvas = null;
+window.eliminarSeccion = function(secUid) {
+  if (!confirm('¿Eliminar esta sección y todo su contenido?')) return;
+  maqEstructura = maqEstructura.filter(s => s.uid !== secUid);
   renderizarCanvas();
 };
 
-window.moverBloqueArriba = function(index) {
-  if (index === 0) return;
-  [maquetaBloques[index - 1], maquetaBloques[index]] = [maquetaBloques[index], maquetaBloques[index - 1]];
+window.eliminarFila = function(secUid, filaUid) {
+  const sec = maqEstructura.find(s => s.uid === secUid);
+  if (!sec) return;
+  sec.filas = sec.filas.filter(f => f.uid !== filaUid);
   renderizarCanvas();
 };
 
-window.moverBloqueAbajo = function(index) {
-  if (index === maquetaBloques.length - 1) return;
-  [maquetaBloques[index + 1], maquetaBloques[index]] = [maquetaBloques[index], maquetaBloques[index + 1]];
+window.eliminarBloqueDeCol = function(secUid, filaUid, colUid, bloqueUid) {
+  const col = getCol(secUid, filaUid, colUid);
+  if (!col) return;
+  col.bloques = col.bloques.filter(b => b.uid !== bloqueUid);
   renderizarCanvas();
 };
 
-// ── Exportar canvas a código y cambiar a modo código ──
+window.subirBloque = function(secUid, filaUid, colUid, index) {
+  const col = getCol(secUid, filaUid, colUid);
+  if (!col || index === 0) return;
+  [col.bloques[index-1], col.bloques[index]] = [col.bloques[index], col.bloques[index-1]];
+  renderizarCanvas();
+};
+
+window.bajarBloque = function(secUid, filaUid, colUid, index) {
+  const col = getCol(secUid, filaUid, colUid);
+  if (!col || index >= col.bloques.length - 1) return;
+  [col.bloques[index+1], col.bloques[index]] = [col.bloques[index], col.bloques[index+1]];
+  renderizarCanvas();
+};
+
+// ── Helpers ───────────────────────────────────
+function getFila(secUid, filaUid) {
+  return maqEstructura.find(s => s.uid === secUid)?.filas.find(f => f.uid === filaUid);
+}
+
+function getCol(secUid, filaUid, colUid) {
+  return getFila(secUid, filaUid)?.cols.find(c => c.uid === colUid);
+}
+
+// ── Exportar a código ─────────────────────────
 window.exportarVisualACodigo = function() {
   const cssCompleto = webBiblioteca.css.map(p => p.codigo).join('\n');
   const jsCompleto  = webBiblioteca.js.map(p => p.codigo).join('\n');
 
-  const cuerpo = maquetaBloques.map(b => b.codigo).join('\n\n');
+  const cuerpo = maqEstructura.map(sec => {
+    const filasHTML = sec.filas.map(fila => {
+      const colsHTML = fila.cols.map(col => {
+        const bloquesHTML = col.bloques.map(b => b.codigo).join('\n');
+        return `    <div style="flex:1;">\n${bloquesHTML}\n    </div>`;
+      }).join('\n');
+      return `  <div style="display:flex;gap:16px;">\n${colsHTML}\n  </div>`;
+    }).join('\n');
+    return `<section>\n${filasHTML}\n</section>`;
+  }).join('\n\n');
 
   const htmlFinal = `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-${cssCompleto}
-  </style>
+  <style>\n${cssCompleto}\n  </style>
 </head>
-<body style="margin:0;">
-
-${cuerpo}
-
-<script>
-${jsCompleto}
-<\/script>
+<body style="margin:0;">\n\n${cuerpo}\n\n<script>\n${jsCompleto}\n<\/script>
 </body>
 </html>`;
 
@@ -834,11 +923,15 @@ ${jsCompleto}
   cambiarModoEdicion('codigo');
 };
 
-// ── Al abrir maqueta cargar bloques si hay código ──
+// ── Reset al abrir proyecto ───────────────────
 function inicializarMaquetaDesdecodigo() {
-  maquetaBloques       = [];
-  bloqueSeleccionadoId = null;
+  maqEstructura   = [];
+  maqSeleccionado = null;
 }
+
+
+
+
 
 
 
