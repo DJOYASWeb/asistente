@@ -1933,8 +1933,7 @@ function agregarCategoriaAdicional() {
   }
 
   // Cerrar el modal
-  const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarCategoria"));
-  if (modal) modal.hide();
+cerrarModalAgregarCategoria();
 
   // Refrescar la tabla visible
   renderTablaConOrden(window.datosFiltrados);
@@ -2014,7 +2013,7 @@ function registrarErrorImagen(codigo, img) {
 function abrirModalErrores() {
   const listaUl = document.getElementById("listaErrores");
   listaUl.innerHTML = "";
-  if (window.erroresImagenes && window.erroresImagenes.length) {
+  if (window.erroresImagenes && window.erroresImagenes.size) {
     window.erroresImagenes.forEach(codigo => {
       const li = document.createElement("li");
       li.className = "list-group-item";
@@ -2024,8 +2023,7 @@ function abrirModalErrores() {
   } else {
     listaUl.innerHTML = `<li class="list-group-item text-muted">No hay errores registrados</li>`;
   }
-  const modal = new bootstrap.Modal(document.getElementById("modalErrores"));
-  modal.show();
+  document.getElementById("modalErrores").style.display = "flex";
 }
 
 
