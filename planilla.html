@@ -256,16 +256,24 @@
 
   <!-- Modal: Confirmar Exportación (Procesar planilla) -->
   <div class="modal-overlay" id="modalColumnas" style="display:none;">
-    <div class="modal-contenido" style="max-width:900px; width:90%; max-height:90vh; overflow-y:auto;">
-      <div class="modal-header">
+    <div class="modal-contenido" style="max-width:900px; width:90%; height:80vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="flex-shrink:0;">
         <h5 class="mb-0"><i class="fa-solid fa-file-export me-2"></i>Confirmar exportación</h5>
         <button class="btn-close" onclick="cerrarModalColumnas()"></button>
       </div>
 
-      <p class="text-muted mb-3">Estas son las columnas que se incluirán en el archivo:</p>
-      <div id="columnasFinales" class="table-responsive"></div>
+      <div style="flex:1; overflow-y:auto;">
+        <div id="columnasFinales">
+          <table class="table table-sm table-bordered mb-0">
+            <thead style="position:sticky; top:0; z-index:2; background:var(--surface);">
+              <tr id="columnasFinalesHead"></tr>
+            </thead>
+            <tbody id="columnasFinalesBody" style="font-size:13px;"></tbody>
+          </table>
+        </div>
+      </div>
 
-      <div class="modal-footer" style="justify-content:space-between;">
+      <div class="modal-footer" style="flex-shrink:0; justify-content:space-between;">
         <div class="d-flex align-items-center gap-2">
           <button id="btnDescargarFotosZip" type="button" class="btn btn-secondary" style="display:none;" onclick="descargarImagenesZIP()">
             <i class="fa-solid fa-file-zipper me-1"></i> Descargar fotos (.zip)
