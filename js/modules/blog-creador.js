@@ -379,10 +379,10 @@ function safeBindRelacionados() {
   function navTemplate() {
     return `
       <div class="wizard-nav" data-wiznav>
-        <div class="wizbox" data-target-step="0"><div class="wiz-title">1. Datos</div><div class="wiz-sub" data-sub>Incompleto</div></div>
-        <div class="wizbox" data-target-step="1"><div class="wiz-title">2. Cuerpo</div><div class="wiz-sub" data-sub>Incompleto</div></div>
-        <div class="wizbox" data-target-step="2"><div class="wiz-title">3. Relacionados</div><div class="wiz-sub" data-sub>Incompleto</div></div>
-        <div class="wizbox" data-target-step="3"><div class="wiz-title">4. HTML</div><div class="wiz-sub" data-sub>Incompleto</div></div>
+        <div class="wizbox" data-target-step="0"><div class="wiz-title">1. Datos</div><div class="wiz-sub" data-sub>Paso 1 de 4</div></div>
+        <div class="wizbox" data-target-step="1"><div class="wiz-title">2. Cuerpo</div><div class="wiz-sub" data-sub>Paso 2 de 4</div></div>
+        <div class="wizbox" data-target-step="2"><div class="wiz-title">3. Relacionados</div><div class="wiz-sub" data-sub>Paso 3 de 4</div></div>
+        <div class="wizbox" data-target-step="3"><div class="wiz-title">4. HTML</div><div class="wiz-sub" data-sub>Paso 4 de 4</div></div>
       </div>`;
   }
 
@@ -412,7 +412,7 @@ function safeBindRelacionados() {
         box.classList.toggle("is-active", idx === current);
         box.classList.toggle("is-done",   !!done[idx]);
         const sub = box.querySelector("[data-sub]");
-        if (sub) sub.textContent = done[idx] ? "Listo" : "Incompleto";
+        if (sub) sub.textContent = done[idx] ? "Listo" : `Paso ${idx + 1} de 4`;
       });
     });
   }
