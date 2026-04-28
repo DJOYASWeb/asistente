@@ -441,8 +441,6 @@ input[type="file"] {
   background-color: transparent; /* o el color de tu fondo oscuro */
   color: #ccc;
   border: 1px solid #555;
-  padding: 4px 8px;
-  border-radius: 4px;
 }
 
 
