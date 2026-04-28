@@ -1457,34 +1457,33 @@ function abrirModalExcel() {
   let modal = document.getElementById("modalExcelWeb");
   if (!modal) {
     modal = document.createElement("div");
-    modal.className = "modal fade"; modal.id = "modalExcelWeb"; modal.tabIndex = -1;
-    modal.innerHTML = `
-      <style>
-        #modalExcelWeb .jexcel tbody td { white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important; }
-        #modalExcelWeb .jexcel tbody tr { height:32px!important; }
-      </style>
-      <div class="modal-dialog modal-dialog-centered" style="max-width:80%;">
-        <div class="modal-content shadow-lg">
-          <div class="modal-header pb-2">
-            <h5 class="modal-title"><i class="fas fa-table text-success me-2"></i>Edición Masiva (Modo Excel)</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="cerrarModalExcel()"></button>
-          </div>
-          <div class="p-2 d-flex align-items-center">
-            <span class="me-2 text-muted fw-bold fst-italic" style="font-family:serif;font-size:1.2rem;">fx</span>
-            <input type="text" id="barraExcelVista" class="form-control form-control-sm border-info shadow-none" placeholder="Selecciona una celda...">
-          </div>
-          <div class="modal-body" id="bodyExcelWeb" style="padding:2rem;">
-            <div class="text-center p-4 text-muted" id="cargandoExcel">
-              <i class="fa-solid fa-spinner fa-spin me-1"></i> Cargando tabla...
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-primary px-4" data-bs-dismiss="modal" onclick="cerrarModalExcel()">
-              <i class="fa-solid fa-floppy-disk me-1"></i> Guardar y Actualizar Tabla
-            </button>
-          </div>
-        </div>
-      </div>`;
+    modal.className = "modal-overlay"; modal.id = "modalExcelWeb";
+modal.innerHTML = `
+  <style>
+    #modalExcelWeb .jexcel tbody td { white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important; }
+    #modalExcelWeb .jexcel tbody tr { height:32px!important; }
+  </style>
+  <div class="modal-contenido" style="max-width:90%;width:90%;height:80vh;display:flex;flex-direction:column;">
+    <div class="modal-header" style="flex-shrink:0;">
+      <h5 class="mb-0"><i class="fa-solid fa-table-cells me-2"></i>Edición Masiva (Modo Excel)</h5>
+      <button class="btn-close" onclick="cerrarModalExcel()"></button>
+    </div>
+    <div class="p-2 d-flex align-items-center" style="flex-shrink:0;border-bottom:1px solid var(--border);">
+      <span class="me-2 text-muted fw-bold fst-italic" style="font-family:serif;font-size:1.2rem;">fx</span>
+      <input type="text" id="barraExcelVista" class="form-control form-control-sm shadow-none" placeholder="Selecciona una celda...">
+    </div>
+    <div class="modal-body" id="bodyExcelWeb" style="flex:1;overflow:auto;padding:0;">
+      <div class="text-center p-4 text-muted" id="cargandoExcel">
+        <i class="fa-solid fa-spinner fa-spin me-1"></i> Cargando tabla...
+      </div>
+    </div>
+    <div class="modal-footer" style="flex-shrink:0;">
+      <button class="btn btn-secondary" onclick="cerrarModalExcel()">Cancelar</button>
+      <button class="btn btn-primary" onclick="cerrarModalExcel()">
+        <i class="fa-solid fa-floppy-disk me-1"></i> Guardar y Actualizar
+      </button>
+    </div>
+  </div>`;
     document.body.appendChild(modal);
   }
 
@@ -1492,23 +1491,22 @@ function abrirModalExcel() {
     ? datosFiltrados : [...datosOriginales, ...datosCombinaciones];
   if (!dataset.length) { mostrarNotificacion("No hay datos para editar.", "alerta"); return; }
 
-  const modalInst = new bootstrap.Modal(modal);
-  modalInst.show();
+modal.style.display = "flex";
+  inicializarExcel();
 
-  modal.addEventListener('shown.bs.modal', function inicializarExcel() {
-    modal.removeEventListener('shown.bs.modal', inicializarExcel);
+  function inicializarExcel() {
     const contenedorExcel = document.getElementById("bodyExcelWeb");
     contenedorExcel.innerHTML = "";
-    const barraVista      = document.getElementById("barraExcelVista");
+    const barraVista = document.getElementById("barraExcelVista");
     barraVista.value = "";
-    const columnasVisibles   = ordenColumnasVista.length ? ordenColumnasVista : Object.keys(dataset[0]);
-    const datosParaExcel     = dataset.map(fila => columnasVisibles.map(col => (fila[col] ?? "").toString()));
+    const columnasVisibles = ordenColumnasVista.length ? ordenColumnasVista : Object.keys(dataset[0]);
+    const datosParaExcel = dataset.map(fila => columnasVisibles.map(col => (fila[col] ?? "").toString()));
     const configuracionColumnas = columnasVisibles.map(col => ({ type:'text', title:col, width:90 }));
 
     window.miPlanillaExcel = jspreadsheet(contenedorExcel, {
       data: datosParaExcel, columns: configuracionColumnas,
       search: true, pagination: 100,
-      tableOverflow: true, tableHeight: "65vh", tableWidth: "100%",
+      tableOverflow: true, tableHeight: "55vh", tableWidth: "100%",
       wordWrap: false, minSpareRows: 0, minSpareCols: 0,
       allowInsertColumn: false, allowInsertRow: false,
 
@@ -1569,10 +1567,12 @@ function abrirModalExcel() {
         window.miPlanillaExcel.setValueFromCoords(x, y, this.value);
       }
     };
-  });
+  }
 }
 
+
 function cerrarModalExcel() {
+  document.getElementById("modalExcelWeb").style.display = "none";
   let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
     ? datosFiltrados : [...datosOriginales, ...datosCombinaciones];
   renderTablaConOrden(dataset);
