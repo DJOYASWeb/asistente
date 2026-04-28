@@ -7,7 +7,6 @@
   <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
@@ -15,9 +14,152 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
-
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+  <style>
+    /* ── Layout vista proyectos ── */
+    #vista-proyectos-web {
+      display: flex;
+      gap: 0;
+      min-height: calc(100vh - 220px);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+
+    /* ── Tabs laterales ── */
+    .web-tabs-lateral {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 56px;
+      padding: 10px 6px;
+      background: var(--surface-2, #1a1a2e);
+      border-right: 1px solid rgba(255,255,255,0.07);
+      flex-shrink: 0;
+    }
+
+    .web-tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 10px 2px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted, #888);
+      cursor: pointer;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: background 0.18s, color 0.18s;
+      width: 100%;
+    }
+
+    .web-tab-btn i { font-size: 1.15rem; }
+
+    .web-tab-btn:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+
+    .web-tab-btn.active {
+      background: var(--accent, #4f46e5);
+      color: #fff;
+    }
+
+    /* ── Panel proyectos ── */
+    .web-proyectos-panel {
+      flex: 1;
+      padding: 24px 28px;
+      background: var(--surface-1, #111120);
+      overflow-y: auto;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    /* ── Grid de cards ── */
+    .web-proyectos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    .web-proyecto-card {
+      border-radius: 12px;
+      padding: 18px 16px;
+      background: var(--surface-2, #1a1a2e);
+      border: 1px solid rgba(255,255,255,0.06);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.2s;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .web-proyecto-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+      border-color: var(--accent, #4f46e5);
+    }
+
+    .web-proyecto-card.nuevo {
+      border: 2px dashed var(--accent, #4f46e5);
+      background: rgba(79,70,229,0.05);
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--accent, #4f46e5);
+      font-weight: 600;
+    }
+
+    .web-proyecto-card.nuevo i { font-size: 1.8rem; }
+
+    .card-nombre { font-weight: 700; font-size: 0.95rem; margin-bottom: 6px; }
+    .card-fecha  { font-size: 0.72rem; color: var(--text-muted, #888); }
+
+    /* Badges por tipo */
+    .badge-tipo { font-size: 0.62rem; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .badge-maquetas { background: rgba(99,102,241,0.18); color: #818cf8; }
+    .badge-sistema  { background: rgba(236,72,153,0.18); color: #f472b6; }
+    .badge-clases   { background: rgba(34,197,94,0.18);  color: #4ade80; }
+    .badge-css      { background: rgba(59,130,246,0.18); color: #60a5fa; }
+    .badge-js       { background: rgba(234,179,8,0.18);  color: #facc15; }
+
+    /* Tipo label cabecera */
+    .tipo-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* Fullscreen editor */
+    .editor-fullscreen-web {
+      position: fixed !important;
+      top: 0; left: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 9000;
+      border-radius: 0 !important;
+    }
+  </style>
 </head>
 
 <body class="protegido" data-theme="light">
@@ -32,13 +174,11 @@
           <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
         </span>
       </h2>
-
       <nav>
         <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
           <span class="icon"><i class="fas fa-home"></i></span>
           <span class="label">Inicio</span>
         </a>
-
         <div class="menu-group" data-group="catalogo">
           <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
             <span class="icon"><i class="fa-regular fa-address-card"></i></span>
@@ -48,7 +188,6 @@
             <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
           </div>
         </div>
-
         <div class="menu-group" data-group="contenidos">
           <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
             <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
@@ -59,7 +198,6 @@
             <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
           </div>
         </div>
-
         <div class="menu-group" data-group="planillas">
           <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
             <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
@@ -72,7 +210,6 @@
             <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
           </div>
         </div>
-
         <div class="menu-group" data-group="redactor">
           <a href="#" class="menu-toggle menu-item" data-tooltip="Redactor">
             <span class="icon"><i class="fas fa-folder"></i></span>
@@ -85,10 +222,9 @@
         </div>
       </nav>
     </div>
-
     <div class="bottom-links">
-      <a href="compresor.html" data-tab="tareas" class="menu-item">
-        <span class="icon"><i class="fa fa-cog"></i></span>
+      <a href="compresor.html" class="menu-item">
+        <span class="icon"><i class="fa fa-compress"></i></span>
         <span class="label">Comprimir IMG</span>
       </a>
       <a href="tareas.html" data-tab="tareas" class="menu-item">
@@ -109,33 +245,99 @@
   <!-- Contenido principal -->
   <div class="main-content" style="padding: 3rem;">
 
-    <div id="cabecera-principal-web" class="dashboard-header d-flex justify-content-between mb-4">
+    <!-- Cabecera -->
+    <div id="cabecera-principal-web" class="dashboard-header d-flex justify-content-between align-items-center mb-4">
       <div>
         <h1>Redactor Web 🌐</h1>
-        <p class="text-muted">Gestiona y diseña tus páginas y componentes HTML a medida</p>
+        <p class="text-muted mb-0">Diseña y organiza tus páginas, estilos y scripts</p>
       </div>
-      <div>
-        <button class="btn btn-dark" onclick="abrirVistaConfiguracionWeb()"><i class="fas fa-cog"></i> Configurar Bloques</button>
+      <button class="btn btn-dark" onclick="abrirVistaConfiguracionWeb()">
+        <i class="fas fa-cog"></i> Configurar Bloques
+      </button>
+    </div>
+
+    <!-- ══════════════════════════════
+         VISTA PROYECTOS
+    ══════════════════════════════ -->
+    <div id="vista-proyectos-web">
+
+      <!-- Tabs laterales -->
+      <div class="web-tabs-lateral">
+
+        <button class="web-tab-btn active" onclick="cambiarTabWeb('maquetas')" id="tab-maquetas" title="Maquetas">
+          <i class="fas fa-drafting-compass"></i>
+          <span>Maquetas</span>
+        </button>
+
+        <button class="web-tab-btn" onclick="cambiarTabWeb('sistema')" id="tab-sistema" title="Sistema Gráfico">
+          <i class="fas fa-palette"></i>
+          <span>Sistema</span>
+        </button>
+
+        <button class="web-tab-btn" onclick="cambiarTabWeb('clases')" id="tab-clases" title="Clases CSS">
+          <i class="fas fa-tags"></i>
+          <span>Clases</span>
+        </button>
+
+        <button class="web-tab-btn" onclick="cambiarTabWeb('css')" id="tab-css" title="CSS">
+          <i class="fab fa-css3-alt"></i>
+          <span>CSS</span>
+        </button>
+
+        <button class="web-tab-btn" onclick="cambiarTabWeb('js')" id="tab-js" title="JavaScript">
+          <i class="fab fa-js"></i>
+          <span>JS</span>
+        </button>
+
+      </div>
+
+      <!-- Panel de proyectos -->
+      <div class="web-proyectos-panel">
+        <div class="panel-header">
+          <div>
+            <span id="web-tipo-badge" class="tipo-label badge-maquetas">
+              <i class="fas fa-drafting-compass"></i>&nbsp;Maquetas
+            </span>
+            <p class="text-muted small mb-0 mt-1" id="web-tipo-desc">
+              Prototipos y estructuras visuales de páginas
+            </p>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="abrirEditorWeb('nuevo')">
+            <i class="fas fa-plus"></i> Nuevo
+          </button>
+        </div>
+
+        <div class="web-proyectos-grid" id="grid-proyectos-web">
+          <div class="text-muted small p-3">Cargando...</div>
+        </div>
       </div>
     </div>
 
-    <!-- Vista proyectos -->
-    <div id="vista-proyectos-web" class="row"></div>
-
-    <!-- Vista editor -->
+    <!-- ══════════════════════════════
+         VISTA EDITOR
+    ══════════════════════════════ -->
     <div id="vista-editor-web" class="d-none">
 
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <button class="btn btn-outline-secondary" onclick="volverAProyectosWeb()"><i class="fas fa-arrow-left"></i> Volver</button>
+        <button class="btn btn-outline-secondary" onclick="volverAProyectosWeb()">
+          <i class="fas fa-arrow-left"></i> Volver
+        </button>
 
         <div class="d-flex align-items-center" style="background: rgba(0,0,0,0.05); border-radius: 8px; padding: 2px 10px;">
-          <input type="text" id="input-titulo-web" class="form-control fw-bold fs-4 text-center" style="border: none; background: transparent; width: 350px; box-shadow: none;" placeholder="Nombre de la página">
+          <input type="text" id="input-titulo-web"
+            class="form-control fw-bold fs-4 text-center"
+            style="border: none; background: transparent; width: 350px; box-shadow: none;"
+            placeholder="Nombre del archivo">
           <i class="fas fa-pencil-alt text-muted ms-2"></i>
         </div>
 
         <div class="d-flex gap-2">
-          <button class="btn btn-outline-secondary" onclick="abrirEnNuevaVentana()"><i class="fas fa-external-link-alt"></i> Abrir</button>
-          <button id="btn-guardar-web" class="btn btn-primary" onclick="guardarProyectoWeb()"><i class="fas fa-save"></i> Guardar Página</button>
+          <button class="btn btn-outline-secondary" onclick="abrirEnNuevaVentanaWeb()">
+            <i class="fas fa-external-link-alt"></i> Abrir
+          </button>
+          <button id="btn-guardar-web" class="btn btn-primary" onclick="guardarProyectoWeb()">
+            <i class="fas fa-save"></i> Guardar
+          </button>
         </div>
       </div>
 
@@ -144,31 +346,33 @@
         <div id="columna-editor-web" class="col-lg-6 mb-4">
           <div class="ios-card h-100 shadow-sm d-flex flex-column">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <h5 class="m-0">Editor Pro</h5>
+              <h5 class="m-0">Editor</h5>
               <div class="d-flex gap-2 align-items-center">
-                <!-- Selector de modo -->
-                <select id="selector-modo-editor" class="form-select form-select-sm" style="width: auto;" onchange="cambiarModoEditor(this.value)">
+                <select id="selector-modo-web" class="form-select form-select-sm" style="width: auto;" onchange="cambiarModoEditorWeb(this.value)">
                   <option value="htmlmixed">HTML</option>
                   <option value="css">CSS</option>
                   <option value="javascript">JavaScript</option>
                 </select>
-                <button id="btn-fullscreen-web" class="btn btn-sm btn-outline-secondary" onclick="toggleFullscreenWeb()"><i class="fas fa-expand"></i> Expandir</button>
-                <button class="btn btn-sm btn-secondary" onclick="copiarCodigoWeb()"><i class="fas fa-copy"></i> Copiar</button>
+                <button id="btn-fullscreen-web" class="btn btn-sm btn-outline-secondary" onclick="toggleFullscreenWeb()">
+                  <i class="fas fa-expand"></i> Expandir
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="copiarCodigoWeb()">
+                  <i class="fas fa-copy"></i> Copiar
+                </button>
               </div>
             </div>
 
-            <!-- Toolbar bloques -->
             <div class="mb-2 p-2">
               <div class="d-flex flex-wrap gap-2 mb-2" id="toolbar-bloques-web">
                 <span class="text-muted small fw-bold mt-1 w-100">Bloques Rápidos:</span>
               </div>
               <div class="d-flex flex-wrap gap-2" id="toolbar-snippets-web">
-                <span class="text-muted small fw-bold mt-1 w-100">Snippets CSS/JS:</span>
+                <span class="text-muted small fw-bold mt-1 w-100">Snippets:</span>
               </div>
             </div>
 
             <div class="flex-grow-1" style="border-radius: 8px; overflow: hidden; border: 1px solid #444;">
-              <textarea id="codigo-web" class="form-control"></textarea>
+              <textarea id="codigo-web"></textarea>
             </div>
           </div>
         </div>
@@ -179,86 +383,97 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h5 class="m-0">Vista Previa</h5>
               <div class="btn-group" role="group">
-                <button type="button" class="btn btn-secondary active" id="btn-vista-web-pc" onclick="cambiarVistaPreviewWeb('web')"><i class="fas fa-desktop"></i> PC</button>
-                <button type="button" class="btn btn-secondary" id="btn-vista-tablet" onclick="cambiarVistaPreviewWeb('tablet')"><i class="fas fa-tablet-alt"></i> Tablet</button>
-                <button type="button" class="btn btn-secondary" id="btn-vista-movil-web" onclick="cambiarVistaPreviewWeb('movil')"><i class="fas fa-mobile-alt"></i> Móvil</button>
+                <button type="button" class="btn btn-secondary active" id="btn-pc-web" onclick="cambiarVistaPreviewWeb('web')">
+                  <i class="fas fa-desktop"></i> PC
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-tablet-web" onclick="cambiarVistaPreviewWeb('tablet')">
+                  <i class="fas fa-tablet-alt"></i> Tablet
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-movil-web" onclick="cambiarVistaPreviewWeb('movil')">
+                  <i class="fas fa-mobile-alt"></i> Móvil
+                </button>
               </div>
             </div>
-            <div id="contenedor-iframe-web" class="flex-grow-1 d-flex justify-content-center align-items-start" style="background-color: #e9ecef; border-radius: 8px; padding: 15px; overflow-y: auto; height: 60vh;">
-              <iframe id="preview-iframe-web" style="width: 100%; height: 100%; min-height: 500px; border: none; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: width 0.3s ease;"></iframe>
+            <div class="flex-grow-1 d-flex justify-content-center align-items-start"
+              style="background-color: #e9ecef; border-radius: 8px; padding: 15px; overflow-y: auto; height: 60vh;">
+              <iframe id="preview-iframe-web"
+                style="width: 100%; height: 100%; min-height: 500px; border: none; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: width 0.3s ease;">
+              </iframe>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Vista configuración -->
+    <!-- ══════════════════════════════
+         VISTA CONFIGURACIÓN
+    ══════════════════════════════ -->
     <div id="vista-configuracion-web" class="d-none">
-
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <button class="btn btn-outline-secondary" onclick="volverDesdeConfiguracionWeb()"><i class="fas fa-arrow-left"></i> Volver a Proyectos</button>
+        <button class="btn btn-outline-secondary" onclick="volverDesdeConfiguracionWeb()">
+          <i class="fas fa-arrow-left"></i> Volver
+        </button>
         <h3 class="m-0 fw-bold"><i class="fas fa-cog"></i> Configurar Bloques</h3>
-        <button class="btn btn-success" onclick="guardarConfiguracionWebEnFirebase()"><i class="fas fa-save"></i> Guardar en Firebase</button>
+        <button class="btn btn-success" onclick="guardarConfiguracionWebFirebase()">
+          <i class="fas fa-save"></i> Guardar en Firebase
+        </button>
       </div>
-
       <div class="ios-card shadow-sm mb-4">
         <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-          <h5 class="fw-bold m-0">Tus Bloques Guardados</h5>
-          <button class="btn btn-primary" onclick="abrirModalEdicionWeb()"><i class="fas fa-plus"></i> Agregar Nuevo Bloque</button>
+          <h5 class="fw-bold m-0">Bloques Guardados</h5>
+          <button class="btn btn-primary" onclick="abrirModalEdicionWeb()">
+            <i class="fas fa-plus"></i> Agregar Bloque
+          </button>
         </div>
         <div id="lista-configuracion-web" class="list-group"></div>
       </div>
     </div>
 
-    <!-- Modal edición -->
-    <div class="modal alinear" id="modalEdicionWeb" tabindex="-1" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; overflow-y: auto;">
-      <div class="modal-dialog" style="margin: 5% auto; max-width: 650px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-        <div class="modal-content" style="border: none;">
-          <div class="modal-header d-flex justify-content-between align-items-center p-3 border-bottom">
-            <h5 class="modal-title fw-bold m-0" id="tituloModalWeb"><i class="fas fa-pen"></i> Bloque</h5>
-            <button type="button" class="btn-close" onclick="cerrarModalEdicionWeb()"></button>
+    <!-- Modal edición bloques -->
+    <div id="modalEdicionWeb" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; overflow-y:auto;">
+      <div style="margin: 5% auto; max-width: 650px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+          <h5 class="fw-bold m-0" id="tituloModalWeb"><i class="fas fa-pen"></i> Bloque</h5>
+          <button type="button" class="btn-close" onclick="cerrarModalEdicionWeb()"></button>
+        </div>
+        <div class="p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small">Tipo</label>
+            <select id="web-config-tipo" class="form-select">
+              <option value="bloques">Bloque HTML</option>
+              <option value="snippets">Snippet CSS / JS</option>
+            </select>
           </div>
-          <div class="modal-body p-4">
-            <div class="mb-3">
-              <label class="form-label fw-bold text-muted small">Tipo de Bloque</label>
-              <select id="web-config-tipo" class="form-select">
-                <option value="bloques">Bloque HTML</option>
-                <option value="snippets">Snippet CSS / JS</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold text-muted small">Nombre del botón</label>
-              <input type="text" id="web-config-nombre" class="form-control" placeholder="Ej. Hero, Navbar, Grid">
-            </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold text-muted small">Código a inyectar</label>
-              <textarea id="web-config-codigo" class="form-control" rows="8" placeholder="Pega el HTML, CSS o JS aquí"></textarea>
-            </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small">Nombre del botón</label>
+            <input type="text" id="web-config-nombre" class="form-control" placeholder="Ej. Hero, Navbar, Grid">
           </div>
-          <div class="modal-footer p-3 border-top d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" onclick="cerrarModalEdicionWeb()">Cancelar</button>
-            <button type="button" class="btn btn-primary" onclick="guardarSnippetModalWeb()"><i class="fas fa-check"></i> Guardar Bloque</button>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small">Código</label>
+            <textarea id="web-config-codigo" class="form-control" rows="8" placeholder="HTML, CSS o JS aquí"></textarea>
           </div>
+        </div>
+        <div class="p-3 border-top d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" onclick="cerrarModalEdicionWeb()">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="guardarSnippetModalWeb()">
+            <i class="fas fa-check"></i> Guardar
+          </button>
         </div>
       </div>
     </div>
 
-  </div>
+  </div><!-- /main-content -->
 
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
   <script src="js/modules/firebase-init.js"></script>
   <script src="js/modules/modales.js"></script>
   <script src="js/modules/tabs.js"></script>
   <script src="js/modules/web.js"></script>
   <script type="module" src="js/modules/checkAuth.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="js/modules/permisos-tabs.js"></script>
   <script src="js/modules/verificar-tabs.js"></script>
 </body>
