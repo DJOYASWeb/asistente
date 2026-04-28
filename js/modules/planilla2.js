@@ -553,7 +553,6 @@ const descripcion = formatearDescripcionHTML(descripcionRaw);
       "Cantidad": cantidad,
       "Resumen": resumen,
       "Descripción": descripcion,
-      "_descripcionPlana": descripcionTexto,  // solo para el title
       "Image URLs (x,y,z...)": foto,
       "Caracteristicas": construirCaracteristicas(row)
     };
