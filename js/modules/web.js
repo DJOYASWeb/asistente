@@ -234,16 +234,30 @@ window.actualizarPreviewWeb = function() {
 };
 
 window.cambiarVistaPreviewWeb = function(tipo) {
-  const iframe = document.getElementById('preview-iframe-web');
-  const btns   = {
+  const iframe      = document.getElementById('preview-iframe-web');
+  const contenedor  = document.getElementById('contenedor-iframe-web') || iframe.parentElement;
+  const btns = {
     web:    document.getElementById('btn-pc-web'),
     tablet: document.getElementById('btn-tablet-web'),
     movil:  document.getElementById('btn-movil-web'),
   };
+
   Object.values(btns).forEach(b => b && b.classList.remove('active'));
-  const anchos = { web: '100%', tablet: '768px', movil: '375px' };
-  iframe.style.width = anchos[tipo] || '100%';
   if (btns[tipo]) btns[tipo].classList.add('active');
+
+  if (tipo === 'web') {
+    contenedor.style.justifyContent = 'stretch';
+    iframe.style.width  = '100%';
+    iframe.style.margin = '0';
+  } else if (tipo === 'tablet') {
+    contenedor.style.justifyContent = 'center';
+    iframe.style.width  = '768px';
+    iframe.style.margin = '0 auto';
+  } else if (tipo === 'movil') {
+    contenedor.style.justifyContent = 'center';
+    iframe.style.width  = '375px';
+    iframe.style.margin = '0 auto';
+  }
 };
 
 window.abrirEnNuevaVentanaWeb = function() {
