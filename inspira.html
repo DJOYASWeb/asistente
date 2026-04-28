@@ -1,96 +1,89 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DJOYAS Inspira</title>
-    <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
+  <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body class="protegido" data-theme="light">
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
   <!-- Sidebar -->
-  <!-- Sidebar -->
-<div class="sidebar oculta-permisos" id="sidebar">
-  <div>
-    <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
-      <span class="icon"><i class="fas fa-bars"></i></span>
-      <span class="label">
-        <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
-      </span>
-    </h2>
+  <div class="sidebar oculta-permisos" id="sidebar">
+    <div>
+      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">
+          <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
+        </span>
+      </h2>
 
-     <nav>
-      <!-- 1️⃣ INICIO -->
-      <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
-        <span class="icon"><i class="fas fa-home"></i></span>
-        <span class="label">Inicio</span>
+      <nav>
+        <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
+          <span class="icon"><i class="fas fa-home"></i></span>
+          <span class="label">Inicio</span>
+        </a>
+
+        <div class="menu-group" data-group="catalogo">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
+            <span class="icon"><i class="fa-regular fa-address-card"></i></span>
+            <span class="label">Catálogo</span>
+          </a>
+          <div class="submenu">
+            <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
+          </div>
+        </div>
+
+        <div class="menu-group" data-group="contenidos">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
+            <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
+            <span class="label">Contenidos</span>
+          </a>
+          <div class="submenu">
+            <a href="blog.html" data-tab="blog" class="submenu-item">DJOYAS Blog</a>
+            <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
+          </div>
+        </div>
+
+        <div class="menu-group" data-group="planillas">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
+            <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
+            <span class="label">Planillas</span>
+          </a>
+          <div class="submenu">
+            <a href="#" data-tab="cotizar" class="submenu-item">Cotizar</a>
+            <a href="productos.html" data-tab="productos" class="submenu-item">Recategorizar</a>
+            <a href="planilla.html" data-tab="planilla" class="submenu-item">Planilla Presta</a>
+            <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <div class="bottom-links">
+      <a href="compresor.html" data-tab="tareas" class="menu-item">
+        <span class="icon"><i class="fa fa-cog"></i></span>
+        <span class="label">Comprimir IMG</span>
       </a>
-
-      <!-- 2️⃣ CATÁLOGO -->
-      <div class="menu-group" data-group="catalogo">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
-          <span class="icon"><i class="fa-regular fa-address-card"></i></span>
-          <span class="label">Catálogo</span>
-        </a>
-        <div class="submenu">
-          <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
-        </div>
-      </div>
-
-      <!-- 3️⃣ CONTENIDOS -->
-      <div class="menu-group" data-group="contenidos">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
-          <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
-          <span class="label">Contenidos</span>
-        </a>
-        <div class="submenu">
-          <a href="blog.html" data-tab="blog" class="submenu-item">DJOYAS Blog</a>
-          <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
-        </div>
-      </div>
-
-      <!-- 4️⃣ PLANILLAS -->
-      <div class="menu-group" data-group="planillas">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
-          <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
-          <span class="label">Planillas</span>
-        </a>
-        <div class="submenu">
-          <a href="#" data-tab="cotizar" class="submenu-item">Cotizar</a>
-          <a href="productos.html" data-tab="productos" class="submenu-item">Recategorizar</a>
-          <a href="planilla.html" data-tab="planilla" class="submenu-item">Planilla Presta</a>
-          <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
-        </div>
-      </div>
-
-    </nav>
- </div>
-
-  <div class="bottom-links">
-    <a href="compresor.html" data-tab="tareas" class="menu-item">
-      <span class="icon"><i class="fa fa-cog"></i></span>
-      <span class="label">Comprimir IMG</span>
-    </a>
-    <a href="tareas.html" data-tab="tareas" class="menu-item">
-      <span class="icon"><i class="fas fa-list-check"></i></span>
-      <span class="label">Tareas Diarias</span>
-    </a>
-    <a href="calendario.html" data-tab="calendario" class="menu-item">
-      <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
-      <span class="label">Calendario</span>
-    </a>
-    <a href="configuracion.html" data-tab="configuracion" class="menu-item">
-      <span class="icon"><i class="fas fa-cog"></i></span>
-      <span class="label">Configuración</span>
-    </a>
+      <a href="tareas.html" data-tab="tareas" class="menu-item">
+        <span class="icon"><i class="fas fa-list-check"></i></span>
+        <span class="label">Tareas Diarias</span>
+      </a>
+      <a href="calendario.html" data-tab="calendario" class="menu-item">
+        <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
+        <span class="label">Calendario</span>
+      </a>
+      <a href="configuracion.html" data-tab="configuracion" class="menu-item">
+        <span class="icon"><i class="fas fa-cog"></i></span>
+        <span class="label">Configuración</span>
+      </a>
+    </div>
   </div>
-</div>
 
   <!-- Contenido principal -->
   <div class="main-content">
@@ -104,7 +97,7 @@
             <div class="user-email"><span id="userEmail">juan@correo.com</span></div>
           </div>
           <div class="theme-switch" onclick="toggleTheme()">
-            <span class="switch-icon" id="theme-icon">🌙</span>
+            <span class="switch-icon" id="theme-icon"><i class="fa-solid fa-moon"></i></span>
             <span class="switch-label">Modo oscuro</span>
           </div>
           <a href="settings.html">Configuración</a>
@@ -113,272 +106,251 @@
       </div>
     </div>
 
-      <!-- Popup iOS personalizado -->
-  <div id="popupSuccess">✅ Entrada guardada exitosamente en DJOYAS Inspira</div>
+    <div id="popupSuccess">Entrada guardada exitosamente en DJOYAS Inspira</div>
 
-  <div class="tab-header">
-    <button class="tab-btn  active" id="btnContenidos" onclick="showTab('contenidos')">Contenidos</button>
-    <button class="tab-btn" id="btnRecursos" onclick="showTab('recursos')">Recursos</button>
-  </div>
-<div class="container">
-  <div class="tab-content-ios">
+    <div class="tab-header">
+      <button class="tab-btn active" id="btnContenidos" onclick="showTab('contenidos')">Contenidos</button>
+      <button class="tab-btn" id="btnRecursos" onclick="showTab('recursos')">Recursos</button>
+    </div>
 
-    
-    <div id="contenidos" class="tab-section">
-        <div class="ios-card mb-4" id="contenidosControles">
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">Seleccionar contenido desde base de datos</h5>
-<button class="btn btn-sm btn-outline-primary" onclick="refrescarRecursos()">🔄 Refrescar</button>
-</div>
+    <div class="container">
+      <div class="tab-content-ios">
+
+        <!-- TAB: CONTENIDOS -->
+        <div id="contenidos" class="tab-section">
+          <div class="ios-card mb-4" id="contenidosControles">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0">Seleccionar contenido desde base de datos</h5>
+              <button class="btn btn-sm btn-secondary" onclick="refrescarRecursos()">
+                <i class="fa-solid fa-rotate me-1"></i> Refrescar
+              </button>
+            </div>
             <select class="form-control" id="contenidoSelect">
               <option value="">Cargando contenidos...</option>
             </select>
-<div class="row g-3 mt-3">
-  <div class="col-12 col-lg-3">
-    <label class="select-card">
-      <input type="checkbox" id="checkDestacados" value="destacados">
-      <div class="select-card-body">
-        <span class="select-title">Destacados</span>
-      </div>
-    </label>
-  </div>
+            <div class="row g-3 mt-3">
+              <div class="col-12 col-lg-3">
+                <label class="select-card">
+                  <input type="checkbox" id="checkDestacados" value="destacados">
+                  <div class="select-card-body">
+                    <span class="select-title">Destacados</span>
+                  </div>
+                </label>
+              </div>
+              <div class="col-12 col-lg-3">
+                <label class="select-card">
+                  <input type="checkbox" id="checkCarrusel" value="carrusel">
+                  <div class="select-card-body">
+                    <span class="select-title">Carrusel</span>
+                  </div>
+                </label>
+              </div>
+              <div class="col-12 col-lg-3">
+                <label class="select-card">
+                  <input type="checkbox" id="checkPopular" value="popular">
+                  <div class="select-card-body">
+                    <span class="select-title">Popular</span>
+                  </div>
+                </label>
+              </div>
+              <div class="col-12 col-lg-3">
+                <label class="select-card">
+                  <input type="checkbox" id="checkInfluencer" value="influencer">
+                  <div class="select-card-body">
+                    <span class="select-title">Influencer</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+            <button class="btn btn-primary my-3 col-auto" onclick="generarBloqueContenido()">
+              <i class="fa-solid fa-bolt me-1"></i> Generar contenido
+            </button>
+            <button class="btn btn-secondary my-3 col-auto" onclick="generarContenidoSemanal()">
+              <i class="fa-solid fa-calendar-week me-1"></i> Contenido semanal
+            </button>
+          </div>
 
-  <div class="col-12 col-lg-3">
-    <label class="select-card">
-      <input type="checkbox" id="checkCarrusel" value="carrusel">
-      <div class="select-card-body">
-        <span class="select-title">Carrusel</span>
-      </div>
-    </label>
-  </div>
+          <div id="bloqueGenerado" class="mt-3 d-none"></div>
+        </div>
 
-  <div class="col-12 col-lg-3">
-    <label class="select-card">
-      <input type="checkbox" id="checkPopular" value="popular">
-      <div class="select-card-body">
-        <span class="select-title">Popular</span>
-      </div>
-    </label>
-  </div>
+        <!-- TAB: RECURSOS -->
+        <div id="recursos" class="tab-section d-none">
+          <div class="ios-card">
+            <div class="d-flex justify-content-between align-items-center">
+              <h3>Entradas creadas</h3>
+              <div class="d-flex gap-2">
+                <button class="btn btn-primary" onclick="abrirModalAgregarRecurso()">
+                  <i class="fa-solid fa-plus me-1"></i> Agregar Recurso
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="refrescarContenidos()">
+                  <i class="fa-solid fa-rotate me-1"></i> Refrescar
+                </button>
+              </div>
+            </div>
 
-  <div class="col-12 col-lg-3">
-    <label class="select-card">
-      <input type="checkbox" id="checkInfluencer" value="influencer">
-      <div class="select-card-body">
-        <span class="select-title">Influencer</span>
-      </div>
-    </label>
-  </div>
-</div>
-<button class="btn btn-primary my-3 col-auto" onclick="generarBloqueContenido()">Generar contenido</button>
-<button class="btn btn-outline-primary my-3 col-auto" onclick="generarContenidoSemanal()">🗓️ Contenido semanal</button>
-      </div>
-          <!-- fuera del bloque de controles -->
-<div id="bloqueGenerado" class="mt-3 d-none">
+            <div class="table-responsive mt-4">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Fecha</th>
+                    <th>Temática</th>
+                    <th>Autor</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaRecursos"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
-</div>
-
-    </div>
-   
-
-<div id="recursos" class="tab-section d-none">
-<div class="ios-card">
-  <div class="d-flex  justify-content-between">
-  <h3>Entradas creadas</h3>
-  <div class="botones">
-    <button class="btn btn-primary" onclick="abrirModalAgregarRecurso()">➕ Agregar Recurso</button>
-      <button class="btn btn-sm btn-outline-primary" onclick="refrescarContenidos()">🔄 Refrescar</button>
-  </div> 
-</div>
-
-  <div class="table-responsive mt-4">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Título</th>
-          <th>Fecha</th>
-          <th>Temática</th>
-          <th>Autor</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tablaRecursos">
-        <!-- Aquí se insertan las entradas -->
-      </tbody>
-    </table>
-  </div>
-</div>
-</div>
-
-
- 
-    
-  </div>
-
-
-
-  
-
-
-</div>
-    
-<div id="iosModal">
-  <div class="iosModalContent">
-    <h5 id="iosModalTitle"></h5>
-    <p id="iosModalMessage"></p>
-  </div>
-</div>
-
-
-<!-- Modal Confirmar Eliminación Inspira -->
-<div class="alinear" id="modalConfirmarEliminarInspira" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
-  <div style="background:var(--surface); max-width:400px; width:90%; padding:2rem; border-radius:16px; text-align:center; position:relative;">
-    <h4>¿Seguro que deseas eliminar esta entrada de Inspira?</h4>
-    <div class="mt-4">
-      <button class="btn btn-danger mt-3" onclick="eliminarInspiraConfirmado()">Sí, eliminar</button>
-      <button class="btn btn-outline-secondary mt-3" onclick="cerrarModalEliminarInspira()">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<div id="modalEditarInspiraOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
-  <div class="contenido-modal" style="background:var(--surface); padding:2rem; border-radius:16px; width:90%; max-width:700px; position:relative;">
-    <button class="btn-close position-absolute end-0 top-0 m-2" onclick="cerrarModalEditarInspira()"></button>
-    <h5 class="mb-3">✏️ Editar Inspira</h5>
-
-    <div class="row">
-      <div class="col-lg-6 col-12">
-        <h6>ID</h6>
-        <input type="text" id="editInspiraId" class="form-control mb-2" readonly>
-
-        <h6>Título</h6>
-        <input type="text" id="editInspiraTitulo" class="form-control mb-2">
-
-        <h6>Fecha</h6>
-        <input type="date" id="editInspiraFecha" class="form-control mb-2">
-
-        <h6>Temática</h6>
-        <input type="text" id="editInspiraTematica" class="form-control mb-2">
-
-        <h6>Autor</h6>
-        <input type="text" id="editInspiraAutor" class="form-control mb-2">
-
-        <h6>Link</h6>
-        <input type="text" id="editLink" class="form-control mb-2">
-      </div>
-
-      <div class="col-lg-6 col-12">
-        <h6>Duración</h6>
-        <input type="text" id="editDuracion" class="form-control mb-2">
-
-        <h6>Categoría</h6>
-        <input type="text" id="editCategoria" class="form-control mb-2">
-
-        <h6>Imagen (URL)</h6>
-        <input type="text" id="editImagen" class="form-control mb-2">
-
-        <h6>Descripción</h6>
-        <textarea id="editDescripcion" class="form-control mb-2" rows="4"></textarea>
       </div>
     </div>
 
-    <button class="btn btn-primary w-100 mt-3" onclick="guardarEdicionInspira()">Guardar cambios</button>
-  </div>
-</div>
+    <div id="iosModal">
+      <div class="iosModalContent">
+        <h5 id="iosModalTitle"></h5>
+        <p id="iosModalMessage"></p>
+      </div>
+    </div>
 
+    <!-- Modal: Confirmar Eliminar Inspira -->
+    <div class="alinear" id="modalConfirmarEliminarInspira" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
+      <div style="background:var(--surface); max-width:400px; width:90%; padding:2rem; border-radius:16px; text-align:center; position:relative;">
+        <i class="fa-solid fa-triangle-exclamation fa-2x text-warning mb-3"></i>
+        <h4>¿Seguro que deseas eliminar esta entrada de Inspira?</h4>
+        <div class="mt-4 d-flex justify-content-center gap-2">
+          <button class="btn btn-danger" onclick="eliminarInspiraConfirmado()">
+            <i class="fa-solid fa-trash me-1"></i> Sí, eliminar
+          </button>
+          <button class="btn btn-secondary" onclick="cerrarModalEliminarInspira()">Cancelar</button>
+        </div>
+      </div>
+    </div>
 
-<div id="modalAgregarRecurso" class="alinear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
-  <div style="background:var(--surface); max-width:80%; width:90%; padding:2rem; border-radius:16px; position:relative; overflow:auto;">
-    <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalAgregarRecurso()"></button>
-    <h3 class="mb-4">➕ Agregar Nuevo Recurso</h3>
-          <form  class="row" id="formInspira" onsubmit="guardarInspira(event)">
-            <div class="col-lg-6 col-12">
-              <div class="row p-3">
-  <div class="my-3 col-lg-2 col-3"><label>ID</label><input type="number" class="form-control" id="inspiraId" required></div>
-            <div class="my-3 col-lg-6 col-9"><label>Título</label><input type="text" class="form-control" id="inspiraTitulo" required></div>
-            <div class="my-3 col-lg-4 col-12"><label>Fecha</label><input type="date" class="form-control" id="inspiraFecha"></div>
-            <div class="my-3"><label>Link del Contenido</label><input type="url" class="form-control" id="inspiraLink"></div>
+    <!-- Modal: Editar Inspira -->
+    <div id="modalEditarInspiraOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+      <div class="contenido-modal" style="background:var(--surface); padding:2rem; border-radius:16px; width:90%; max-width:700px; position:relative;">
+        <button class="btn-close position-absolute end-0 top-0 m-2" onclick="cerrarModalEditarInspira()"></button>
+        <h5 class="mb-3"><i class="fa-solid fa-pen me-2"></i>Editar Inspira</h5>
 
-            <div class="my-3 col-lg-6 col-12"><label>Imagen</label><input type="text" class="form-control" id="inspiraImagen" required></div>
-            <div class="my-3 col-lg-3 col-12"><label>Autor</label><input type="text" class="form-control" id="inspiraAutor" required></div>
-            <div class="my-3 col-lg-3 col-12">
-              <label>Duración</label><div class="input-group">
-                <input type="text" class="form-control" id="inspiraDuracion">
-                <select class="form-select" id="inspiraUnidad">
-                  <option value="minutos">min.</option>
-                  <option value="horas">hr.</option>
+        <div class="row">
+          <div class="col-lg-6 col-12">
+            <h6>ID</h6>
+            <input type="text" id="editInspiraId" class="form-control mb-2" readonly>
+            <h6>Título</h6>
+            <input type="text" id="editInspiraTitulo" class="form-control mb-2">
+            <h6>Fecha</h6>
+            <input type="date" id="editInspiraFecha" class="form-control mb-2">
+            <h6>Temática</h6>
+            <input type="text" id="editInspiraTematica" class="form-control mb-2">
+            <h6>Autor</h6>
+            <input type="text" id="editInspiraAutor" class="form-control mb-2">
+            <h6>Link</h6>
+            <input type="text" id="editLink" class="form-control mb-2">
+          </div>
+          <div class="col-lg-6 col-12">
+            <h6>Duración</h6>
+            <input type="text" id="editDuracion" class="form-control mb-2">
+            <h6>Categoría</h6>
+            <input type="text" id="editCategoria" class="form-control mb-2">
+            <h6>Imagen (URL)</h6>
+            <input type="text" id="editImagen" class="form-control mb-2">
+            <h6>Descripción</h6>
+            <textarea id="editDescripcion" class="form-control mb-2" rows="4"></textarea>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100 mt-3" onclick="guardarEdicionInspira()">
+          <i class="fa-solid fa-floppy-disk me-1"></i> Guardar cambios
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal: Agregar Recurso -->
+    <div id="modalAgregarRecurso" class="alinear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999;">
+      <div style="background:var(--surface); max-width:80%; width:90%; padding:2rem; border-radius:16px; position:relative; overflow:auto;">
+        <button class="btn-close position-absolute end-0 top-0 m-3" onclick="cerrarModalAgregarRecurso()"></button>
+        <h3 class="mb-4"><i class="fa-solid fa-plus me-2"></i>Agregar Nuevo Recurso</h3>
+        <form class="row" id="formInspira" onsubmit="guardarInspira(event)">
+          <div class="col-lg-6 col-12">
+            <div class="row p-3">
+              <div class="my-3 col-lg-2 col-3"><label>ID</label><input type="number" class="form-control" id="inspiraId" required></div>
+              <div class="my-3 col-lg-6 col-9"><label>Título</label><input type="text" class="form-control" id="inspiraTitulo" required></div>
+              <div class="my-3 col-lg-4 col-12"><label>Fecha</label><input type="date" class="form-control" id="inspiraFecha"></div>
+              <div class="my-3"><label>Link del Contenido</label><input type="url" class="form-control" id="inspiraLink"></div>
+              <div class="my-3 col-lg-6 col-12"><label>Imagen</label><input type="text" class="form-control" id="inspiraImagen" required></div>
+              <div class="my-3 col-lg-3 col-12"><label>Autor</label><input type="text" class="form-control" id="inspiraAutor" required></div>
+              <div class="my-3 col-lg-3 col-12">
+                <label>Duración</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="inspiraDuracion">
+                  <select class="form-select" id="inspiraUnidad">
+                    <option value="minutos">min.</option>
+                    <option value="horas">hr.</option>
+                  </select>
+                </div>
+              </div>
+              <div class="my-3 col-lg-6 col-12">
+                <label>Temática</label>
+                <select class="form-control" id="inspiraTematica">
+                  <option>Charlas</option><option>Ebook</option><option>Cursos</option><option>Podcast</option>
+                  <option>Netflix</option><option>Libros</option><option>Reportaje</option><option>Digital</option>
+                  <option>Financiamiento</option><option>Influencer</option>
+                </select>
+              </div>
+              <div class="my-3 col-lg-6 col-12">
+                <label>Categoría</label>
+                <select class="form-control" id="inspiraCategoria">
+                  <option>Marketing para tu Negocio</option>
+                  <option>Inspiración y Mentalidad Emprendedora</option>
+                  <option>Hablemos de Joyas</option>
+                  <option>Productividad y Finanzas</option>
+                  <option>Contenido para Iniciar tu Emprendimiento</option>
+                  <option>Herramientas Digitales para Emprender Mejor</option>
+                  <option>Influencers que Inspiran</option>
+                  <option>Contenido Cristiano</option>
                 </select>
               </div>
             </div>
-            <div class="my-3 col-lg-6 col-12">
-              <label>Temática</label>
-              <select class="form-control" id="inspiraTematica">
-                <option>Charlas</option><option>Ebook</option><option>Cursos</option><option>Podcast</option>
-                <option>Netflix</option><option>Libros</option><option>Reportaje</option><option>Digital</option>
-                <option>Financiamiento</option><option>Influencer</option>
-              </select>
+          </div>
+          <div class="col-lg-6 col-12">
+            <div class="row p-3">
+              <div class="my-3"><label>Descripción</label><textarea class="form-control" id="inspiraDescripcion" rows="2" required></textarea></div>
             </div>
-            <div class="my-3 col-lg-6 col-12">
-              <label>Categoría</label>
-              <select class="form-control" id="inspiraCategoria">
-                <option>Marketing para tu Negocio</option>
-                <option>Inspiración y Mentalidad Emprendedora</option>
-                <option>Hablemos de Joyas</option>
-                <option>Productividad y Finanzas</option>
-                <option>Contenido para Iniciar tu Emprendimiento</option>
-                <option>Herramientas Digitales para Emprender Mejor</option>
-                <option>Influencers que Inspiran</option>
-                <option>Contenido Cristiano</option>
-              </select>
-            </div>
-  
-              </div>
-            </div>
-            <div class="col-lg-6 col-12">
-             <div class="row p-3">
-            <div class="my-3"><label>Descripción</label><textarea class="form-control" id="inspiraDescripcion" rows="2" required></textarea></div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Guardar Entrada
+          </button>
+        </form>
+      </div>
+    </div>
 
-             </div>
-            </div>
-              <button type="submit" class="btn btn-primary w-100">Guardar Entrada</button>
-          </form>
-
-  </div>
-</div>
-
-<!-- Modal Genérico -->
-<div id="modalBase" class="alinear"
-     style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
-  <div id="modalBaseContent" 
-       style="background: var(--surface);padding:2rem; border-radius:16px; width:90%; max-width:800px; 
-              position:relative; overflow:auto; max-height:90vh;">
-              <div class="d-flex justify-content-between">
-<div></div>
-<div>  <button class="btn-close" onclick="cerrarModalBase()"></button></div>
-              </div>
-
-    <div id="modalBaseBody"></div>
-  </div>
-</div>
-
+    <!-- Modal Genérico -->
+    <div id="modalBase" class="alinear" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+      <div id="modalBaseContent" style="background:var(--surface); padding:2rem; border-radius:16px; width:90%; max-width:800px; position:relative; overflow:auto; max-height:90vh;">
+        <div class="d-flex justify-content-between mb-3">
+          <div></div>
+          <button class="btn-close" onclick="cerrarModalBase()"></button>
+        </div>
+        <div id="modalBaseBody"></div>
+      </div>
+    </div>
 
   </div>
 
-<!-- Firestore -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-<!-- Tu script -->
-<script src="js/modules/firebase-init.js"></script>
-<script src="js/modules/notificaciones.js"></script>
-<script src="js/modules/inspira.js"></script>
-<script src="js/modules/modales.js"></script>
-<script src="js/modules/tabs.js"></script>
-<script type="module" src="js/modules/checkAuth.js"></script>
-<script src="js/modules/permisos-tabs.js"></script>
-<script src="js/modules/verificar-tabs.js"></script>
-
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="js/modules/firebase-init.js"></script>
+  <script src="js/modules/notificaciones.js"></script>
+  <script src="js/modules/inspira.js"></script>
+  <script src="js/modules/modales.js"></script>
+  <script src="js/modules/tabs.js"></script>
+  <script type="module" src="js/modules/checkAuth.js"></script>
+  <script src="js/modules/permisos-tabs.js"></script>
+  <script src="js/modules/verificar-tabs.js"></script>
 </body>
 </html>
