@@ -367,7 +367,7 @@ button.btn {
   justify-content: center;
   gap: 6px;
   padding: 0 1rem;
-  height: 42px;
+  height: 44px;
   border-radius: var(--r-md);
   font-family: var(--font);
   font-size: 14px;
