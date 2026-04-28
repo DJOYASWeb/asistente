@@ -24,8 +24,8 @@ async function cargarCodigosExistentes() {
     <td>${data.correo}</td>
     <td>${codigo}</td>
     <td>
-        <button class="btn" onclick="editarCliente('${codigo}')"><i class="fa-solid fa-pen-to-square"></i></button>
-        <button class="btn" onclick="confirmarEliminarClienta('${codigo}')"><i class="fa-solid fa-trash-can"></i></button>
+        <button class="btn btn-icon" onclick="editarCliente('${codigo}')"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button class="btn btn-icon" onclick="confirmarEliminarClienta('${codigo}')"><i class="fa-solid fa-trash-can"></i></button>
     </td>
 `;
             tbody.appendChild(fila);
