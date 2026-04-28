@@ -1457,7 +1457,8 @@ function abrirModalExcel() {
   let modal = document.getElementById("modalExcelWeb");
   if (!modal) {
     modal = document.createElement("div");
-    modal.className = "modal fade"; modal.id = "modalExcelWeb"; modal.tabIndex = -1;
+    modal.className = "modal-overlay";
+    modal.id = "modalExcelWeb";
     modal.innerHTML = `
       <style>
         #modalExcelWeb .jexcel tbody td { white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important; }
@@ -1492,12 +1493,9 @@ function abrirModalExcel() {
     ? datosFiltrados : [...datosOriginales, ...datosCombinaciones];
   if (!dataset.length) { mostrarNotificacion("No hay datos para editar.", "alerta"); return; }
 
-  const modalInst = new bootstrap.Modal(modal);
-  modalInst.show();
-
-  modal.addEventListener('shown.bs.modal', function inicializarExcel() {
-    modal.removeEventListener('shown.bs.modal', inicializarExcel);
-    const contenedorExcel = document.getElementById("bodyExcelWeb");
+  modal.style.display = "flex";
+  inicializarExcel();
+  function inicializarExcel() {
     contenedorExcel.innerHTML = "";
     const barraVista      = document.getElementById("barraExcelVista");
     barraVista.value = "";
@@ -1573,6 +1571,7 @@ function abrirModalExcel() {
 }
 
 function cerrarModalExcel() {
+  document.getElementById("modalExcelWeb").style.display = "none";
   let dataset = (Array.isArray(datosFiltrados) && datosFiltrados.length)
     ? datosFiltrados : [...datosOriginales, ...datosCombinaciones];
   renderTablaConOrden(dataset);
@@ -1667,4 +1666,4 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
   return nombresEnchapado[categoriaBase] || "Enchapados";
 }
 
-//
+// V2.3
