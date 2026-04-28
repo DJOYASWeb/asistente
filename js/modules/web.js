@@ -130,9 +130,10 @@ async function cargarProyectosWebTab(tab) {
     grid.innerHTML = html;
     // Renderizar miniaturas
 document.querySelectorAll('.card-preview-iframe').forEach((iframe, i) => {
-  const doc2 = iframe.contentDocument || iframe.contentWindow.document;
   const codigo = snap.docs[i]?.data().codigo || '';
-  doc2.open(); doc2.write(buildPreviewHTML(codigo)); doc2.close();
+  const html   = buildPreviewHTML(codigo);
+  const blob   = new Blob([html], { type: 'text/html' });
+  iframe.src   = URL.createObjectURL(blob);
 });
   } catch (err) {
     console.error('Error cargando proyectos:', err);
