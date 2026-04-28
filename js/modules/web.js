@@ -108,9 +108,10 @@ async function cargarProyectosWebTab(tab) {
         : '—';
       const nombreSeguro  = (d.nombre || 'Sin nombre').replace(/'/g, "\\'");
       const contenidoB64  = btoa(unescape(encodeURIComponent(d.codigo || '')));
+      const estructuraB64 = btoa(unescape(encodeURIComponent(d.maqEstructura || '[]')));
 
         html += `
-        <div class="web-proyecto-card" data-tipo-padre="${d.tipoPadre || 'Otro'}" onclick="abrirEditorWeb('${doc.id}','${nombreSeguro}','${contenidoB64}','${d.tipoPadre || 'Otro'}')">
+        <div class="web-proyecto-card" data-tipo-padre="${d.tipoPadre || 'Otro'}" onclick="abrirEditorWeb('${doc.id}','${nombreSeguro}','${contenidoB64}','${d.tipoPadre || 'Otro'}','${estructuraB64}')">
             <div class="card-preview-wrap">
             <iframe class="card-preview-iframe" scrolling="no" sandbox="allow-scripts"></iframe>
             </div>
@@ -253,7 +254,7 @@ window.abrirEnNuevaVentanaWeb = function() {
 };
 
 // ─── 5. ABRIR EDITOR ────────────────────────────────────
-window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '', tipoPadre = 'Otro') {
+window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '', tipoPadre = 'Otro', estructuraB64 = '') {
   const meta = WEB_TABS[webTabActual];
 
   // Ocultar vista proyectos
@@ -302,7 +303,15 @@ const selectPadre = document.getElementById('input-tipo-padre');
   // Si usa biblioteca, cargarla (siempre fresca al abrir)
   if (meta.usaBiblioteca) await cargarBibliotecaWeb();
 
-  inicializarMaquetaDesdecodigo();
+  try {
+      maqEstructura = estructuraB64
+        ? JSON.parse(decodeURIComponent(escape(atob(estructuraB64))))
+        : [];
+    } catch(e) {
+      maqEstructura = [];
+    }
+    maqSeleccionado = null;
+    
   cambiarModoEdicion('codigo'); // siempre abre en modo código
 
   setTimeout(() => {
@@ -338,12 +347,13 @@ const tipoPadre = webTabActual === 'sistema'
     : null;
 
   const datos = {
-    nombre,
-    codigo,
-    tipo:               webTabActual,
-    tipoPadre,
-    fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp(),
-  };
+      nombre,
+      codigo,
+      tipo:               webTabActual,
+      tipoPadre,
+      maqEstructura:      JSON.stringify(maqEstructura),
+      fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp(),
+    };
 
   try {
     if (webProyectoActualId) {
