@@ -296,6 +296,9 @@ const selectPadre = document.getElementById('input-tipo-padre');
   // Si usa biblioteca, cargarla (siempre fresca al abrir)
   if (meta.usaBiblioteca) await cargarBibliotecaWeb();
 
+  inicializarMaquetaDesdecodigo();
+  cambiarModoEdicion('codigo'); // siempre abre en modo código
+
   setTimeout(() => {
     editorWebCM.refresh();
     editorWebCM.focus();
@@ -591,6 +594,253 @@ window.filtrarPadreWeb = function(tipoPadre, btnEl) {
     card.style.display = (!tipoPadre || cardTipo === tipoPadre) ? '' : 'none';
   });
 };
+
+
+// ═══════════════════════════════════════════
+//  MAQUETADOR VISUAL
+// ═══════════════════════════════════════════
+
+let maquetaBloques  = [];   // [{id, nombre, codigo}] orden del canvas
+let bloqueSeleccionadoId = null;
+let dragBloqueData  = null;
+
+// ── Cambiar entre modo Código y Visual ──────
+window.cambiarModoEdicion = function(modo) {
+  const modocodigo = document.getElementById('tab-modo-codigo');
+  const modovisual = document.getElementById('tab-modo-visual');
+  const filaEditor = document.querySelector('#vista-editor-web .row');
+  const vistaVisual = document.getElementById('modo-visual-web');
+
+  if (modo === 'visual') {
+    filaEditor.style.display   = 'none';
+    vistaVisual.style.display  = 'block';
+    modocodigo.className = 'btn btn-sm btn-outline-secondary';
+    modovisual.className = 'btn btn-sm btn-primary';
+    cargarBloquesEnPanelIzquierdo();
+    renderizarCanvas();
+  } else {
+    filaEditor.style.display   = '';
+    vistaVisual.style.display  = 'none';
+    modocodigo.className = 'btn btn-sm btn-primary';
+    modovisual.className = 'btn btn-sm btn-outline-secondary';
+  }
+};
+
+// ── Cargar bloques del sistema en panel izq ─
+window.cargarBloquesEnPanelIzquierdo = async function() {
+  const panel = document.getElementById('lista-bloques-sistema');
+  panel.innerHTML = '<p class="text-muted small px-2">Cargando...</p>';
+
+  try {
+    const snap = await db.collection('web_sistema').orderBy('fechaActualizacion','desc').get();
+    const grupos = {};
+
+    snap.forEach(doc => {
+      const d    = doc.data();
+      const tipo = d.tipoPadre || 'Otro';
+      if (!grupos[tipo]) grupos[tipo] = [];
+      grupos[tipo].push({ id: doc.id, nombre: d.nombre, codigo: d.codigo || '' });
+    });
+
+    let html = '';
+    for (const [tipo, items] of Object.entries(grupos)) {
+      html += `<div class="bloque-grupo-label">${tipo}</div>`;
+      items.forEach(item => {
+        const dataB64 = btoa(unescape(encodeURIComponent(JSON.stringify(item))));
+        html += `
+          <div class="bloque-sistema-item" 
+            draggable="true"
+            ondragstart="iniciarDragBloque(event, '${dataB64}')">
+            <i class="fas fa-grip-vertical" style="color:#555; font-size:.7rem;"></i>
+            ${item.nombre}
+          </div>`;
+      });
+    }
+
+    panel.innerHTML = html || '<p class="text-muted small px-2">Sin bloques</p>';
+  } catch(err) {
+    panel.innerHTML = '<p class="text-danger small px-2">Error al cargar</p>';
+  }
+};
+
+// ── Drag desde panel izquierdo ───────────────
+window.iniciarDragBloque = function(event, dataB64) {
+  dragBloqueData = JSON.parse(decodeURIComponent(escape(atob(dataB64))));
+  event.dataTransfer.effectAllowed = 'copy';
+};
+
+// ── Soltar en canvas ─────────────────────────
+window.soltarBloqueCanvas = function(event) {
+  event.preventDefault();
+  if (!dragBloqueData) return;
+
+  const nuevoBloque = {
+    uid:    Date.now(),
+    id:     dragBloqueData.id,
+    nombre: dragBloqueData.nombre,
+    codigo: dragBloqueData.codigo,
+  };
+
+  maquetaBloques.push(nuevoBloque);
+  dragBloqueData = null;
+  renderizarCanvas();
+};
+
+// ── Renderizar canvas ────────────────────────
+window.renderizarCanvas = function() {
+  const zona        = document.getElementById('canvas-drop-zone');
+  const placeholder = document.getElementById('canvas-placeholder');
+
+  if (maquetaBloques.length === 0) {
+    zona.innerHTML = '';
+    zona.appendChild(placeholder || crearPlaceholder());
+    return;
+  }
+
+  // Construir CSS global de biblioteca
+  const cssCompleto = webBiblioteca.css
+    .map(p => p.codigo).join('\n');
+
+  let html = '';
+  maquetaBloques.forEach((bloque, index) => {
+    html += `
+      <div class="canvas-bloque ${bloque.uid === bloqueSeleccionadoId ? 'seleccionado' : ''}"
+        onclick="seleccionarBloqueCanvas(${bloque.uid})"
+        draggable="true"
+        ondragstart="iniciarReordenCanvas(event, ${index})"
+        ondragover="event.preventDefault()"
+        ondrop="soltarReordenCanvas(event, ${index})">
+        
+        <div class="canvas-bloque-toolbar">
+          <button onclick="event.stopPropagation(); moverBloqueArriba(${index})" title="Subir" style="background:#4f46e5; color:#fff;">
+            <i class="fas fa-chevron-up"></i>
+          </button>
+          <button onclick="event.stopPropagation(); moverBloqueAbajo(${index})" title="Bajar" style="background:#4f46e5; color:#fff;">
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <button onclick="event.stopPropagation(); eliminarBloqueCanvas(${index})" title="Eliminar" style="background:#ef4444; color:#fff;">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div style="padding:16px;">
+          <style>${cssCompleto}</style>
+          ${bloque.codigo}
+        </div>
+      </div>`;
+  });
+
+  zona.innerHTML = html;
+};
+
+// ── Seleccionar bloque ───────────────────────
+window.seleccionarBloqueCanvas = function(uid) {
+  bloqueSeleccionadoId = uid;
+  const bloque = maquetaBloques.find(b => b.uid === uid);
+  if (!bloque) return;
+
+  document.getElementById('panel-bloque-nombre').textContent = bloque.nombre;
+  document.getElementById('panel-bloque-codigo').value       = bloque.codigo;
+  renderizarCanvas();
+};
+
+// ── Editar bloque desde panel derecho ────────
+window.actualizarBloqueSeleccionado = function() {
+  if (!bloqueSeleccionadoId) return;
+  const bloque = maquetaBloques.find(b => b.uid === bloqueSeleccionadoId);
+  if (!bloque) return;
+  bloque.codigo = document.getElementById('panel-bloque-codigo').value;
+  renderizarCanvas();
+};
+
+// ── Eliminar bloque seleccionado ─────────────
+window.eliminarBloqueSeleccionado = function() {
+  if (!bloqueSeleccionadoId) return;
+  maquetaBloques = maquetaBloques.filter(b => b.uid !== bloqueSeleccionadoId);
+  bloqueSeleccionadoId = null;
+  document.getElementById('panel-bloque-nombre').textContent = 'Selecciona un bloque';
+  document.getElementById('panel-bloque-codigo').value       = '';
+  renderizarCanvas();
+};
+
+window.eliminarBloqueCanvas = function(index) {
+  if (maquetaBloques[index].uid === bloqueSeleccionadoId) {
+    bloqueSeleccionadoId = null;
+    document.getElementById('panel-bloque-nombre').textContent = 'Selecciona un bloque';
+    document.getElementById('panel-bloque-codigo').value = '';
+  }
+  maquetaBloques.splice(index, 1);
+  renderizarCanvas();
+};
+
+// ── Reordenar con drag dentro del canvas ─────
+let dragIndexCanvas = null;
+
+window.iniciarReordenCanvas = function(event, index) {
+  dragIndexCanvas = index;
+  event.stopPropagation();
+  event.dataTransfer.effectAllowed = 'move';
+};
+
+window.soltarReordenCanvas = function(event, indexDestino) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (dragIndexCanvas === null || dragIndexCanvas === indexDestino) return;
+  const [movido] = maquetaBloques.splice(dragIndexCanvas, 1);
+  maquetaBloques.splice(indexDestino, 0, movido);
+  dragIndexCanvas = null;
+  renderizarCanvas();
+};
+
+window.moverBloqueArriba = function(index) {
+  if (index === 0) return;
+  [maquetaBloques[index - 1], maquetaBloques[index]] = [maquetaBloques[index], maquetaBloques[index - 1]];
+  renderizarCanvas();
+};
+
+window.moverBloqueAbajo = function(index) {
+  if (index === maquetaBloques.length - 1) return;
+  [maquetaBloques[index + 1], maquetaBloques[index]] = [maquetaBloques[index], maquetaBloques[index + 1]];
+  renderizarCanvas();
+};
+
+// ── Exportar canvas a código y cambiar a modo código ──
+window.exportarVisualACodigo = function() {
+  const cssCompleto = webBiblioteca.css.map(p => p.codigo).join('\n');
+  const jsCompleto  = webBiblioteca.js.map(p => p.codigo).join('\n');
+
+  const cuerpo = maquetaBloques.map(b => b.codigo).join('\n\n');
+
+  const htmlFinal = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+${cssCompleto}
+  </style>
+</head>
+<body style="margin:0;">
+
+${cuerpo}
+
+<script>
+${jsCompleto}
+<\/script>
+</body>
+</html>`;
+
+  if (editorWebCM) editorWebCM.setValue(htmlFinal);
+  cambiarModoEdicion('codigo');
+};
+
+// ── Al abrir maqueta cargar bloques si hay código ──
+function inicializarMaquetaDesdecodigo() {
+  maquetaBloques       = [];
+  bloqueSeleccionadoId = null;
+}
+
+
 
 // ─── INICIALIZACIÓN ─────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {

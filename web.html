@@ -221,6 +221,85 @@
 .card-footer-info {
   padding: 10px 14px 12px;
 }
+
+
+.bloque-sistema-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  cursor: grab;
+  font-size: .78rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.05);
+  color: var(--text, #fff);
+  border: 1px solid rgba(255,255,255,0.07);
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bloque-sistema-item:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.bloque-grupo-label {
+  font-size: .6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #666;
+  padding: 8px 10px 4px;
+}
+
+.canvas-bloque {
+  background: #fff;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  overflow: hidden;
+  position: relative;
+}
+
+.canvas-bloque:hover {
+  border-color: #818cf8;
+}
+
+.canvas-bloque.seleccionado {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.2);
+}
+
+.canvas-bloque-toolbar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: none;
+  gap: 4px;
+  z-index: 10;
+}
+
+.canvas-bloque:hover .canvas-bloque-toolbar,
+.canvas-bloque.seleccionado .canvas-bloque-toolbar {
+  display: flex;
+}
+
+.canvas-bloque-toolbar button {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: .7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+
+
   </style>
 </head>
 
@@ -432,6 +511,15 @@
         </div>
       </div>
 
+      <div class="d-flex gap-2 mb-3">
+        <button class="btn btn-sm btn-primary" id="tab-modo-codigo" onclick="cambiarModoEdicion('codigo')">
+          <i class="fas fa-code"></i> Código
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" id="tab-modo-visual" onclick="cambiarModoEdicion('visual')">
+          <i class="fas fa-vector-square"></i> Visual
+        </button>
+      </div>
+
       <div class="row">
         <!-- Editor -->
         <div id="columna-editor-web" class="col-lg-6 mb-4">
@@ -514,6 +602,53 @@
         </div>
       </div>
     </div>
+
+    <!-- MODO VISUAL -->
+<div id="modo-visual-web" style="display:none;">
+  <div style="display:flex; gap:0; height:80vh; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.07);">
+    
+    <!-- Panel izquierdo: bloques disponibles -->
+    <div id="panel-bloques-sistema" style="width:220px; flex-shrink:0; background:var(--surface-2,#1a1a2e); overflow-y:auto; padding:12px 8px; border-right:1px solid rgba(255,255,255,0.07);">
+      <p class="text-muted small fw-bold mb-2 px-2">BLOQUES</p>
+      <div id="lista-bloques-sistema"></div>
+    </div>
+
+    <!-- Canvas central -->
+    <div id="canvas-maqueta" style="flex:1; background:#f0f0f0; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px;">
+      <div id="canvas-drop-zone" 
+        style="min-height:100%; display:flex; flex-direction:column; gap:12px;"
+        ondragover="event.preventDefault()" 
+        ondrop="soltarBloqueCanvas(event)">
+        <div id="canvas-placeholder" style="text-align:center; color:#aaa; padding:3rem; border:2px dashed #ccc; border-radius:12px; font-size:.9rem;">
+          Arrastra bloques aquí
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel derecho: editor del bloque seleccionado -->
+    <div id="panel-editor-bloque" style="width:280px; flex-shrink:0; background:var(--surface-2,#1a1a2e); border-left:1px solid rgba(255,255,255,0.07); display:flex; flex-direction:column;">
+      <div style="padding:14px 12px; border-bottom:1px solid rgba(255,255,255,0.07);">
+        <p class="text-muted small fw-bold mb-0">EDITAR BLOQUE</p>
+        <p class="text-muted" style="font-size:.7rem;" id="panel-bloque-nombre">Selecciona un bloque</p>
+      </div>
+      <div style="flex:1; padding:12px; overflow-y:auto;">
+        <textarea id="panel-bloque-codigo" class="form-control" rows="20" 
+          style="font-family:monospace; font-size:.78rem; background:#111; color:#f8f8f2; border-color:#444; resize:none; height:100%;"
+          placeholder="Selecciona un bloque del canvas para editar su HTML"
+          oninput="actualizarBloqueSeleccionado()"></textarea>
+      </div>
+      <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.07); display:flex; gap:8px;">
+        <button class="btn btn-sm btn-danger flex-grow-1" onclick="eliminarBloqueSeleccionado()">
+          <i class="fas fa-trash"></i> Eliminar
+        </button>
+        <button class="btn btn-sm btn-success flex-grow-1" onclick="exportarVisualACodigo()">
+          <i class="fas fa-code"></i> → Código
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
     <!-- ══════════════════════════════
          VISTA CONFIGURACIÓN
