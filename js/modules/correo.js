@@ -211,9 +211,9 @@ window.cargarProyectosCorreo = async function() {
     
     let html = `
     <div class="col-12 col-md-4 col-lg-3 mb-4">
-      <div class="ios-card d-flex flex-column align-items-center justify-content-center h-100 shadow-sm" style="min-height: 200px; cursor: pointer; border: 2px dashed #007bff; background-color: rgba(0, 123, 255, 0.05);" onclick="abrirEditorCorreo('nuevo')">
-        <i class="fas fa-plus fa-3x mb-2 text-primary"></i>
-        <h5 class="text-primary mt-2">Nuevo Proyecto</h5>
+      <div class="ios-card d-flex flex-column align-items-center justify-content-center h-100 shadow-sm" style="min-height: 200px; cursor: pointer; border: 2px dashed var(--accent); background-color: rgba(0, 123, 255, 0.05);" onclick="abrirEditorCorreo('nuevo')">
+        <i class="fas fa-plus fa-3x mb-2"></i>
+        <h5 class="mt-2">Nuevo Proyecto</h5>
       </div>
     </div>`;
 
