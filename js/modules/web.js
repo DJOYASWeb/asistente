@@ -269,8 +269,7 @@ window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '', tipoP
 
   webProyectoActualId = id === 'nuevo' ? null : id;
 
-  // Inicializar CodeMirror si primera vez
-  if (!editorWebCM) {
+if (!editorWebCM) {
     editorWebCM = CodeMirror.fromTextArea(document.getElementById('codigo-web'), {
       mode:          meta.modo,
       theme:         'monokai',
@@ -280,6 +279,13 @@ window.abrirEditorWeb = async function(id, nombre = '', contenidoB64 = '', tipoP
     });
     editorWebCM.on('change', () => actualizarPreviewWeb());
   }
+
+  editorWebCM.setOption('mode', meta.modo);
+  document.getElementById('selector-modo-web').value = meta.modo;
+
+  const contenido = id === 'nuevo' ? '' : decodeURIComponent(escape(atob(contenidoB64)));
+  editorWebCM.setValue(contenido);
+  editorWebCM.clearHistory();
 
   // Modo del editor según tab
   editorWebCM.setOption('mode', meta.modo);
