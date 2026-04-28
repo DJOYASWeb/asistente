@@ -16,7 +16,7 @@
   --text-3:       #aeaeb2;
 
   /* Acento único — índigo suave (no azul eléctrico) */
-  --accent:       #5856d6;
+  --accent:       #644fb3;
   --accent-soft:  #efeefd;
   --accent-mid:   #c7c5f5;
 
@@ -162,7 +162,10 @@ a { text-decoration: none; color: inherit; }
 /* Área de contenido scrolleable */
 .content-area {
   flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 1.5rem 1.75rem;
+  height: 0; /* fuerza que flex respete el scroll en lugar de expandirse */
 }
 
 /* =============================================
@@ -345,9 +348,9 @@ h2 { font-size: 20px !important; font-weight: 500; letter-spacing: -0.01em; line
 h3 { font-size: 16px; font-weight: 500; line-height: 1.4; color: var(--text-1); }
 h4 { font-size: 14px; font-weight: 500; color: var(--text-1); }
 
-.text-muted  { color: var(--text-2); }
-.text-hint   { color: var(--text-3); }
-.text-accent { color: var(--accent); }
+.text-muted  { color: var(--text-2)!important; }
+.text-hint   { color: var(--text-3)!important; }
+.text-accent { color: var(--accent)!important; }
 .text-xs     { font-size: 12px; }
 .text-sm     { font-size: 13px; }
 .text-lg     { font-size: 17px; }
@@ -356,6 +359,7 @@ h4 { font-size: 14px; font-weight: 500; color: var(--text-1); }
    BOTONES
    ============================================= */
 
+
 .btn,
 button.btn {
   display: inline-flex;
@@ -363,7 +367,7 @@ button.btn {
   justify-content: center;
   gap: 6px;
   padding: 0 1rem;
-  height: 42px;
+  height: 44px;
   border-radius: var(--r-md);
   font-family: var(--font);
   font-size: 14px;
@@ -378,11 +382,11 @@ button.btn {
 
 /* Primario */
 .btn-primary {
-  background: var(--text-1);
-  color: var(--surface);
+    background: var(--accent) !important;
+    color: #fff !important;
   border-color: var(--text-1);
 }
-.btn-primary:hover { opacity: 0.85; color: var(--surface) !important; }
+.btn-primary:hover { opacity: 0.85; color: #fff !important; border:none;}
 
 /* Acento */
 .btn-accent {
@@ -395,13 +399,12 @@ button.btn {
 /* Secundario */
 .btn-secondary,
 .btn-outline {
-  background: var(--surface-2);
+  background: var(--surface)!important;
   color: var(--text-1);
-  border-color: var(--border);
 }
 .btn-secondary:hover,
 .btn-outline:hover {
-  background: var(--surface-3);
+    background-color: var(--surface-3) !important;
   color: var(--text-1) !important;
 }
 
@@ -421,24 +424,8 @@ button.btn {
 }
 .btn-ghost:hover { background: var(--surface-2); color: var(--text-1) !important; }
 
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--r-md);
-  color: var(--text-2);
-  background: transparent;
-  border: none;
-  transition: background var(--ease), color var(--ease);
-}
-
-.btn-icon:hover {
-  background: var(--accent-soft);
-  color: var(--accent) !important;
-} { height: 30px; padding: 0 0.75rem; font-size: 13px; border-radius: var(--r-sm); }
+/* Tamaños */
+.btn-sm { height: 30px; padding: 0 0.75rem; font-size: 13px; border-radius: var(--r-sm); }
 .btn-lg { height: 44px; padding: 0 1.5rem; font-size: 15px; border-radius: var(--r-lg); }
 .btn-xl { height: 52px; padding: 0 2rem; font-size: 16px; border-radius: var(--r-xl); width: 100%; }
 
@@ -471,7 +458,7 @@ textarea {
   padding: 0.625rem 0.875rem;
   font-family: var(--font);
   font-size: 15px;
-  color: var(--text-1);
+  color: var(--text-1)!important;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -491,6 +478,8 @@ select:focus,
 textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+background-color: var(--surface);
+  color:#fff;
 }
 
 textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
@@ -705,6 +694,10 @@ tbody tr:last-child td { border-bottom: none; }
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border);
   position: relative;
+}
+
+.modal-content{
+      background: var(--surface);
 }
 
 .modal-contenidos {
@@ -1236,7 +1229,6 @@ pre {
 .btn-copy:hover { background: var(--surface-3); color: var(--text-1) !important; }
 
 .celda-blog {
-  display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -1355,7 +1347,7 @@ pre {
   }
   .sidebar.active { transform: translateX(0); }
 
-  .ios-card { padding: 1rem; }
+  .ios-card { padding: 1rem;margin-top: 1rem; }
   .modal-contenidos { margin: 1rem; }
   .content-area { padding: 1rem; }
 
@@ -1396,8 +1388,6 @@ body.protegido { display: none; }
   width: 90%;
   box-shadow: var(--shadow-md);
 }
-
-
 
 .jexcel{
     background: var(--surface);
@@ -1463,3 +1453,4 @@ border-color: var(--accent) !important;
     border-radius: 10px;
     width:25%;
 }
+
