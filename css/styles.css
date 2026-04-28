@@ -396,7 +396,7 @@ button.btn {
 
 /* Overrides Bootstrap */
 .btn:focus:not(:focus-visible) { outline: 0; background: revert; color: revert; }
-.btn:hover { color: revert; }
+.btn:hover { color: revert;border-color: var(--accent); }
 .btn.disabled, .btn:disabled, fieldset:disabled { border-color: var(--accent) !important; }
 
 /* =============================================
