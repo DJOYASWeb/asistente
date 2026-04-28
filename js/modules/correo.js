@@ -81,7 +81,7 @@ window.renderizarListaConfiguracion = function() {
   html += `<h6 class="fw-bold text-primary mt-2 d-block">Bloques Rápidos</h6>`;
   configPersonalizada.bloques.forEach((b, i) => {
     html += `
-    <div class="list-group-item d-flex justify-content-between align-items-center bg-white mb-2 border rounded shadow-sm">
+    <div class="list-group-item d-flex justify-content-between align-items-center mb-2 border rounded shadow-sm">
       <div><strong>${b.nombre}</strong> <br><span class="text-muted small" style="font-family: monospace;">${escaparHTML(b.codigo).substring(0, 60)}...</span></div>
       <div>
         <button class="btn btn-sm btn-outline-primary me-2" onclick="abrirModalEdicion('bloques', ${i})"><i class="fas fa-edit"></i> Editar</button>
@@ -93,7 +93,7 @@ window.renderizarListaConfiguracion = function() {
   html += `<h6 class="fw-bold text-success mt-4 d-block">Variables Brevo</h6>`;
   configPersonalizada.variables.forEach((v, i) => {
     html += `
-    <div class="list-group-item d-flex justify-content-between align-items-center bg-white mb-2 border rounded shadow-sm">
+    <div class="list-group-item d-flex justify-content-between align-items-center mb-2 border rounded shadow-sm">
       <div><strong>${v.nombre}</strong> <span class="text-muted small ms-2" style="font-family: monospace;">(${escaparHTML(v.codigo)})</span></div>
       <div>
         <button class="btn btn-sm btn-outline-primary me-2" onclick="abrirModalEdicion('variables', ${i})"><i class="fas fa-edit"></i> Editar</button>
