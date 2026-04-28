@@ -417,7 +417,6 @@ input[type="search"],
 select,
 textarea {
   width: 100%;
-  padding: 0.625rem 0.875rem;
   font-family: var(--font);
   font-size: 15px;
   color: var(--text-1) !important;
@@ -428,6 +427,7 @@ textarea {
   transition: border-color var(--ease), box-shadow var(--ease);
   -webkit-appearance: none;
   appearance: none;
+  line-height:
 }
 
 input[type="file"]::file-selector-button {
