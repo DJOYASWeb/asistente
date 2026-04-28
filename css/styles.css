@@ -94,6 +94,7 @@
 /* ── Reset mínimo ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
+
 body {
   font-family: var(--font);
   font-size: 15px;
@@ -104,6 +105,15 @@ body {
   overflow: hidden;
   display: flex;
   -webkit-font-smoothing: antialiased;
+}
+
+
+
+
+
+input::placeholder {
+  color: #4b4b4b;
+  opacity: 1; /* Firefox lo reduce por defecto */
 }
 
 a { text-decoration: none; color: inherit; }
