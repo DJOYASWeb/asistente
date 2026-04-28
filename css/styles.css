@@ -504,6 +504,8 @@ tbody tr:last-child td { border-bottom: none; }
 
 .table-bordered > :not(caption) > * > * { border: 1px solid var(--surface-3) !important; }
 
+.custom-table > :not(caption) > * > * { border: 1px solid var(--surface) !important; }
+
 /* =============================================
    BADGE / PILL
    ============================================= */

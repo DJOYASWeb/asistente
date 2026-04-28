@@ -1050,7 +1050,7 @@ function abrirModalDetalleProducto(codigo, index) {
           placeholder="Ingresar ID" value="${idValue}">
       </div>
     </div>
-    <table class="table table-bordered table-sm align-middle">
+    <table class="table table-bordered table-sm align-middle custom-table">
       <thead class="table-light"><tr><th>Numeración</th><th>Cantidad</th></tr></thead>
       <tbody id="tablaNumeraciones">
         ${detalle.map(d => `
