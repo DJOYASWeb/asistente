@@ -11,91 +11,84 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 </head>
 
-
 <body class="protegido" data-theme="light">
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
   <!-- Sidebar -->
-<div class="sidebar oculta-permisos" id="sidebar">
-  <div>
-    <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
-      <span class="icon"><i class="fas fa-bars"></i></span>
-      <span class="label">
-        <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
-      </span>
-    </h2>
+  <div class="sidebar oculta-permisos" id="sidebar">
+    <div>
+      <h2 onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">
+          <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
+        </span>
+      </h2>
 
-    <nav>
-      <!-- 1️⃣ INICIO -->
-      <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
-        <span class="icon"><i class="fas fa-home"></i></span>
-        <span class="label">Inicio</span>
+      <nav>
+        <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
+          <span class="icon"><i class="fas fa-home"></i></span>
+          <span class="label">Inicio</span>
+        </a>
+
+        <div class="menu-group" data-group="catalogo">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
+            <span class="icon"><i class="fa-regular fa-address-card"></i></span>
+            <span class="label">Catálogo</span>
+          </a>
+          <div class="submenu">
+            <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
+          </div>
+        </div>
+
+        <div class="menu-group" data-group="contenidos">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
+            <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
+            <span class="label">Contenidos</span>
+          </a>
+          <div class="submenu">
+            <a href="blog.html" data-tab="blog" class="submenu-item">DJOYAS Blog</a>
+            <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
+          </div>
+        </div>
+
+        <div class="menu-group" data-group="planillas">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
+            <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
+            <span class="label">Planillas</span>
+          </a>
+          <div class="submenu">
+            <a href="#" data-tab="cotizar" class="submenu-item">Cotizar</a>
+            <a href="productos.html" data-tab="productos" class="submenu-item">Recategorizar</a>
+            <a href="planilla.html" data-tab="planilla" class="submenu-item">Planilla Presta</a>
+            <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <div class="bottom-links">
+      <a href="compresor.html" data-tab="tareas" class="menu-item">
+        <span class="icon"><i class="fa fa-cog"></i></span>
+        <span class="label">Comprimir IMG</span>
       </a>
-
-      <!-- 2️⃣ CATÁLOGO -->
-      <div class="menu-group" data-group="catalogo">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
-          <span class="icon"><i class="fa-regular fa-address-card"></i></span>
-          <span class="label">Catálogo</span>
-        </a>
-        <div class="submenu">
-          <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
-        </div>
-      </div>
-
-      <!-- 3️⃣ CONTENIDOS -->
-      <div class="menu-group" data-group="contenidos">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
-          <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
-          <span class="label">Contenidos</span>
-        </a>
-        <div class="submenu">
-          <a href="blog.html" data-tab="blog" class="submenu-item">DJOYAS Blog</a>
-          <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
-        </div>
-      </div>
-
-      <!-- 4️⃣ PLANILLAS -->
-      <div class="menu-group" data-group="planillas">
-        <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
-          <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
-          <span class="label">Planillas</span>
-        </a>
-        <div class="submenu">
-          <a href="#" data-tab="cotizar" class="submenu-item">Cotizar</a>
-          <a href="productos.html" data-tab="productos" class="submenu-item">Recategorizar</a>
-          <a href="planilla.html" data-tab="planilla" class="submenu-item">Planilla Presta</a>
-          <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
-        </div>
-      </div>
-
-     
-    </nav>
+      <a href="tareas.html" data-tab="tareas" class="menu-item">
+        <span class="icon"><i class="fas fa-list-check"></i></span>
+        <span class="label">Tareas Diarias</span>
+      </a>
+      <a href="calendario.html" data-tab="calendario" class="menu-item">
+        <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
+        <span class="label">Calendario</span>
+      </a>
+      <a href="configuracion.html" data-tab="configuracion" class="menu-item">
+        <span class="icon"><i class="fas fa-cog"></i></span>
+        <span class="label">Configuración</span>
+      </a>
+    </div>
   </div>
-
-  <div class="bottom-links">
-    <a href="compresor.html" data-tab="tareas" class="menu-item">
-      <span class="icon"><i class="fa fa-cog"></i></span>
-      <span class="label">Comprimir IMG</span>
-    </a>
-    <a href="tareas.html" data-tab="tareas" class="menu-item">
-      <span class="icon"><i class="fas fa-list-check"></i></span>
-      <span class="label">Tareas Diarias</span>
-    </a>
-    <a href="calendario.html" data-tab="calendario" class="menu-item">
-      <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
-      <span class="label">Calendario</span>
-    </a>
-    <a href="configuracion.html" data-tab="configuracion" class="menu-item">
-      <span class="icon"><i class="fas fa-cog"></i></span>
-      <span class="label">Configuración</span>
-    </a>
-  </div>
-</div>
 
   <!-- Contenido principal -->
-    <div class="main-content">
-    
+  <div class="main-content">
+
     <div class="topbar">
       <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
       <div class="profile-section">
@@ -111,126 +104,193 @@
     <div class="container">
       <div class="tab-content-ios">
 
+        <!-- TAB: CREAR -->
         <div id="crear" class="tab-section d-none">
           <div class="container" id="blogWizard">
-            
+
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h1 class="mb-0">Generador de Blog DJOYAS</h1>
               <button class="btn btn-secondary btn-sm" onclick="window.mostrarPreferencias()">
-                <i class="fa fa-cog"></i> Administrar Preferencias
+                <i class="fa fa-cog me-1"></i> Administrar Preferencias
               </button>
             </div>
 
             <div class="ios-card mb-3">
-               <label>📝 Cargar blog existente:</label>
-               <div class="row">
-                 <div class="col-9">
-                   <select id="selectBlogExistente" class="form-control">
-                     <option value="">-- Selecciona un blog existente --</option>
-                   </select>
-                 </div>
-                 <div class="col-3">
-                   <button id="btnIniciarBlog" class="btn btn-primary w-100" type="button" disabled>Iniciar blog</button>
-                 </div>
-               </div>
+              <label><i class="fa-solid fa-file-import me-1"></i> Cargar blog existente:</label>
+              <div class="row">
+                <div class="col-9">
+                  <select id="selectBlogExistente" class="form-control">
+                    <option value="">-- Selecciona un blog existente --</option>
+                  </select>
+                </div>
+                <div class="col-3">
+                  <button id="btnIniciarBlog" class="btn btn-primary w-100" type="button" disabled>Iniciar blog</button>
+                </div>
+              </div>
             </div>
 
+            <!-- STEP 1 -->
             <div class="ios-card mb-5 wizard-step" id="step1" style="display:none;">
-                <div class="cabecera-step row justify-content-between">
-                    <div class="col-auto"><h2>Datos del blog:</h2></div>
-                    <div class="col-auto"><span>Paso 1 de 4</span></div>
+              <div class="cabecera-step row justify-content-between">
+                <div class="col-auto"><h2>Datos del blog:</h2></div>
+                <div class="col-auto"><span>Paso 1 de 4</span></div>
+              </div>
+              <hr>
+              <div class="row">
+                <div class="col-lg-6">
+                  <label><i class="fa-solid fa-heading me-1"></i> Título:</label>
+                  <input class="form-control" type="text" id="titulo">
                 </div>
-                <hr>
-                <div class="row">
-                    <div class="col-lg-6"><label>📌 TÍTULO:</label><input class="form-control" type="text" id="titulo"></div>
-                    <div class="col-lg-6"><label>📆 FECHA:</label><input class="form-control" type="text" id="fecha"></div>
+                <div class="col-lg-6">
+                  <label><i class="fa-solid fa-calendar me-1"></i> Fecha:</label>
+                  <input class="form-control" type="text" id="fecha">
                 </div>
-                <div class="row pt-3">
-                    <div class="col-lg-6"><label>👩‍💻 AUTOR:</label><select class="form-control" id="autor"><option>Sofía de DJOYAS</option></select></div>
-                    <div class="col-lg-6"><label>🏷️ CATEGORÍA:</label>
-                       <select class="form-control" id="categoria">
-            <option value="Emprendimiento">Emprendimiento</option>
-            <option value="Sabías que?">Sabías que?</option>
-            <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
-            <option value="Innovación">Innovación</option>
-            <option value="Beneficios">Beneficios</option>
-            <option value="Sustentable">Sustentable</option>
-            <option value="Tips">Tips</option>
-            <option value="Tendencias">Tendencias</option>
-          </select>
-
-                    
-                    </div>
+              </div>
+              <div class="row pt-3">
+                <div class="col-lg-6">
+                  <label><i class="fa-solid fa-user-pen me-1"></i> Autor:</label>
+                  <select class="form-control" id="autor">
+                    <option>Sofía de DJOYAS</option>
+                  </select>
                 </div>
-                <div class="row pt-3">
-                    <div class="col-lg-6"><label>🖼️ URL IMAGEN:</label><input class="form-control" type="text" id="imagen"></div>
-                    <div class="col-lg-6"><label>🔤 ALT IMAGEN:</label><input class="form-control" type="text" id="altImagen"></div>
+                <div class="col-lg-6">
+                  <label><i class="fa-solid fa-tag me-1"></i> Categoría:</label>
+                  <select class="form-control" id="categoria">
+                    <option value="Emprendimiento">Emprendimiento</option>
+                    <option value="Sabías que?">Sabías que?</option>
+                    <option value="Cuidado y Mantenimiento">Cuidado y Mantenimiento</option>
+                    <option value="Innovación">Innovación</option>
+                    <option value="Beneficios">Beneficios</option>
+                    <option value="Sustentable">Sustentable</option>
+                    <option value="Tips">Tips</option>
+                    <option value="Tendencias">Tendencias</option>
+                  </select>
                 </div>
-                <button class="btn btn-primary mt-3 float-end" id="next1">Siguiente</button>
+              </div>
+              <div class="row pt-3">
+                <div class="col-lg-6">
+                  <label><i class="fa-solid fa-image me-1"></i> URL Imagen:</label>
+                  <input class="form-control" type="text" id="imagen">
+                </div>
+                <div class="col-lg-6">
+                  <label><i class="fa-solid fa-font me-1"></i> Alt Imagen:</label>
+                  <input class="form-control" type="text" id="altImagen">
+                </div>
+              </div>
+              <button class="btn btn-primary mt-3 float-end" id="next1">Siguiente</button>
             </div>
 
+            <!-- STEP 2 -->
             <div class="ios-card mb-5 wizard-step" id="step2" style="display:none;">
-                <h2>Cuerpo del blog (HTML):</h2>
-                <textarea class="form-control" id="cuerpo" rows="10"></textarea>
-                <div class="d-flex justify-content-between mt-3">
-                    <button class="btn btn-secondary" id="prev2">Atrás</button>
-                    <button class="btn btn-primary" id="next2">Siguiente</button>
-                </div>
+              <h2>Cuerpo del blog (HTML):</h2>
+              <textarea class="form-control" id="cuerpo" rows="10"></textarea>
+              <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-secondary" id="prev2">Atrás</button>
+                <button class="btn btn-primary" id="next2">Siguiente</button>
+              </div>
             </div>
 
+            <!-- STEP 3 -->
             <div class="ios-card mb-5 wizard-step" id="step3" style="display:none;">
-                <h2>Relacionados:</h2>
-                <button class="btn btn-success mb-3" id="btnAutoAsignar">Auto asignar</button>
-                <div class="row">
-                    <div class="col-6"><label>Anterior</label><select id="selectAnterior" class="form-control"></select></div>
-                    <div class="col-6"><label>Siguiente</label><select id="selectSiguiente" class="form-control"></select></div>
+              <h2>Relacionados:</h2>
+              <button class="btn btn-success mb-3" id="btnAutoAsignar">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto asignar
+              </button>
+              <div class="row">
+                <div class="col-6">
+                  <label>Anterior</label>
+                  <select id="selectAnterior" class="form-control"></select>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-4"><label>Destacado 1</label><select id="select1" class="form-control"></select></div>
-                    <div class="col-4"><label>Destacado 2</label><select id="select2" class="form-control"></select></div>
-                    <div class="col-4"><label>Destacado 3</label><select id="select3" class="form-control"></select></div>
+                <div class="col-6">
+                  <label>Siguiente</label>
+                  <select id="selectSiguiente" class="form-control"></select>
                 </div>
-                <div class="d-flex justify-content-between mt-3">
-                    <button class="btn btn-secondary" id="prev3">Atrás</button>
-                    <button class="btn btn-primary" id="next3">Siguiente</button>
+              </div>
+              <div class="row mt-3">
+                <div class="col-4">
+                  <label>Destacado 1</label>
+                  <select id="select1" class="form-control"></select>
                 </div>
+                <div class="col-4">
+                  <label>Destacado 2</label>
+                  <select id="select2" class="form-control"></select>
+                </div>
+                <div class="col-4">
+                  <label>Destacado 3</label>
+                  <select id="select3" class="form-control"></select>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between mt-3">
+                <button class="btn btn-secondary" id="prev3">Atrás</button>
+                <button class="btn btn-primary" id="next3">Siguiente</button>
+              </div>
             </div>
 
+            <!-- STEP 4 -->
             <div class="ios-card mb-5 wizard-step" id="step4" style="display:none;">
-                <h2>Generar:</h2>
-                <button class="btn btn-success" id="btnGenerar">Generar HTML</button>
-                <pre id="resultado" class="mt-3 p-3 border"></pre>
-                <button class="btn btn-info mt-2" id="btnCopiar">Copiar Código</button>
-                <button class="btn btn-secondary mt-2" id="prev4">Atrás</button>
+              <h2>Generar:</h2>
+              <button class="btn btn-success" id="btnGenerar">
+                <i class="fa-solid fa-code me-1"></i> Generar HTML
+              </button>
+              <pre id="resultado" class="mt-3 p-3 border"></pre>
+              <button class="btn btn-info mt-2" id="btnCopiar">
+                <i class="fa-solid fa-copy me-1"></i> Copiar Código
+              </button>
+              <button class="btn btn-secondary mt-2" id="prev4">Atrás</button>
             </div>
 
           </div>
 
+          <!-- Sección Preferencias -->
           <div class="container d-none" id="seccionPreferencias">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <button class="btn btn-outline-secondary" onclick="window.cerrarPreferencias()">Volver</button>
-                <h2>⚙️ Configuración del Pool</h2>
-                <button class="btn btn-primary" onclick="window.abrirModalPool()">Agregar Blogs</button>
+              <button class="btn btn-outline-secondary" onclick="window.cerrarPreferencias()">
+                <i class="fa-solid fa-arrow-left me-1"></i> Volver
+              </button>
+              <h2><i class="fa-solid fa-gear me-1"></i> Configuración del Pool</h2>
+              <button class="btn btn-primary" onclick="window.abrirModalPool()">
+                <i class="fa-solid fa-plus me-1"></i> Agregar Blogs
+              </button>
             </div>
             <div class="ios-card">
-                <table class="table"><tbody id="tablaPreferenciasBody"></tbody></table>
-                <div id="mensajeVacio" class="text-center d-none">Sin blogs seleccionados</div>
+              <table class="table"><tbody id="tablaPreferenciasBody"></tbody></table>
+              <div id="mensajeVacio" class="text-center d-none">Sin blogs seleccionados</div>
             </div>
           </div>
         </div>
 
-
-        <div id="calendario" class="tab-section"> <div class="top-bar ios-card mb-3">
-            <h2>📋 Gestión de Datos</h2>
+        <!-- TAB: CALENDARIO -->
+        <div id="calendario" class="tab-section">
+          <div class="top-bar ios-card mb-3">
+            <h2><i class="fa-solid fa-table-list me-1"></i> Gestión de Datos</h2>
             <div class="row g-2">
-                <div class="col-md-6"><input class="form-control" type="text" id="filtroTexto" placeholder="🔍 Buscar..." oninput="filtrarTabla()"></div>
-                <div class="col-md-2"><button class="btn btn-primary w-100" onclick="abrirModalAgregarDato()">➕ Agregar</button></div>
-                <div class="col-md-2"><button class="btn btn-outline-success w-100" onclick="exportarSeleccionados()">📤 Exportar</button></div>
-                <div class="col-md-1"><button class="btn btn-secondary w-100" id="btnCargarCsv">📥</button><input type="file" id="csvInput" accept=".csv" class="d-none"></div>
-                <div class="col-md-1"><button class="btn btn-outline-primary w-100" onclick="cargarDatosDesdeFirestore()">🔄</button></div>
+              <div class="col-md-6">
+                <input class="form-control" type="text" id="filtroTexto" placeholder="Buscar..." oninput="filtrarTabla()">
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-primary w-100" onclick="abrirModalAgregarDato()">
+                  <i class="fa-solid fa-plus me-1"></i> Agregar
+                </button>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-outline-success w-100" onclick="exportarSeleccionados()">
+                  <i class="fa-solid fa-file-export me-1"></i> Exportar
+                </button>
+              </div>
+              <div class="col-md-1">
+                <button class="btn btn-secondary w-100" id="btnCargarCsv">
+                  <i class="fa-solid fa-file-import"></i>
+                </button>
+                <input type="file" id="csvInput" accept=".csv" class="d-none">
+              </div>
+              <div class="col-md-1">
+                <button class="btn btn-outline-primary w-100" onclick="cargarDatosDesdeFirestore()">
+                  <i class="fa-solid fa-rotate"></i>
+                </button>
+              </div>
             </div>
           </div>
-            
+
           <div id="contenedorTabla" class="ios-card">
             <table id="tablaDatos" class="table table-hover">
               <thead>
@@ -248,141 +308,121 @@
               <tbody></tbody>
             </table>
           </div>
-
         </div>
 
       </div>
     </div>
   </div>
 
-<div id="modalSeleccionPool" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+  <!-- Modal: Selección Pool -->
+  <div id="modalSeleccionPool" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
     <div class="modal-contenido" style="padding:20px; border-radius:8px; width:90%; max-width:600px; height:80vh; display:flex; flex-direction:column;">
-        
-        <div class="d-flex justify-content-between mb-3">
-            <h4>Gestionar Selección</h4>
-            <button class="btn-close" onclick="window.cerrarModalPool()"></button>
-        </div>
-        
-        <input type="text" id="buscadorModal" class="form-control mb-3" placeholder="🔍 Buscar...">
-        
-        <div id="listaModalBody" style="overflow-y:auto; flex:1; border-radius:4px;"></div>
-        
-        <button class="btn btn-success mt-3" onclick="window.guardarCambiosModal()">Guardar</button>
+      <div class="d-flex justify-content-between mb-3">
+        <h4><i class="fa-solid fa-star me-1"></i> Gestionar Selección</h4>
+        <button class="btn-close" onclick="window.cerrarModalPool()"></button>
+      </div>
+      <input type="text" id="buscadorModal" class="form-control mb-3" placeholder="Buscar...">
+      <div id="listaModalBody" style="overflow-y:auto; flex:1; border-radius:4px;"></div>
+      <button class="btn btn-success mt-3" onclick="window.guardarCambiosModal()">
+        <i class="fa-solid fa-floppy-disk me-1"></i> Guardar
+      </button>
     </div>
-</div>
+  </div>
 
+  <!-- Modal: Agregar Dato -->
   <div id="modalAgregarDato" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:var(--surface); width:90%; max-width:900px; padding:2rem; border-radius:12px; max-height:90vh; overflow-y:auto; position:relative;">
       <button class="btn-close position-absolute top-0 end-0 m-3" onclick="cerrarModalAgregarDato()"></button>
-      <h3>➕ Agregar Nuevo Dato</h3>
+      <h3><i class="fa-solid fa-plus me-1"></i> Agregar Nuevo Dato</h3>
       <div class="row">
-          <div class="col-md-6">
-              <input type="number" id="nuevoId" class="form-control mb-2" placeholder="ID">
-              <input type="text" id="nuevoNombre" class="form-control mb-2" placeholder="Nombre">
-              <select id="nuevoEstado" class="form-control mb-2"><option value="pendiente">Pendiente</option><option value="transcrito">Transcrito</option></select>
-              <input type="date" id="nuevaFecha" class="form-control mb-2">
-              <span>🔗 URL (Automática)</span>
-    <input type="text" id="nuevaUrl" class="form-control mb-3" readonly style="color:#fff; font-size: 0.85rem;">
-       <textarea id="nuevoMeta" class="form-control" placeholder="Meta descripción"></textarea>
-         <span>🖼️ URL Imagen</span>
-<input type="text" id="nuevaImagen" class="form-control mb-3" placeholder="URL de la imagen (o se generará auto)">
-      
-      
+        <div class="col-md-6">
+          <input type="number" id="nuevoId" class="form-control mb-2" placeholder="ID">
+          <input type="text" id="nuevoNombre" class="form-control mb-2" placeholder="Nombre">
+          <select id="nuevoEstado" class="form-control mb-2">
+            <option value="pendiente">Pendiente</option>
+            <option value="transcrito">Transcrito</option>
+          </select>
+          <input type="date" id="nuevaFecha" class="form-control mb-2">
+          <span><i class="fa-solid fa-link me-1"></i> URL (Automática)</span>
+          <input type="text" id="nuevaUrl" class="form-control mb-3" readonly style="font-size: 0.85rem;">
+          <textarea id="nuevoMeta" class="form-control" placeholder="Meta descripción"></textarea>
+          <span><i class="fa-solid fa-image me-1"></i> URL Imagen</span>
+          <input type="text" id="nuevaImagen" class="form-control mb-3" placeholder="URL de la imagen (o se generará auto)">
+        </div>
+        <div class="col-md-6">
+          <textarea id="nuevoBlog" class="form-control mb-2" rows="5" placeholder="Texto plano"></textarea>
+          <button class="btn btn-sm btn-secondary mb-2" onclick="convertirNuevoHtml()">
+            <i class="fa-solid fa-wand-sparkles me-1"></i> Convertir HTML
+          </button>
+          <textarea id="nuevoBlogHtml" class="form-control" rows="5" readonly></textarea>
+        </div>
       </div>
-          <div class="col-md-6">
-              <textarea id="nuevoBlog" class="form-control mb-2" rows="5" placeholder="Texto plano"></textarea>
-              <button class="btn btn-sm btn-secondary mb-2" onclick="convertirNuevoHtml()">Convertir HTML</button>
-              <textarea id="nuevoBlogHtml" class="form-control" rows="5" readonly></textarea>
-          </div>
-      </div>
-      <button class="btn btn-primary w-100 mt-3" onclick="agregarNuevoDato()">Guardar</button>
+      <button class="btn btn-primary w-100 mt-3" onclick="agregarNuevoDato()">
+        <i class="fa-solid fa-floppy-disk me-1"></i> Guardar
+      </button>
     </div>
   </div>
 
-
-
-<div id="csvPreviewModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center;">
+  <!-- Modal: Preview CSV -->
+  <div id="csvPreviewModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:10000; justify-content:center; align-items:center;">
     <div class="modal-contenido ios-card" style="width:90%; max-width:800px; max-height:90vh; overflow-y:auto; padding:2rem; border-radius:15px;">
-        
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>📊 Previsualización de Importación</h3>
-            <button class="btn-close" id="csvPrevClose"></button>
-        </div>
-
-        <div id="csvPrevErrors" class="alert alert-danger d-none"></div>
-
-        <div class="table-responsive mb-3" style="max-height: 300px;">
-            <table id="csvPreviewTable" class="table table-sm table-striped">
-                <thead></thead>
-                <tbody></tbody>
-            </table>
-        </div>
-
-        <div id="csvImportProgress" class="progress mb-3 d-none" style="height: 25px;">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;">0%</div>
-        </div>
-        <div id="csvImportStatus" class="text-center small mb-2"></div>
-
-        <div id="csvImportSummary" class="alert alert-info d-none"></div>
-
-        <div class="d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" id="csvPrevCancel">Cancelar</button>
-            <button class="btn btn-primary" id="csvPrevImport" disabled>🚀 Iniciar Carga a Firestore</button>
-        </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3><i class="fa-solid fa-table me-1"></i> Previsualización de Importación</h3>
+        <button class="btn-close" id="csvPrevClose"></button>
+      </div>
+      <div id="csvPrevErrors" class="alert alert-danger d-none"></div>
+      <div class="table-responsive mb-3" style="max-height: 300px;">
+        <table id="csvPreviewTable" class="table table-sm table-striped">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="csvImportProgress" class="progress mb-3 d-none" style="height: 25px;">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;">0%</div>
+      </div>
+      <div id="csvImportStatus" class="text-center small mb-2"></div>
+      <div id="csvImportSummary" class="alert alert-info d-none"></div>
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-secondary" id="csvPrevCancel">Cancelar</button>
+        <button class="btn btn-primary" id="csvPrevImport" disabled>
+          <i class="fa-solid fa-rocket me-1"></i> Iniciar Carga a Firestore
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 
-
-<div id="modalConfirmarEliminar" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:11000; justify-content:center; align-items:center;">
+  <!-- Modal: Confirmar Eliminar -->
+  <div id="modalConfirmarEliminar" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:11000; justify-content:center; align-items:center;">
     <div class="modal-contenido ios-card text-center" style="background:white; padding:2.5rem; border-radius:15px; max-width:400px; width:90%;">
-        <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
-        <h3>¿Eliminar blog?</h3>
-        <p class="text-muted">Esta acción no se puede deshacer. El blog será borrado permanentemente de Firestore.</p>
-        
-        <div class="d-flex justify-content-center gap-2 mt-4">
-            <button class="btn btn-secondary w-50" onclick="cerrarModalEliminar()">Cancelar</button>
-            <button class="btn btn-danger w-50" onclick="eliminarFilaConfirmado()">Eliminar</button>
-        </div>
+      <i class="fa-solid fa-triangle-exclamation fa-3x text-warning mb-3"></i>
+      <h3>¿Eliminar blog?</h3>
+      <p class="text-muted">Esta acción no se puede deshacer. El blog será borrado permanentemente de Firestore.</p>
+      <div class="d-flex justify-content-center gap-2 mt-4">
+        <button class="btn btn-secondary w-50" onclick="cerrarModalEliminar()">Cancelar</button>
+        <button class="btn btn-danger w-50" onclick="eliminarFilaConfirmado()">
+          <i class="fa-solid fa-trash me-1"></i> Eliminar
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>   
-
-<!-- DataTables Bootstrap 5 JS -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
-<!-- Firestore -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<!-- Tu script -->
-<script src="js/modules/firebase-init.js"></script>
-<script src="js/modules/notificaciones.js"></script>
-<script type="module" src="js/modules/blog-utils.js"></script>
-<script type="module" src="js/modules/blog-admin.js"></script>
-<script type="module" src="js/modules/blog-creador.js"></script>
-<script type="module" src="js/modules/blog-redactor.js"></script>
-<script src="js/modules/modales.js"></script>
-<script src="js/modules/tabs.js"></script>
-<script type="module" src="js/modules/checkAuth.js"></script>
-<script src="js/modules/permisos-tabs.js"></script>
-<script src="js/modules/verificar-tabs.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="js/modules/firebase-init.js"></script>
+  <script src="js/modules/notificaciones.js"></script>
+  <script type="module" src="js/modules/blog-utils.js"></script>
+  <script type="module" src="js/modules/blog-admin.js"></script>
+  <script type="module" src="js/modules/blog-creador.js"></script>
+  <script type="module" src="js/modules/blog-redactor.js"></script>
+  <script src="js/modules/modales.js"></script>
+  <script src="js/modules/tabs.js"></script>
+  <script type="module" src="js/modules/checkAuth.js"></script>
+  <script src="js/modules/permisos-tabs.js"></script>
+  <script src="js/modules/verificar-tabs.js"></script>
 </body>
 </html>
