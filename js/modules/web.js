@@ -725,6 +725,7 @@ function renderizarFila(secUid, fila, fi) {
 
 function renderizarCol(secUid, filaUid, col) {
   const cssB = webBiblioteca.css.map(p => p.codigo).join('\n');
+  const jsB  = webBiblioteca.js.map(p => p.codigo).join('\n');
   const bloquesHTML = col.bloques.length
     ? col.bloques.map((b, bi) => `
         <div class="maq-bloque ${maqSeleccionado?.bloqueUid===b.uid?'seleccionado':''}"
