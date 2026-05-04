@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Objetivos</title>
+  <link rel="icon" href="https://djoyasweb.github.io/asistente/img/FaviconSoporte.jpg" type="image/x-icon">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="protegido" data-theme="light">
+  <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar oculta-permisos" id="sidebar">
+    <div>
+      <h2 class="cabecera-bar" onclick="toggleSidebar()" data-tooltip="Dashboard">
+        <span class="icon"><i class="fas fa-bars"></i></span>
+        <span class="label">
+          <img src="https://djoyasweb.github.io/asistente/img/logo.png" width="90px">
+        </span>
+      </h2>
+      <nav>
+        <a href="dashboard.html" data-tab="dashboard" data-tooltip="Inicio" class="menu-item">
+          <span class="icon"><i class="fas fa-home"></i></span>
+          <span class="label">Inicio</span>
+        </a>
+        <div class="menu-group" data-group="catalogo">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Catálogo">
+            <span class="icon"><i class="fa-regular fa-address-card"></i></span>
+            <span class="label">Catálogo</span>
+          </a>
+          <div class="submenu">
+            <a href="catalogo.html" data-tab="catalogo" class="submenu-item">Catálogo General</a>
+          </div>
+        </div>
+        <div class="menu-group" data-group="contenidos">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Contenidos">
+            <span class="icon"><i class="fa-solid fa-photo-film"></i></span>
+            <span class="label">Contenidos</span>
+          </a>
+          <div class="submenu">
+            <a href="blog.html" data-tab="blog" class="submenu-item">DJOYAS Blog</a>
+            <a href="inspira.html" data-tab="inspira" class="submenu-item">DJOYAS Inspira</a>
+          </div>
+        </div>
+        <div class="menu-group" data-group="planillas">
+          <a href="#" class="menu-toggle menu-item" data-tooltip="Planillas">
+            <span class="icon"><i class="fa-solid fa-file-excel"></i></span>
+            <span class="label">Planillas</span>
+          </a>
+          <div class="submenu">
+            <a href="#" data-tab="cotizar" class="submenu-item">Cotizar</a>
+            <a href="productos.html" data-tab="productos" class="submenu-item">Recategorizar</a>
+            <a href="planilla.html" data-tab="planilla" class="submenu-item">Planilla Presta</a>
+            <a href="mysql.html" data-tab="mysql" class="submenu-item">MySQL</a>
+          </div>
+        </div>
+        <a href="#" data-tab="metricas" data-tooltip="Métricas" class="menu-item">
+          <span class="icon"><i class="fa-solid fa-chart-line"></i></span>
+          <span class="label">Métricas</span>
+        </a>
+        <a href="#" data-tab="cliente" data-tooltip="Atención al Cliente" class="menu-item">
+          <span class="icon"><i class="fa-solid fa-headset"></i></span>
+          <span class="label">Atención al Cliente</span>
+        </a>
+        <a href="objetivos.html" data-tab="objetivos" data-tooltip="Objetivos" class="menu-item">
+          <span class="icon"><i class="fa-solid fa-bullseye"></i></span>
+          <span class="label">Objetivos</span>
+        </a>
+      </nav>
+    </div>
+    <div class="bottom-links">
+      <a href="compresor.html" data-tab="compresor" class="menu-item">
+        <span class="icon"><i class="fa fa-compress"></i></span>
+        <span class="label">Comprimir IMG</span>
+      </a>
+      <a href="tareas.html" data-tab="tareas" class="menu-item">
+        <span class="icon"><i class="fas fa-list-check"></i></span>
+        <span class="label">Tareas Diarias</span>
+      </a>
+      <a href="calendario.html" data-tab="calendario" class="menu-item">
+        <span class="icon"><i class="fa-solid fa-calendar-days"></i></span>
+        <span class="label">Calendario</span>
+      </a>
+      <a href="configuracion.html" data-tab="configuracion" class="menu-item">
+        <span class="icon"><i class="fas fa-cog"></i></span>
+        <span class="label">Configuración</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleMobileSidebar()">☰</button>
+      <div class="profile-section">
+        <img src="https://i.pravatar.cc/300" alt="Perfil" class="profile-img" id="avatar" onclick="toggleDropdown()" />
+        <div class="dropdown-menu" id="dropdown">
+          <div class="user-info">
+            <div class="user-name"><strong id="userName">Juan Pérez</strong></div>
+            <div class="user-email"><span id="userEmail">juan@correo.com</span></div>
+          </div>
+          <div class="theme-switch" onclick="toggleTheme()">
+            <span class="switch-icon" id="theme-icon">🌙</span>
+            <span class="switch-label">Modo oscuro</span>
+          </div>
+          <a href="settings.html">Configuración</a>
+          <a href="#" onclick="logout()">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido de Objetivos -->
+    <div class="content-area container-fluid px-3 px-md-4">
+
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+        <div>
+          <h1 class="h4 mb-1">Objetivos 2025</h1>
+          <p class="text-muted small mb-0">Seguimiento de objetivos estratégicos y tareas</p>
+        </div>
+        <button class="btn btn-dark btn-sm px-3" onclick="abrirResumen()">
+          <i class="fas fa-file-lines me-1"></i> Generar resumen para jefatura
+        </button>
+      </div>
+
+      <!-- Estadísticas globales -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="ios-card text-center py-3">
+            <div class="h2 fw-bold mb-0" id="statTotal">—</div>
+            <div class="small text-muted">Objetivos totales</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="ios-card text-center py-3">
+            <div class="h2 fw-bold mb-0 text-success" id="statCompletadas">—</div>
+            <div class="small text-muted">Completados</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="ios-card text-center py-3">
+            <div class="h2 fw-bold mb-0 text-primary" id="statEnProgreso">—</div>
+            <div class="small text-muted">En progreso</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="ios-card text-center py-3">
+            <div class="h2 fw-bold mb-0 text-warning" id="statAvance">—</div>
+            <div class="small text-muted">Avance global</div>
+            <div class="progress mt-2" style="height:4px">
+              <div class="progress-bar bg-warning" id="barAvanceGlobal" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pilares (generados por JS) -->
+      <div id="pilaresContainer"></div>
+
+    </div>
+
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+      <div id="toast-container"></div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: DETALLE DE OBJETIVO ===== -->
+  <div class="modal-overlay" id="modalDetalleObjetivo" style="display:none;" onclick="if(event.target===this)cerrarModalDetalle()">
+    <div class="modal-contenido" style="max-width:580px;width:95%;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <div style="flex:1;min-width:0">
+          <h3 class="mb-0 fs-5" id="modalTituloTarea" style="white-space:normal">—</h3>
+          <small class="text-muted" id="modalSubtituloTarea">—</small>
+        </div>
+        <button class="btn-close ms-3" onclick="cerrarModalDetalle()"></button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:1.25rem 1.5rem">
+
+        <!-- Estado -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Estado</label>
+          <select class="form-select form-select-sm" id="modalEstado">
+            <option value="pendiente">⏳ Pendiente</option>
+            <option value="en_progreso">🔄 En progreso</option>
+            <option value="completado">✅ Completado</option>
+            <option value="bloqueado">🚫 Bloqueado</option>
+          </select>
+        </div>
+
+        <!-- Progreso basado en tareas -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="fw-semibold">Progreso de tareas</span>
+            <span id="modalProgTexto" class="text-muted">0 de 0 tareas</span>
+          </div>
+          <div class="progress" style="height:10px;border-radius:6px">
+            <div class="progress-bar bg-success" id="modalProgBar" style="width:0%;transition:width 0.3s"></div>
+          </div>
+        </div>
+
+        <hr class="my-3">
+
+        <!-- Lista de tareas -->
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <h6 class="fw-semibold mb-0">Tareas</h6>
+          <span class="badge bg-secondary rounded-pill" id="tareasCountBadge">0</span>
+        </div>
+
+        <div id="tareasListaModal" class="mb-3"></div>
+
+        <!-- Agregar nueva tarea -->
+        <div class="d-flex gap-2">
+          <input type="text" class="form-control form-control-sm" id="nuevaTareaInput"
+                 placeholder="Nueva tarea..."
+                 onkeydown="if(event.key==='Enter')agregarTareaModal()">
+          <button class="btn btn-outline-dark btn-sm px-3" onclick="agregarTareaModal()">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="cerrarModalDetalle()">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarModalDetalle()">
+          <i class="fas fa-save me-1"></i> Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: RESUMEN PARA JEFATURA ===== -->
+  <div class="modal-overlay" id="modalResumenObjetivos" style="display:none;" onclick="if(event.target===this)cerrarModalResumen()">
+    <div class="modal-contenido" style="max-width:650px;width:95%;max-height:90vh;display:flex;flex-direction:column">
+      <div class="modal-header">
+        <h3 class="mb-0 fs-5"><i class="fas fa-file-lines me-2"></i>Resumen para jefatura</h3>
+        <button class="btn-close" onclick="cerrarModalResumen()"></button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:1.25rem 1.5rem">
+        <p class="text-muted small mb-2">Copia este texto y compártelo directamente.</p>
+        <textarea class="form-control font-monospace" id="resumenTexto" rows="20" readonly
+                  style="font-size:0.78rem;resize:none"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="cerrarModalResumen()">Cerrar</button>
+        <button class="btn btn-primary" onclick="copiarResumen()">
+          <i class="fas fa-copy me-1"></i> Copiar texto
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/modules/modales.js"></script>
+  <script src="js/modules/firebase-init.js"></script>
+  <script type="module" src="js/modules/checkAuth.js"></script>
+  <script src="js/modules/tabs.js"></script>
+  <script src="js/modules/permisos-tabs.js"></script>
+  <script src="js/modules/verificar-tabs.js"></script>
+  <script src="js/modules/objetivos.js"></script>
+</body>
+</html>
