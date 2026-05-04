@@ -193,7 +193,7 @@ function renderPilarCard(pilar) {
   }).join('');
 
   return `
-    <div class="ios-card mb-4" style="border-left:4px solid ${pilar.color}">
+    <div class="ios-card mb-4">
       <div class="d-flex align-items-start gap-3 mb-3">
         <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
              style="width:42px;height:42px;background:${pilar.color}22">
@@ -312,7 +312,7 @@ function renderTareasModal() {
 
   container.innerHTML = lista.map(t => `
     <div class="d-flex align-items-center gap-2 mb-2 px-3 py-2 rounded"
-         style="background:var(--surface-1,#f8f9fa)">
+         style="background:var(--surface-2)">
       <input type="checkbox" class="form-check-input flex-shrink-0" id="chk_${t.id}"
              ${t.completada ? 'checked' : ''}
              onchange="toggleTareaModal('${t.id}')">
