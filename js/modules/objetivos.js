@@ -275,8 +275,9 @@ function abrirModalDetalle(tareaId) {
 
   // Copia profunda para edición temporal
   estadoModal = {
-    estado: d.estado,
-    tareas: (d.tareas || []).map(t => ({ ...t })),
+    estado:      d.estado,
+    tareas:      (d.tareas      || []).map(t => ({ ...t })),
+    comentarios: (d.comentarios || []).map(c => ({ ...c })),
   };
 
   document.getElementById('modalTituloTarea').textContent    = def.tarea;
@@ -284,7 +285,9 @@ function abrirModalDetalle(tareaId) {
   document.getElementById('modalEstado').value               = d.estado;
 
   renderTareasModal();
-  document.getElementById('nuevaTareaInput').value = '';
+  renderComentariosModal();
+  document.getElementById('nuevaTareaInput').value      = '';
+  document.getElementById('nuevoComentarioInput').value = '';
   document.getElementById('modalDetalleObjetivo').style.display = 'flex';
 }
 
@@ -366,6 +369,55 @@ function eliminarTareaModal(tareaId) {
   renderTareasModal();
 }
 
+// ============================================================
+// COMENTARIOS
+// ============================================================
+function renderComentariosModal() {
+  const lista = estadoModal.comentarios;
+  document.getElementById('comentariosCountBadge').textContent = lista.length;
+
+  const container = document.getElementById('comentariosListaModal');
+  if (!lista.length) {
+    container.innerHTML = '<p class="text-muted small fst-italic">Sin comentarios aún.</p>';
+    return;
+  }
+
+  container.innerHTML = [...lista].reverse().map(c => `
+    <div class="mb-3 p-3 rounded" style="background:var(--surface-2,#f8f9fa);position:relative">
+      <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+        <span class="small text-muted"><i class="fas fa-clock me-1"></i>${formatFecha(c.fecha)}</span>
+        <button class="btn btn-sm btn-link text-danger p-0 flex-shrink-0" style="line-height:1"
+                onclick="eliminarComentario('${c.id}')" title="Eliminar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <p class="mb-0 small" style="white-space:pre-wrap">${c.texto}</p>
+    </div>`).join('');
+}
+
+function agregarComentarioModal() {
+  const input = document.getElementById('nuevoComentarioInput');
+  const texto = input.value.trim();
+  if (!texto) return;
+  estadoModal.comentarios.push({ id: genId(), texto, fecha: new Date().toISOString() });
+  renderComentariosModal();
+  input.value = '';
+  input.focus();
+}
+
+function eliminarComentario(comentarioId) {
+  estadoModal.comentarios = estadoModal.comentarios.filter(c => c.id !== comentarioId);
+  renderComentariosModal();
+}
+
+function formatFecha(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('es-CL', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
 async function guardarModalDetalle() {
   estadoModal.estado = document.getElementById('modalEstado').value;
   progreso[currentTareaId] = { ...estadoModal };
@@ -400,12 +452,17 @@ function abrirResumen() {
 
       if (prg.total) {
         txt += `     Tareas: ${prg.comp}/${prg.total} completadas (${prg.pct}%)\n`;
-        const subs = (d.tareas || []);
-        subs.forEach(sub => {
+        (d.tareas || []).forEach(sub => {
           txt += `       ${sub.completada ? '☑' : '☐'} ${sub.texto}\n`;
         });
       } else {
         txt += `     Sin tareas registradas.\n`;
+      }
+
+      const comentarios = d.comentarios || [];
+      if (comentarios.length) {
+        const ultimo = comentarios[comentarios.length - 1];
+        txt += `     Último comentario (${formatFecha(ultimo.fecha)}): ${ultimo.texto}\n`;
       }
       txt += '\n';
     }
