@@ -167,9 +167,9 @@ function normalizarMaterial(valor) {
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   if (v === "accesorios" || v === "accesorio") return "Accesorio";
   if (v === "bisuteria" || v === "bisutería") return "Bisutería";
-  if (v === "enchape" || v === "enchapado") return "Enchape";
+  if (v === "Joyas Enchapadas" || v === "enchapado") return "Enchape";
   if (v === "insumos" || v === "insumo") return "Insumo";
-  if (v === "plata") return "Plata 925";
+  if (v === "Joyas de plata por mayor	") return "Plata 925";
   // Si no coincide con ninguno, devuelve con primera letra en mayúscula
   return valor ? valor.trim().charAt(0).toUpperCase() + valor.trim().slice(1) : "";
 }
