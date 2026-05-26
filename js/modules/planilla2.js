@@ -162,6 +162,18 @@ function safeName(name) {
   return String(name || '').replace(/[\\/:*?"<>|#%&{}$!'@+`|=]/g, '_').replace(/\s+/g, '_').slice(0, 150);
 }
 
+function normalizarMaterial(valor) {
+  const v = (valor ?? "").toString().trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (v === "accesorios" || v === "accesorio") return "Accesorio";
+  if (v === "bisuteria" || v === "bisutería") return "Bisutería";
+  if (v === "enchape" || v === "enchapado") return "Enchape";
+  if (v === "insumos" || v === "insumo") return "Insumo";
+  if (v === "plata") return "Plata 925";
+  // Si no coincide con ninguno, devuelve con primera letra en mayúscula
+  return valor ? valor.trim().charAt(0).toUpperCase() + valor.trim().slice(1) : "";
+}
+
 function fechaDDMMYY(date = new Date()) {
   const dd = String(date.getDate()).padStart(2, '0');
   const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -289,8 +301,14 @@ function leerExcelDesdeFilaA(file) {
       } else {
         const k   = buscarColumnaID(row, ["producto","material"]) || "PRODUCTO MATERIAL";
         const raw = (row[k] || "").toString().trim().toLowerCase();
+        // Normalizar el valor de PRODUCTO MATERIAL a la forma canónica
+        const matNormalizado = normalizarMaterial(row[k] || "");
+        if (matNormalizado) {
+          row["PRODUCTO MATERIAL"] = matNormalizado;
+          row["producto_material"] = matNormalizado;
+        }
         if (raw.includes("enchape")) row["Categoría principal"] = "ENCHAPADO";
-        else if (raw.includes("accesorios")) row["Categoría principal"] = "ACCESORIOS";
+        else if (raw.includes("accesorios") || raw === "accesorio") row["Categoría principal"] = "ACCESORIOS";
         else if (raw.includes("plata")) row["Categoría principal"] = "Joyas de plata por mayor";
         else row["Categoría principal"] = "";
       }
@@ -429,16 +447,7 @@ function construirCaracteristicas(row) {
   if (peso) partes.push(`Peso: ${peso}`);
 
   if (material) {
-    let mat = material.trim().toLowerCase();
-    const nombreProd = (row["nombre_producto"] || row["NOMBRE PRODUCTO"] || "").toLowerCase();
-    if (mat === "plata") mat = "Plata 925";
-    else if (mat === "enchape" || mat === "enchapado") {
-      if (nombreProd.includes("oro")) mat = "Enchapado en Oro";
-      else if (nombreProd.includes("plata")) mat = "Enchapado en Plata";
-      else mat = "Enchapado";
-    } else {
-      mat = mat.charAt(0).toUpperCase() + mat.slice(1);
-    }
+    const mat = normalizarMaterial(material);
     partes.push(`Material: ${mat}`);
   }
 
