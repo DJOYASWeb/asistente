@@ -171,7 +171,8 @@ function normalizarMaterial(valor) {
   if (v.includes("bisuteria")) return "Bisutería";
   if (v.includes("insumo")) return "Insumo";
   // Si no coincide con ninguno, devuelve con primera letra en mayúscula
-  return valor ? valor.trim().charAt(0).toUpperCase() + valor.trim().slice(1) : "";
+  const s = valor ? valor.toString().trim() : "";
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
 }
 
 function fechaDDMMYY(date = new Date()) {
@@ -1676,4 +1677,4 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
   return nombresEnchapado[categoriaBase] || "Enchapados";
 }
 
-//
+// v2
