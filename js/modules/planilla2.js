@@ -1677,4 +1677,4 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
   return nombresEnchapado[categoriaBase] || "Enchapados";
 }
 
-// v2
+// v1.2
