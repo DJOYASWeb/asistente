@@ -168,7 +168,7 @@ function normalizarMaterial(valor) {
   if (v.includes("plata")) return "Plata 925";
   if (v.includes("enchapa")) return "Enchape";
   if (v.includes("accesorio")) return "Accesorio";
-  if (v.includes("Bañados")) return "Bañados";
+  if (v.includes("banado")) return "Bañados";
   if (v.includes("insumo")) return "Insumo";
   // Si no coincide con ninguno, devuelve con primera letra en mayúscula
   const s = valor ? valor.toString().trim() : "";
@@ -266,6 +266,13 @@ const MAPA_SUBTIPOS = {
   "28":"Pulsera de Plata","30":"Pulsera con Piedra","74":"Aros Piedra Natural"
 };
 
+// Tipos "Bañados" que deben mantenerse tal cual vienen y no pasar por lógica de subtipo
+const TIPOS_BANADOS = new Set([
+  "Anillos Bañados","Aros Bañados","Cadenas Bañadas","Colgantes Bañados",
+  "Collares Bañados","Conjuntos Bañados","Insumos Bañados",
+  "Joyas Infantiles Bañadas","Pulseras Bañadas","Tobilleras Bañadas"
+].map(normalizarTexto));
+
 // =============================================
 // LEER EXCEL
 // =============================================
@@ -294,9 +301,19 @@ function leerExcelDesdeFilaA(file) {
 
     datos.forEach(row => {
       // Materiales
+      const keyMat = buscarColumnaID(row, ["producto","material"]) || "PRODUCTO MATERIAL";
+      const rawMat = (row[keyMat] || "").toString().trim().toLowerCase();
+      const rawMatNorm = rawMat.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const esBanadoPorTexto = rawMatNorm.includes("banado");
+
       const keyIdMaterial = buscarColumnaID(row, ["id","material"]);
       const idMaterial    = keyIdMaterial ? (row[keyIdMaterial] || "").toString().trim() : "";
-      if (idMaterial && MAPA_MATERIALES[idMaterial]) {
+
+      if (esBanadoPorTexto) {
+        row["Categoría principal"] = "Joyas Bañadas al por Mayor";
+        row["PRODUCTO MATERIAL"] = "Bañados";
+        row["producto_material"] = "Bañados";
+      } else if (idMaterial && MAPA_MATERIALES[idMaterial]) {
         const n = MAPA_MATERIALES[idMaterial];
         row["Categoría principal"] = n; row["PRODUCTO MATERIAL"] = n; row["producto_material"] = n;
       } else {
@@ -321,11 +338,18 @@ function leerExcelDesdeFilaA(file) {
         row["producto_tipo"] = n; row["PRODUCTO TIPO"] = n; row["tipo"] = n;
       }
       // Subtipos
-      const keyIdSubtipo = buscarColumnaID(row, ["id","subtipo"]);
-      const idSubtipo    = keyIdSubtipo ? (row[keyIdSubtipo] || "").toString().trim() : "";
-      if (idSubtipo && MAPA_SUBTIPOS[idSubtipo]) {
-        const n = MAPA_SUBTIPOS[idSubtipo];
-        row["producto_subtipo"] = n; row["PRODUCTO SUBTIPO"] = n; row["subtipo"] = n;
+      const tipoActual   = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString();
+      const esTipoBanado = TIPOS_BANADOS.has(normalizarTexto(tipoActual));
+
+      if (esTipoBanado) {
+        row["producto_subtipo"] = ""; row["PRODUCTO SUBTIPO"] = ""; row["subtipo"] = "";
+      } else {
+        const keyIdSubtipo = buscarColumnaID(row, ["id","subtipo"]);
+        const idSubtipo    = keyIdSubtipo ? (row[keyIdSubtipo] || "").toString().trim() : "";
+        if (idSubtipo && MAPA_SUBTIPOS[idSubtipo]) {
+          const n = MAPA_SUBTIPOS[idSubtipo];
+          row["producto_subtipo"] = n; row["PRODUCTO SUBTIPO"] = n; row["subtipo"] = n;
+        }
       }
       const valorFinalLower = (row["producto_subtipo"] || row["PRODUCTO SUBTIPO"] || "").toString().trim().toLowerCase();
       if (valorFinalLower === "enchapado en oro" || valorFinalLower === "enchapado en plata") {
@@ -426,10 +450,17 @@ function construirCaracteristicas(row) {
       tipo = `${base} ${base.toLowerCase().endsWith("as") ? "Enchapadas" : "Enchapados"}`;
     }
     partes.push(`Categoría: ${tipo}`);
+
     const nombreProducto   = (row["NOMBRE PRODUCTO"] || row["nombre_producto"] || "").toString();
     let categoriaDetectada = (row["producto_tipo"] || row["PRODUCTO TIPO"] || "").toString().toLowerCase()
       .replace(" enchapado","").replace(" enchapados","").trim();
-    const tipoProductoFinal = obtenerTipoDeProducto(nombreProducto, categoriaDetectada, row["PRODUCTO SUBTIPO"], row["PRODUCTO TIPO"]);
+
+    let tipoProductoFinal;
+    if (TIPOS_BANADOS.has(normalizarTexto(tipoProducto))) {
+      tipoProductoFinal = tipoProducto.trim(); // se mantiene tal cual viene
+    } else {
+      tipoProductoFinal = obtenerTipoDeProducto(nombreProducto, categoriaDetectada, row["PRODUCTO SUBTIPO"], row["PRODUCTO TIPO"]);
+    }
     partes.push(`Tipo de Producto: ${tipoProductoFinal}`);
   }
 
@@ -1677,4 +1708,4 @@ function obtenerTipoDeProducto(nombre, categoriaBase, subtipoOriginal, categoria
   return nombresEnchapado[categoriaBase] || "Enchapados";
 }
 
-// v1.2
+// v1.3
