@@ -230,8 +230,7 @@ function buscarColumnaID(row, palabrasClave, palabrasExcluir = []) {
   });
 }
 
-const MAPA_MATERIALES = { "13":"Accesorios","11":"Joyas de plata por mayor","12":"Joyas Enchapadas" };
-
+const MAPA_MATERIALES = { "13":"Accesorios","11":"Joyas de plata por mayor","12":"Joyas Enchapadas","15":"Bañados" };
 const MAPA_TIPOS = {
   "19":"Anillos de Plata","33":"Anillos Enchapados en Oro y Plata","20":"Aros de Plata",
   "32":"Aros Enchapados en Oro y Plata","43":"Bolsas","24":"Cadenas de Plata",
@@ -300,26 +299,23 @@ function leerExcelDesdeFilaA(file) {
     });
 
     datos.forEach(row => {
-      // Materiales
-      const keyMat = buscarColumnaID(row, ["producto","material"]) || "PRODUCTO MATERIAL";
-      const rawMat = (row[keyMat] || "").toString().trim().toLowerCase();
-      const rawMatNorm = rawMat.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const esBanadoPorTexto = rawMatNorm.includes("banado");
-
+    // Materiales
       const keyIdMaterial = buscarColumnaID(row, ["id","material"]);
       const idMaterial    = keyIdMaterial ? (row[keyIdMaterial] || "").toString().trim() : "";
 
-      if (esBanadoPorTexto) {
-        row["Categoría principal"] = "Joyas Bañadas al por Mayor";
-        row["PRODUCTO MATERIAL"] = "Bañados";
-        row["producto_material"] = "Bañados";
-      } else if (idMaterial && MAPA_MATERIALES[idMaterial]) {
+      if (idMaterial && MAPA_MATERIALES[idMaterial]) {
         const n = MAPA_MATERIALES[idMaterial];
-        row["Categoría principal"] = n; row["PRODUCTO MATERIAL"] = n; row["producto_material"] = n;
+        if (n === "Bañados") {
+          row["Categoría principal"] = "Joyas Bañadas al por Mayor";
+          row["PRODUCTO MATERIAL"] = "Bañados";
+          row["producto_material"] = "Bañados";
+        } else {
+          row["Categoría principal"] = n; row["PRODUCTO MATERIAL"] = n; row["producto_material"] = n;
+        }
       } else {
-        const k   = buscarColumnaID(row, ["producto","material"]) || "PRODUCTO MATERIAL";
+        const k   = buscarColumnaID(row, ["producto","material"], ["id"]) || "PRODUCTO MATERIAL";
         const raw = (row[k] || "").toString().trim().toLowerCase();
-        // Normalizar el valor de PRODUCTO MATERIAL a la forma canónica
+        const rawNorm = raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const matNormalizado = normalizarMaterial(row[k] || "");
         if (matNormalizado) {
           row["PRODUCTO MATERIAL"] = matNormalizado;
@@ -327,6 +323,7 @@ function leerExcelDesdeFilaA(file) {
         }
         if (raw.includes("enchape")) row["Categoría principal"] = "ENCHAPADO";
         else if (raw.includes("accesorios") || raw === "accesorio") row["Categoría principal"] = "ACCESORIOS";
+        else if (rawNorm.includes("banado")) row["Categoría principal"] = "Joyas Bañadas al por Mayor";
         else if (raw.includes("plata")) row["Categoría principal"] = "Joyas de plata por mayor";
         else row["Categoría principal"] = "";
       }
