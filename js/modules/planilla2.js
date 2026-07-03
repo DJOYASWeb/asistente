@@ -168,7 +168,7 @@ function normalizarMaterial(valor) {
   if (v.includes("plata")) return "Plata 925";
   if (v.includes("enchapa")) return "Enchape";
   if (v.includes("accesorio")) return "Accesorio";
-  if (v.includes("bisuteria")) return "Bisutería";
+  if (v.includes("Bañados")) return "Bañados";
   if (v.includes("insumo")) return "Insumo";
   // Si no coincide con ninguno, devuelve con primera letra en mayúscula
   const s = valor ? valor.toString().trim() : "";
